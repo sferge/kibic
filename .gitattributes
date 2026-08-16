@@ -1,0 +1,18 @@
+# .gitattributes
+
+# Alapértelmezés: a git döntse el, mi szöveg, és normalizálja LF-re
+* text=auto
+
+# KIVÉTELEK: a jegyzőkönyvek bájtra pontosan maradjanak,
+# mert a fájl-hash az importálás deduplikációs kulcsa
+*.pbn -text
+*.lin -text
+
+# SQL-mentések: szintén érintetlenül
+*.sql -text
+
+# Bináris fájlok (ha később jönnek)
+*.png binary
+*.jpg binary
+*.pt  binary
+*.gguf binary
