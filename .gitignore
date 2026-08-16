@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+partik/          # a nagy jegyzőkönyv-gyűjtemény ne menjen a repóba
+naplo/
+*.log
