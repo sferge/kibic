@@ -4,5 +4,6 @@ __pycache__/
 .venv/
 .env
 partik/          # a nagy jegyzőkönyv-gyűjtemény ne menjen a repóba
+tanpartik/       # a nagy jegyzőkönyv-gyűjtemény ne menjen a repóba
 naplo/
 *.log
