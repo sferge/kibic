@@ -22,8 +22,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from . import pbn
-from .domain import ERTEKELOK, ULESEK, ertekeld
-from .pontozas import pontszam_ns
+from ..domain import ERTEKELOK, ULESEK, ertekeld
+from ..domain import pontszam_ns
 
 
 # --- Statisztika ------------------------------------------------------
@@ -42,6 +42,8 @@ class Statisztika:
     pont_egyezik: int = 0
     pont_elter: int = 0
     pont_nincs: int = 0
+    alertes_licit: int = 0
+    hianyos_cimkek: Counter = field(default_factory=Counter)
     jatekosok: Counter = field(default_factory=Counter)
     figyelmeztetesek: list[str] = field(default_factory=list)
     elteresek: list[str] = field(default_factory=list)
@@ -54,7 +56,8 @@ class Statisztika:
         p(f"  Érvényes kiosztás:        {self.ervenyes_leosztas}"
           f"   (hibás: {self.hibas_leosztas})")
         p(f"  Egyedi leosztás:          {self.egyedi_leosztas}")
-        p(f"  Van licitmenet:           {self.van_licit}")
+        p(f"  Van licitmenet:           {self.van_licit}"
+          f"   (alertelt licit: {self.alertes_licit})")
         p(f"  Van lejátszás:            {self.van_lejatszas}"
           f"   (teljes: {self.teljes_lejatszas}, claim: {self.claim})")
         p("-" * 62)
@@ -70,10 +73,15 @@ class Statisztika:
         p(f"  Játékosok ({len(self.jatekosok)}):")
         for nev, db in self.jatekosok.most_common(12):
             p(f"    {nev:<24} {db:>4} játszma")
+        if self.hianyos_cimkek:
+            p("-" * 62)
+            p("  KIOSZTÁS NÉLKÜLI REKORDOK címkemintái (parser-diagnosztika):")
+            for minta, db in self.hianyos_cimkek.most_common(8):
+                p(f"    {db:>5}x  [{minta}]")
         if self.figyelmeztetesek:
             p("-" * 62)
             p(f"  Figyelmeztetés ({len(self.figyelmeztetesek)}):")
-            for f in self.figyelmeztetesek[:15]:
+            for f in self.figyelmeztetesek[:8]:
                 p(f"    ~ {f}")
         p("=" * 62)
 
@@ -99,8 +107,11 @@ def elemez(utak: list[str]) -> tuple[Statisztika, list[pbn.PbnJatszma]]:
 
             if j.leosztas is None:
                 st.hibas_leosztas += 1
+                # Diagnosztika: MILYEN címkéi vannak a hiányos rekordnak?
+                st.hianyos_cimkek[",".join(sorted(j.cimkek)[:6]) or "(nincs címke)"] += 1
                 continue
             st.ervenyes_leosztas += 1
+            st.alertes_licit += sum(1 for b in j.licit if b.get("alert"))
             if j.leosztas.hash not in hashek:
                 hashek.add(j.leosztas.hash)
                 st.egyedi_leosztas += 1
@@ -348,10 +359,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("utak", nargs="+", help="PBN-fájlok (glob is)")
     ap.add_argument("--dry-run", action="store_true",
                     help="Csak elemzés és statisztika, adatbázis nélkül")
-    ap.add_argument("--db", default="kibic")
+    ap.add_argument("--db", default="bridzs")
     ap.add_argument("--host", default="localhost")
-    ap.add_argument("--user", default="kibic")
-    ap.add_argument("--jelszo", default="epistemic")
+    ap.add_argument("--user", default="root")
+    ap.add_argument("--jelszo", default="")
     ap.add_argument("--cimke", default=None,
                     help="Címke a beszúrt játszmákra, pl. arany_keszlet")
     ap.add_argument("--nyerset-ments", action="store_true",

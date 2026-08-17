@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .domain import beliben, vonal
+from .kartya import beliben, vonal
 
 # Ütésérték szintenként
 UTESERTEK = {"C": 20, "D": 20, "H": 30, "S": 30, "NT": 30}

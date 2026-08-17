@@ -1,0 +1,133 @@
+% Discarding losers - Vesztõk eldobása
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "EW"]
+[Deal "N:QJT85.QJT5.7.AQ7 4.9843.JT32.JT92 K963.A6.KQ86.864 A72.K72.A954.K53"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "4S"]
+[Result "10"]
+[Score "NS +420"]
+[Auction "N"]
+1S Pass 2NT Pass
+3D Pass 4S AP
+[Play "E"]
+CJ C4 C3 CQ
+D2 DK DA D7
+C2 C6 CK CA
+H3 HA H2 HQ
+D3 DQ D4 C7
+S4 S3 S2 SQ
+C9 S6 SA SJ
+CT C8 C5 S5
+H4 S9 S7 ST
+H8 H6 HK HJ
+DT D6 D9 S8
+H9 D8 H7 HT
+DJ SK D5 H5
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "All"]
+[Deal "E:Q8.K9876.AK53.K5 A65.QT5.QJ6.JT92 KJT4.A432.8742.Q 9732.J.T9.A87643"]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4H"]
+[Result "10"]
+[Score "EW +620"]
+[Auction "E"]
+1H Pass 4C Pass
+4H AP
+[Play "S"]
+CJ CQ CA C5
+D6 D2 DT DA
+H5 H2 HJ HK
+HT HA C3 H6
+S5 S4 S2 SQ
+SA ST S3 S8
+DQ D4 D9 DK
+C2 H3 C4 CK
+S6 SK S7 D3
+HQ SJ S9 D5
+DJ D7 C6 H7
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:K7632.AQT3.A53.T J.K42.KQJT98.654 A854.876.74.KQJ2 QT9.J95.62.A9873"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result "10"]
+[Score "NS +420"]
+[Auction "S"]
+1S 2D 3D =1= Pass
+4S Pass Pass Pass
+[Note "1:3+ !S, invit+"]
+[Play "W"]
+DK D4 D2 DA
+SJ S4 S9 SK
+C4 C2 CA CT
+H2 H6 H5 HA
+D8 SA ST S2
+C5 CK C3 H3
+C6 CQ C7 HT
+D9 CJ C8 HQ
+DT D7 D6 D3
+DQ S5 H9 D5
+DJ S8 SQ S3
+H4 H7 HJ S6
+HK H8 C9 S7
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "EW"]
+[Deal "W:A532.K7542.Q6.K5 KJT8.JT9.A72.J87 6.A83.KJT54.Q643 Q974.Q6.983.AT92"]
+[Scoring ""]
+[Declarer "W"]
+[Contract "4H"]
+[Result "10"]
+[Score "EW +620"]
+[Auction "W"]
+1H Pass 1NT Pass
+2C Pass 3H Pass
+4H Pass Pass Pass
+[Play "N"]
+HJ H3 H6 HK
+D2 D4 D3 DQ
+DA D5 D8 D6
+HT HA HQ H2
+D7 DK D9 S2
+H9 DJ C2 S3
+SK S6 S4 SA
+S8 H8 S7 S5
+ST DT C9 C5
+C7 C3 CA CK

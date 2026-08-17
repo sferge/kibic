@@ -17,10 +17,17 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from .domain import Lap, Leosztas, ULESEK, kovetkezo_ules
-from .pontozas import Kontraktus
+from ..domain import Lap, Leosztas, ULESEK, kovetkezo_ules
+from ..domain import Kontraktus
 
 TAG_RE = re.compile(r'^\s*\[\s*(\w+)\s+"(.*)"\s*\]\s*$')
+
+# Címkék, amelyek egy rekordon belül TÖBBSZÖR is előfordulhatnak.
+# A [Note] a licitmagyarázatokat (alert-szövegeket) hordozza, rekordonként
+# akárhányat. Ha ezeket rekordhatárnak vennénk, minden alertes parti
+# szétesne — ez volt a "Hiányzó [Deal] címke" figyelmeztetések forrása.
+ISMETELHETO_CIMKEK = {"Note"}
+NOTE_RE = re.compile(r'^\s*(\d+)\s*:\s*(.*)$', re.DOTALL)
 
 BELI_TERKEP = {
     "NONE": "NONE", "LOVE": "NONE", "-": "NONE", "": "NONE", "?": "NONE",
@@ -39,6 +46,7 @@ class PbnJatszma:
     lapok: list[str] = field(default_factory=list)   # IDŐRENDBEN
     claim_utes: int | None = None
     claim_utesszam: int | None = None
+    jegyzetek: dict[str, str] = field(default_factory=dict)
     kontraktus: Kontraktus | None = None
     felvevo: str | None = None
     eredmeny_utes: int | None = None
@@ -71,17 +79,29 @@ def utes_gyoztese(lapok: list[Lap], kezdo: str, aduszin: str | None) -> str:
     return gyoztes
 
 
-def _licit_parse(sorok: list[str], kezdo: str) -> list[dict]:
+def _licit_parse(sorok: list[str], kezdo: str,
+                 jegyzetek: dict[str, str] | None = None) -> list[dict]:
     """
     A licitmenet felolvasása. A tokenek balról jobbra, soronként,
-    a kezdőtől óramutató szerint. A '=N=' jegyzetjelölők és a
-    'AP' (all pass) rövidítés kezelve.
+    a kezdőtől óramutató szerint.
+
+    A '=N=' jelölők az előző licithez tartozó magyarázatra (alertre)
+    hivatkoznak a [Note] címkék közül. Ezeket NEM dobjuk el: ez a
+    licitrendszer-tudásbázis és az ágensprofil legértékesebb nyersanyaga.
     """
-    jegyzet_re = re.compile(r"^=\d+=$")
+    jegyzetek = jegyzetek or {}
+    jegyzet_re = re.compile(r"^=(\d+)=$")
     tokenek: list[str] = []
+    jegyzet_a_tokenhez: dict[int, list[str]] = {}
     for sor in sorok:
         for t in sor.split():
-            if jegyzet_re.match(t) or t in ("*",):
+            m = jegyzet_re.match(t)
+            if m:
+                # az ELŐZŐ tokenhez tartozik
+                if tokenek:
+                    jegyzet_a_tokenhez.setdefault(len(tokenek) - 1, []).append(m.group(1))
+                continue
+            if t == "*":
                 continue
             tokenek.append(t)
 
@@ -103,7 +123,12 @@ def _licit_parse(sorok: list[str], kezdo: str) -> list[dict]:
             norm = "XX"
         else:
             norm = tf
-        licit.append({"ules": u, "licit": norm})
+        elem = {"ules": u, "licit": norm}
+        for szam in jegyzet_a_tokenhez.get(len(licit), []):
+            if szam in jegyzetek:
+                elem["alert"] = True
+                elem["magyarazat"] = jegyzetek[szam]
+        licit.append(elem)
         u = kovetkezo_ules(u)
     return licit
 
@@ -156,8 +181,8 @@ def _lejatszas_parse(sorok: list[str], kezdo: str, aduszin: str | None,
 
 
 def _rekord_feldolgoz(cimkek: dict[str, str], szakaszok: dict[str, tuple[str, list[str]]],
-                      ) -> PbnJatszma:
-    j = PbnJatszma(cimkek=dict(cimkek))
+                      jegyzetek: dict[str, str] | None = None) -> PbnJatszma:
+    j = PbnJatszma(cimkek=dict(cimkek), jegyzetek=dict(jegyzetek or {}))
     fig = j.figyelmeztetesek
 
     oszto = (cimkek.get("Dealer") or "N").strip().upper()[:1] or "N"
@@ -198,7 +223,7 @@ def _rekord_feldolgoz(cimkek: dict[str, str], szakaszok: dict[str, tuple[str, li
     # -- Licit --
     if "Auction" in szakaszok:
         kezdo, sorok = szakaszok["Auction"]
-        j.licit = _licit_parse(sorok, (kezdo or oszto).upper()[:1])
+        j.licit = _licit_parse(sorok, (kezdo or oszto).upper()[:1], j.jegyzetek)
 
     # -- Lejátszás --
     if "Play" in szakaszok:
@@ -223,14 +248,16 @@ def olvas(szoveg: str) -> list[PbnJatszma]:
     jatszmak: list[PbnJatszma] = []
     cimkek: dict[str, str] = {}
     szakaszok: dict[str, tuple[str, list[str]]] = {}
+    jegyzetek: dict[str, str] = {}
     akt_szakasz: str | None = None
     van_tartalom = False
 
     def zar():
-        nonlocal cimkek, szakaszok, akt_szakasz, van_tartalom
+        nonlocal cimkek, szakaszok, jegyzetek, akt_szakasz, van_tartalom
         if van_tartalom and cimkek:
-            jatszmak.append(_rekord_feldolgoz(cimkek, szakaszok))
-        cimkek, szakaszok, akt_szakasz, van_tartalom = {}, {}, None, False
+            jatszmak.append(_rekord_feldolgoz(cimkek, szakaszok, jegyzetek))
+        cimkek, szakaszok, jegyzetek = {}, {}, {}
+        akt_szakasz, van_tartalom = None, False
 
     for nyers in szoveg.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
         sor = nyers.rstrip()
@@ -242,8 +269,17 @@ def olvas(szoveg: str) -> list[PbnJatszma]:
         m = TAG_RE.match(sor)
         if m:
             kulcs, ertek = m.group(1), m.group(2)
-            # Új rekord kezdete: az Event címke újbóli megjelenése,
-            # vagy egy már látott kulcs ismétlődése.
+            # A [Note] címkék rekordon belül ismétlődhetnek: gyűjtjük őket,
+            # és NEM tekintjük rekordhatárnak.
+            if kulcs in ISMETELHETO_CIMKEK:
+                if kulcs == "Note":
+                    mn = NOTE_RE.match(ertek)
+                    if mn:
+                        jegyzetek[mn.group(1)] = mn.group(2).strip()
+                van_tartalom = True
+                akt_szakasz = None
+                continue
+            # Új rekord kezdete: egy már látott kulcs ismétlődése.
             if kulcs in cimkek and van_tartalom:
                 zar()
             cimkek[kulcs] = ertek
