@@ -1,0 +1,508 @@
+# FESU — a fésű (rendszerek/konvenciok/Fésű.docx; KÜZDELMI & VÉDEKEZŐ licitek.doc).
+# 2026-10-22: a YAML-forrás az adatbázissal azonos (schema/015, 026, 027
+# állapota); eddig csak az adatbázisban élt. A paraméterek (FESU_*,
+# BUNTETO_*) a `parameter` táblából jönnek; a PARAM-csomópontok `alap`-ja
+# ugyanaz, mint ott az alapérték (YAML-ból, adatbázis nélkül ez él).
+#
+# Az ellenfél kétszínű licitje után (mindkét színük ismert: I1 < I2), a
+# partner már mutatott színt:
+#   az ő alacsonyabb színük felüllicitje (+I1) = a mi alacsonyabb szabad
+#     színünk (V1): saját szín 5+, vagy a partner színe 3+ (támogatás);
+#   a magasabb (+I2) = a V2 ugyanígy; mindkettő GYENGE (<=8) VAGY GF (13+);
+#   a természetes V1 / V2 = PONTOSAN invit (9-12);
+#   kontra = büntető kapuőr (a döntés a mérlegelőé).
+rendszer:
+  kod: FESU
+  nev: Fésű
+  nev_en: Comb (Hungarian cue-bid scheme)
+  fajta: KONVENCIO
+  csalad: EGYEB
+  verzio: '0.2'
+  leiras: 'Az ellenfél kétszínű licitje után: az ismert színek felüllicitjei a saját színeinket kódolják RANGSORRENDBEN (I1->V1,
+    I2->V2), "leállás vagy gémforsz" jelentéssel; a természetes licit marad a pontos invitnek.'
+fejezetek:
+- fejezet: Teljes fésű
+  szabalyok:
+  - minta: .. (*) +I1
+    kulcs: FESU_CUE_1_SAJAT
+    prioritas: 20
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V1'
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@V1'
+            ki: mi
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@I1'
+            ki: mi
+    feltetel:
+      t: ES
+      gy:
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V1'
+        jobb:
+          t: PARAM
+          kod: FESU_SAJAT_HOSSZ
+          alap: 5
+      - t: VAGY
+        gy:
+        - t: OSSZE
+          op: <=
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    jelentes:
+      hossz:
+        '@V1':
+          min:
+            t: PARAM
+            kod: FESU_SAJAT_HOSSZ
+            alap: 5
+      vagy:
+      - pont:
+          max:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+      - pont:
+          min:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    forsz: EGY_MENET
+    elvaras: DONTS
+    alert: true
+    magyarazat: 'Fésű: az alacsonyabb ismert szín felüllicitje a mi alacsonyabb szabad színünket mutatja. Leállás VAGY gémforsz
+      — a következő licitem dönti el.'
+  - minta: .. (*) +I1
+    kulcs: FESU_CUE_1_FIT
+    prioritas: 20
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V1'
+        - t: MONDVA
+          szin: '@V1'
+          ki: mi
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@I1'
+            ki: mi
+    feltetel:
+      t: ES
+      gy:
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V1'
+        jobb:
+          t: PARAM
+          kod: FESU_FIT_HOSSZ
+          alap: 3
+      - t: VAGY
+        gy:
+        - t: OSSZE
+          op: <=
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    jelentes:
+      hossz:
+        '@V1':
+          min:
+            t: PARAM
+            kod: FESU_FIT_HOSSZ
+            alap: 3
+      vagy:
+      - pont:
+          max:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+      - pont:
+          min:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    forsz: EGY_MENET
+    elvaras: DONTS
+    alert: true
+    magyarazat: 'Fésű: az alacsonyabb ismert szín felüllicitje a partner színének támogatása. Leállás VAGY gémforsz.'
+  - minta: .. (*) +I2
+    kulcs: FESU_CUE_2_SAJAT
+    prioritas: 20
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V2'
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@V2'
+            ki: mi
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@I2'
+            ki: mi
+    feltetel:
+      t: ES
+      gy:
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V2'
+        jobb:
+          t: PARAM
+          kod: FESU_SAJAT_HOSSZ
+          alap: 5
+      - t: VAGY
+        gy:
+        - t: OSSZE
+          op: <=
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    jelentes:
+      hossz:
+        '@V2':
+          min:
+            t: PARAM
+            kod: FESU_SAJAT_HOSSZ
+            alap: 5
+      vagy:
+      - pont:
+          max:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+      - pont:
+          min:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    forsz: EGY_MENET
+    elvaras: DONTS
+    alert: true
+    magyarazat: 'Fésű: az magasabb ismert szín felüllicitje a mi magasabb szabad színünket mutatja. Leállás VAGY gémforsz
+      — a következő licitem dönti el.'
+  - minta: .. (*) +I2
+    kulcs: FESU_CUE_2_FIT
+    prioritas: 20
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V2'
+        - t: MONDVA
+          szin: '@V2'
+          ki: mi
+        - t: NEM
+          gy:
+          - t: MONDVA
+            szin: '@I2'
+            ki: mi
+    feltetel:
+      t: ES
+      gy:
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V2'
+        jobb:
+          t: PARAM
+          kod: FESU_FIT_HOSSZ
+          alap: 3
+      - t: VAGY
+        gy:
+        - t: OSSZE
+          op: <=
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: ERT
+            kod: HCP
+          jobb:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    jelentes:
+      hossz:
+        '@V2':
+          min:
+            t: PARAM
+            kod: FESU_FIT_HOSSZ
+            alap: 3
+      vagy:
+      - pont:
+          max:
+            t: PARAM
+            kod: FESU_GYENGE_MAX
+            alap: 8
+      - pont:
+          min:
+            t: PARAM
+            kod: FESU_GF_MIN
+            alap: 13
+    forsz: EGY_MENET
+    elvaras: DONTS
+    alert: true
+    magyarazat: 'Fésű: az magasabb ismert szín felüllicitje a partner színének támogatása. Leállás VAGY gémforsz.'
+  - minta: .. (*) +V1
+    kulcs: FESU_NAT_1
+    prioritas: 10
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V1'
+    feltetel:
+      t: ES
+      gy:
+      - t: INTERV
+        kif:
+          t: ERT
+          kod: HCP
+        min:
+          t: PARAM
+          kod: FESU_INVIT_MIN
+          alap: 9
+        max:
+          t: PARAM
+          kod: FESU_INVIT_MAX
+          alap: 12
+    jelentes:
+      pont:
+        min:
+          t: PARAM
+          kod: FESU_INVIT_MIN
+          alap: 9
+        max:
+          t: PARAM
+          kod: FESU_INVIT_MAX
+          alap: 12
+      hossz:
+        '@V1':
+          min:
+            t: PARAM
+            kod: FESU_FIT_HOSSZ
+            alap: 3
+    forsz: NEM
+    elvaras: DONTS
+    magyarazat: Természetes, PONTOSAN invit. A gyenge és a gémforsz kéz a fésű-felüllicitre megy.
+  - minta: .. (*) +V2
+    kulcs: FESU_NAT_2
+    prioritas: 10
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: ISMERT_SZINEK
+          ki: p
+          db: 1
+          op: '>='
+        - t: GEM_ALATT
+          szin: '@V2'
+    feltetel:
+      t: ES
+      gy:
+      - t: INTERV
+        kif:
+          t: ERT
+          kod: HCP
+        min:
+          t: PARAM
+          kod: FESU_INVIT_MIN
+          alap: 9
+        max:
+          t: PARAM
+          kod: FESU_INVIT_MAX
+          alap: 12
+    jelentes:
+      pont:
+        min:
+          t: PARAM
+          kod: FESU_INVIT_MIN
+          alap: 9
+        max:
+          t: PARAM
+          kod: FESU_INVIT_MAX
+          alap: 12
+      hossz:
+        '@V2':
+          min:
+            t: PARAM
+            kod: FESU_FIT_HOSSZ
+            alap: 3
+    forsz: NEM
+    elvaras: DONTS
+    magyarazat: Természetes, PONTOSAN invit. A gyenge és a gémforsz kéz a fésű-felüllicitre megy.
+  - minta: .. (*) X
+    kulcs: FESU_X
+    prioritas: 30
+    dontesi_mod: MERLEGELO
+    ha:
+      nyers:
+        t: ES
+        gy:
+        - t: ISMERT_SZINEK
+          ki: ok
+          db: 2
+        - t: NYILATKOZOTT
+          ki: p
+        - t: NEM
+          gy:
+          - t: FIT
+            szin: '@V1'
+            min: 8
+        - t: NEM
+          gy:
+          - t: FIT
+            szin: '@V2'
+            min: 8
+    feltetel:
+      t: ES
+      gy:
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: ERT
+          kod: HCP
+        jobb:
+          t: PARAM
+          kod: BUNTETO_KAPU_MIN
+          alap: 8
+      - t: VAGY
+        gy:
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: SZIN
+            szin: '@I1'
+          jobb:
+            t: PARAM
+            kod: BUNTETO_ADU
+            alap: 4
+        - t: OSSZE
+          op: '>='
+          bal:
+            t: SZIN
+            szin: '@I2'
+          jobb:
+            t: PARAM
+            kod: BUNTETO_ADU
+            alap: 4
+    jelentes:
+      pont:
+        min:
+          t: PARAM
+          kod: BUNTETO_KAPU_MIN
+          alap: 8
+    forsz: NEM
+    elvaras: DONTS
+    magyarazat: Büntető. Elbukik, és megvan hozzá az adum — de hogy megéri-e a saját kontraktusunknál jobban, azt a leosztás
+      mérlegelése dönti el.

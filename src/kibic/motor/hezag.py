@@ -262,8 +262,11 @@ class Hezag:
                                                 self.tar, self.oszto)
         except Exception:                  # noqa: BLE001
             return False
-        return bool(lista) and all(getattr(s, "rendszer_kod", "") == "FOGASKERES"
-                                   or getattr(s, "kulcs", "") == "FOGASKERES" for s, _ in lista)
+        # van fogáskérés-értelmezése, és nincs konkrét (SZABALY) megállapodás
+        # a licitre — az általános elvek (pl. az erős ugrás) nem írják felül
+        fk = [s for s, _ in lista if str(getattr(s, "kulcs", "")).startswith("FOGASKERES")]
+        konkret = [s for s, _ in lista if getattr(s, "szabaly_fajta", "SZABALY") != "ELV"]
+        return bool(fk) and not konkret
 
     def _mondtuk_korabban(self, sz: str) -> bool:
         """A vonalunk a partner utolsó licitje ELŐTT mondta-e már (természetesen) a színt."""
@@ -290,9 +293,25 @@ class Hezag:
         hiany = [sz for sz in self.ellenfel_szinei() if not self.fogas(sz) and sz not in partneri]
         if len(hiany) != 1:
             return None
-        h = self.legolcsobb(hiany[0])
-        # az 1-es szinten nem (ott az új szín természetes)
-        return h if h and h[0] != "1" and _rang(h) < _rang("3NT") else None
+        # csak ha a vonalunk már legalább két saját licitet mondott (nyitás és
+        # válasz) — a válaszoló első licitje az ő színükben fésű vagy
+        # felüllicites emelés (a szerkesztő, 2026-10-22)
+        from ..domain import vonal
+        sajat_licitek = [e for e in self.licitek if vonal(e.get("ules")) == vonal(self.ules)
+                         and _bont(str(e.get("licit", "")).upper())]
+        if len(sajat_licitek) < 2:
+            return None
+        sz = hiany[0]
+        h = self.legolcsobb(sz)
+        if not h:
+            return None
+        # ha csak ÍGÉRTÉK (kontrával), a legolcsóbb licit természetes marad:
+        # a fogáskérés egy szinttel feljebb (1♥-(X)-2♦-(P)-3♠)
+        if not self.allas.mondta(sz, "ok"):
+            h = f"{int(h[0]) + 1}{sz}"
+            if h not in self.legalis:
+                return None
+        return h if h[0] != "1" and _rang(h) < _rang("3NT") else None
 
     def szan_fogas_nelkul(self, ossz: int) -> bool:
         """3NT fogás nélkül is (a szerkesztő, 2026-10-22), ha a fogáskérésre

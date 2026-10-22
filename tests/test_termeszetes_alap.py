@@ -186,10 +186,15 @@ def test_michaels_valaszok(kez, menet, ules, vart):
 # --- 2026-10-22: fogáskérés az ellenfél (kontrával ígért) színében ----------
 
 @pytest.mark.parametrize("kez, menet, ules, vart", [
-    ("T94.AJT96.A7.KT8", "P P 1H X 2D P", "E", "2S"),          # nincs pikkfogás: fogáskérés
-    ("Q652.K82.KQJ84.3", "P P 1H X 2D P 2S P", "W", "3NT"),    # fogással 3NT
-    ("652.K82.KQJ84.A3", "P P 1H X 2D P 2S P", "W", "3D"),     # anélkül a közös fitbe
+    ("T94.AJT96.A7.KT8", "P P 1H X 2D P", "E", "3S"),          # csak ígérték: ugró fogáskérés
+    ("Q652.K82.KQJ84.3", "P P 1H X 2D P 3S P", "W", "3NT"),    # fogással 3NT
+    ("652.K82.KQJ84.A3", "P P 1H X 2D P 3S P", "W", "4D"),     # anélkül a közös fitbe
     ("KJ985.KJ2.A6.J53", "P P 1S 2C 3C P", "E", "4S"),         # a 3♣ itt emelés, nem fogáskérés
 ])
 def test_fogaskeres(kez, menet, ules, vart):
     assert _licit_r(kez, menet, ules, "W") == vart
+
+
+def test_fesu_a_szokatlan_2nt_utan_invit():
+    # 1♦-(2NT): a fésű szerint a természetes 3♦ PONTOSAN invit (9-12)
+    assert _licit_r("K854.Q83.AQ94.75", "P P P 1D 2NT", "S", "E", zona="both") == "3D"
