@@ -11,6 +11,9 @@
 #   a magasabb (+I2) = a V2 ugyanígy; mindkettő GYENGE (<=8) VAGY GF (13+);
 #   a természetes V1 / V2 = PONTOSAN invit (9-12);
 #   kontra = büntető kapuőr (a döntés a mérlegelőé).
+# HATÁR (a szerkesztő, 2026-10-22): a fésű addig él, amíg mindkét színüket
+# legfeljebb a 3-as szinten tudjuk mondani. Két külön ellenfél egy-egy
+# színe után is él (pl. a mi mesterséges szanunk a maradék két színt ígéri).
 rendszer:
   kod: FESU
   nev: Fésű
@@ -49,6 +52,12 @@ fejezetek:
           - t: MONDVA
             szin: '@I1'
             ki: mi
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
@@ -128,6 +137,12 @@ fejezetek:
           - t: MONDVA
             szin: '@I1'
             ki: mi
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
@@ -208,6 +223,12 @@ fejezetek:
           - t: MONDVA
             szin: '@I2'
             ki: mi
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
@@ -287,6 +308,12 @@ fejezetek:
           - t: MONDVA
             szin: '@I2'
             ki: mi
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
@@ -357,6 +384,12 @@ fejezetek:
           op: '>='
         - t: GEM_ALATT
           szin: '@V1'
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
@@ -407,6 +440,12 @@ fejezetek:
           op: '>='
         - t: GEM_ALATT
           szin: '@V2'
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I1'
+          max: 3
+        - t: LEGOLCSOBB_SZINT
+          szin: '@I2'
+          max: 3
     feltetel:
       t: ES
       gy:
