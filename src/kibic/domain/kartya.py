@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Callable, Iterable
 
 # --- Alapkonstansok ---------------------------------------------------
 
@@ -20,8 +20,7 @@ ULESEK = ("N", "E", "S", "W")           # óramutató járása szerint
 ULES_NEV = {"N": "észak", "E": "kelet", "S": "dél", "W": "nyugat"}
 BELIK = ("NONE", "NS", "EW", "ALL")
 
-HCP_TABLA = {"A": 4, "K": 3, "Q": 2, "J": 1}
-KONTROLL_TABLA = {"A": 2, "K": 1}
+# A figurapont-súlyok NEM itt vannak: az ertekelo.definicio adatban.
 
 
 def kovetkezo_ules(ules: str, lepes: int = 1) -> str:
@@ -128,7 +127,7 @@ class Kez:
 
     @property
     def kiegyensulyozott(self) -> bool:
-        """4333, 4432, 5332 — szingli és renonsz nélkül, legfeljebb egy dubló."""
+        """4333, 4432, 5332 — szingli és sikén nélkül, legfeljebb egy dubló."""
         return self.rendezett_alak in ("4-3-3-3", "4-4-3-2", "5-3-3-2")
 
     def __len__(self) -> int:
@@ -138,84 +137,21 @@ class Kez:
         return self.pbn()
 
 
-# --- Értékelők --------------------------------------------------------
+# --- Értékelők ---------------------------------------------------------
 #
-# Az architektúra elve: NEM egyetlen "pontszám" van, hanem értékelő-készlet.
-# A licitrendszer-bejegyzés megnevezi, melyik metrikára hivatkozik.
-# Új értékelő felvétele = új függvény + egy sor az `ertekelo` táblában.
+# ITT NINCSENEK METRIKÁK. A lapértékelők DEFINÍCIÓI adatként élnek
+# (ertekelo.definicio oszlop, pillanatkép: ertekelok.json), és a
+# domain/ertekelo.py értelmezi őket. Ez a szótár futásidőben telik meg.
+#
+# Így egyetlen metrikának EGY forrása van: az adatbázis. Új értékelő
+# felvétele vagy meglévő módosítása nem kódmódosítás.
 
-def ert_hcp(kez: Kez) -> float:
-    """Milton Work figurapont: A=4, K=3, D=2, B=1."""
-    return float(sum(HCP_TABLA.get(l.ertek, 0) for l in kez.lapok))
-
-
-def ert_kontroll(kez: Kez) -> float:
-    """Kontrollszám: A=2, K=1. Szlemkutatáshoz."""
-    return float(sum(KONTROLL_TABLA.get(l.ertek, 0) for l in kez.lapok))
+ERTEKELOK: dict[str, "Callable[[Kez], float]"] = {}
 
 
-def ert_hcp_dist(kez: Kez) -> float:
-    """HCP + hosszúsági pont: minden 4 feletti lap a színben +1."""
-    tobblet = sum(max(0, h - 4) for h in kez.hosszak)
-    return ert_hcp(kez) + tobblet
-
-
-def ert_ap(kez: Kez) -> float:
-    """
-    Asztali pont: rövidségi pontok. FIGYELEM — ez kontextusfüggő metrika,
-    csak szintalálkozás után értelmes, és a rövidség értéke az adujt tartó
-    kéz szerepétől függ. Itt az egyszerű, klasszikus közelítés:
-    renonsz +3, szingli +2, dubló +1. A pontos, szerepfüggő változat
-    az 1. fázisban, a licitrendszer-tudásbázissal együtt élesedik.
-    """
-    pont = 0
-    for h in kez.hosszak:
-        if h == 0:
-            pont += 3
-        elif h == 1:
-            pont += 2
-        elif h == 2:
-            pont += 1
-    return ert_hcp(kez) + pont
-
-
-def ert_zar(kez: Kez) -> float:
-    """
-    Zar-pont (Zar Petkov):
-      HCP + kontrollok(A=2,K=1) + (leghosszabb + második leghosszabb szín)
-      + (leghosszabb - legrövidebb szín)
-    """
-    h = sorted(kez.hosszak, reverse=True)
-    return ert_hcp(kez) + ert_kontroll(kez) + (h[0] + h[1]) + (h[0] - h[3])
-
-
-def ert_ltc(kez: Kez) -> float:
-    """
-    Losing Trick Count: színenként az első három lapból hány nem A/K/D.
-    Rövid színben csak a meglévő lapok számítanak.
-    """
-    vesztok = 0.0
-    for szin in SZINEK:
-        lapok = kez.szin_lapjai(szin)[:3]
-        magas = {l.ertek for l in lapok}
-        vesztok += sum(1 for i, e in enumerate("AKQ"[:len(lapok)]) if e not in magas)
-    return vesztok
-
-
-# kod -> (függvény)  — a kódok egyeznek az `ertekelo` tábla `kod` mezőjével
-ERTEKELOK = {
-    "HCP": ert_hcp,
-    "HCP_DIST": ert_hcp_dist,
-    "AP": ert_ap,
-    "ZAR": ert_zar,
-    "LTC": ert_ltc,
-    "KONTROLL": ert_kontroll,
-}
-
-
-def ertekeld(kez: Kez, kodok: Iterable[str] | None = None) -> dict[str, float]:
-    """Kiszámolja a kért (vagy az összes) metrikát egy kézre."""
-    kodok = kodok if kodok is not None else ERTEKELOK.keys()
+def ertekeld(kez: "Kez", kodok: Iterable[str] | None = None) -> dict[str, float]:
+    """A kért (vagy az összes regisztrált) metrika kiszámítása egy kézre."""
+    kodok = kodok if kodok is not None else list(ERTEKELOK)
     return {k: ERTEKELOK[k](kez) for k in kodok}
 
 
@@ -293,7 +229,8 @@ class Leosztas:
         return hashlib.sha256(self.pbn("N").encode()).hexdigest()
 
     def hcp(self, ules: str) -> int:
-        return int(ert_hcp(self.kezek[ules]))
+        """Figurapont. Az ERTEKELOK-ból, futásidőben — nincs beégetett képlet."""
+        return int(ERTEKELOK["HCP"](self.kezek[ules]))
 
     def __str__(self) -> str:
         return (f"Leosztás(tábla={self.tabla_szam}, osztó={self.oszto}, "

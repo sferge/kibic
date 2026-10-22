@@ -27,8 +27,27 @@ import sys
 from collections import Counter
 from dataclasses import dataclass, field
 
-from . import pbn
+from . import lin, pbn
 from ..domain import ULESEK, ertekeld, pontszam_ns
+
+
+def _olvaso(ut: str):
+    """A kiterjesztés alapján választ olvasót. Mindkettő PbnJatszma-t ad."""
+    return lin if ut.lower().endswith(".lin") else pbn
+
+
+def jatszma_hash(j) -> str | None:
+    """
+    Duplikáció-védelem: a leosztásból, a négy játékosból és a
+    licitmenetből. A LIN-ben nincs parti-azonosító, ezért kell.
+    """
+    if j.leosztas is None:
+        return None
+    jat = j.jatekosok()
+    resz = [j.leosztas.hash,
+            "|".join((jat.get(u) or "").strip().lower() for u in ULESEK),
+            "|".join(f"{b.get('ules')}{b.get('licit')}" for b in (j.licit or []))]
+    return hashlib.sha256("~".join(resz).encode()).hexdigest()
 
 
 # --- Statisztika ------------------------------------------------------
@@ -37,6 +56,7 @@ from ..domain import ULESEK, ertekeld, pontszam_ns
 class Statisztika:
     fajlok: int = 0
     kihagyott_fajl: int = 0
+    duplikalt_jatszma: int = 0
     rekordok: int = 0
     ervenyes_leosztas: int = 0
     hibas_leosztas: int = 0
@@ -62,7 +82,8 @@ class Statisztika:
         p(f"  Mód:                      {'BETÖLTÉS' if betoltes else 'DRY-RUN'}")
         p(f"  Feldolgozott fájl:        {self.fajlok}"
           f"   (kihagyva, mert már bent volt: {self.kihagyott_fajl})")
-        p(f"  PBN-rekord:               {self.rekordok}")
+        p(f"  Rekord:                   {self.rekordok}"
+          f"   (duplikált játszma: {self.duplikalt_jatszma})")
         p(f"  Érvényes kiosztás:        {self.ervenyes_leosztas}"
           f"   (hibás: {self.hibas_leosztas})")
         p(f"  Egyedi leosztás:          {self.egyedi_leosztas}")
@@ -158,7 +179,7 @@ def elemez(utak: list[str]) -> Statisztika:
         st.fajlok += 1
         with open(ut, encoding="utf-8-sig", errors="replace") as f:
             szoveg = f.read()
-        for j in pbn.olvas(szoveg):
+        for j in _olvaso(ut).olvas(szoveg):
             st.rekordok += 1
             cimke_dg = f"{ut.rsplit('/', 1)[-1]}#{j.tabla_szam}"
             if not _statisztikaz(st, j, cimke_dg):
@@ -306,14 +327,22 @@ class Betolto:
 
         cimkek = [c for c in (cimke, "claim" if j.claim_utes else None) if c]
 
+        jhash = jatszma_hash(j)
+        if jhash:
+            self.cur.execute("SELECT id FROM jatszma WHERE jatszma_hash=%s",
+                             (jhash,))
+            r = self.cur.fetchone()
+            if r:
+                return -r[0]          # negatív id = MÁR MEGVOLT
+
         self.cur.execute(
-            "INSERT INTO jatszma (leosztas_id, esemeny_id, forras_fajl_id,"
+            "INSERT INTO jatszma (jatszma_hash, leosztas_id, esemeny_id, forras_fajl_id,"
             " n_jatekos_id, e_jatekos_id, s_jatekos_id, w_jatekos_id,"
             " licit, lejatszas, felvevo, kontraktus, eredmeny_utes,"
             " pontszam_ns, mp_szazalek_ns, pontszam_ellenorzott,"
             " pontszam_szamitott, cimkek)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            (leosztas_id, esemeny_id, forras_id,
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (jhash, leosztas_id, esemeny_id, forras_id,
              ids["N"], ids["E"], ids["S"], ids["W"],
              json.dumps(j.licit, ensure_ascii=False) if j.licit else None,
              lejatszas, j.felvevo,
@@ -354,12 +383,13 @@ def betolt(utak: list[str], db: str, host: str, user: str, jelszo: str,
             with open(ut, encoding="utf-8-sig", errors="replace") as f:
                 szoveg = f.read()
 
-            fid, mar_volt = b.forras_fajl_id(ut, szoveg, "PBN", nyerset_ments)
+            formatum = "LIN" if ut.lower().endswith(".lin") else "PBN"
+            fid, mar_volt = b.forras_fajl_id(ut, szoveg, formatum, nyerset_ments)
             if mar_volt and not ujra:
                 st.kihagyott_fajl += 1
                 continue
 
-            for j in pbn.olvas(szoveg):
+            for j in _olvaso(ut).olvas(szoveg):
                 st.rekordok += 1
                 cimke_dg = f"{ut.rsplit('/', 1)[-1]}#{j.tabla_szam}"
                 if not _statisztikaz(st, j, cimke_dg):
@@ -368,7 +398,8 @@ def betolt(utak: list[str], db: str, host: str, user: str, jelszo: str,
                 if uj:
                     st.egyedi_leosztas += 1
                 eid = b.esemeny_id(j.cimkek)
-                b.jatszma_beszur(j, lid, eid, fid, cimke)
+                if b.jatszma_beszur(j, lid, eid, fid, cimke) < 0:
+                    st.duplikalt_jatszma += 1
             conn.commit()
     except Exception:
         conn.rollback()

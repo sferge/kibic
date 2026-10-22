@@ -4,14 +4,17 @@ from .kartya import (
     Lap, Kez, Leosztas,
     kovetkezo_ules, vonal, beliben,
     ERTEKELOK, ertekeld,
-    ert_hcp, ert_hcp_dist, ert_ap, ert_zar, ert_ltc, ert_kontroll,
 )
 from .pontozas import Kontraktus, pontszam, pontszam_ns, imp
 
 __all__ = [
     "SZINEK", "SZIN_NEV", "LAPOK", "LAP_ERTEK", "ULESEK", "ULES_NEV", "BELIK",
     "Lap", "Kez", "Leosztas", "kovetkezo_ules", "vonal", "beliben",
-    "ERTEKELOK", "ertekeld", "ert_hcp", "ert_hcp_dist", "ert_ap",
-    "ert_zar", "ert_ltc", "ert_kontroll",
+    "ERTEKELOK", "ertekeld",
     "Kontraktus", "pontszam", "pontszam_ns", "imp",
 ]
+
+# Az értékelő-definíciók AUTOMATIKUS betöltése (pillanatkép vagy DB).
+# Enélkül az ERTEKELOK szótár üres maradna.
+from . import ertekelo as _ertekelo  # noqa: E402,F401
+from .ertekelo import TAR, Ertekelotar, betolt_adatbazisbol  # noqa: E402,F401

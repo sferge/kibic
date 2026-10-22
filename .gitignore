@@ -5,6 +5,12 @@ __pycache__/
 .env
 partik/ 
 tanpartik/
-naplo/
+tanparti_jatek/
+rendszerek/
+eszkozok/
+safe/
+doc/semak/
+doc/licitrendszerek/
+kibic-atjaro.jsonl
 *.log
 tmp/

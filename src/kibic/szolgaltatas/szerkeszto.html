@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kibic – rendszerszerkesztő</title>
+<style>
+:root{--bg:#f7f6f3;--lap:#fff;--szoveg:#1d1d1b;--halvany:#6b6a66;--vonal:#dedcd6;
+--kiemel:#2f5d8a;--piros:#b3261e;--zold:#2e7d32;--sarga:#a86b00;--szurke:#8a8984;--kek:#1f5fa8}
+@media (prefers-color-scheme:dark){:root{--bg:#171716;--lap:#212120;--szoveg:#ecebe7;--halvany:#a3a29d;
+--vonal:#3a3936;--kiemel:#8db4dd;--piros:#f28b82;--zold:#81c995;--sarga:#f2c46d;--szurke:#9a9994;--kek:#8ab4f8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--szoveg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--vonal);background:var(--lap);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0 12px 0 0}
+select,input,textarea,button{font:inherit;color:inherit}
+select,input,textarea{background:var(--bg);border:1px solid var(--vonal);border-radius:6px;padding:5px 8px}
+button{background:var(--lap);border:1px solid var(--vonal);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--kiemel)}
+button.fo{background:var(--kiemel);color:#fff;border-color:var(--kiemel)}
+@media (prefers-color-scheme:dark){button.fo{color:#111}}
+nav{display:flex;gap:4px}
+nav button.aktiv{background:var(--kiemel);color:#fff;border-color:var(--kiemel)}
+@media (prefers-color-scheme:dark){nav button.aktiv{color:#111}}
+main{padding:14px 16px;max-width:1400px;margin:0 auto}
+.racs{display:grid;grid-template-columns:300px 1fr;gap:16px}
+@media (max-width:800px){.racs{grid-template-columns:1fr}}
+.doboz{background:var(--lap);border:1px solid var(--vonal);border-radius:10px;padding:12px}
+.doboz h2{font-size:14px;margin:0 0 8px;color:var(--halvany);text-transform:uppercase;letter-spacing:.04em}
+.lanc div,.fej div{padding:5px 8px;border-radius:6px;cursor:pointer}
+.lanc div:hover,.fej div:hover{background:var(--bg)}
+.lanc div.val,.fej div.val{background:var(--bg);outline:1px solid var(--kiemel)}
+.fajta{font-size:11px;color:var(--halvany);margin-left:6px}
+.tema{font-size:12px;color:var(--halvany);display:block}
+.jelvenyek span{display:inline-block;font-size:11px;border-radius:9px;padding:0 6px;margin-left:3px}
+.b-ELFOGADOTT{background:color-mix(in srgb,var(--zold) 22%,transparent);color:var(--zold)}
+.b-JAVASOLT{background:color-mix(in srgb,var(--kek) 18%,transparent);color:var(--kek)}
+.b-FELULVIZSGALANDO{background:color-mix(in srgb,var(--sarga) 22%,transparent);color:var(--sarga)}
+.b-JEGELT,.b-ELVETETT{background:color-mix(in srgb,var(--szurke) 22%,transparent);color:var(--szurke)}
+.figy{color:var(--sarga);font-size:13px}.info{color:var(--halvany);font-size:13px}
+.eszkoz{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.szabaly{border-top:1px solid var(--vonal);padding:9px 0;display:grid;grid-template-columns:24px 1fr;gap:6px}
+.szabaly .fejsor{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.minta{font-weight:600;font-size:16px;font-family:ui-monospace,Consolas,monospace}
+.p{color:var(--piros)}
+.kicsi{font-size:12.5px;color:var(--halvany)}
+.alert{font-size:11px;background:color-mix(in srgb,var(--piros) 18%,transparent);color:var(--piros);border-radius:9px;padding:0 6px}
+.megj{margin-top:6px;padding:8px;background:var(--bg);border-radius:8px}
+.megj textarea{width:100%;min-height:60px}
+.megj .regi{border-left:3px solid var(--kiemel);padding:2px 8px;margin:4px 0;font-size:13.5px}
+.figyelem{font-size:12px;color:var(--sarga)}
+.eredmeny .licit{font-size:34px;font-weight:700}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+td,th{border-bottom:1px solid var(--vonal);padding:4px 6px;text-align:left;vertical-align:top}
+.r-IGAZ{color:var(--zold)}.r-HAMIS{color:var(--szurke)}.r-HELYZET_NEM{color:var(--sarga)}.r-ISMERETLEN{color:var(--kek)}
+.urlap{display:grid;grid-template-columns:130px 1fr;gap:8px 10px;align-items:center;max-width:720px}
+.hiba{color:var(--piros);white-space:pre-wrap}
+.rejtett{display:none}
+.jegyzet{border-left:3px solid var(--sarga);background:color-mix(in srgb,var(--sarga) 9%,transparent);padding:6px 10px;margin:6px 0;font-size:13.5px;border-radius:0 6px 6px 0;white-space:pre-wrap}
+.jegyzet::before{content:"ℹ jegyzet · ";font-weight:600;color:var(--sarga)}
+.szabaly.lehetoseg{margin-left:28px;border-top-style:dashed}
+.cimke{font-size:11px;border:1px solid var(--vonal);border-radius:9px;padding:0 6px;color:var(--halvany);cursor:help}
+.ref{font-size:13.5px;padding:2px 0}.ref .t{font-size:11px;border-radius:9px;padding:0 6px;margin-right:6px}
+.t-BEEMELES{background:color-mix(in srgb,var(--zold) 18%,transparent);color:var(--zold)}
+.t-KIZARAS{background:color-mix(in srgb,var(--piros) 18%,transparent);color:var(--piros)}
+.t-ALAP{background:color-mix(in srgb,var(--kek) 18%,transparent);color:var(--kek)}
+.kulcs{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--halvany)}
+.felulir{font-size:11px;border-radius:9px;padding:0 6px;background:color-mix(in srgb,var(--sarga) 20%,transparent);color:var(--sarga)}
+.torol{font-size:11px;border-radius:9px;padding:0 6px;background:color-mix(in srgb,var(--piros) 18%,transparent);color:var(--piros)}
+.proba .lap{font-size:26px;font-weight:700;margin-right:8px}
+.proba td:first-child{white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <h1>kibic · rendszerszerkesztő</h1>
+  <select id="rendszer" title="Licitrendszer"></select>
+  <select id="j-rendszer" title="Jelzésrendszer" class="rejtett"></select>
+  <nav>
+    <button data-lap="rendszer" class="aktiv">Rendszer</button>
+    <button data-lap="probakez">Próbakéz</button>
+    <button data-lap="jelzesek">Jelzések</button>
+    <button data-lap="megjegyzesek">Megjegyzések</button>
+    <button data-lap="letoltes">Letöltés</button>
+  </nav>
+  <span style="flex:1"></span>
+  <input id="szerzo" placeholder="neved" size="10" title="A jóváhagyásokhoz és megjegyzésekhez">
+  <input id="titok" type="password" placeholder="titok (ha van)" size="12" title="KIBIC_SHARED_SECRET">
+</header>
+
+<main>
+<section id="lap-rendszer">
+  <div class="racs">
+    <div>
+      <div class="doboz"><h2>Hivatkozási fa</h2><div id="lanc" class="lanc"></div>
+        <div id="fa-megj" style="margin-top:8px"></div></div>
+      <div class="doboz" style="margin-top:12px"><h2 id="rsz-cim">Rendszer</h2><div id="rsz-info"></div>
+        <div class="eszkoz"><button id="rsz-megj">Megjegyzés a rendszerhez</button></div><div id="rsz-megj-doboz"></div></div>
+      <div class="doboz" style="margin-top:12px"><h2 id="fo-cim">Feloldott nézet</h2>
+        <div class="kicsi">A felső sávban választott rendszer összes szabálya, ahonnan jön — ezekkel licitál a kibic.</div>
+        <div class="eszkoz"><button id="fo-nyitas">Nyitások</button>
+          <input id="fo-elotag" placeholder="licitmenet, pl. 1S-1NT, 1M, 1m-1H (üres: minden)" size="22" title="Licit szerint keres: az 1S-1NT megtalálja az 1M-1NT szabályt is (M = bármelyik nemes), az 1M az 1♥ és 1♠ kezdetűeket. Kisbetű is jó (1s-1n). A végén kötőjel (1NT-): csak ami utána jön."><button id="fo-keres">Mutasd</button></div></div>
+      <div class="doboz" style="margin-top:12px"><h2 id="fej-cim">Fejezetek</h2><div id="fejezetek" class="fej"></div></div>
+    </div>
+    <div class="doboz">
+      <h2 id="szab-cim">Szabályok</h2>
+      <div id="eszkoz" class="eszkoz rejtett">
+        <button data-m="jovahagy" data-mit="kijelolt">Kijelöltek jóváhagyása</button>
+        <button data-m="jegel" data-mit="kijelolt">Kijelöltek jegelése</button>
+        <button data-m="kiolvaszt" data-mit="kijelolt">Kiolvasztás</button>
+        <button data-m="visszavon" data-mit="kijelolt">Jóváhagyás visszavonása</button>
+        <span style="flex:1"></span>
+        <button class="fo csak-fejezet" data-m="jovahagy" data-mit="fejezet">Az egész fejezet jóváhagyása</button>
+        <button id="fej-megj" class="csak-fejezet">Megjegyzés a fejezethez</button>
+      </div>
+      <div id="fej-jegyzet"></div>
+      <div id="fej-megj-doboz"></div>
+      <div id="szabalyok"><p class="kicsi">Betöltés…</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="lap-probakez" class="rejtett">
+  <div class="doboz">
+    <h2>Mit licitálna a kibic?</h2>
+    <div class="urlap">
+      <label>Kéz</label><input id="pk-kez" placeholder="AKQ2.K73.84.952  (pikk.kőr.káró.treff) — vagy ♠AKQ2 ♥K73 ♦84 ♣952">
+      <label>Osztó</label><select id="pk-oszto"><option value="N">Észak</option><option value="E">Kelet</option><option value="S">Dél</option><option value="W">Nyugat</option></select>
+      <label>Beliállás</label><select id="pk-beli"><option value="none">senki</option><option value="ns">É-D</option><option value="ew">K-Ny</option><option value="both">mindenki</option></select>
+      <label>Licitmenet</label><input id="pk-menet" placeholder="az osztótól: P P 1H X — üresen: mi nyitunk">
+      <label>Teszt mód</label><label><input type="checkbox" id="pk-teszt" checked> a még jóvá nem hagyott szabályokkal is</label>
+      <span></span><div><button class="fo" id="pk-go">Mit licitálna?</button> <span id="pk-ules" class="kicsi"></span></div>
+    </div>
+    <div id="pk-eredmeny" class="eredmeny" style="margin-top:16px"></div>
+  </div>
+</section>
+
+<section id="lap-jelzesek" class="rejtett">
+  <div class="racs">
+    <div>
+      <div class="doboz"><h2>Hivatkozási fa</h2><div id="j-lanc" class="lanc"></div>
+        <div id="j-fa-megj" style="margin-top:8px"></div></div>
+      <div class="doboz" style="margin-top:12px"><h2 id="j-rsz-cim">Jelzésrendszer</h2><div id="j-info"></div>
+        <div class="eszkoz"><button id="j-rsz-megj">Megjegyzés a jelzésrendszerhez</button></div>
+        <div id="j-rsz-megj-doboz"></div></div>
+      <div class="doboz" style="margin-top:12px"><h2 id="j-fo-cim">Feloldott nézet</h2>
+        <div class="kicsi">A felső sávban választott jelzésrendszer összes sora, ahonnan jön — ezekkel dolgozik a kibic.</div>
+        <div class="eszkoz"><select id="j-szint" title="ELES: csak elfogadott · TESZT: a javasolt is · KARTYA: mint TESZT">
+          <option value="TESZT">teszt (javasolt is)</option><option value="ELES">éles (csak elfogadott)</option></select>
+          <button id="j-feloldott">Mutasd</button></div></div>
+      <div class="doboz" style="margin-top:12px"><h2>Mit hív?</h2>
+        <div class="kicsi">Lapállás egy színben (pl. KQ72, KD72, Á 10 8 4). A LEGKONKRÉTABB illeszkedő sor nyer.</div>
+        <div class="eszkoz"><input id="j-lap" placeholder="KQ72" size="9">
+          <select id="j-helyzet"><option value="INDITAS">indítás</option><option value="PARTNER_SZINE">partner színe</option><option value="HIVAS">menet közbeni hívás</option><option value="MASODIK_KEZ">második kéz</option></select>
+          <button class="fo" id="j-proba">Próba</button></div>
+      </div>
+      <div class="doboz" style="margin-top:12px"><h2 id="j-fej-cim">Fejezetek</h2><div id="j-fejezetek" class="fej"></div></div>
+    </div>
+    <div class="doboz">
+      <div id="j-proba-ki" class="proba"></div>
+      <h2 id="j-szab-cim">Sorok</h2>
+      <div id="j-eszkoz" class="eszkoz rejtett">
+        <button data-m="jovahagy" data-mit="kijelolt">Kijelöltek jóváhagyása</button>
+        <button data-m="jegel" data-mit="kijelolt">Kijelöltek jegelése</button>
+        <button data-m="kiolvaszt" data-mit="kijelolt">Kiolvasztás</button>
+        <button data-m="visszavon" data-mit="kijelolt">Jóváhagyás visszavonása</button>
+        <span style="flex:1"></span>
+        <button class="fo j-csak-fejezet" data-m="jovahagy" data-mit="fejezet">Az egész fejezet jóváhagyása</button>
+        <button id="j-fej-megj" class="j-csak-fejezet">Megjegyzés a fejezethez</button>
+      </div>
+      <div id="j-fej-jegyzet"></div>
+      <div id="j-fej-megj-doboz"></div>
+      <div id="j-sorok"><p class="kicsi">Válassz jelzésrendszert.</p></div>
+      <p class="kicsi" style="margin-top:14px">A sorok tartalma itt nem szerkeszthető: a YAML
+        (rendszerek/jelzesek/) a kanonikus alak. Ha valamit másképp gondolsz, írj megjegyzést —
+        az exporttal Claude-hoz kerül.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lap-megjegyzesek" class="rejtett">
+  <div class="doboz">
+    <h2>Nyitott megjegyzések</h2>
+    <div class="eszkoz"><button class="fo" id="export">Export Claude-nak (fájl)</button>
+      <span class="kicsi">A letöltött fájlt töltsd fel a beszélgetésbe.</span></div>
+    <div id="megj-lista"></div>
+  </div>
+</section>
+
+<section id="lap-letoltes" class="rejtett">
+  <div class="doboz">
+    <h2>A rendszer ember által olvasható alakban</h2>
+    <div class="kicsi">A felső sávban választott rendszer — pontosan azok a szabályok, amelyekkel a
+      kibic licitál. A HTML nyomtatható (a böngészőben „Nyomtatás → PDF”). Titok nem kell hozzá.</div>
+    <ul style="line-height:2">
+      <li><b>Rövid — a kártya:</b> <a id="le-kartya" target="_blank">megnyitás</a></li>
+      <li><b>Hosszú — a teljes leírás</b> (minden szabály, konvenciónként és fejezetenként):
+        <a id="le-html" target="_blank">HTML</a> · <a id="le-md">Markdown (letöltés)</a></li>
+    </ul>
+    <label class="kicsi"><input type="checkbox" id="le-teszt" checked> a javasolt (még jóvá nem hagyott)
+      sorokkal együtt (teszt mód)</label>
+  </div>
+</section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const allapot = {rendszer: null, fejezet: null, fa: null};
+const SZ = {C: "♣", D: "♦", H: "♥", S: "♠"};
+// A sor-címkék magyarázata (az egér rámutatásakor jelenik meg).
+const CIMKE = {
+  LEHETOSEG: ["↳ lehetőség", "Egy zárójeles lapszámból, pl. (4)5+, keletkezett második sor: a rendes sor az 5+ lapot, ez a 4 lapos lehetőséget fedi le, saját feltétellel és prioritással."],
+  KIHAGYAS: ["kihagyás", "Módosított konvencióban: az alap ezen a kulcson lévő szabálya ebben a változatban nem él (a sor megvan, csak kimarad)."],
+  TORLES: ["kihagyás", "Módosított konvencióban: az alap ezen a kulcson lévő szabálya ebben a változatban nem él (a sor megvan, csak kimarad)."],
+  ELV: ["elv", "Általános elv: csak akkor szól, ha konkrét szabály nem illett."],
+  KIVETEL: ["kivétel", "Egy elv alól kivesz egy esetet."],
+  MERLEGELO: ["mérlegelő", "Nem a szabály dönt: a licit csak jelölt, a mérlegelés (szimuláció) választ."],
+};
+
+// --- helyi beállítások (csak kényelem; a megjegyzés az adatbázisba megy) ---
+function tarol(k, v) { try { localStorage.setItem("kibic_" + k, v); } catch (e) {} }
+function olvas(k) { try { return localStorage.getItem("kibic_" + k) || ""; } catch (e) { return ""; } }
+$("#titok").value = olvas("titok"); $("#szerzo").value = olvas("szerzo");
+$("#titok").onchange = e => tarol("titok", e.target.value);
+$("#szerzo").onchange = e => tarol("szerzo", e.target.value);
+
+async function api(ut, opts = {}) {
+  const fej = {"Content-Type": "application/json"};
+  if ($("#titok").value) fej["Authorization"] = "Bearer " + $("#titok").value;
+  const v = await fetch(ut, {...opts, headers: fej});
+  const t = await v.text();
+  let j; try { j = JSON.parse(t); } catch (e) { j = t; }
+  if (!v.ok) throw new Error((j && j.detail) || t || v.status);
+  return j;
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function szep(s) {        // 1NT (2H) X -> 1NT (2♥) X, a piros színek pirossal
+  return esc(s).replace(/([1-7])([CDHS])(?![A-Za-z])/g, (m, n, sz) =>
+    n + (sz === "H" || sz === "D" ? `<span class="p">${SZ[sz]}</span>` : SZ[sz]));
+}
+function jelvenyek(counts) {
+  return Object.entries(counts || {}).map(([k, v]) =>
+    `<span class="b-${k}" title="${k}">${v} ${k.slice(0, 4).toLowerCase()}</span>`).join("");
+}
+
+// --- lapok ---
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("aktiv", x === b));
+  ["rendszer", "probakez", "jelzesek", "megjegyzesek", "letoltes"].forEach(l =>
+    $("#lap-" + l).classList.toggle("rejtett", l !== b.dataset.lap));
+  const jel = b.dataset.lap === "jelzesek";
+  $("#rendszer").classList.toggle("rejtett", jel);
+  $("#j-rendszer").classList.toggle("rejtett", !jel);
+  if (jel && !jall.betoltve) jIndul();
+  if (b.dataset.lap === "megjegyzesek") megjegyzesLista();
+  if (b.dataset.lap === "letoltes") letoltesLinkek();
+});
+
+// --- letöltés: kártya (rövid) és teljes leírás (hosszú) ---
+function letoltesLinkek() {
+  const kod = encodeURIComponent($("#rendszer").value || "");
+  const t = $("#le-teszt").checked ? "true" : "false";
+  $("#le-kartya").href = `/v1/kibic/kartya?system=${kod}&test_mode=${t}`;
+  $("#le-html").href = `/v1/kibic/leiras?system=${kod}&format=html&test_mode=${t}`;
+  $("#le-md").href = `/v1/kibic/leiras?system=${kod}&format=md&test_mode=${t}`;
+}
+$("#le-teszt").onchange = letoltesLinkek;
+$("#rendszer").addEventListener("change", letoltesLinkek);
+
+// --- rendszerek, fa ---
+async function indul() {
+  try {
+    const lista = await api("/v1/kibic/szerk/rendszerek");
+    // Hierarchia: RENDSZERCSALÁD → ALAPRENDSZER → RENDSZER (családonként egy csoport)
+    const opt = (r, behuz, jel) => `<option value="${r.code}">${"\u00a0".repeat(behuz)}${jel} ${esc(r.code)}`
+      + (r.name ? ` — ${esc(r.name)}` : "") + (r.problem ? ` ⚠ ${esc(r.problem)}` : "") + `</option>`;
+    const csaladok = [...new Set(lista.filter(r => ["RENDSZERCSALAD","ALAPRENDSZER","RENDSZER"].includes(r.kind))
+      .map(r => r.kind === "RENDSZERCSALAD" ? r.code : (r.family || "EGYEB")))].sort();
+    let html = "";
+    for (const cs of csaladok) {
+      const csr = lista.find(r => r.kind === "RENDSZERCSALAD" && r.code === cs);
+      html += `<optgroup label="${esc(cs)}${csr && csr.name ? " — " + esc(csr.name) : ""}">`;
+      if (csr) html += opt(csr, 0, "◆");
+      const alapok = lista.filter(r => r.kind === "ALAPRENDSZER" && (r.family || "EGYEB") === cs);
+      for (const a of alapok) {
+        html += opt(a, 2, "▸");
+        lista.filter(r => r.kind === "RENDSZER" && r.base_system === a.code).forEach(r => html += opt(r, 6, "•"));
+      }
+      // alaprendszer nélküli (hibás) rendszerek a családjuk alatt
+      lista.filter(r => r.kind === "RENDSZER" && (r.family || "EGYEB") === cs && !alapok.some(a => a.code === r.base_system))
+        .forEach(r => html += opt(r, 2, "•"));
+      html += `</optgroup>`;
+    }
+    const egyeb = lista.filter(r => ["GYUJTEMENY","KONVENCIOKARTYA","LICITRENDSZER"].includes(r.kind));
+    if (egyeb.length) html += `<optgroup label="gyűjtemények">` + egyeb.map(r => opt(r, 0, "")).join("") + `</optgroup>`;
+    html += `<optgroup label="konvenciók">` + lista.filter(r => r.kind === "KONVENCIO")
+      .map(r => `<option value="${r.code}">${esc(r.code)}</option>`).join("") + `</optgroup>`;
+    const elvek = lista.filter(r => r.kind === "ELV_SABLON");
+    if (elvek.length) html += `<optgroup label="elvek (elv-sablonok)">` + elvek
+      .map(r => `<option value="${r.code}">◇ ${esc(r.code)}${r.name ? " — " + esc(r.name) : ""}</option>`).join("") + `</optgroup>`;
+    $("#rendszer").innerHTML = html;
+    // az első RENDSZER legyen az alapértelmezett választás
+    const elso = lista.find(r => r.kind === "RENDSZER");
+    if (elso) $("#rendszer").value = elso.code;
+    const elozo = olvas("rendszer");
+    if (elozo && lista.some(r => r.code === elozo)) $("#rendszer").value = elozo;
+    $("#rendszer").onchange = () => { tarol("rendszer", $("#rendszer").value); faBetolt(); };
+    faBetolt();
+  } catch (e) { $("#lanc").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+async function faBetolt() {
+  const kod = $("#rendszer").value;
+  $("#lanc").textContent = "…";
+  try {
+    const f = await api("/v1/kibic/szerk/fa?system=" + encodeURIComponent(kod));
+    allapot.fa = f;
+    $("#fo-cim").textContent = "Feloldott nézet — " + kod;
+    $("#lanc").innerHTML = f.chain.map(c =>
+      `<div data-kod="${c.code}" style="padding-left:${8 + 14 * c.depth}px">${esc(c.code)}`
+      + `<span class="fajta">${esc(c.kind || "")}${c.base ? " · " + (c.relation || "") + " ← " + esc(c.base) : ""}</span>`
+      + (c.theme ? `<span class="tema">${esc(c.theme)}</span>` : "") + `</div>`).join("");
+    $("#fa-megj").innerHTML = `<div class="kicsi">${f.rules} szabály a feloldás után (teszt mód)</div>`
+      + f.warnings.map(x => `<div class="figy">⚠ ${esc(x)}</div>`).join("")
+      + f.info.map(x => `<div class="info">${esc(x)}</div>`).join("");
+    document.querySelectorAll("#lanc div").forEach(d => d.onclick = () => rendszerValaszt(d.dataset.kod));
+    rendszerValaszt(kod);          // maga a választott rendszer, nem egy eleme
+  } catch (e) { $("#lanc").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+async function rendszerValaszt(kod) {
+  allapot.rendszer = kod; allapot.fejezet = null;
+  document.querySelectorAll("#lanc div").forEach(d => d.classList.toggle("val", d.dataset.kod === kod));
+  $("#fej-cim").textContent = "Fejezetek — " + kod;
+  $("#rsz-cim").textContent = "Rendszer — " + kod; $("#rsz-megj-doboz").innerHTML = "";
+  try {
+    const r = await api("/v1/kibic/szerk/rendszer?system=" + encodeURIComponent(kod));
+    const TIPUS = {BEEMELES: "beemel", KIZARAS: "kizár", ALAP: "alapja"};
+    $("#rsz-info").innerHTML = `<div class="kicsi">${esc(r.kind || "")}${r.family && r.kind !== "KONVENCIO" ? " · család: " + esc(r.family) : ""}${r.base_system ? " · alaprendszer: " + esc(r.base_system) : ""}${r.theme ? " · téma: " + esc(r.theme) : ""}${r.base ? " · " + esc((r.relation || "").toLowerCase()) + ", alapja: " + esc(r.base) : ""}</div>`
+      + (r.problem ? `<div class="figy">⚠ ${esc(r.problem)} — egy RENDSZER pontosan egy alaprendszerre épül</div>` : "")
+      + (r.note ? `<div class="jegyzet">${esc(r.note)}</div>` : "")
+      + (r.principle ? `<div class="jegyzet"><b>Az elv</b> (a te szavaid alapján — javítsd, ha nem így gondoltad): ${esc(r.principle.szoveg || "")}`
+          + (r.principle.terulet_szoveg ? `<br><b>Területe</b> (ahol a mögötte álló sorokat kiváltja): ${esc(r.principle.terulet_szoveg)}` : "")
+          + Object.entries(r.principle.parameterek || {}).map(([k, v]) =>
+              `<br><code>${esc(k)}</code> = <b>${esc(String(v.alap))}</b>${v.tartomany ? " (" + esc(String(v.tartomany)) + ")" : ""}${v.leiras ? " — " + esc(v.leiras) : ""}`).join("")
+          + `</div>` : "")
+      + (r.references || []).map(x => `<div class="ref"><span class="t t-${x.type}">${TIPUS[x.type]}</span>${esc(x.target)}`
+        + (x.chapter ? ` <span class="kicsi">/ „${esc(x.chapter)}”</span>` : "")
+        + (x.settings && x.settings.ervenyes ? ` <span class="kicsi">— ${esc(x.settings.ervenyes.join(" / "))} után</span>` : "")
+        + (x.settings && x.settings.parameterek ? ` <span class="kicsi">${esc(Object.entries(x.settings.parameterek).map(([k, v]) => k + "=" + v).join(", "))}</span>` : "")
+        + (x.settings && x.settings.kivalt === false ? ` <span class="kicsi">(nem vált ki)</span>` : "")
+        + (x.active ? "" : ` <span class="kicsi">(kikapcsolva)</span>`) + `</div>`).join("");
+  } catch (e) { $("#rsz-info").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+  jelzesLink(kod);
+  const fej = await api("/v1/kibic/szerk/fejezetek?system=" + encodeURIComponent(kod));
+  allapot.fejezetLista = fej;
+  // Több fejezetnél az első sor: az ÖSSZES fejezet egyben (a teljes rendszer).
+  const osszes = {};
+  fej.forEach(f => Object.entries(f.counts).forEach(([k, v]) => osszes[k] = (osszes[k] || 0) + v));
+  $("#fejezetek").innerHTML = (fej.length > 1
+      ? `<div data-i="-1"><b>Összes fejezet egyben</b><span class="jelvenyek">${jelvenyek(osszes)}</span></div>` : "")
+    + (fej.length ? fej.map((f, i) =>
+    `<div data-i="${i}">${esc(f.chapter || "(fejezet nélkül)")}<span class="jelvenyek">${jelvenyek(f.counts)}</span></div>`).join("")
+    : `<p class="kicsi">Ennek nincs saját szabálya (csak hivatkozások).</p>`);
+  document.querySelectorAll("#fejezetek div").forEach(d => d.onclick = () =>
+    fejezetValaszt(+d.dataset.i < 0 ? MIND : fej[+d.dataset.i].chapter));
+  // A jobb oldal MINDIG az épp kiválasztott elemről szól (nincs ottmaradt cím).
+  $("#szabalyok").innerHTML = ""; $("#eszkoz").classList.add("rejtett");
+  $("#fej-megj-doboz").innerHTML = ""; $("#fej-jegyzet").innerHTML = "";
+  $("#szab-cim").textContent = kod;
+  if (fej.length) {
+    // a teljes rendszer nyílik meg: egy fejezetnél az, többnél mind egyben
+    fejezetValaszt(fej.length > 1 ? MIND : fej[0].chapter);
+  } else if (kod === $("#rendszer").value) {
+    // RENDSZER / GYŰJTEMÉNY: nincs saját szabálya — a feloldott nyitásokat mutatjuk
+    feloldottNezet("openings=true", "nyitások");
+  } else {
+    $("#szabalyok").innerHTML = `<p class="kicsi">A(z) ${esc(kod)} csak hivatkozásokból áll, saját szabálya nincs. A hivatkozásai a bal oldali „Rendszer” dobozban látszanak; a szabályait a feloldott nézet mutatja, ha fent ezt választod.</p>`;
+  }
+}
+
+// --- szabályok ---
+const MIND = "\u0000mind";                 // "összes fejezet egyben"
+async function fejezetValaszt(fejezet) {
+  allapot.fejezet = fejezet;
+  const mind = fejezet === MIND;
+  const lista = allapot.fejezetLista || [];
+  const i = mind ? -1 : lista.findIndex(f => f.chapter === fejezet);
+  document.querySelectorAll("#fejezetek div").forEach(d => d.classList.toggle("val", +d.dataset.i === i));
+  $("#szab-cim").textContent = `${allapot.rendszer} › ${mind ? "összes fejezet" : (fejezet || "(fejezet nélkül)")}`;
+  $("#eszkoz").classList.remove("rejtett"); $("#fej-megj-doboz").innerHTML = "";
+  document.querySelectorAll(".csak-fejezet").forEach(b => b.classList.toggle("rejtett", mind));
+  if (mind) {
+    // a fejezetek jegyzetei egymás alatt, a fejezet nevével
+    $("#fej-jegyzet").innerHTML = lista.filter(f => f.note).map(f =>
+      `<div class="jegyzet"><b>${esc(f.chapter)}:</b> ${esc(f.note)}</div>`).join("");
+  } else {
+    const fj = lista.find(f => f.chapter === fejezet);
+    $("#fej-jegyzet").innerHTML = fj && fj.note ? `<div class="jegyzet">${esc(fj.note)}</div>` : "";
+  }
+  const sorok = await api(`/v1/kibic/szerk/szabalyok?system=${encodeURIComponent(allapot.rendszer)}`
+    + (mind ? "" : `&chapter=${encodeURIComponent(fejezet)}`));
+  $("#szabalyok").innerHTML = sorok.map(s => `
+    <div class="szabaly${s.row_kind === "LEHETOSEG" ? " lehetoseg" : ""}" data-id="${s.id}" data-kulcs="${esc(s.kulcs)}">
+      <input type="checkbox" class="jelol" value="${s.id}">
+      <div>
+        <div class="fejsor">
+          <span class="minta">${szep(s.minta)}</span>
+          <span class="jelvenyek"><span class="b-${s.allapot}">${s.allapot.toLowerCase()}</span></span>
+          ${s.alert ? '<span class="alert">alert</span>' : ""}
+          ${CIMKE[s.row_kind] ? `<span class="cimke" title="${esc(CIMKE[s.row_kind][1])}">${CIMKE[s.row_kind][0]}</span>` : ""}
+          ${s.dontesi_mod === "MERLEGELO" ? `<span class="cimke" title="${esc(CIMKE.MERLEGELO[1])}">mérlegelő</span>` : ""}
+          <span class="kicsi">prioritás ${s.prioritas}${s.forsz && s.forsz !== "NEM" ? " · " + esc(s.forsz) : ""}</span>
+          ${mind && s.fejezet ? `<span class="kicsi">· ${esc(s.fejezet)}</span>` : ""}
+        </div>
+        <div>${szep(s.magyarazat || "")}</div>
+        <div class="kicsi">feltétel: ${esc(s.feltetel_szoveg || "—")}${s.ha_feltetel_szoveg ? " · helyzet: " + esc(s.ha_feltetel_szoveg) : ""}</div>
+        ${s.nyers_szoveg ? `<div class="kicsi">forrás: „${esc(s.nyers_szoveg)}”</div>` : ""}
+        ${s.jegyzet ? `<div class="jegyzet">${esc(s.jegyzet)}</div>` : ""}
+        <div class="kicsi"><a href="#" class="megj-nyit">💬 megjegyzés${s.comments ? " (" + s.comments + ")" : ""}</a>
+          ${s.jovahagyta ? " · jóváhagyta: " + esc(s.jovahagyta) : ""}</div>
+        <div class="megj-hely"></div>
+      </div>
+    </div>`).join("") || `<p class="kicsi">Nincs szabály.</p>`;
+  document.querySelectorAll(".megj-nyit").forEach(a => a.onclick = ev => {
+    ev.preventDefault();
+    const d = a.closest(".szabaly");
+    const s = sorok.find(x => String(x.id) === d.dataset.id);
+    megjegyzesDoboz(d.querySelector(".megj-hely"), {system: allapot.rendszer, chapter: mind ? s.fejezet : fejezet,
+      key: s.kulcs, pattern: s.minta, rule_id: s.id});
+  });
+}
+
+document.querySelectorAll("#eszkoz button[data-m]").forEach(b => b.onclick = async () => {
+  const muv = b.dataset.m;
+  const body = {system: allapot.rendszer, action: muv, author: $("#szerzo").value};
+  if (b.dataset.mit === "fejezet") {
+    if (!confirm(`Az egész fejezet (${allapot.fejezet || "fejezet nélkül"}): ${b.textContent}?`)) return;
+    body.chapter = allapot.fejezet ?? "";
+  } else {
+    body.ids = [...document.querySelectorAll(".jelol:checked")].map(x => +x.value);
+    if (!body.ids.length) { alert("Jelölj ki legalább egy szabályt."); return; }
+  }
+  const fej = allapot.fejezet;
+  try {
+    const v = await api("/v1/kibic/szerk/allapot", {method: "POST", body: JSON.stringify(body)});
+    await rendszerValaszt(allapot.rendszer); await fejezetValaszt(fej);
+    alert(`${v.changed} szabály módosult.`);
+  } catch (e) { alert(e.message); }
+});
+async function feloldottNezet(param, cim) {
+  const kod = $("#rendszer").value;
+  $("#szab-cim").textContent = `${kod} › feloldva › ${cim}`;
+  $("#eszkoz").classList.add("rejtett"); $("#fej-jegyzet").innerHTML = ""; $("#fej-megj-doboz").innerHTML = "";
+  document.querySelectorAll("#fejezetek div").forEach(d => d.classList.remove("val"));
+  try {
+    const v = await api(`/v1/kibic/szerk/feloldott?system=${encodeURIComponent(kod)}&${param}`);
+    $("#szabalyok").innerHTML = `<p class="kicsi">${v.rules.length} szabály (a rendszerben összesen ${v.total}). Kattints a forrásra: ott jóváhagyhatod vagy megjegyzést írhatsz.</p>`
+      + v.rules.map(s => `
+      <div class="szabaly${s.row_kind === "LEHETOSEG" ? " lehetoseg" : ""}"><span></span><div>
+        <div class="fejsor"><span class="minta">${szep(s.minta)}</span>
+          <a href="#" class="forras" data-kod="${esc(s.source)}" data-fej="${esc(s.fejezet || "")}">${esc(s.source)}</a>
+          ${CIMKE[s.row_kind] ? `<span class="cimke" title="${esc(CIMKE[s.row_kind][1])}">${CIMKE[s.row_kind][0]}</span>` : ""}
+          ${s.alert ? '<span class="alert">alert</span>' : ""}
+          <span class="kicsi">prioritás ${s.prioritas}${s.forsz && s.forsz !== "NEM" ? " · " + esc(s.forsz) : ""}</span></div>
+        <div>${szep(s.magyarazat || "")}</div>
+        <div class="kicsi">feltétel: ${esc(s.feltetel_szoveg || "—")}${s.ha_feltetel_szoveg ? " · helyzet: " + esc(s.ha_feltetel_szoveg) : ""}</div>
+      </div></div>`).join("");
+    document.querySelectorAll(".forras").forEach(a => a.onclick = async ev => {
+      ev.preventDefault(); await rendszerValaszt(a.dataset.kod); await fejezetValaszt(a.dataset.fej); });
+  } catch (e) { $("#szabalyok").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+$("#fo-nyitas").onclick = () => feloldottNezet("openings=true", "nyitások");
+$("#fo-keres").onclick = () => feloldottNezet("prefix=" + encodeURIComponent($("#fo-elotag").value), $("#fo-elotag").value || "minden");
+$("#fo-elotag").onkeydown = e => { if (e.key === "Enter") $("#fo-keres").click(); };
+$("#rsz-megj").onclick = () => megjegyzesDoboz($("#rsz-megj-doboz"),
+  {system: allapot.rendszer, chapter: null, key: null});
+$("#fej-megj").onclick = () => megjegyzesDoboz($("#fej-megj-doboz"),
+  {system: allapot.rendszer, chapter: allapot.fejezet, key: null});
+
+// --- jelzésrendszerek (mint a licit: hivatkozás, felülírás, kihagyás, kizárás) ---
+const jall = {betoltve: false, rendszer: null, fejezet: null, fejezetLista: []};
+// a sor két tengelye, mint a licitmenetben: fajta (szerep) és terület (miről szól)
+const SOR_FAJTA = {SZABALY: ["szabály", "Megállapodás."],
+  ELV: ["elv", "Általános elv: ott szól, ahol konkrét szabály nincs; a mérlegelő elv csak jelöltet ad."],
+  KIVETEL: ["kivétel", "Egy elv alól kivesz egy esetet; szabályként él."],
+  KIHAGYAS: ["kihagyás", "Az örökölt sor ebben a rendszerben nem él (a sor megvan, csak kimarad)."]};
+const TERULET = {INDITAS: "indítás", HIVAS: "menet közbeni hívás", SZINADAS: "színadás",
+  JELZES: "jelzés (mit, mikor)",
+  MODSZER: "módszer (hogyan)", KULONLEGES: "különleges helyzet", LICIT: "licit"};
+function jCimkek(s) {
+  const f = SOR_FAJTA[s.kind] || [s.kind, ""];
+  return `<span class="cimke" title="${esc(f[1])}">${esc(f[0])}</span>`
+    + (s.area ? `<span class="cimke t-ALAP" title="terület">${esc(TERULET[s.area] || s.area)}</span>` : "");
+}
+function jSzep(s) {        // ♠♥♦♣ betűk a sor szövegében maradnak; a színjelek pirosan
+  return esc(s).replace(/[♥♦]/g, m => `<span class="p">${m}</span>`);
+}
+// A Rendszer lapon: melyik jelzésrendszert játssza — egy kattintás a Jelzések lapra.
+async function jelzesLink(kod) {
+  try {
+    if (!jall.lista) jall.lista = await api("/v1/kibic/szerk/jelzes/rendszerek");
+    const j = jall.lista.find(r => (r.played_by || []).includes(kod));
+    if (!j) return;
+    const d = document.createElement("div");
+    d.className = "ref";
+    d.innerHTML = `<span class="t t-ALAP">jelzések</span><a href="#">${esc(j.code)}</a>`
+      + `<span class="kicsi"> — a Jelzések lapon</span>`;
+    d.querySelector("a").onclick = ev => {
+      ev.preventDefault();
+      tarol("jrendszer", j.code);
+      document.querySelector("nav button[data-lap=jelzesek]").click();
+      if (jall.betoltve) { $("#j-rendszer").value = j.code; jFaBetolt(); }
+    };
+    $("#rsz-info").appendChild(d);
+  } catch (e) { /* a 030 nélkül nincs mit mutatni */ }
+}
+async function jIndul() {
+  try {
+    const lista = await api("/v1/kibic/szerk/jelzes/rendszerek");
+    jall.lista = lista; jall.betoltve = true;
+    const FJ = {RENDSZER: "•", ALAPRENDSZER: "▸", KONVENCIO: "◇"};
+    const csoport = (cim, fajta, jel) => {
+      const l = lista.filter(r => r.kind === fajta);
+      return l.length ? `<optgroup label="${cim}">` + l.map(r => `<option value="${esc(r.code)}">${jel} ${esc(r.code)}`
+        + (r.name ? ` — ${esc(r.name)}` : "") + `</option>`).join("") + `</optgroup>` : "";
+    };
+    $("#j-rendszer").innerHTML = csoport("jelzésrendszerek (amit egy pár játszik)", "RENDSZER", "•")
+      + csoport("alaprendszerek", "ALAPRENDSZER", "▸") + csoport("konvenciók", "KONVENCIO", "◇");
+    const elozo = olvas("jrendszer");
+    if (elozo && lista.some(r => r.code === elozo)) $("#j-rendszer").value = elozo;
+    $("#j-rendszer").onchange = () => { tarol("jrendszer", $("#j-rendszer").value); jFaBetolt(); };
+    if (lista.length) jFaBetolt();
+    else $("#j-lanc").innerHTML = `<p class="kicsi">Még nincs jelzésrendszer az adatbázisban — futtasd a rendszerimportot.</p>`;
+  } catch (e) { $("#j-info").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+async function jFaBetolt() {
+  const kod = $("#j-rendszer").value;
+  $("#j-lanc").textContent = "…";
+  $("#j-fo-cim").textContent = "Feloldott nézet — " + kod;
+  try {
+    const f = await api("/v1/kibic/szerk/jelzes/fa?system=" + encodeURIComponent(kod));
+    $("#j-lanc").innerHTML = f.chain.map(c =>
+      `<div data-kod="${esc(c.code)}" style="padding-left:${8 + 14 * c.depth}px">${esc(c.code)}`
+      + `<span class="fajta">${esc(c.kind || "")}</span>`
+      + (c.name ? `<span class="tema">${esc(c.name)}</span>` : "") + `</div>`).join("");
+    $("#j-fa-megj").innerHTML = `<div class="kicsi">${f.rules} sor a feloldás után (teszt mód)</div>`
+      + f.warnings.map(x => `<div class="figy">⚠ ${esc(x)}</div>`).join("")
+      + f.info.map(x => `<div class="info">${esc(x)}</div>`).join("")
+      + (f.overridden.length ? `<details style="margin-top:6px"><summary class="kicsi"><b>${f.overridden.length} felülírt sor</b> (a közelebbi nyer)</summary>`
+        + f.overridden.map(x => `<div class="kicsi"><span class="kulcs">${esc(x.key)}</span>: ${esc(x.winner)} ← ${esc(x.loser)}</div>`).join("") + `</details>` : "");
+    document.querySelectorAll("#j-lanc div").forEach(d => d.onclick = () => jRendszerValaszt(d.dataset.kod));
+    jRendszerValaszt(kod);          // maga a választott rendszer, nem egy eleme
+  } catch (e) { $("#j-lanc").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+async function jInfo(kod) {
+  $("#j-rsz-cim").textContent = "Jelzésrendszer — " + kod; $("#j-rsz-megj-doboz").innerHTML = "";
+  try {
+    const r = await api("/v1/kibic/szerk/jelzes/rendszer?system=" + encodeURIComponent(kod));
+    const TIPUS = {BEEMELES: "beemel", KIZARAS: "kizár"};
+    $("#j-info").innerHTML = `<div class="kicsi">${esc(r.kind || "")}${r.version ? " · " + esc(r.version) : ""}`
+      + (r.name && r.name !== kod ? " · " + esc(r.name) : "") + `</div>`
+      + (r.source ? `<div class="kicsi">forrás: ${esc(r.source)}</div>` : "")
+      + (r.played_by.length ? `<div class="kicsi">ezt játssza: ${r.played_by.map(esc).join(", ")}</div>` : "")
+      + `<div class="jelvenyek" style="margin:4px 0">${jelvenyek(r.counts)}</div>`
+      + (r.description ? `<div class="kicsi">${esc(r.description)}</div>` : "")
+      + (r.note ? `<div class="jegyzet">${esc(r.note)}</div>` : "")
+      + r.references.map(x => `<div class="ref"><span class="t t-${x.type}">${TIPUS[x.type]}</span>${esc(x.target)}`
+        + (x.chapter ? ` <span class="kicsi">/ „${esc(x.chapter)}”</span>` : "")
+        + (x.active ? "" : ` <span class="kicsi">(kikapcsolva)</span>`) + `</div>`).join("");
+  } catch (e) { $("#j-info").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+async function jRendszerValaszt(kod) {
+  jall.rendszer = kod; jall.fejezet = null;
+  document.querySelectorAll("#j-lanc div").forEach(d => d.classList.toggle("val", d.dataset.kod === kod));
+  jInfo(kod);
+  $("#j-fej-cim").textContent = "Fejezetek — " + kod;
+  const fej = await api("/v1/kibic/szerk/jelzes/fejezetek?system=" + encodeURIComponent(kod));
+  jall.fejezetLista = fej;
+  const osszes = {};
+  fej.forEach(f => Object.entries(f.counts).forEach(([k, v]) => osszes[k] = (osszes[k] || 0) + v));
+  $("#j-fejezetek").innerHTML = (fej.length > 1
+      ? `<div data-i="-1"><b>Összes fejezet egyben</b><span class="jelvenyek">${jelvenyek(osszes)}</span></div>` : "")
+    + (fej.map((f, i) => `<div data-i="${i}">${esc(f.chapter || "(fejezet nélkül)")}<span class="jelvenyek">${jelvenyek(f.counts)}</span></div>`).join("")
+       || `<p class="kicsi">Ennek nincs saját sora (csak hivatkozások).</p>`);
+  document.querySelectorAll("#j-fejezetek div").forEach(d => d.onclick = () =>
+    jFejezetValaszt(+d.dataset.i < 0 ? MIND : fej[+d.dataset.i].chapter));
+  $("#j-sorok").innerHTML = ""; $("#j-eszkoz").classList.add("rejtett");
+  $("#j-fej-jegyzet").innerHTML = ""; $("#j-fej-megj-doboz").innerHTML = "";
+  if (fej.length) jFejezetValaszt(fej.length > 1 ? MIND : fej[0].chapter);
+}
+async function jFejezetValaszt(fejezet) {
+  jall.fejezet = fejezet;
+  const mind = fejezet === MIND;
+  const lista = jall.fejezetLista;
+  const i = mind ? -1 : lista.findIndex(f => f.chapter === fejezet);
+  document.querySelectorAll("#j-fejezetek div").forEach(d => d.classList.toggle("val", +d.dataset.i === i));
+  $("#j-szab-cim").textContent = `${jall.rendszer} › ${mind ? "összes fejezet" : (fejezet || "(fejezet nélkül)")}`;
+  $("#j-eszkoz").classList.remove("rejtett"); $("#j-fej-megj-doboz").innerHTML = "";
+  document.querySelectorAll(".j-csak-fejezet").forEach(b => b.classList.toggle("rejtett", mind));
+  $("#j-fej-jegyzet").innerHTML = (mind ? lista.filter(f => f.note) : lista.filter(f => f.chapter === fejezet && f.note))
+    .map(f => `<div class="jegyzet">${mind ? "<b>" + esc(f.chapter) + ":</b> " : ""}${esc(f.note)}</div>`).join("");
+  const sorok = await api(`/v1/kibic/szerk/jelzes/sorok?system=${encodeURIComponent(jall.rendszer)}`
+    + (mind ? "" : `&chapter=${encodeURIComponent(fejezet)}`));
+  let elozoFej = null;
+  $("#j-sorok").innerHTML = sorok.map(s => {
+    const cim = mind && s.chapter !== elozoFej ? `<h3 style="font-size:14px;margin:14px 0 2px">${esc(s.chapter || "(fejezet nélkül)")}</h3>` : "";
+    elozoFej = s.chapter;
+    return cim + `
+    <div class="szabaly" data-id="${s.id}">
+      <input type="checkbox" class="j-jelol" value="${s.id}">
+      <div>
+        <div class="fejsor">
+          <span class="jelvenyek"><span class="b-${s.state}">${s.state.toLowerCase()}</span></span>
+          ${jCimkek(s)}
+          ${s.overrides ? `<span class="felulir" title="Ugyanez a kulcs a(z) ${esc(s.overrides)} rendszerben is van; ez a sor felülírja.">felülírja: ${esc(s.overrides)}</span>` : ""}
+          ${s.skips ? `<span class="torol" title="Az örökölt sor ebben a rendszerben nem él.">kihagyja: ${esc(s.skips)}</span>` : ""}
+          <span class="kulcs">${esc(s.key)}</span>
+        </div>
+        <div>${jSzep(s.text || "")}</div>
+        ${s.comment ? `<div class="kicsi">${esc(s.comment)}</div>` : ""}
+        ${s.note ? `<div class="jegyzet">${esc(s.note)}</div>` : ""}
+        <div class="kicsi"><a href="#" class="j-megj-nyit">💬 megjegyzés${s.comments ? " (" + s.comments + ")" : ""}</a>
+          ${s.approved_by ? " · jóváhagyta: " + esc(s.approved_by) : ""}</div>
+        <div class="megj-hely"></div>
+      </div>
+    </div>`; }).join("") || `<p class="kicsi">Nincs sor.</p>`;
+  document.querySelectorAll(".j-megj-nyit").forEach(a => a.onclick = ev => {
+    ev.preventDefault();
+    const d = a.closest(".szabaly");
+    const s = sorok.find(x => String(x.id) === d.dataset.id);
+    megjegyzesDoboz(d.querySelector(".megj-hely"), {system: jall.rendszer, chapter: s.chapter,
+      key: s.key, pattern: s.key});
+  });
+}
+document.querySelectorAll("#j-eszkoz button[data-m]").forEach(b => b.onclick = async () => {
+  const body = {system: jall.rendszer, action: b.dataset.m, author: $("#szerzo").value};
+  if (b.dataset.mit === "fejezet") {
+    if (!confirm(`Az egész fejezet (${jall.fejezet || "fejezet nélkül"}): ${b.textContent}?`)) return;
+    body.chapter = jall.fejezet ?? "";
+  } else {
+    body.ids = [...document.querySelectorAll(".j-jelol:checked")].map(x => +x.value);
+    if (!body.ids.length) { alert("Jelölj ki legalább egy sort."); return; }
+  }
+  const fej = jall.fejezet, kod = jall.rendszer;
+  try {
+    const v = await api("/v1/kibic/szerk/jelzes/allapot", {method: "POST", body: JSON.stringify(body)});
+    jall.lista = await api("/v1/kibic/szerk/jelzes/rendszerek");
+    await jRendszerValaszt(kod); await jFejezetValaszt(fej);
+    alert(`${v.changed} sor módosult.`);
+  } catch (e) { alert(e.message); }
+});
+$("#j-feloldott").onclick = async () => {
+  const kod = $("#j-rendszer").value, szint = $("#j-szint").value;
+  $("#j-szab-cim").textContent = `${kod} › feloldva (${szint.toLowerCase()})`;
+  $("#j-eszkoz").classList.add("rejtett"); $("#j-fej-jegyzet").innerHTML = ""; $("#j-fej-megj-doboz").innerHTML = "";
+  document.querySelectorAll("#j-fejezetek div").forEach(d => d.classList.remove("val"));
+  try {
+    const v = await api(`/v1/kibic/szerk/jelzes/feloldott?system=${encodeURIComponent(kod)}&level=${szint}`);
+    let elozo = null;
+    $("#j-sorok").innerHTML = `<p class="kicsi">${v.rules.length} sor. Kattints a forrásra: ott jóváhagyhatod vagy megjegyzést írhatsz.</p>`
+      + v.rules.map(s => {
+        const cim = s.chapter !== elozo ? `<h3 style="font-size:14px;margin:14px 0 2px">${esc(s.chapter || "(fejezet nélkül)")}</h3>` : "";
+        elozo = s.chapter;
+        return cim + `<div class="szabaly"><span></span><div>
+          <div class="fejsor"><span class="jelvenyek"><span class="b-${s.state}">${s.state.toLowerCase()}</span></span>
+            ${jCimkek(s)}
+            <a href="#" class="j-forras" data-kod="${esc(s.source)}" data-fej="${esc(s.chapter || "")}">${esc(s.source)}</a>
+            <span class="kulcs">${esc(s.key)}</span></div>
+          <div>${jSzep(s.text)}</div></div></div>`; }).join("");
+    document.querySelectorAll(".j-forras").forEach(a => a.onclick = async ev => {
+      ev.preventDefault(); await jRendszerValaszt(a.dataset.kod); await jFejezetValaszt(a.dataset.fej); });
+  } catch (e) { $("#j-sorok").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+};
+$("#j-proba").onclick = async () => {
+  const kod = $("#j-rendszer").value;
+  try {
+    const v = await api(`/v1/kibic/szerk/jelzes/proba?system=${encodeURIComponent(kod)}`
+      + `&holding=${encodeURIComponent($("#j-lap").value)}&situation=${$("#j-helyzet").value}&level=${$("#j-szint").value}`);
+    const FV = {SZIN: "szín ellen", SZAN: "szan ellen"};
+    $("#j-proba-ki").innerHTML = `<div style="display:flex;align-items:baseline;gap:8px"><h2 style="flex:1">Mit hív? — ${esc(v.holding)} · ${esc(kod)}</h2>`
+      + `<button class="j-proba-zar">Bezár</button></div><table>` + v.results.map(r =>
+      `<tr><td>${FV[r.contract] || esc(r.contract)}</td><td><span class="lap">${esc(r.card || "—")}</span>`
+      + (r.candidates.length ? r.candidates.map((c, i) => `<div class="kicsi">${i ? "mögötte: " : "<b>nyer:</b> "}`
+        + `${esc(c.source)} · <span class="kulcs">${esc(c.key)}</span> · konkrétság ${c.specificity}`
+        + (c.state !== "ELFOGADOTT" ? ` · <span class="b-${c.state}">${c.state.toLowerCase()}</span>` : "") + `</div>`).join("")
+        : `<div class="figy">nincs rá szabály</div>`) + `</td></tr>`).join("") + `</table><hr style="border:0;border-top:1px solid var(--vonal);margin:14px 0">`;
+    $("#j-proba-ki").querySelector(".j-proba-zar").onclick = () => { $("#j-proba-ki").innerHTML = ""; };
+  } catch (e) { $("#j-proba-ki").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+  $("#j-proba-ki").scrollIntoView({block: "nearest"});
+};
+$("#j-lap").onkeydown = e => { if (e.key === "Enter") $("#j-proba").click(); };
+$("#j-rsz-megj").onclick = () => megjegyzesDoboz($("#j-rsz-megj-doboz"),
+  {system: jall.rendszer, chapter: null, key: null});
+$("#j-fej-megj").onclick = () => megjegyzesDoboz($("#j-fej-megj-doboz"),
+  {system: jall.rendszer, chapter: jall.fejezet, key: null});
+
+// --- megjegyzés: AZONNAL az adatbázisba, a piszkozat a böngészőben is megmarad ---
+async function megjegyzesDoboz(hely, cel) {
+  const piszkozatKulcs = "piszk_" + cel.system + "_" + (cel.key || "fej:" + cel.chapter);
+  let regiek = [];
+  try { regiek = await api(`/v1/kibic/szerk/megjegyzes?system=${encodeURIComponent(cel.system)}&key=${encodeURIComponent(cel.key || "")}`); } catch (e) {}
+  hely.innerHTML = `<div class="megj">
+    ${regiek.filter(m => (m.chapter || "") === (cel.chapter || "") || cel.key).map(m =>
+      `<div class="regi">${esc(m.text)} <span class="kicsi">— ${esc(m.author || "")} ${esc(m.created)}</span></div>`).join("")}
+    <textarea placeholder="Megjegyzés… (Ctrl+Enter = mentés)"></textarea>
+    <div class="eszkoz"><button class="fo ment">Mentés</button><button class="megse">Bezár</button>
+    <span class="figyelem">A megjegyzés a Mentés gombbal (vagy Ctrl+Enterrel) kerül be. A piszkozat addig is megmarad ebben a böngészőben.</span></div></div>`;
+  const ta = hely.querySelector("textarea");
+  ta.value = olvas(piszkozatKulcs);
+  ta.oninput = () => tarol(piszkozatKulcs, ta.value);
+  const ment = async () => {
+    if (!ta.value.trim()) return;
+    try {
+      await api("/v1/kibic/szerk/megjegyzes", {method: "POST",
+        body: JSON.stringify({...cel, text: ta.value, author: $("#szerzo").value})});
+      tarol(piszkozatKulcs, ""); megjegyzesDoboz(hely, cel);
+    } catch (e) { alert("NEM mentődött: " + e.message + "\nA szöveg megmaradt a mezőben."); }
+  };
+  hely.querySelector(".ment").onclick = ment;
+  ta.onkeydown = e => { if (e.key === "Enter" && e.ctrlKey) ment(); };
+  hely.querySelector(".megse").onclick = () => { hely.innerHTML = ""; };
+  ta.focus();
+}
+
+async function megjegyzesLista() {
+  try {
+    const l = await api("/v1/kibic/szerk/megjegyzes");
+    $("#megj-lista").innerHTML = l.length ? `<table><tr><th>Hol</th><th>Megjegyzés</th><th>Ki, mikor</th><th></th></tr>` +
+      l.map(m => `<tr><td>${esc(m.system)}<br><span class="kicsi">${esc(m.chapter || "")}</span><br>${szep(m.pattern || "")}</td>
+        <td>${esc(m.text)}</td><td class="kicsi">${esc(m.author || "")}<br>${esc(m.created)}</td>
+        <td><button data-id="${m.id}" class="lezar">Lezár</button></td></tr>`).join("") + `</table>`
+      : `<p class="kicsi">Nincs nyitott megjegyzés.</p>`;
+    document.querySelectorAll(".lezar").forEach(b => b.onclick = async () => {
+      await api("/v1/kibic/szerk/megjegyzes/" + b.dataset.id + "/lezar", {method: "POST"}); megjegyzesLista(); });
+  } catch (e) { $("#megj-lista").innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+}
+$("#export").onclick = async () => {
+  try {
+    const j = await api("/v1/kibic/szerk/export");
+    const blob = new Blob([JSON.stringify(j, null, 1)], {type: "application/json"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = "kibic-megjegyzesek-" + new Date().toISOString().slice(0, 10) + ".json"; a.click();
+  } catch (e) { alert(e.message); }
+};
+
+// --- próbakéz ---
+const ULESEK = ["N", "E", "S", "W"];
+function kezBontas(s) {
+  s = s.replace(/♠/g, " S").replace(/♥/g, " H").replace(/♦/g, " D").replace(/♣/g, " C").replace(/10/g, "T").toUpperCase();
+  const ki = [];
+  if (s.includes(".")) {
+    s.replace(/\s/g, "").split(".").forEach((resz, i) => [...resz].forEach(l => ki.push("SHDC"[i] + l)));
+  } else {
+    const re = /([SHDC])\s*:?\s*([AKQJT98765432]*)/g; let m;
+    while ((m = re.exec(s))) [...m[2]].forEach(l => ki.push(m[1] + l));
+  }
+  return ki;
+}
+function menetBontas(s) { return s.trim() ? s.trim().split(/[\s,]+/) : []; }
+function soronKovetkezo() {
+  return ULESEK[(ULESEK.indexOf($("#pk-oszto").value) + menetBontas($("#pk-menet").value).length) % 4];
+}
+const ULES_NEV = {N: "Észak", E: "Kelet", S: "Dél", W: "Nyugat"};
+const ulesKiir = () => $("#pk-ules").textContent = "licitál: " + ULES_NEV[soronKovetkezo()];
+["#pk-oszto", "#pk-menet"].forEach(s => { $(s).oninput = ulesKiir; $(s).onchange = ulesKiir; });
+ulesKiir();
+$("#pk-go").onclick = async () => {
+  const hely = $("#pk-eredmeny");
+  const kez = kezBontas($("#pk-kez").value);
+  if (kez.length !== 13) { hely.innerHTML = `<div class="hiba">13 lap kell, ${kez.length} van.</div>`; return; }
+  hely.textContent = "…";
+  try {
+    const v = await api("/v1/kibic/licit", {method: "POST", body: JSON.stringify({
+      system: $("#rendszer").value, hand: kez, dealer: $("#pk-oszto").value, seat: soronKovetkezo(),
+      vulnerability: $("#pk-beli").value, auction: menetBontas($("#pk-menet").value),
+      test_mode: $("#pk-teszt").checked, debug: true})});
+    const d = v.debug || {}, ch = d.chosen || {};
+    hely.innerHTML = `
+      <div class="licit">${szep(v.call || "—")}</div>
+      <div>${szep(v.explanation || "")}</div>
+      ${v.alert ? `<div><span class="alert">alert</span> ${esc(v.alert.text || "")}</div>` : ""}
+      ${ch.rule ? `<div class="kicsi">szabály: <b>${szep(ch.rule)}</b> · ${esc(ch.system || "")} · ${esc(ch.chapter || "")} · prioritás ${ch.priority ?? ""}
+        ${ch.tie_break ? " · Bánky-szabály ezek közül: " + ch.tie_break.among.map(szep).join(", ") : ""}</div>` : ""}
+      ${d.hand ? `<div class="kicsi">kéz: ${d.hand.hcp} FP, ${Object.entries(d.hand.shape).map(([k, n]) => SZ[k] + n).join(" ")}</div>` : ""}
+      <h2 style="margin-top:14px">Szóba jött szabályok (${d.considered_total ?? 0})</h2>
+      <table><tr><th>Licit</th><th>Eredmény</th><th>Szabály</th><th>Miért nem</th></tr>
+      ${(d.considered || []).map(n => `<tr><td>${szep(n.call)}</td><td class="r-${n.result}">${esc(n.result)}</td>
+        <td>${szep(n.rule)}<br><span class="kicsi">${esc(n.system)} · p${n.priority}</span></td>
+        <td class="kicsi">${(n.why_not || []).map(esc).join("<br>")}</td></tr>`).join("")}</table>`;
+  } catch (e) { hely.innerHTML = `<div class="hiba">${esc(e.message)}</div>`; }
+};
+indul();
+</script>
+</body>
+</html>

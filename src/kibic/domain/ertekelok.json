@@ -1,0 +1,735 @@
+{
+ "AP_321": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "HCP + renonsz 3 / szingli 2 / dubló 1",
+  "nev": "Asztali pont (3-2-1)",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "sulyok": {
+     "0": 3,
+     "1": 2,
+     "2": 1
+    },
+    "tipus": "HOSSZ_SULY"
+   }
+  ]
+ },
+ "AP_531": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "HCP + sikén 5 / szingli 3 / dubló 1",
+  "nev": "Asztali pont (5-3-1)",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "sulyok": {
+     "0": 5,
+     "1": 3,
+     "2": 1
+    },
+    "tipus": "HOSSZ_SULY"
+   }
+  ]
+ },
+ "EGYENLETES": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "Legalább két lap minden színben. 1 vagy 0.",
+  "nev": "Egyenletes (LICREN b)",
+  "tagok": [
+   {
+    "akkor": 1,
+    "bal": {
+     "rang": 4,
+     "tipus": "RENDEZETT_HOSSZ"
+    },
+    "jobb": 2,
+    "kulonben": 0,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   }
+  ]
+ },
+ "F1": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "LICREN f1",
+  "nev": "Figurapont a 1. leghosszabb színben",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "szin_rang": 1,
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "F2": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "LICREN f2",
+  "nev": "Figurapont a 2. leghosszabb színben",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "szin_rang": 2,
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "F3": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "LICREN f3",
+  "nev": "Figurapont a 3. leghosszabb színben",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "szin_rang": 3,
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "F4": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "LICREN f4",
+  "nev": "Figurapont a 4. leghosszabb színben",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "szin_rang": 4,
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "GYORSUTES": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "AK=2, AQ=1,5, A=1, KQ=1, Kx=0,5",
+  "nev": "Gyorsütés",
+  "tagok": [
+   {
+    "szabalyok": [
+     {
+      "ertek": 2,
+      "tart": [
+       "A",
+       "K"
+      ]
+     },
+     {
+      "ertek": 1.5,
+      "tart": [
+       "A",
+       "Q"
+      ]
+     },
+     {
+      "ertek": 1,
+      "tart": [
+       "A"
+      ]
+     },
+     {
+      "ertek": 1,
+      "tart": [
+       "K",
+       "Q"
+      ]
+     },
+     {
+      "ertek": 0.5,
+      "min_hossz": 2,
+      "tart": [
+       "K"
+      ]
+     }
+    ],
+    "tipus": "SZIN_MINTA"
+   }
+  ]
+ },
+ "HCP": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "Milton Work: A=4, K=3, D=2, B=1",
+  "nev": "Figurapont (4-3-2-1)",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "HCP_DIST": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "HCP + minden 4 feletti lap +1",
+  "nev": "Figurapont + elosztás",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "felett": 4,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "J_HOSSZ": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "JÁTÉKÜTÉS-jelölt: gátló nyitásoknál szokásos becslés.",
+  "nev": "Játékütés: gyorsütés + hosszú színek többletlapjai",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "GYORSUTES",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "felett": 3,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "J_KLASSZIKUS": {
+  "kerekites": 4,
+  "kontextus": "ABSZOLUT",
+  "leiras": "JÁTÉKÜTÉS-jelölt. A LICREN j jelzője ennek 10-szerese.",
+  "nev": "Játékütés: figuraütések + hosszú lapok",
+  "tagok": [
+   {
+    "szabalyok": [
+     {
+      "ertek": 3,
+      "tart": [
+       "A",
+       "K",
+       "Q"
+      ]
+     },
+     {
+      "ertek": 2.5,
+      "min_hossz": 3,
+      "tart": [
+       "A",
+       "K"
+      ]
+     },
+     {
+      "ertek": 2,
+      "tart": [
+       "A",
+       "K"
+      ]
+     },
+     {
+      "ertek": 1.5,
+      "min_hossz": 2,
+      "tart": [
+       "A",
+       "Q"
+      ]
+     },
+     {
+      "ertek": 1,
+      "tart": [
+       "A"
+      ]
+     },
+     {
+      "ertek": 1,
+      "min_hossz": 3,
+      "tart": [
+       "K",
+       "Q"
+      ]
+     },
+     {
+      "ertek": 0.5,
+      "min_hossz": 2,
+      "tart": [
+       "K"
+      ]
+     },
+     {
+      "ertek": 0.25,
+      "min_hossz": 3,
+      "tart": [
+       "Q"
+      ]
+     }
+    ],
+    "tipus": "SZIN_MINTA"
+   },
+   {
+    "egyutthato": 0.75,
+    "felett": 3,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "KONTROLL": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "A=2, K=1 (szlemkutatáshoz)",
+  "nev": "Kontrollszám",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 2,
+     "K": 1
+    },
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "LAPMINOSEG": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "Jó jelek száma mínusz rossz jelek száma. JÓ lap: >= 2, ROSSZ lap: <= -2. Rossz: nincs ász; 4-3-3-3; a pontok fele dáma-bubi; a pontok többsége rövid színben; nincs 10-es/9-es; elszórt figurák (két rövid színben magányos K/D/B ász nélkül, pl. Kxx és Dx). Jó: ász és király is; nincs bubi; két figura (A/K/D) együtt egy 4+ lapos színben (pl. KDxx); a pontok többsége hosszú színben; 5+ lapos szín; legalább két 10-es/9-es.",
+  "nev": "Lapminőség (Moha)",
+  "tagok": [
+   {
+    "bal": {
+     "sulyok": {
+      "A": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": -1,
+    "jobb": 0,
+    "op": "<=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "rang": 4,
+     "tipus": "RENDEZETT_HOSSZ"
+    },
+    "egyutthato": -1,
+    "jobb": 3,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "sulyok": {
+      "A": -4,
+      "J": 1,
+      "K": -3,
+      "Q": 2
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": -1,
+    "jobb": 0,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "kod": "LM_ROVID_TOBBLET",
+     "tipus": "ERTEKELO"
+    },
+    "egyutthato": -1,
+    "jobb": 0,
+    "op": ">",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "sulyok": {
+      "9": 1,
+      "T": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": -1,
+    "jobb": 0,
+    "op": "<=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "szabalyok": [
+      {
+       "ertek": 0,
+       "max_hossz": 3,
+       "tart": [
+        "A"
+       ]
+      },
+      {
+       "ertek": 1,
+       "max_hossz": 3,
+       "nincs": [
+        "Q",
+        "J"
+       ],
+       "tart": [
+        "K"
+       ]
+      },
+      {
+       "ertek": 1,
+       "max_hossz": 3,
+       "nincs": [
+        "K",
+        "J"
+       ],
+       "tart": [
+        "Q"
+       ]
+      },
+      {
+       "ertek": 1,
+       "max_hossz": 3,
+       "nincs": [
+        "K",
+        "Q"
+       ],
+       "tart": [
+        "J"
+       ]
+      }
+     ],
+     "tipus": "SZIN_MINTA"
+    },
+    "egyutthato": -1,
+    "jobb": 2,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "kod": "LM_ASZ_ES_KIRALY",
+     "tipus": "ERTEKELO"
+    },
+    "egyutthato": 1,
+    "jobb": 2,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "sulyok": {
+      "J": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": 1,
+    "jobb": 0,
+    "op": "<=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "szabalyok": [
+      {
+       "ertek": 1,
+       "min_hossz": 4,
+       "tart": [
+        "A",
+        "K"
+       ]
+      },
+      {
+       "ertek": 1,
+       "min_hossz": 4,
+       "tart": [
+        "A",
+        "Q"
+       ]
+      },
+      {
+       "ertek": 1,
+       "min_hossz": 4,
+       "tart": [
+        "K",
+        "Q"
+       ]
+      }
+     ],
+     "tipus": "SZIN_MINTA"
+    },
+    "egyutthato": 1,
+    "jobb": 1,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "kod": "LM_ROVID_TOBBLET",
+     "tipus": "ERTEKELO"
+    },
+    "egyutthato": 1,
+    "jobb": 0,
+    "op": "<",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "rang": 1,
+     "tipus": "RENDEZETT_HOSSZ"
+    },
+    "egyutthato": 1,
+    "jobb": 5,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "sulyok": {
+      "9": 1,
+      "T": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": 1,
+    "jobb": 2,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   }
+  ]
+ },
+ "LM_ASZ_ES_KIRALY": {
+  "kontextus": "EGYEB",
+  "leiras": "2, ha van ász és király is.",
+  "nev": "Lapminőség segéd: van ász ÉS király",
+  "tagok": [
+   {
+    "bal": {
+     "sulyok": {
+      "A": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": 1,
+    "jobb": 1,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   },
+   {
+    "bal": {
+     "sulyok": {
+      "K": 1
+     },
+     "tipus": "LAP_SULY"
+    },
+    "egyutthato": 1,
+    "jobb": 1,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   }
+  ]
+ },
+ "LM_ROVID_TOBBLET": {
+  "kontextus": "EGYEB",
+  "leiras": "Figurapont a legfeljebb 3 lapos színekben mínusz a 4+ lapos színekben. Pozitív: a pontok többsége rövid színben.",
+  "nev": "Lapminőség segéd: rövid színek pontja − hosszú színek pontja",
+  "tagok": [
+   {
+    "max_hossz": 3,
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "tipus": "LAP_SULY"
+   },
+   {
+    "egyutthato": -1,
+    "min_hossz": 4,
+    "sulyok": {
+     "A": 4,
+     "J": 1,
+     "K": 3,
+     "Q": 2
+    },
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "LTC": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "Színenként hány hiányzik az A, K, D közül az első három lapból",
+  "nev": "Losing Trick Count",
+  "tagok": [
+   {
+    "kozul": [
+     "A",
+     "K",
+     "Q"
+    ],
+    "max_lap": 3,
+    "tipus": "SZIN_HIANYZO"
+   }
+  ]
+ },
+ "NANO": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "A=3, K=2, D=1. Sylstandard 2 treff válaszainál.",
+  "nev": "Nano-pont",
+  "tagok": [
+   {
+    "sulyok": {
+     "A": 3,
+     "K": 2,
+     "Q": 1
+    },
+    "tipus": "LAP_SULY"
+   }
+  ]
+ },
+ "P_AP321": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "PONT-jelölt.",
+  "nev": "Pont = figurapont + rövidségi pont (3-2-1)",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "AP_321",
+    "tipus": "ERTEKELO"
+   }
+  ]
+ },
+ "P_AP531": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "PONT-jelölt.",
+  "nev": "Pont = figurapont + rövidségi pont (5-3-1)",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "AP_531",
+    "tipus": "ERTEKELO"
+   }
+  ]
+ },
+ "P_HCP": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "PONT-jelölt: nincs elosztási pont.",
+  "nev": "Pont = figurapont",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   }
+  ]
+ },
+ "P_HOSSZ": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "PONT-jelölt: minden 4 feletti lap a színben +1. A legelterjedtebb.",
+  "nev": "Pont = figurapont + hosszúsági pont",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "felett": 4,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "P_HOSSZ5": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "PONT-jelölt: a nagyon hosszú színek túlértékelése ellen.",
+  "nev": "Pont = figurapont + hosszúsági pont (színenként max 3)",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "felett": 4,
+    "max": 3,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "TOTAL_POINTS": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "HCP + rovidsegi pont (renonsz 3 / szingli 2 / dublo 1) + hosszusagi pont (minden 4 feletti lap +1). A GIB sajat magyarazataibol visszafejtve.",
+  "nev": "Total points (BBO GIB)",
+  "tagok": [
+   {
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "sulyok": {
+     "0": 3,
+     "1": 2,
+     "2": 1
+    },
+    "tipus": "HOSSZ_SULY"
+   },
+   {
+    "felett": 4,
+    "tipus": "HOSSZ_TOBBLET"
+   }
+  ]
+ },
+ "ZAR": {
+  "kontextus": "ABSZOLUT",
+  "leiras": "Zar Petkov: HCP + kontroll + (leghosszabb + második) + (leghosszabb - legrövidebb)",
+  "nev": "Zar-pont",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "egyutthato": 1,
+    "kod": "KONTROLL",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "egyutthato": 2,
+    "rang": 1,
+    "tipus": "RENDEZETT_HOSSZ"
+   },
+   {
+    "egyutthato": 1,
+    "rang": 2,
+    "tipus": "RENDEZETT_HOSSZ"
+   },
+   {
+    "egyutthato": -1,
+    "rang": 4,
+    "tipus": "RENDEZETT_HOSSZ"
+   }
+  ]
+ }
+}
