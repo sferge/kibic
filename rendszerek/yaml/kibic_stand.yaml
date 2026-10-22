@@ -41,7 +41,7 @@ hivatkozasok:
   - MICHAELS
   - SZOKATLAN_2NT
   - GYENGE_UGRO_KOZBESZOLAS
-  - FESU                        # az adatbázisban (015_fesu.sql), JAVASOLT
+  - FESU                        # fésű (konvenciok/fesu.yaml — 2026-10-22 óta YAML-ban is)
   - DRURY
   - GAMBLING_3NT
   - GYENGE_2D                   # ideiglenes, a saját leírásod fogja felváltani
