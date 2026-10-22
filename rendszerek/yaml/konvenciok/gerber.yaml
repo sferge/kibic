@@ -1,0 +1,22 @@
+rendszer:
+  kod: GERBER
+  nev: Gerber
+  nev_en: Gerber
+  fajta: KONVENCIO
+  tema: "NT után: ászkérdés"
+  leiras: "Szan nyitás után a 4♣ ászt kérdez. Válasz: 4♦ 0/4, 4♥ 1, 4♠ 2, 4NT 3 ász."
+fejezetek:
+  - fejezet: Gerber
+    szabalyok:
+      - {minta: 1NT-4C, pont: 16+, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+         alert: "Gerber ászkérdés", nyers: "4m! | Gerber ászkérdés"}
+      - {minta: 2NT-4C, pont: 12+, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 56,
+         alert: "Gerber ászkérdés", nyers: "4♣! | Gerber ászkérdés"}
+      - {minta: 1NT-4C-4D, vagy: [{aszok: 0}, {aszok: 4}], prioritas: 50, alert: "0 vagy 4 ász"}
+      - {minta: 1NT-4C-4H, aszok: 1, prioritas: 50, alert: "1 ász"}
+      - {minta: 1NT-4C-4S, aszok: 2, prioritas: 50, alert: "2 ász"}
+      - {minta: 1NT-4C-4NT, aszok: 3, prioritas: 50, alert: "3 ász"}
+      - {minta: 2NT-4C-4D, vagy: [{aszok: 0}, {aszok: 4}], prioritas: 50, alert: "0 vagy 4 ász"}
+      - {minta: 2NT-4C-4H, aszok: 1, prioritas: 50, alert: "1 ász"}
+      - {minta: 2NT-4C-4S, aszok: 2, prioritas: 50, alert: "2 ász"}
+      - {minta: 2NT-4C-4NT, aszok: 3, prioritas: 50, alert: "3 ász"}

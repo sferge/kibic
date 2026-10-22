@@ -1,0 +1,221 @@
+# KIBICEGY_KUZDELMI — a Kibic egyesület KÜZDELMI & VÉDEKEZŐ licitjei
+# (rendszerek/konvenciok/KÜZDELMI & VÉDEKEZŐ licitek.doc), a név szerinti
+# konvenciók (negatív/support/informatív/reszponzív kontra, Lebensohl,
+# Michaels, szokatlan 2NT, ugró közbeszólás) NÉLKÜL — azok külön élnek.
+# Generált alapváz; a pontsávok egy része kiegészítés (a dokumentum sok
+# helyen csak a licit jellegét adja meg).
+# FIGYELEM: 1NT-(X) után a két dokumentum eltér: a kibic_standard szerint az
+# XX egyszínű minor leállás (ez él, mert a KIBICEGY_STAND előbb áll a
+# kártyán), a küzdelmi doksi szerint DONT-szerű menekülés; innen csak a
+# kétszínű (2x) menekülések kerültek át.
+rendszer:
+  kod: "KIBICEGY_KUZDELMI"
+  nev: "Kibic egyesület küzdelmi és védekező licitek"
+  nev_en: "Kibic club competitive bidding"
+  fajta: "KONVENCIO"
+  csalad: "NATURAL"
+  leiras: "A klub küzdelmi és védekező megállapodásai. Forrás: KÜZDELMI & VÉDEKEZŐ licitek.doc"
+fejezetek:
+  - fejezet: "Küzdelmi licitek: nyitásunk után közbeszólnak"
+    szabalyok:
+      - {minta: "1C (1D) 1H", pont: "6+", hossz: {"H": "4+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín az egyesen: 4+ kőr, F1"}
+      - {minta: "1C (1D) 1S", pont: "6+", hossz: {"S": "4+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín az egyesen: 4+ pikk, F1"}
+      - {minta: "1C (1D) 2D", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"C": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1C (1D) 1NT", pont: "7-10", fogas: ["D"], prioritas: 49, hossz: {"H": "0-3", "S": "0-3"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1C (1H) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 58, magyarazat: "Új szín a kettesen: 10+ FP, 5+ káró, F1"}
+      - {minta: "1C (1H) 1S", pont: "6+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín az egyesen: 5+ pikk, F1"}
+      - {minta: "1C (1H) 2H", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"C": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1C (1H) 1NT", pont: "7-10", fogas: ["H"], prioritas: 49, hossz: {"H": "0-3", "S": "0-3"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1C (1S) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 58, magyarazat: "Új szín a kettesen: 10+ FP, 5+ káró, F1"}
+      - {minta: "1C (1S) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 59, magyarazat: "Új szín a kettesen: 10+ FP, 5+ kőr, F1"}
+      - {minta: "1C (1S) 2S", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"C": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1C (1S) 1NT", pont: "7-10", fogas: ["S"], prioritas: 49, hossz: {"H": "0-3", "S": "0-3"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1D (2C) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 59, magyarazat: "Új szín a kettesen: 10+ FP, 5+ kőr, F1"}
+      - {minta: "1D (2C) 2S", pont: "10+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 60, magyarazat: "Új szín a kettesen: 10+ FP, 5+ pikk, F1"}
+      - {minta: "1D (2C) 3C", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"D": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1D (1H) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 57, magyarazat: "Új szín a kettesen: 10+ FP, 5+ treff, F1"}
+      - {minta: "1D (1H) 1S", pont: "6+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín az egyesen: 5+ pikk, F1"}
+      - {minta: "1D (1H) 2H", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"D": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1D (1H) 1NT", pont: "7-10", fogas: ["H"], prioritas: 49, hossz: {"H": "0-3", "S": "0-3"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1D (1S) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 57, magyarazat: "Új szín a kettesen: 10+ FP, 5+ treff, F1"}
+      - {minta: "1D (1S) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 59, magyarazat: "Új szín a kettesen: 10+ FP, 5+ kőr, F1"}
+      - {minta: "1D (1S) 2S", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"D": "4+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1D (1S) 1NT", pont: "7-10", fogas: ["S"], prioritas: 49, hossz: {"H": "0-3", "S": "0-3"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1H (2C) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 58, magyarazat: "Új szín a kettesen: 10+ FP, 5+ káró, F1"}
+      - {minta: "1H (2C) 2S", pont: "10+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 60, magyarazat: "Új szín a kettesen: 10+ FP, 5+ pikk, F1"}
+      - {minta: "1H (2C) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1H (2C) 3H", pont: "0-6", hossz: {"H": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1H (2C) 3C", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"H": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1H (2D) 2S", pont: "10+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 60, magyarazat: "Új szín a kettesen: 10+ FP, 5+ pikk, F1"}
+      - {minta: "1H (2D) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1H (2D) 3H", pont: "0-6", hossz: {"H": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1H (2D) 3D", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"H": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1H (1S) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 57, magyarazat: "Új szín a kettesen: 10+ FP, 5+ treff, F1"}
+      - {minta: "1H (1S) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 58, magyarazat: "Új szín a kettesen: 10+ FP, 5+ káró, F1"}
+      - {minta: "1H (1S) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1H (1S) 3H", pont: "0-6", hossz: {"H": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1H (1S) 2S", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"H": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1H (1S) 1NT", pont: "7-10", fogas: ["S"], prioritas: 49, hossz: {"H": "0-2"}, magyarazat: "7-10 FP, fogás a közbeszólás színében"}
+      - {minta: "1S (2C) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 58, magyarazat: "Új szín a kettesen: 10+ FP, 5+ káró, F1"}
+      - {minta: "1S (2C) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 59, magyarazat: "Új szín a kettesen: 10+ FP, 5+ kőr, F1"}
+      - {minta: "1S (2C) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1S (2C) 3S", pont: "0-6", hossz: {"S": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1S (2C) 3C", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"S": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1S (2D) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 59, magyarazat: "Új szín a kettesen: 10+ FP, 5+ kőr, F1"}
+      - {minta: "1S (2D) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1S (2D) 3S", pont: "0-6", hossz: {"S": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1S (2D) 3D", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"S": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1S (2H) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 55, magyarazat: "Egyszerű emelés, 6-9 FP"}
+      - {minta: "1S (2H) 3S", pont: "0-6", hossz: {"S": "4+"}, forsz: "KIZARO", prioritas: 54, magyarazat: "Kizáró emelés"}
+      - {minta: "1S (2H) 3H", pont: "10+", forsz: "EGY_MENET", prioritas: 56, vagy: [{"hossz": {"S": "3+"}}, {"pont": "13+"}], alert: "Felüllicit: legalább géminvit emelés, vagy bármilyen gémforsz"}
+      - {minta: "1NT (3C) X", pont: "8+", forsz: "EGY_MENET", prioritas: 55, alert: "Negatív kontra (értékeket mutat)", nyers: "1NT--(3X)--??? Természetes hármas magasságú közbeszólás után a DBL mindkét részről NEGATÍV"}
+      - {minta: "1NT (3D) X", pont: "8+", forsz: "EGY_MENET", prioritas: 55, alert: "Negatív kontra (értékeket mutat)", nyers: "1NT--(3X)--??? Természetes hármas magasságú közbeszólás után a DBL mindkét részről NEGATÍV"}
+      - {minta: "1NT (3H) X", pont: "8+", forsz: "EGY_MENET", prioritas: 55, alert: "Negatív kontra (értékeket mutat)", nyers: "1NT--(3X)--??? Természetes hármas magasságú közbeszólás után a DBL mindkét részről NEGATÍV"}
+      - {minta: "1NT (3S) X", pont: "8+", forsz: "EGY_MENET", prioritas: 55, alert: "Negatív kontra (értékeket mutat)", nyers: "1NT--(3X)--??? Természetes hármas magasságú közbeszólás után a DBL mindkét részről NEGATÍV"}
+      - {minta: "1NT (X) 2C", pont: "0-7", hossz: {"C": "4+"}, vagy: [{"hossz": {"D": "4+"}}, {"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}], prioritas: 53, alert: "Kétszínű menekülés: treff és egy magasabb szín", nyers: "2X | kétszínű menekülés"}
+      - {minta: "1NT (X) 2D", pont: "0-7", hossz: {"D": "4+"}, vagy: [{"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}], prioritas: 54, alert: "Kétszínű menekülés: káró és egy nemes"}
+      - {minta: "1NT (X) 2H", pont: "0-7", hossz: {"H": "4+", "S": "4+"}, prioritas: 56, alert: "Kétszínű menekülés: a két nemes"}
+      - {minta: "1NT (X) 3H", pont: "0-9", hossz: {"H": "6+"}, prioritas: 52, magyarazat: "Leállás", nyers: "3X | T/P"}
+      - {minta: "1NT (X) 3S", pont: "0-9", hossz: {"S": "6+"}, prioritas: 52, magyarazat: "Leállás", nyers: "3X | T/P"}
+  - fejezet: "Információs kontra a nyitásunkra"
+    szabalyok:
+      - {minta: "1C (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
+      - {minta: "1C (X) 1D", pont: "6+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1C (X) 2D", pont: "0-6", hossz: {"D": "6+"}, forsz: "KIZARO", prioritas: 47, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1C (X) 1H", pont: "6+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1C (X) 2H", pont: "0-6", hossz: {"H": "6+"}, forsz: "KIZARO", prioritas: 48, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1C (X) 1S", pont: "6+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 54, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1C (X) 2S", pont: "0-6", hossz: {"S": "6+"}, forsz: "KIZARO", prioritas: 49, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1D (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
+      - {minta: "1D (X) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 51, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1D (X) 3C", pont: "0-6", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 46, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1D (X) 1H", pont: "6+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1D (X) 2H", pont: "0-6", hossz: {"H": "6+"}, forsz: "KIZARO", prioritas: 48, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1D (X) 1S", pont: "6+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 54, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1D (X) 2S", pont: "0-6", hossz: {"S": "6+"}, forsz: "KIZARO", prioritas: 49, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1H (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
+      - {minta: "1H (X) 2H", pont: "6-9", hossz: {"H": "3"}, prioritas: 55, alert: "6-9, 3-as fit"}
+      - {minta: "1H (X) 2NT", pont: "13+", hossz: {"H": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
+      - {minta: "1H (X) 3C", pont: "7-9", hossz: {"H": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
+      - {minta: "1H (X) 3D", pont: "10-12", hossz: {"H": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
+      - {minta: "1H (X) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 51, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1H (X) 3C", pont: "0-6", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 46, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1H (X) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1H (X) 3D", pont: "0-6", hossz: {"D": "6+"}, forsz: "KIZARO", prioritas: 47, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1H (X) 1S", pont: "6+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 54, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1H (X) 2S", pont: "0-6", hossz: {"S": "6+"}, forsz: "KIZARO", prioritas: 49, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1S (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
+      - {minta: "1S (X) 2S", pont: "6-9", hossz: {"S": "3"}, prioritas: 55, alert: "6-9, 3-as fit"}
+      - {minta: "1S (X) 2NT", pont: "13+", hossz: {"S": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
+      - {minta: "1S (X) 3C", pont: "7-9", hossz: {"S": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
+      - {minta: "1S (X) 3D", pont: "10-12", hossz: {"S": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
+      - {minta: "1S (X) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 51, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1S (X) 3C", pont: "0-6", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 46, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1S (X) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1S (X) 3D", pont: "0-6", hossz: {"D": "6+"}, forsz: "KIZARO", prioritas: 47, magyarazat: "Ugró új szín: kizáró"}
+      - {minta: "1S (X) 2H", pont: "10+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "1S (X) 3H", pont: "0-6", hossz: {"H": "6+"}, forsz: "KIZARO", prioritas: 48, magyarazat: "Ugró új szín: kizáró"}
+  - fejezet: "Védekező vonal"
+    szabalyok:
+      - {minta: "(1C) 1D", pont: "10-17", hossz: {"D": "5+"}, figura: {"D": "4+"}, prioritas: 55, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó káró"}
+      - {minta: "(1C) 1H", pont: "10-17", hossz: {"H": "5+"}, figura: {"H": "4+"}, prioritas: 56, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó kőr"}
+      - {minta: "(1C) 1S", pont: "10-17", hossz: {"S": "5+"}, figura: {"S": "4+"}, prioritas: 57, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó pikk"}
+      - {minta: "(1C) 1NT", pont: "16-19", fogas: ["C"], prioritas: 58, vagy: [{"elosztas": "BAL"}, {"hossz": {"C": "1"}}], magyarazat: "16-19 FP, fogással", nyers: "1Nt KÖZBESZÓLÁS jó 16–19 FP, fogással (szingli nem kizárt)"}
+      - {minta: "(1C) P (P) 1NT", pont: "13-16", fogas: ["C"], elosztas: "BAL", prioritas: 56, magyarazat: "Újranyitó 1NT: 13-16 FP", nyers: "ÚJRANYITÓ 1NT:13-16 fp"}
+      - {minta: "(1D) 2C", pont: "10-17", hossz: {"C": "5+"}, figura: {"C": "4+"}, prioritas: 54, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó treff"}
+      - {minta: "(1D) 1H", pont: "10-17", hossz: {"H": "5+"}, figura: {"H": "4+"}, prioritas: 56, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó kőr"}
+      - {minta: "(1D) 1S", pont: "10-17", hossz: {"S": "5+"}, figura: {"S": "4+"}, prioritas: 57, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó pikk"}
+      - {minta: "(1D) 1NT", pont: "16-19", fogas: ["D"], prioritas: 58, vagy: [{"elosztas": "BAL"}, {"hossz": {"D": "1"}}], magyarazat: "16-19 FP, fogással", nyers: "1Nt KÖZBESZÓLÁS jó 16–19 FP, fogással (szingli nem kizárt)"}
+      - {minta: "(1D) P (P) 1NT", pont: "13-16", fogas: ["D"], elosztas: "BAL", prioritas: 56, magyarazat: "Újranyitó 1NT: 13-16 FP", nyers: "ÚJRANYITÓ 1NT:13-16 fp"}
+      - {minta: "(1H) 2C", pont: "10-17", hossz: {"C": "5+"}, figura: {"C": "4+"}, prioritas: 54, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó treff"}
+      - {minta: "(1H) 2D", pont: "10-17", hossz: {"D": "5+"}, figura: {"D": "4+"}, prioritas: 55, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó káró"}
+      - {minta: "(1H) 1S", pont: "10-17", hossz: {"S": "5+"}, figura: {"S": "4+"}, prioritas: 57, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó pikk"}
+      - {minta: "(1H) 1NT", pont: "16-19", fogas: ["H"], prioritas: 58, vagy: [{"elosztas": "BAL"}, {"hossz": {"H": "1"}}], magyarazat: "16-19 FP, fogással", nyers: "1Nt KÖZBESZÓLÁS jó 16–19 FP, fogással (szingli nem kizárt)"}
+      - {minta: "(1H) P (P) 1NT", pont: "13-16", fogas: ["H"], elosztas: "BAL", prioritas: 56, magyarazat: "Újranyitó 1NT: 13-16 FP", nyers: "ÚJRANYITÓ 1NT:13-16 fp"}
+      - {minta: "(1S) 2C", pont: "10-17", hossz: {"C": "5+"}, figura: {"C": "4+"}, prioritas: 54, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó treff"}
+      - {minta: "(1S) 2D", pont: "10-17", hossz: {"D": "5+"}, figura: {"D": "4+"}, prioritas: 55, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó káró"}
+      - {minta: "(1S) 2H", pont: "10-17", hossz: {"H": "5+"}, figura: {"H": "4+"}, prioritas: 56, magyarazat: "Sima közbeszólás: 10-17 FP, 5+ jó kőr"}
+      - {minta: "(1S) 1NT", pont: "16-19", fogas: ["S"], prioritas: 58, vagy: [{"elosztas": "BAL"}, {"hossz": {"S": "1"}}], magyarazat: "16-19 FP, fogással", nyers: "1Nt KÖZBESZÓLÁS jó 16–19 FP, fogással (szingli nem kizárt)"}
+      - {minta: "(1S) P (P) 1NT", pont: "13-16", fogas: ["S"], elosztas: "BAL", prioritas: 56, magyarazat: "Újranyitó 1NT: 13-16 FP", nyers: "ÚJRANYITÓ 1NT:13-16 fp"}
+      - {minta: "(1C) P (1H) X", pont: "10+", hossz: {"D": "4+", "S": "4+"}, forsz: "EGY_MENET", prioritas: 55, alert: "A két szabad színt mutatja (negatív típusú kontra)"}
+      - {minta: "(1C) P (1H) 1NT", pont: "8+", hossz: {"D": "5+", "S": "5+"}, forsz: "EGY_MENET", prioritas: 56, alert: "Szokatlan 1NT: a két szabad szín 5-5"}
+      - {minta: "(1C) P (1S) X", pont: "10+", hossz: {"D": "4+", "H": "4+"}, forsz: "EGY_MENET", prioritas: 55, alert: "A két szabad színt mutatja (negatív típusú kontra)"}
+      - {minta: "(1C) P (1S) 1NT", pont: "8+", hossz: {"D": "5+", "H": "5+"}, forsz: "EGY_MENET", prioritas: 56, alert: "Szokatlan 1NT: a két szabad szín 5-5"}
+      - {minta: "(1D) P (1H) X", pont: "10+", hossz: {"C": "4+", "S": "4+"}, forsz: "EGY_MENET", prioritas: 55, alert: "A két szabad színt mutatja (negatív típusú kontra)"}
+      - {minta: "(1D) P (1H) 1NT", pont: "8+", hossz: {"C": "5+", "S": "5+"}, forsz: "EGY_MENET", prioritas: 56, alert: "Szokatlan 1NT: a két szabad szín 5-5"}
+      - {minta: "(1D) P (1S) X", pont: "10+", hossz: {"C": "4+", "H": "4+"}, forsz: "EGY_MENET", prioritas: 55, alert: "A két szabad színt mutatja (negatív típusú kontra)"}
+      - {minta: "(1D) P (1S) 1NT", pont: "8+", hossz: {"C": "5+", "H": "5+"}, forsz: "EGY_MENET", prioritas: 56, alert: "Szokatlan 1NT: a két szabad szín 5-5"}
+      - {minta: "(1NT) X", pont: "16+", prioritas: 55, alert: "Büntető"}
+      - {minta: "(1NT) 2C", pont: "8-15", vagy: [{"hossz": {"S": "5+", "H": "4+"}}, {"hossz": {"H": "5+", "S": "4+"}}], forsz: "EGY_MENET", prioritas: 57, alert: "Multi-Landy: mindkét nemes, legalább 5-4"}
+      - {minta: "(1NT) 2D", pont: "8-15", vagy: [{"hossz": {"H": "6+"}}, {"hossz": {"S": "6+"}}], forsz: "EGY_MENET", prioritas: 56, alert: "Multi-Landy: valamelyik nemes (6+)"}
+      - {minta: "(1NT) 2H", pont: "8-15", hossz: {"H": "5"}, vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}], prioritas: 55, alert: "5 kőr + 4+ minor"}
+      - {minta: "(1NT) 2S", pont: "8-15", hossz: {"S": "5"}, vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}], prioritas: 55, alert: "5 pikk + 4+ minor"}
+      - {minta: "(1NT) 2NT", pont: "8-15", hossz: {"C": "5+", "D": "5+"}, prioritas: 56, alert: "Mindkét minor, 5-5"}
+      - {minta: "(1NT) 3C", pont: "8-15", hossz: {"C": "6+"}, prioritas: 54, magyarazat: "6+ treff"}
+      - {minta: "(1NT) 3D", pont: "8-15", hossz: {"D": "6+"}, prioritas: 54, magyarazat: "6+ káró"}
+  - fejezet: "Szan-közbeszólás a blokkra (kieg., 2026-10-21)"
+    # A szerkesztő: a NEM UGRÓ szan természetes — erős, egyenletes lap,
+    # fogással; az UGRÓ 4NT a szokatlan szan (SZOKATLAN_2NT).
+    szabalyok:
+      - {minta: "(2M) +NT", pont: "16-19", fogas: ["M"], elosztas: "BAL", prioritas: 58,
+         magyarazat: "Természetes 2NT a gyenge kettesre: 16-19 FP (mint az 1NT-közbeszólás), egyenletes, fogással"}
+      - {minta: "(2M) P (3M) +NT", pont: "16+", fogas: ["M"], elosztas: "BAL", prioritas: 58,
+         magyarazat: "Természetes 3NT (nem ugrás): erős, egyenletes, fogással"}
+      - {minta: "(3M) +NT", pont: "16+", fogas: ["M"], elosztas: "BAL", prioritas: 58,
+         magyarazat: "Természetes 3NT (nem ugrás): erős, egyenletes, fogással"}
+  - fejezet: "Válasz a Multi-Landy 2♣-ra (kieg., 2026-10-21)"
+    # A szerkesztő: a hosszabb nemesbe; egyforma hosszal 2♦ (mondd a hosszabbat).
+    szabalyok:
+      - {minta: "(1NT) 2C (P) 2D", pont: "0-11", rel: ["H=S"], forsz: "EGY_MENET", prioritas: 52,
+         alert: "Egyforma hosszú nemesek: mondd a hosszabb (5-ös) nemesedet"}
+      - {minta: "(1NT) 2C (P) 2H", pont: "0-11", rel: ["H>S"], prioritas: 52, magyarazat: "A hosszabb nemesem: kőr (lezáró)"}
+      - {minta: "(1NT) 2C (P) 2S", pont: "0-11", rel: ["S>H"], prioritas: 52, magyarazat: "A hosszabb nemesem: pikk (lezáró)"}
+      - {minta: "(1NT) 2C (P) 2NT", pont: "12+", forsz: "EGY_MENET", prioritas: 54, alert: "Erős kérdés (gémérdekeltség)"}
+      - {minta: "(1NT) 2C (P) 3C", pont: "0-11", hossz: {"C": "6+", "H": "0-2", "S": "0-2"}, prioritas: 53, magyarazat: "Természetes, lezáró"}
+      - {minta: "(1NT) 2C (P) 3D", pont: "0-11", hossz: {"D": "6+", "H": "0-2", "S": "0-2"}, prioritas: 53, magyarazat: "Természetes, lezáró"}
+      - {minta: "(1NT) 2C (P) 2D (P) 2H", hossz: {"H": "5+"}, rel: ["H>=S"], prioritas: 52, magyarazat: "Az 5-ös nemesem: kőr"}
+      - {minta: "(1NT) 2C (P) 2D (P) 2S", hossz: {"S": "5+"}, rel: ["S>H"], prioritas: 52, magyarazat: "Az 5-ös nemesem: pikk"}
+  - fejezet: "Válasz a sima közbeszólásra"
+    szabalyok:
+      - {minta: "(1C) 1D (P) 2D", pont: "6-9", hossz: {"D": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1C) 1D (P) 2C", pont: "10+", hossz: {"D": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1C) 1D (P) 3C", pont: "7-9", hossz: {"D": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"H": "0-1"}}, {"hossz": {"S": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1C) 1D (P) 1NT", pont: "8-11", fogas: ["C"], hossz: {"D": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1C) 1D (P) 2NT", pont: "11-13", fogas: ["C"], hossz: {"D": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1C) 1D (P) 1H", pont: "8+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1C) 1D (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1C) 1H (P) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1C) 1H (P) 2C", pont: "10+", hossz: {"H": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1C) 1H (P) 3C", pont: "7-9", hossz: {"H": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"S": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1C) 1H (P) 1NT", pont: "8-11", fogas: ["C"], hossz: {"H": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1C) 1H (P) 2NT", pont: "11-13", fogas: ["C"], hossz: {"H": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1C) 1H (P) 2D", pont: "8-12", hossz: {"D": "6+"}, prioritas: 51, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1C) 1H (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1C) 1S (P) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1C) 1S (P) 2C", pont: "10+", hossz: {"S": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1C) 1S (P) 3C", pont: "7-9", hossz: {"S": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"H": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1C) 1S (P) 1NT", pont: "8-11", fogas: ["C"], hossz: {"S": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1C) 1S (P) 2NT", pont: "11-13", fogas: ["C"], hossz: {"S": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1C) 1S (P) 2D", pont: "8-12", hossz: {"D": "6+"}, prioritas: 51, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1C) 1S (P) 2H", pont: "8-12", hossz: {"H": "6+"}, prioritas: 52, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1D) 1H (P) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1D) 1H (P) 2D", pont: "10+", hossz: {"H": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1D) 1H (P) 3D", pont: "7-9", hossz: {"H": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"S": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1D) 1H (P) 1NT", pont: "8-11", fogas: ["D"], hossz: {"H": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1D) 1H (P) 2NT", pont: "11-13", fogas: ["D"], hossz: {"H": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1D) 1H (P) 2C", pont: "8-12", hossz: {"C": "6+"}, prioritas: 50, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1D) 1H (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1D) 1S (P) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1D) 1S (P) 2D", pont: "10+", hossz: {"S": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1D) 1S (P) 3D", pont: "7-9", hossz: {"S": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"H": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1D) 1S (P) 1NT", pont: "8-11", fogas: ["D"], hossz: {"S": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1D) 1S (P) 2NT", pont: "11-13", fogas: ["D"], hossz: {"S": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1D) 1S (P) 2C", pont: "8-12", hossz: {"C": "6+"}, prioritas: 50, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1D) 1S (P) 2H", pont: "8-12", hossz: {"H": "6+"}, prioritas: 52, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1H) 1S (P) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
+      - {minta: "(1H) 1S (P) 2H", pont: "10+", hossz: {"S": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1H) 1S (P) 3H", pont: "7-9", hossz: {"S": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"H": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
+      - {minta: "(1H) 1S (P) 1NT", pont: "8-11", fogas: ["H"], hossz: {"S": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
+      - {minta: "(1H) 1S (P) 2NT", pont: "11-13", fogas: ["H"], hossz: {"S": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
+      - {minta: "(1H) 1S (P) 2C", pont: "8-12", hossz: {"C": "6+"}, prioritas: 50, magyarazat: "Új szín a kettesen: nem kényszerít"}
+      - {minta: "(1H) 1S (P) 2D", pont: "8-12", hossz: {"D": "6+"}, prioritas: 51, magyarazat: "Új szín a kettesen: nem kényszerít"}

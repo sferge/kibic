@@ -1,0 +1,75 @@
+# MOHA_NONFORCE_1NT — az 1M-re adott nem kényszerítő 1NT és az egyszerű
+# emelés a Moha-kör szerint (a szerkesztő megjegyzése alapján, 2026-09-30).
+#
+#   1M-1NT  6-10(11), nem kényszerít; lehet benne 3-as támogatás is, HA
+#           nincs 2 fedőütés
+#   1M-2M   3-as támogatás: (5)6-10 asztali pont ÉS 2-3 fedőütés
+#           4-es adu, (5)6(7) asztali pont, 2 fedőütés: szintén 2M, nem Bergen
+#
+# FEDŐÜTÉS (Moha-kör, 2026-09-30; kifejezes.fedoutes): biztos 1-1 minden
+# ász és király, az adu dáma, a külső szingli; a külső sikén 2.
+# Bizonytalan: külső dubló 0.5, DBx 0.5, Dxx 0.25. Mivel negyedpontos,
+# "nincs 2 fedőütés" = legfeljebb 1.75, "2-3" = 2-3.75, "2" = 2-2.75.
+#
+# AP = asztali pont (figurapont + rövidségpont; 4+ adunál 5-3-1, 3 adunál
+# 3-2-1).
+#
+# A kártyán a KIBICEGY_STAND és a BERGEN ELŐTT kell állnia: az 1M-1NT és
+# az 1M-2M kulcsú alapszabályt felülírja.
+rendszer:
+  kod: MOHA_NONFORCE_1NT
+  nev: Nem kényszerítő 1NT és egyszerű emelés (Moha)
+  nev_en: Non-forcing 1NT and simple raise (Moha)
+  fajta: KONVENCIO
+  tema: "1M után: 1NT válasz és egyszerű emelés"
+  leiras: "1M-1NT 6-10(11), 3-as támogatással is, ha nincs 2 fedőütés; 1M-2M (5)6-10 asztali pont és 2-3 fedőütés, 4-es aduval (5)6(7) asztali pont és 2 fedőütés is (nem Bergen)."
+  jegyzet: >-
+    A Moha-kör nem kényszerítő szanja. A lényeg: az egyszerű emelés nem a
+    pontot, hanem a FEDŐÜTÉST mutatja. 3-as támogatással, 2 fedőütés
+    nélkül a válasz 1NT, nem 2M; 2-3 fedőütéssel 2M. Ugyanezért a gyenge,
+    4-es aduval, 2 fedőütéssel bíró kéz is 2M-et mond, nem gyenge Bergent.
+    A zárójeles értékek (11 pont, 5 és 7 asztali pont) lehetőségek: a (11) rossz
+    lappal él, az asztali pontosak mérlegelők. (Eldöntve: 2026-09-30.)
+fejezetek:
+  - fejezet: Válasz az 1M nyitásra
+    szabalyok:
+      - minta: 1M-1NT
+        pont: "6-10(11)"
+        vagy:
+          - {hossz: {M: 0-2}}
+          - {hossz: {M: 3}, fedoutes: {M: 0-1.75}}
+        prioritas: 40
+        magyarazat: "6-10 FP, nem kényszerít; 3-as támogatással is, ha nincs 2 fedőütés"
+        lehetoseg:
+          # rossz 11 (a szerkesztő, 2026-10-05): rossz lapminőség, vagy üres
+          # dáma/bubi, amit egy 5+ lapos szín hossza sem pótol
+          vagy:
+            - {minoseg: rossz, vagy: [{hossz: {M: 0-2}}, {hossz: {M: 3}, fedoutes: {M: 0-1.75}}]}
+            - {ures_figura: 1+, korr_pont: "-11.4", vagy: [{hossz: {M: 0-2}}, {hossz: {M: 3}, fedoutes: {M: 0-1.75}}]}
+          magyarazat: "Rossz 11 FP, nem kényszerít; 3-as támogatással is, ha nincs 2 fedőütés"
+      - minta: 1M-2M
+        ap: "(5)6-10"
+        hossz: {M: 3}
+        fedoutes: {M: 2-3.75}
+        prioritas: 60
+        magyarazat: "Egyszerű emelés: 3-as adu, 6-10 asztali pont, 2-3 fedőütés"
+      - minta: 1M-2M
+        kulcs: 1M-2M-NEGYES
+        ap: "(5)6(7)"
+        hossz: {M: 4}
+        fedoutes: {M: 2-2.75}
+        prioritas: 61            # a gyenge Bergen (1M-3♣, 59) és az 1M-3M (58) előtt
+        magyarazat: "Egyszerű emelés 4-es aduval: 6 asztali pont, 2 fedőütés (nem Bergen)"
+      - minta: 1M-2M
+        kulcs: 1M-2M-ROSSZ11
+        pont: "11"
+        hossz: {M: 3-4, C: 0-6, D: 0-6}   # 7+ lapos minorral 2m (a szerkesztő: „túl hosszú a káró”)
+        fedoutes: {M: 2+}
+        vagy: [{minoseg: rossz}, {ures_figura: 1+}]
+        jelentes: {ap: {min: 6, max: 10}}   # a partnernek ez egy (maximális) egyszerű emelés
+        prioritas: 62
+        magyarazat: "Nem jó 11 FP (üres dáma/bubi vagy rossz lapminőség), 3-4 lapos támogatás, 2+ fedőütés: egyszerű emelés (az invitet elfogadja)"
+        jegyzet: >-
+          A szerkesztő (2026-10-05): a nem jó 11 (üres dáma/bubi — itt a hosszú
+          mellékszín sem segít) 2 fedőütéssel és támogatással nem 1NT, és nem
+          is 2/1, hanem 2M — „van 2 fedő … és invitfogadó”.

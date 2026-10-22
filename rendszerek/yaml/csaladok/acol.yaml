@@ -1,0 +1,25 @@
+# ACOL — a „4-es nemes, gyenge szan” rendszercsalád ÁLTALÁNOS rendszere
+# (2026-10-01, gépi javaslat — átnézendő).
+rendszer:
+  kod: ACOL
+  nev: Acol (általános)
+  nev_en: Acol (generic)
+  fajta: RENDSZERCSALAD
+  csalad: ACOL
+  leiras: "Acol család általános rendszere: 4-es nemesek, 1NT 12-14, 2♣ erős mesterséges, gyenge kettesek."
+hivatkozasok:
+  - EMELES_ELV
+fejezetek:
+  - fejezet: Nyitások
+    szabalyok:
+      - {minta: 1C, pont: 11-19, hossz: {C: 3+}, prioritas: 80, magyarazat: "11-19, 3+ treff"}
+      - {minta: 1D, pont: 11-19, hossz: {D: 3+}, prioritas: 80, magyarazat: "11-19, 3+ káró"}
+      - {minta: 1H, pont: 11-19, hossz: {H: 4+}, prioritas: 80, magyarazat: "11-19, 4+ kőr"}
+      - {minta: 1S, pont: 11-19, hossz: {S: 4+}, prioritas: 80, magyarazat: "11-19, 4+ pikk"}
+      - {minta: 1NT, pont: 12-14, elosztas: BAL, prioritas: 85, magyarazat: "12-14 egyenletes (gyenge szan)"}
+      - {minta: 2C, pont: 20+, forsz: EGY_MENET, prioritas: 90,
+         alert: "Erős, mesterséges (23+, vagy gémerő)"}
+      - {minta: 2D, pont: 5-10, hossz: {D: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2H, pont: 5-10, hossz: {H: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2S, pont: 5-10, hossz: {S: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2NT, pont: 20-22, elosztas: BAL, prioritas: 85, magyarazat: "20-22 egyenletes"}

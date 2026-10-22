@@ -1,0 +1,54 @@
+# A NEGYEDIK SZÍN — ELV (2026-10-02, Moha).
+#
+# Ha a vonal a licitmenetben már három színt mondott IGAZI színként (a
+# mesterséges licit nem számít), és valamelyikük bemondja a negyediket —
+# a legolcsóbban —, az:
+#   * egy körre kényszerít (F1), alertálandó;
+#   * NEM ígér semmit a negyedik színben;
+#   * LAPLEÍRÁST kér: a partner a lapját írja le — szant, ha van fogása a
+#     negyedik színben; támogatást a kérdező színéhez; a saját hosszú színét;
+#     4 lappal a negyedik színt.
+#
+# ELV, tehát nem egy konkrét menetre szól: él sima pároslicitben, akkor is,
+# ha valaki közben a saját színét ismételte vagy szant mondott, és akkor is,
+# ha az ellenfél is megszólalt — csak nem a negyedik színben (az felüllicit
+# volna). Ezt a `ha: {negyedik_szin: true, adu: nincs}` helyzeti feltétel dönti el
+# (motor/helyzet.py), nem a minta.
+#
+# NYITOTT (kieg.): az 1-es szinten mondott negyedik szín (1♣-1♦-1♥-1♠) itt
+# TERMÉSZETES maradt (4 lap, 1-re 1) — az elv a 2-es szinttől él.
+# Megállapodott adu mellett NEM él (ott az új szín kulcslicit; 2026-10-21).
+# A kérdezőnek gémesély kell (`gemeselyes: true`); ha konkrétabb licit van,
+# az előbb jár (ELV).
+rendszer:
+  kod: NEGYEDIK_SZIN
+  nev: A negyedik szín
+  nev_en: Fourth suit forcing
+  fajta: KONVENCIO
+  tema: "A negyedik szín"
+  leiras: "A vonal negyedik színe (a legolcsóbban): egy körre kényszerít, nem ígér semmit a színben, lapleírást kér."
+fejezetek:
+  - fejezet: "A negyedik szín licitje"
+    szabalyok:
+      - {minta: ".. +A", kulcs: NEGYEDIK-SZIN, fajta: ELV, prioritas: 2,
+         ha: {negyedik_szin: true, adu: nincs}, gemeselyes: true, hossz: {A: 0+},
+         forsz: EGY_MENET, elvaras: VALASZ,
+         alert: "Negyedik szín: egy körre kényszerít, nem ígér semmit a színben — lapleírást kér"}
+
+  - fejezet: "Válasz a negyedik színre (lapleírás)"
+    szabalyok:
+      - {minta: ".. nA +B", kulcs: NEGYEDIK-TAMOGAT-5, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 5}}, kulonbozo: [A, B], hossz: {B: 3+},
+         magyarazat: "Lapleírás: támogatás (3+) a partner ötös színéhez"}
+      - {minta: ".. nA +B", kulcs: NEGYEDIK-TAMOGAT-4, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 4}}, kulonbozo: [A, B], hossz: {B: 4+},
+         magyarazat: "Lapleírás: 4 lapos támogatás a partner színéhez"}
+      - {minta: ".. nA +NT", kulcs: NEGYEDIK-SZAN, fajta: ELV, prioritas: 5,
+         ha: {adu: nincs, partner_negyedik: true}, fogas: [A],
+         magyarazat: "Lapleírás: fogás a negyedik színben"}
+      - {minta: ".. nA +E", kulcs: NEGYEDIK-SAJAT, fajta: ELV, prioritas: 4,
+         ha: {adu: nincs, partner_negyedik: true, en_mondtam: E}, kulonbozo: [A, E], hossz: {E: 6+},
+         magyarazat: "Lapleírás: a saját színem 6+ lapos"}
+      - {minta: ".. nA +A", kulcs: NEGYEDIK-EMEL, fajta: ELV, prioritas: 3,
+         ha: {adu: nincs, partner_negyedik: true}, hossz: {A: 4+},
+         magyarazat: "Lapleírás: 4 lap a negyedik színben (fogás nélkül)"}

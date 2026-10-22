@@ -1,0 +1,56 @@
+# Puppet Stayman a 2NT-re. A KIBICEGY_STAND 2NT-3♣ licitje saját
+# (Stayman-szerű) megoldás; a Moha-kör Puppetet játszik (2026-09-30), ezért
+# a KIBIC_STAND kártyán a KIBICEGY_STAND ELŐTT áll, és felülírja a 2NT-3♣
+# ágat. A 2♣-2♦-2NT után is él (az alaprendszer sora: "mint a 2NT után").
+#
+# A Moha-kör szerint (2026-09-30): 3♦ = nincs 5-ös nemes, DE van legalább
+# egy 4-es (csak nem tudni, melyik); 3NT = legfeljebb 3-as nemesek. A 3♦-ra
+# a válaszoló TAGADÓ licittel felel:
+#   3♥ = NINCS 4 kőr (4 pikk lehet, de nem biztos) — a szanos NE ugorjon
+#        gémre: 4 pikkel bemondja a 3♠-t, különben 3NT; a 3♠-ra a
+#        válaszoló 4 pikkel 4♠, különben 3NT;
+#   3♠ = NINCS 4 pikk, VAN 4 kőr — a szanos 4♥ vagy 3NT;
+#   3NT = mindkét nemes négyes — a szanos gémet mond a 4-es nemesében.
+rendszer:
+  kod: PUPPET_STAYMAN
+  nev: Puppet Stayman
+  nev_en: Puppet Stayman
+  fajta: KONVENCIO
+  tema: "2NT után: nemes szín keresése"
+  leiras: "2NT-3♣: 5-ös nemest (és 4-est) kérdez. 3♦ = nincs 5-ös, de van 4-es nemes; 3M = 5-ös; 3NT = nincs 4-es nemes sem. 3♦ után tagadás: 3♥ = nincs 4 kőr, 3♠ = nincs 4 pikk (van 4 kőr), 3NT = mindkét nemes négyes."
+fejezetek:
+  - fejezet: Puppet Stayman
+    szabalyok:
+      - {minta: 2NT-3C, pont: 4+, vagy: [{hossz: {S: 3+}}, {hossz: {H: 3+}}], forsz: GEMFORSZ,
+         elvaras: VALASZ, prioritas: 55, alert: "Puppet Stayman: 5-ös nemest kérdez"}
+      - {minta: 2NT-3C-3D, hossz: {S: 0-4, H: 0-4}, vagy: [{hossz: {S: 4}}, {hossz: {H: 4}}],
+         prioritas: 50, alert: "Nincs 5-ös nemes, de van (legalább egy) 4-es"}
+      - {minta: 2NT-3C-3H, hossz: {H: 5}, prioritas: 51, alert: "5-ös kőr"}
+      - {minta: 2NT-3C-3S, hossz: {S: 5}, prioritas: 51, alert: "5-ös pikk"}
+      - {minta: 2NT-3C-3NT, hossz: {S: 0-3, H: 0-3}, prioritas: 50,
+         alert: "Nincs 4-es nemes sem"}
+
+  - fejezet: "Puppet: 3♦ után (tagadás)"
+    szabalyok:
+      - {minta: 2NT-3C-3D-3H, hossz: {H: 0-3}, forsz: EGY_MENET, prioritas: 50,
+         alert: "Nincs 4 kőr (4 pikk lehet)"}
+      - {minta: 2NT-3C-3D-3S, hossz: {S: 0-3, H: 4}, forsz: EGY_MENET, prioritas: 51,
+         alert: "Nincs 4 pikk, van 4 kőr"}
+      - {minta: 2NT-3C-3D-3NT, hossz: {S: 4, H: 4}, prioritas: 52,
+         alert: "Mindkét nemes négyes"}
+      - {minta: 2NT-3C-3D-3H-3S, hossz: {S: 4}, forsz: EGY_MENET, prioritas: 51,
+         alert: "4 pikk (nem ugrik gémre)"}
+      - {minta: 2NT-3C-3D-3H-3NT, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Nincs 4 pikk"}
+      - {minta: 2NT-3C-3D-3H-3S-4S, hossz: {S: 4}, prioritas: 51, magyarazat: "Pikk fit: gém"}
+      - {minta: 2NT-3C-3D-3H-3S-3NT, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Nincs pikk fit: 3NT"}
+      - {minta: 2NT-3C-3D-3S-4H, hossz: {H: 4}, prioritas: 51, magyarazat: "Kőr fit: gém"}
+      - {minta: 2NT-3C-3D-3S-3NT, hossz: {H: 0-3}, prioritas: 50, magyarazat: "Nincs kőr fit: 3NT"}
+      - {minta: 2NT-3C-3D-3NT-4H, hossz: {H: 4}, alulrol: true, prioritas: 51,
+         magyarazat: "Kőr fit: gém"}
+      - {minta: 2NT-3C-3D-3NT-4S, hossz: {S: 4}, alulrol: true, prioritas: 51,
+         magyarazat: "Pikk fit: gém"}
+
+  - fejezet: "Puppet: 5-ös nemes után"
+    szabalyok:
+      - {minta: 2NT-3C-3M-4M, hossz: {M: 3+}, prioritas: 51, magyarazat: "5-3 fit: gém"}
+      - {minta: 2NT-3C-3M-3NT, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Nincs fit: 3NT"}

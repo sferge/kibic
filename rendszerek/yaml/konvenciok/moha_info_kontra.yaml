@@ -1,0 +1,92 @@
+# MOHA_INFO_KONTRA — az információs kontra a Moha-kör szerint (2026-10-21).
+#
+# A KIBIC_STAND általános INFORMATIV_KONTRA-ját írja felül a MOHA_STAND-on
+# (azonos kulcs: a kontra mintája; a MOHA_STAND a KIBIC_STAND ELŐTT hivatkozza).
+# SZÁNDÉKOSAN nincs `tema:`-ja: a téma-foglalás az egész INFORMATIV_KONTRA-t
+# kiváltaná (a válaszokat is) — itt csak a kontra sorait írjuk felül.
+# A szerkesztő (2026-10-21): „a (közvetlen) közbeszólásra is érvényesek az
+# indulási elvek — beleértve a FELMENTÉST is”; „a 20+ biztosan rossz”; a
+# KIBIC-ben maradjon a 17+, a Mohában 18+.
+#
+#   alakos kontra   induló erő, legfeljebb 17 pont: 13-17, vagy 11-12, ha a lap
+#                   induló erős (legfeljebb 7 vesztő, nem rossz lap, üres figurával a
+#                   korrigált pont 13+ — a FELMENTÉS fordítva); újranyitóként 9-17,
+#                   2-es szinten 13-17, 3-ason 14-17
+#   minor kontrája  az ő minorjuk legfeljebb 3 lap, a nemesekben legalább 4-3
+#                   (a szerkesztő, 2026-10-21: „kontra = minimum 4-3 a nemesekben”)
+#   nemes kontrája  az ő színük legfeljebb 2 lap, a többiben 3+
+#   erős kontra     18+, bármilyen elosztás (utána a saját szín: erős lap);
+#                   az egyenletes 16-19 fogással 1NT marad (prioritás 57 < 58)
+#   felmentés       (licit-szál, 2026-10-21) minor ellen 9-11 ponttal is, 8-9
+#                   nemes lappal, a színükben legfeljebb 2 lap, 2+ kontroll
+rendszer:
+  kod: MOHA_INFO_KONTRA
+  nev: Információs kontra (Moha)
+  nev_en: Takeout Double (Moha)
+  fajta: KONVENCIO
+  leiras: "Induló erő (a FELMENTÉS szerint) legfeljebb 17 ponttal, rövidség a színükben, minor ellen legalább 4-3 a nemesekben, nemes ellen 3+ a többiben; vagy 18+ bármilyen lap."
+  jegyzet: >-
+    A közbeszólásra az indulási elvek érvényesek: 11-12 ponttal csak induló
+    erős lappal (legfeljebb 7 vesztő, nem rossz lap). A felső határ 17: 18
+    ponttól az erős kontra él, bármilyen elosztással.
+fejezetek:
+  - fejezet: "Információs kontra (Moha)"
+    szabalyok:
+      - {minta: "(1C) X", pont: "13-17", hossz: {"C": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid treff, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(1C) X", pont: "11-12", hossz: {"C": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], vesztok: "0-7", minoseg: nem_rossz,
+         feltetel: {t: VAGY, gy: [{t: OSSZE, op: "<=", bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}},
+                                {t: OSSZE, op: ">=", bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]},
+         forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53,
+         alert: "Információs kontra: rövid treff, legalább 4-3 a nemesekben (vagy 18+ bármi)", magyarazat: "Induló erő 11-12 ponttal: legfeljebb 7 vesztő, nem rossz lap, üres figurával a korrigált pont 13+ (FELMENTÉS)"}
+      - {minta: "(1C) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid treff, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1D) X", pont: "13-17", hossz: {"D": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid káró, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(1D) X", pont: "11-12", hossz: {"D": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], vesztok: "0-7", minoseg: nem_rossz,
+         feltetel: {t: VAGY, gy: [{t: OSSZE, op: "<=", bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}},
+                                {t: OSSZE, op: ">=", bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]},
+         forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53,
+         alert: "Információs kontra: rövid káró, legalább 4-3 a nemesekben (vagy 18+ bármi)", magyarazat: "Induló erő 11-12 ponttal: legfeljebb 7 vesztő, nem rossz lap, üres figurával a korrigált pont 13+ (FELMENTÉS)"}
+      - {minta: "(1D) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1H) X", pont: "13-17", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(1H) X", pont: "11-12", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, vesztok: "0-7", minoseg: nem_rossz,
+         feltetel: {t: VAGY, gy: [{t: OSSZE, op: "<=", bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}},
+                                {t: OSSZE, op: ">=", bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]},
+         forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53,
+         alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 18+ bármi)", magyarazat: "Induló erő 11-12 ponttal: legfeljebb 7 vesztő, nem rossz lap, üres figurával a korrigált pont 13+ (FELMENTÉS)"}
+      - {minta: "(1H) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1S) X", pont: "13-17", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(1S) X", pont: "11-12", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, vesztok: "0-7", minoseg: nem_rossz,
+         feltetel: {t: VAGY, gy: [{t: OSSZE, op: "<=", bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}},
+                                {t: OSSZE, op: ">=", bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]},
+         forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53,
+         alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 18+ bármi)", magyarazat: "Induló erő 11-12 ponttal: legfeljebb 7 vesztő, nem rossz lap, üres figurával a korrigált pont 13+ (FELMENTÉS)"}
+      - {minta: "(1S) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1C) P (P) X", pont: "9-17", hossz: {"C": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid treff, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(1C) P (P) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid treff, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1D) P (P) X", pont: "9-17", hossz: {"D": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid káró, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(1D) P (P) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1H) P (P) X", pont: "9-17", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(1H) P (P) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1S) P (P) X", pont: "9-17", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(1S) P (P) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(2D) X", pont: "13-17", hossz: {"D": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid káró, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(2D) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(2H) X", pont: "13-17", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(2H) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(2S) X", pont: "13-17", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(2S) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(3C) X", pont: "14-17", hossz: {"C": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid treff, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(3C) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid treff, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(3D) X", pont: "14-17", hossz: {"D": "0-3"}, vagy: [{"hossz": {"H": "4+", "S": "3+"}}, {"hossz": {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid káró, legalább 4-3 a nemesekben (vagy 18+ bármi)"}
+      - {minta: "(3D) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(3H) X", pont: "14-17", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(3H) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(3S) X", pont: "14-17", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 18+ bármi)"}
+      - {minta: "(3S) X", pont: "18+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (18+), bármilyen elosztás"}
+      - {minta: "(1C) X", pont: "9-11", hossz: {C: 0-2}, minoseg: nem_rossz, kontroll: 2+,
+         vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}],
+         forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 58,
+         alert: "Információs kontra (felmentés): 8-9 lap a nemesekben, legfeljebb 2 treff"}
+      - {minta: "(1D) X", pont: "9-11", hossz: {D: 0-2}, minoseg: nem_rossz, kontroll: 2+,
+         vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}],
+         forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 58,
+         alert: "Információs kontra (felmentés): 8-9 lap a nemesekben, legfeljebb 2 káró"}

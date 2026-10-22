@@ -1,0 +1,56 @@
+# STAYMAN az 1NT-re, a KIBICEGY_STAND szerint (a 2NT-re adott "Stayman-
+# szerű" 3♣ a rendszer saját része). Gyengével is használható 5-4 nemessel
+# (a 2♦ után 2♥ = 5 kőr, 4 pikk, invit alatt).
+rendszer:
+  kod: STAYMAN
+  nev: Stayman
+  nev_en: Stayman
+  fajta: KONVENCIO
+  tema: "1NT után: négyes nemes keresése"
+  leiras: "1NT-2♣: nemes színt kérdez. Forrás: kibic_standard_1.0.doc, Stayman.pdf"
+fejezetek:
+  - fejezet: Stayman
+    szabalyok:
+      - minta: 1NT-2C
+        vagy:
+          - {pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}]}
+          - {pont: 0-7, hossz: {S: 4+, H: 4+}}
+        forsz: EGY_MENET
+        elvaras: VALASZ
+        prioritas: 58
+        alert: "Stayman: 4-es nemest kérdez"
+      - {minta: 1NT-2C-2D, hossz: {S: 0-3, H: 0-3}, prioritas: 50,
+         alert: "Nincs 4-es nemes", nyers: "2♦ | Nincs 4es major"}
+      - {minta: 1NT-2C-2H, hossz: {H: 4+}, prioritas: 51,
+         magyarazat: "4-es kőr, mellette lehet 4-es pikk is", nyers: "2♥ | 4es kőr; lehet mellette 4es pikk is"}
+      - {minta: 1NT-2C-2S, hossz: {S: 4+, H: 0-3}, prioritas: 51,
+         magyarazat: "4-es pikk, nincs 4-es kőr", nyers: "2♠ | 4es pikk; nem lehet mellette 4es kőr"}
+      # a válaszoló folytatása
+      - {minta: 1NT-2C-2D-2H, pont: 0-7, hossz: {H: 5+, S: 4}, prioritas: 52,
+         magyarazat: "5 kőr - 4 pikk, invit alatti lap", nyers: "2♥ | 5 kőr – 4 pikk; invit alatti lap"}
+      - {minta: 1NT-2C-2D-2S, pont: 8-9, hossz: {S: 5+, H: 4}, prioritas: 52,
+         magyarazat: "5 pikk - 4 kőr, invit", nyers: "2♠ | 5 pikk – 4 kőr; invit"}
+      - {minta: 1NT-2C-2D-2NT, pont: 8-9, prioritas: 50,
+         magyarazat: "Invit", nyers: "2nt | invit"}
+      - {minta: 1NT-2C-2D-3NT, pont: 10-15, prioritas: 49,
+         magyarazat: "Leállás"}                                            # kieg.
+      - {minta: 1NT-2C-2H-2NT, pont: 8-9, hossz: {H: 0-3, S: 4}, prioritas: 50,
+         magyarazat: "Invit, 4-es pikk"}                                   # kieg.
+      - {minta: 1NT-2C-2H-3H, pont: 8-9, hossz: {H: 4+}, prioritas: 51,
+         magyarazat: "Invit, kőr fit"}                                     # kieg.
+      - {minta: 1NT-2C-2H-3NT, pont: 10-15, hossz: {H: 0-3, S: 4}, prioritas: 50,
+         magyarazat: "Leállás, 4-es pikk"}                                 # kieg.
+      - {minta: 1NT-2C-2H-4H, pont: 10-15, hossz: {H: 4+}, prioritas: 51,
+         magyarazat: "Leállás, kőr fit"}                                   # kieg.
+      - {minta: 1NT-2C-2S-2NT, pont: 8-9, hossz: {S: 0-3}, prioritas: 50,
+         magyarazat: "Invit"}                                              # kieg.
+      - {minta: 1NT-2C-2S-3S, pont: 8-9, hossz: {S: 4+}, prioritas: 51,
+         magyarazat: "Invit, pikk fit"}                                    # kieg.
+      - {minta: 1NT-2C-2S-3NT, pont: 10-15, hossz: {S: 0-3}, prioritas: 50,
+         magyarazat: "Leállás"}                                            # kieg.
+      - {minta: 1NT-2C-2S-4S, pont: 10-15, hossz: {S: 4+}, prioritas: 51,
+         magyarazat: "Leállás, pikk fit"}                                  # kieg.
+      # 1NT (2♣ mesterséges) X = Stayman
+      - {minta: "1NT (2C) X", pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}], forsz: EGY_MENET,
+         prioritas: 55, alert: "Stayman (az ellenfél 2♣-ja mesterséges)",
+         nyers: "1N – (2treff!) – X! Ha az ellenfél 2 treffje mesterséges: stayman."}

@@ -1,0 +1,47 @@
+# 1TREFF_DUBLO — az 1m nyitás módosítása (a szerkesztő megjegyzése
+# alapján, 2026-09-29).
+#
+#   1♦  4+ káró (nem alertes)
+#   1♣  minden más minornyitás — 4-4-3-2-vel (4-4 nemes, 3 káró, 2 treff)
+#       is, vagyis a treff lehet DUBLÓ (alert)
+#
+# A KIBIC_STAND kártyán a KIBICEGY_STAND előtt áll: az 1C és 1D kulcsú
+# alapnyitásokat felülírja.
+rendszer:
+  kod: 1TREFF_DUBLO
+  nev: 1♣ lehet dubló
+  nev_en: 1♣ may be a doubleton
+  fajta: KONVENCIO
+  tema: "1m nyitás: a minor megválasztása"
+  leiras: "Az 1♦ nyitás 4+ kárót ígér; minden más minornyitás 1♣, 4-4-3-2-vel is, így a treff lehet dubló."
+  jegyzet: >-
+    Egyetlen elosztásban tér el az alaprendszertől: 4-4 nemessel, 3 káróval
+    és 2 treffel (4-4-3-2) az alaprendszer 1♦-t nyit, itt 1♣-t. Cserébe az
+    1♦ mindig 4+ kárót ígér. Mivel a treff lehet dubló, az 1♣-re adott
+    fordított emelés (1♣-2♣) 5+ treffet kíván (eldöntve: 2026-09-29).
+fejezetek:
+  - fejezet: Minornyitások
+    szabalyok:
+      - minta: 1D
+        pont: 12-21
+        hossz: {D: 4+, S: 0-4, H: 0-4}
+        rel: ["D>=C"]
+        prioritas: 51
+        magyarazat: "12-21 FP, nincs 5-ös nemes, 4+ káró (4-4 minorral is 1♦)"
+      - minta: 1C
+        pont: 12-21
+        hossz: {C: 2+, S: 0-4, H: 0-4}     # a C: 2+ a kártyának kell (min. hossz)
+        vagy:
+          - {hossz: {D: 0-3}}
+          - {rel: ["C>D"]}
+        prioritas: 50
+        alert: "12-21 FP, nincs 5-ös nemes; lehet dubló treff is (4-4-3-2, 3 káróval)"
+
+  - fejezet: Válasz az 1♣ nyitásra
+    szabalyok:
+      - minta: 1C-2C
+        pont: 11+
+        hossz: {C: 5+, S: 0-3, H: 0-3}
+        forsz: EGY_MENET
+        prioritas: 52
+        alert: "Fordított emelés, 11+ FP, 5+ treff (a nyitás lehet dubló)"

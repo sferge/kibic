@@ -1,0 +1,22 @@
+# Drury: passzolt kézzel a 3./4. kézben nyitott 1M-re a 2♣ limitemelés
+# (10-12, 3+ adu). A nyitó 2♦-je szubminimum, 2M normális nyitás.
+# A kulcs szándékosan eltér a 2/1 "1M-2C" soraitól (DRURY_...): a kettő
+# a helyzeti feltétellel (ülés) válik szét, nem felülírással.
+rendszer:
+  kod: DRURY
+  nev: Drury
+  nev_en: Drury
+  fajta: KONVENCIO
+  tema: "Passzolt kéz válasza a 3./4. kézbeli 1M nyitásra"
+  leiras: "Passzolt kéz 2♣ válasza a 3./4. kézbeli 1M nyitásra: 10-12 FP, 3+ adu."
+fejezetek:
+  - fejezet: Drury
+    szabalyok:
+      - {minta: 1M-2C, kulcs: DRURY_1M-2C, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 3+},
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 3+ adu"}
+      - {minta: 1M-2C-2D, kulcs: DRURY_1M-2C-2D, ha: {ules: [3, 4]}, pont: 0-11, prioritas: 52,
+         alert: "Szubminimum nyitás"}
+      - {minta: 1M-2C-2M, kulcs: DRURY_1M-2C-2M, ha: {ules: [3, 4]}, pont: 12-14, prioritas: 51,
+         magyarazat: "Normális nyitóerő"}
+      - {minta: 1M-2C-4M, kulcs: DRURY_1M-2C-4M, ha: {ules: [3, 4]}, pont: 15+, prioritas: 53,
+         magyarazat: "Gém"}

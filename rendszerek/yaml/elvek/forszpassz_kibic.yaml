@@ -1,0 +1,87 @@
+# FORSZPASSZ_KIBIC — kényszerítő passz (elv-lap 2, a szerkesztővel közösen,
+# 2026-10-11/12; doc: „A licithelyzet szótára”).
+#
+# A helyzet (a KIBIC_STAND kártya szövege szerint): az ellenfél a gémünk
+# fölé licitál, és (a) csak mi vagyunk beliben, vagy (b) a vonalunkon
+# elfogadott invit volt, vagy (c) a vonalunkon gémforsz licit volt.
+# Mindkét kéz passza kényszerítő.
+#
+#   ELSŐKÉNT: kontra, ha biztosan a gémünk fölé buknak (védőütések);
+#             licit, ha a színünk a következő szinten teljesíthető (sok adu,
+#             kevés védőütés); különben PASSZ = „döntsd el”.
+#   A PARTNER KÉNYSZERÍTŐ PASSZA UTÁN: nem passzolhat — licit (sok adu,
+#             kevés védőütés), különben kontra.
+#
+# KÖVETKEZŐ KÖR (bekapcsolható változatok): szlemzónában a passz szleminvit;
+# indulást kérő új szín, ha az ellenfél már egyszer mentett.
+rendszer:
+  kod: FORSZPASSZ_KIBIC
+  nev: Kényszerítő passz (forszpassz)
+  nev_en: Forcing pass
+  fajta: ELV_SABLON
+  leiras: >-
+    Ha az ellenfél a gémünk fölé licitál, és mi beliben (ők mansban) vagyunk,
+    vagy elfogadott invit, vagy gémforsz volt a vonalunkon, a passz nem
+    lezárás, hanem „döntsd el”: a partner kontráz vagy licitál.
+sablon:
+  szoveg: >-
+    Kényszerítő passz helyzetében (az ellenfél a gémünk fölé licitált, és
+    csak mi vagyunk beliben, vagy a vonalunkon elfogadott invit, vagy
+    gémforsz volt) a passz azt jelenti: döntsd el — nem tudom úgy
+    megkontrázni, hogy biztosan a gémünk fölé bukjon, de azt sem látom, hogy
+    a színünk a következő szinten teljesíthető. Elsőként kontrázom, ha
+    legalább {X_GYORS_MIN} gyorsütésem van; licitálok, ha a színünkben
+    legalább {LICIT_ADU_MIN} adunk van (a saját lapjaim + a partner ígérete)
+    és kevés a védőütésem; különben passz. A partner kényszerítő passza után
+    nem passzolok: licit (ugyanígy), különben kontra.
+  parameterek:
+    X_GYORS_MIN:
+      alap: 2
+      tartomany: 1.5-3
+      leiras: "Ennyi gyorsütéssel (AK=2, AD=1,5, A=1, KD=1, Kx=0,5) kontrázok"
+    LICIT_ADU_MIN:
+      alap: 10
+      tartomany: 9-11
+      leiras: "Ennyi közös aduval (saját + a partner ígérete) licitálok tovább"
+fejezetek:
+  - fejezet: "Elsőként"
+    szabalyok:
+      - minta: ".. (*) X"
+        kulcs: FORSZPASSZ-ELSO-X
+        prioritas: 68
+        ha: {kenyszerito_passz: elso}
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: GYORSUTES}, jobb: {t: SZAM, v: {sablon: X_GYORS_MIN}}}
+        magyarazat: "Kényszerítő passz helyzetében: büntetés — biztosan a gémünk fölé buknak"
+      - minta: ".. (*) +A"
+        kulcs: FORSZPASSZ-ELSO-LICIT
+        prioritas: 67
+        ha: {kenyszerito_passz: elso}
+        feltetel:
+          t: ES
+          gy:
+            - {t: OSSZE, op: ">=", bal: {t: FIT_HOSSZ, szin: "@A"}, jobb: {t: SZAM, v: {sablon: LICIT_ADU_MIN}}}
+            - {t: OSSZE, op: "<", bal: {t: ERT, kod: GYORSUTES}, jobb: {t: SZAM, v: {sablon: X_GYORS_MIN}}}
+        magyarazat: "Kényszerítő passz helyzetében: a színünk a következő szinten is teljesíthető (sok adu, kevés védőütés)"
+      - minta: ".. (*) P"
+        kulcs: FORSZPASSZ-ELSO-P
+        prioritas: 66
+        ha: {kenyszerito_passz: elso}
+        jelentes: {csak_dontes: true}
+        magyarazat: "Kényszerítő passz: döntsd el (sem a büntetés, sem a továbblicit nem biztos)"
+  - fejezet: "A partner kényszerítő passza után"
+    szabalyok:
+      - minta: ".. (*) +A"
+        kulcs: FORSZPASSZ-MASODIK-LICIT
+        prioritas: 68
+        ha: {kenyszerito_passz: masodik}
+        feltetel:
+          t: ES
+          gy:
+            - {t: OSSZE, op: ">=", bal: {t: FIT_HOSSZ, szin: "@A"}, jobb: {t: SZAM, v: {sablon: LICIT_ADU_MIN}}}
+            - {t: OSSZE, op: "<", bal: {t: ERT, kod: GYORSUTES}, jobb: {t: SZAM, v: {sablon: X_GYORS_MIN}}}
+        magyarazat: "A partner kényszerítő passza után: továbblicit (sok adu, kevés védőütés)"
+      - minta: ".. (*) X"
+        kulcs: FORSZPASSZ-MASODIK-X
+        prioritas: 67
+        ha: {kenyszerito_passz: masodik}
+        magyarazat: "A partner kényszerítő passza után: kontra (passzolni nem lehet)"

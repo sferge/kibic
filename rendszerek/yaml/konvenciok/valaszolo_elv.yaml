@@ -1,0 +1,5 @@
+# MEGSZŰNT (2026-10-02, délután). A „válaszoló újralicitje” nem elv volt,
+# hanem konkrét menetek szabálykészlete — ami ezekből kell, az a rendszer
+# fejezeteibe került (Walsh: 1♣-1♦-1M után a válaszoló), az igazi elv pedig
+# a negyedik szín (negyedik_szin.yaml). Ha a VALASZOLO_ELV-et már
+# importáltad, az adatbázisban árván marad (semmi nem hivatkozik rá).

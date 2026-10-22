@@ -1,0 +1,45 @@
+# Klubdokumentum: "SZOKATLAN SZAN: két alacsonyabb nemlicitált 55-ben".
+# Erő: a vesztők számítanak (a MICHAELS fejlécében, 2026-10-21).
+rendszer:
+  kod: SZOKATLAN_2NT
+  nev: Szokatlan 2NT
+  nev_en: Unusual 2NT
+  fajta: KONVENCIO
+  tema: "Kétszínű ugró szan az ellenfél nyitására"
+  leiras: "Az ellenfél nyitására az ugró szan (1-es nyitásra 2NT, nemes blokkra 4NT) a két legalacsonyabb nem licitált színt mutatja (5-5)."
+fejezetek:
+  - fejezet: Szokatlan 2NT
+    szabalyok:
+      - {minta: "(1C) 2NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {D: 5+, H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 2NT: káró és kőr, 5-5"}
+      - {minta: "(1D) 2NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 2NT: treff és kőr, 5-5"}
+      - {minta: "(1H) 2NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 2NT: mindkét minor, 5-5"}
+      - {minta: "(1S) 2NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 2NT: mindkét minor, 5-5"}
+      # válasz (kieg.): a hosszabb (egyenlőnél az alacsonyabb) szín
+      - {minta: "(1H) 2NT (P) 3C", pont: 0-9, hossz: {C: 2+}, rel: ["C>=D"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(1H) 2NT (P) 3D", pont: 0-9, hossz: {D: 2+}, rel: ["D>C"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(1S) 2NT (P) 3C", pont: 0-9, hossz: {C: 2+}, rel: ["C>=D"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(1S) 2NT (P) 3D", pont: 0-9, hossz: {D: 2+}, rel: ["D>C"], prioritas: 51, magyarazat: "Választás"}
+  - fejezet: "Szokatlan 4NT a nemes blokkra (2026-10-21)"
+    # A szerkesztő: az ugró szan-közbeszólás a két legalacsonyabb nem
+    # licitált szín (a Leaping Michaels párja). A nem ugró szan természetes
+    # (KIBICEGY_KUZDELMI); a (2M) után a 3NT játéknak szánt, nem szokatlan.
+    # Az erő a VESZTŐKBEN (a magasra ugró kétszínű licit elve, 2026-10-21):
+    # a vesztő-küszöb a MICHAELS fejlécében (2026-10-21).
+    szabalyok:
+      - {minta: "(2M) 4NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 4NT: mindkét minor, 5-5"}
+      - {minta: "(2M) P (3M) 4NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 4NT: mindkét minor, 5-5"}
+      - {minta: "(3M) 4NT", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {C: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Szokatlan 4NT: mindkét minor, 5-5"}
+      # válasz: a hosszabb (egyenlőnél az alacsonyabb) minor
+      - {minta: "(2M) 4NT (P) 5C", hossz: {C: 2+}, rel: ["C>=D"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(2M) 4NT (P) 5D", hossz: {D: 2+}, rel: ["D>C"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(2M) P (3M) 4NT (P) 5C", hossz: {C: 2+}, rel: ["C>=D"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(2M) P (3M) 4NT (P) 5D", hossz: {D: 2+}, rel: ["D>C"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(3M) 4NT (P) 5C", hossz: {C: 2+}, rel: ["C>=D"], prioritas: 51, magyarazat: "Választás"}
+      - {minta: "(3M) 4NT (P) 5D", hossz: {D: 2+}, rel: ["D>C"], prioritas: 51, magyarazat: "Választás"}

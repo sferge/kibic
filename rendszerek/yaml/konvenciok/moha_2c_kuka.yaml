@@ -1,0 +1,125 @@
+# MOHA_2C_KUKA — a 2♣ indulás Moha-módra (a szerkesztő, 2026-09-30).
+#
+# Az alaprendszer (KIBICEGY_STAND) 2♣ ágát NEM cseréli le egészében: csak
+# azokat a sorokat írja felül, amelyek másképp szólnak. Ami itt nincs
+# (2♣-2♠, 2NT, 3♣, 3♦, 3♠, 3NT, 4m, 4M — a 2♣-4♥/4♠ a kuka lap 7+ lapos
+# színnel; a nyitó 2♦ utáni licitjei), az az alaprendszerből jön. Ezért a
+# kártyán a KIBICEGY_STAND ELŐTT áll.
+#
+#   2♣-2♥ = KUKA: NINCS 3 nano-pont (A=3, K=2, D=1, B=0), vagyis legfeljebb
+#           2: egy király vagy két dáma. Nem gémforsz: a nyitó bemondja a
+#           végkontraktust (3NT 25+; gém alatt 3M / 4m = erős invit egy
+#           bukással; gém = önállóan gémerős, önállóan játszható aduval),
+#           2NT-t (22-24, a kuka passzol vagy transzferrel leáll), vagy
+#           2♠-t (F1 lapleírás-kérés 4-4-4-1 / 5-4-4-0 lappal).
+#   2♣-2♦ = várakozó, de POZITÍV (3+ nano-pont): GÉMFORSZ.
+#   2♣-3♥ = az alaprendszer 2♣-2♥-e (természetes 5+ kőr, 2 honőrrel) —
+#           ebben benne van az eddigi 3♥ (zárt 6+ kőr) is.
+#   Nincs második negatív: 2♣-2♦-2M után a 3♣ is természetes, mint
+#   bármelyik más szín. A 2♣-2♦-2NT után: mint a 2NT nyitás után (az
+#   alaprendszer sora, `folytatas`).
+rendszer:
+  kod: MOHA_2C_KUKA
+  nev: 2♣ kuka-válasszal (Moha)
+  nev_en: 2C with 2H bust response (Moha)
+  fajta: KONVENCIO
+  tema: "A 2♣ indulás válaszai"
+  leiras: "2♣-2♥ = kuka (legfeljebb 2 nano-pont), utána a nyitó végkontraktust mond vagy erős invitet ad; 2♣-2♦ = pozitív várakozó, gémforsz; 2♣-3♥ = természetes 5+ kőr; nincs második negatív."
+  jegyzet: >-
+    (Eldöntve: 2026-09-30.) Nano-pont: A = 3, K = 2, D = 1, B = 0. A kuka
+    után a nyitó: szan (22-24 egyenletes: 2NT, 25+: 3NT, egyébként 3NT);
+    3M / 4m = erős invit a vesztők alapján egy bukással (gémhez 3 vesztő,
+    5m-hez 2 — ez egy vesztővel több); gém: a vesztők szerint önállóan
+    gémerős ÉS önállóan játszható az adu (a partner sikénjével szemben is
+    legfeljebb 1 aduvesztő, legalább 2/3 eséllyel — adu_esely.py).
+fejezetek:
+  - fejezet: A 2♣ indulás válaszai (eltérések)
+    szabalyok:
+      - {minta: 2C-2H, nanopont: 0-2, forsz: EGY_MENET, prioritas: 53,
+         jelentes: {pont: {max: 8}},
+         alert: "Kuka: nincs 3 nano-pont (A=3, K=2, D=1) — legfeljebb egy király vagy két dáma"}
+      - {minta: 2C-2D, nanopont: 3+, forsz: GEMFORSZ, prioritas: 40,
+         alert: "Várakozó, pozitív (3+ nano-pont): gémforsz"}
+      - {minta: 2C-3H, hossz: {H: 5+}, rel: ["H>S"], fohonor: {H: 2+},
+         forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Természetes 5+ kőr, 2 honőrrel (a zárt 6+ kőr is)"}
+
+  - fejezet: "2♣ – 2♥ (kuka) után a nyitó"
+    jegyzet: >-
+      Nem gémforsz. 2NT: 22-24 egyenletes (mint az 1NT után, néhány ponttal
+      feljebb: a kuka lap passzol, 5-ös nemessel vagy 6-os minorral
+      transzferrel áll le). 3NT: 25+ egyenletes. 2♠: F1 lapleírást kér
+      (4-4-4-1, 5-4-4-0 minorral): a válaszoló a leghosszabb színét mondja.
+      Gém alatt a színből (3M, 4m): erős invit egy bukással. Gém: a vesztők
+      szerint önállóan gémerős, és az adu önállóan játszható.
+    szabalyok:
+      - {minta: 2C-2H-2NT, elosztas: BAL, pont: 22-24, prioritas: 52,
+         magyarazat: "22-24 egyenletes (a kuka passzol, vagy transzferrel leáll)"}
+      - {minta: 2C-2H-3NT, pont: 25+, elosztas: BAL, prioritas: 52,
+         magyarazat: "Végkontraktus: 25+ egyenletes"}
+      - {minta: 2C-2H-2S, hossz: {S: 0-4, H: 0-4}, elosztas: ["4441", "5440"],
+         forsz: EGY_MENET, prioritas: 53,
+         alert: "Lapleírást kér (F1): a válaszoló a leghosszabb színét mondja"}
+      - {minta: 2C-2H-4M, hossz: {M: 6+}, vesztok: 0-3.5, onallo_adu: M, prioritas: 54,
+         magyarazat: "Gém: önállóan gémerős (legfeljebb 3 vesztő), önállóan játszható adu"}
+      - {minta: 2C-2H-5m, hossz: {m: 6+}, vesztok: 0-2.5, onallo_adu: m, prioritas: 54,
+         magyarazat: "Gém: önállóan gémerős (legfeljebb 2 vesztő), önállóan játszható adu"}
+      - {minta: 2C-2H-3M, hossz: {M: 5+}, vesztok: 0-4.5, alulrol: true, invit: true,
+         prioritas: 51, alert: "Erős invit: a vesztők alapján egy bukás a gémhez"}
+      - {minta: 2C-2H-4m, hossz: {m: 5+}, vesztok: 0-3.5, alulrol: true, invit: true,
+         prioritas: 51, alert: "Erős invit: a vesztők alapján egy bukás az 5m-hez"}
+
+  - fejezet: "2♣ – 2♥ – 2NT után a válaszoló (kuka)"
+    jegyzet: >-
+      Mint az 1NT után, csak néhány ponttal feljebb: a kuka lap passzol.
+      Kivétel: 5-ös nemessel vagy 6-os minorral transzferrel leáll (a 2NT
+      transzferek: 3♦ kőr, 3♥ pikk, 3♠ treff, 4♣ káró — a szerkesztő:
+      „a 4 treffre a transzfer 4 káró, nem 5”).
+    szabalyok:
+      - {minta: 2C-2H-2NT-3D, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, prioritas: 52,
+         alert: "Transzfer kőrre: leállás"}
+      - {minta: 2C-2H-2NT-3H, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, prioritas: 52,
+         alert: "Transzfer pikkre: leállás"}
+      - {minta: 2C-2H-2NT-3S, hossz: {C: 6+, H: 0-4, S: 0-4}, rel: ["C>=D"], forsz: EGY_MENET,
+         prioritas: 51, alert: "Transzfer treffre: leállás"}
+      - {minta: 2C-2H-2NT-4C, hossz: {D: 6+, H: 0-4, S: 0-4}, rel: ["D>C"], forsz: EGY_MENET,
+         prioritas: 51, alert: "Transzfer kárára (4♦): leállás"}
+      - {minta: 2C-2H-2NT-3D-3H, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2C-2H-2NT-3H-3S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2C-2H-2NT-3S-4C, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2C-2H-2NT-4C-4D, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+
+  - fejezet: "2♣ – 2♥ – 2♠ (lapleírást kér) után"
+    jegyzet: >-
+      A válaszoló a leghosszabb (4+) színét mondja, egyforma hosszúságnál
+      a legolcsóbbat. A nyitó 4-4-es nemes fittel gémet mond, különben
+      3NT (kényszerből). Minor fitnél a 3NT és az 5m közül a szimuláció
+      választ (a várható írás dönt; az 5m-et a gyenge kéz játssza).
+    szabalyok:
+      - {minta: 2C-2H-2S-+A, leghosszabb: A, hossz: {A: 4+}, alulrol: true,
+         forsz: EGY_MENET, prioritas: 50, magyarazat: "A leghosszabb színe (4+)"}
+      - {minta: 2C-2H-2S-nM-4M, hossz: {M: 4+}, prioritas: 51, magyarazat: "Nemes fit: gém"}
+      - {minta: 2C-2H-2S-nA-3NT, prioritas: 45, magyarazat: "Nincs nemes fit: 3NT"}
+      - {minta: 2C-2H-2S-nm-5m, hossz: {m: 4+}, dontesi_mod: MERLEGELO, prioritas: 45,
+         magyarazat: "Minor fit: 5m (a szimuláció dönt a 3NT és az 5m között)"}
+
+  - fejezet: "2♣ – 2♥ – erős invit után a válaszoló"
+    jegyzet: >-
+      Az invit egy ütéssel (egy fedővel) kevesebb a gémnél: legalább 1
+      fedővel a válaszoló gémet mond, különben passzol. (Kiegészítés.)
+    szabalyok:
+      - {minta: 2C-2H-3M-4M, fedoutes: {M: 1+}, prioritas: 50, elfogad: true,
+         magyarazat: "Elfogadja az invitet: legalább 1 fedő"}
+      - {minta: 2C-2H-4m-5m, fedoutes: {m: 1+}, prioritas: 50, elfogad: true,
+         magyarazat: "Elfogadja az invitet: legalább 1 fedő"}
+
+  - fejezet: "2♣ – 2♦ (gémforsz) – 2M után a válaszoló (eltérések)"
+    jegyzet: >-
+      Nincs második negatív: a 3♣ is természetes, mint bármelyik szín.
+    szabalyok:
+      - {minta: 2C-2D-2M-3C, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Természetes 5+ treff, gémforsz"}
+      - {minta: 2C-2D-2M-3D, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Természetes 5+ káró, gémforsz"}
+      - {minta: 2C-2D-2H-2S, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes 5+ pikk, gémforsz"}

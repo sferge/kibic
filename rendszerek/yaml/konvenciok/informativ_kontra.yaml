@@ -1,0 +1,124 @@
+# Kieg.: a pontsávok a Takeout Double.pdf szerint (1-es szint 12+, 2-es 13+,
+# 3-as 14+, újranyitó 9+). A klubdokumentum: 'INFORMÁCIÓS KONTRA: 4♥-ig'.
+rendszer:
+  kod: "INFORMATIV_KONTRA"
+  nev: "Információs kontra"
+  nev_en: "Takeout Double"
+  fajta: "KONVENCIO"
+  tema: "Az ellenfél nyitásának kontrája"
+  leiras: "Az ellenfél nyitására: rövidség a színükben, támogatás a többiben (vagy 17+ bármilyen lap); 4♥-ig. Újranyitó helyzetben kevesebb erővel."
+fejezetek:
+  - fejezet: "Információs kontra"
+    szabalyok:
+      - {minta: "(1C) X", pont: "12+", hossz: {"C": "0-3"}, vagy: [{hossz: {"H": "4+", "S": "3+"}}, {hossz: {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(1C) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid treff, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1C) P (P) X", pont: "9+", hossz: {"C": "0-3"}, vagy: [{hossz: {"H": "4+", "S": "3+"}}, {hossz: {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(1C) P (P) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid treff, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1D) X", pont: "12+", hossz: {"D": "0-3"}, vagy: [{hossz: {"H": "4+", "S": "3+"}}, {hossz: {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(1D) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1D) P (P) X", pont: "9+", hossz: {"D": "0-3"}, vagy: [{hossz: {"H": "4+", "S": "3+"}}, {hossz: {"S": "4+", "H": "3+"}}], forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(1D) P (P) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid káró, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1H) X", pont: "12+", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(1H) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1H) P (P) X", pont: "9+", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(1H) P (P) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid kőr, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1S) X", pont: "12+", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(1S) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(1S) P (P) X", pont: "9+", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(1S) P (P) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 57, alert: "Információs kontra: rövid pikk, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(2D) X", pont: "13+", hossz: {"D": "0-2", "C": "3+", "H": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(2D) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid káró, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(2H) X", pont: "13+", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(2H) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid kőr, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(2S) X", pont: "13+", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(2S) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid pikk, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(3C) X", pont: "14+", hossz: {"C": "0-2", "D": "3+", "H": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(3C) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid treff, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(3D) X", pont: "14+", hossz: {"D": "0-2", "C": "3+", "H": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: legalább 4-3 a nemesekben (vagy 17+ bármi)"}
+      - {minta: "(3D) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid káró, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(3H) X", pont: "14+", hossz: {"H": "0-2", "C": "3+", "D": "3+", "S": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid kőr, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(3H) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid kőr, erős lap (17+), bármilyen elosztás"}
+      - {minta: "(3S) X", pont: "14+", hossz: {"S": "0-2", "C": "3+", "D": "3+", "H": "3+"}, forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 53, alert: "Információs kontra: rövid pikk, a többi színben támogatás (vagy 17+ bármi)"}
+      - {minta: "(3S) X", pont: "17+", forsz: "EGY_MENET", elvaras: "VALASSZ", prioritas: 58, alert: "Információs kontra: rövid pikk, erős lap (17+), bármilyen elosztás"}
+  - fejezet: "Válaszok az információs kontrára"
+    szabalyok:
+      - {minta: "(1C) X (P) 1D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
+      - {minta: "(1C) X (P) 2D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1C) X (P) 1H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
+      - {minta: "(1C) X (P) 2H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1C) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
+      - {minta: "(1C) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1C) X (P) 1NT", pont: "6-9", fogas: ["C"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
+      - {minta: "(1C) X (P) 2NT", pont: "10-12", fogas: ["C"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
+      - {minta: "(1C) X (P) 2C", pont: "12+", forsz: "GEMFORSZ", prioritas: 50, alert: "Felüllicit: gémerő, kérdez"}
+      - {minta: "(1D) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
+      - {minta: "(1D) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1D) X (P) 1H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
+      - {minta: "(1D) X (P) 2H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1D) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
+      - {minta: "(1D) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1D) X (P) 1NT", pont: "6-9", fogas: ["D"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
+      - {minta: "(1D) X (P) 2NT", pont: "10-12", fogas: ["D"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
+      - {minta: "(1D) X (P) 2D", pont: "12+", forsz: "GEMFORSZ", prioritas: 51, alert: "Felüllicit: gémerő, kérdez"}
+      - {minta: "(1H) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
+      - {minta: "(1H) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1H) X (P) 2D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
+      - {minta: "(1H) X (P) 3D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1H) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
+      - {minta: "(1H) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1H) X (P) 1NT", pont: "6-9", fogas: ["H"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
+      - {minta: "(1H) X (P) 2NT", pont: "10-12", fogas: ["H"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
+      - {minta: "(1H) X (P) 2H", pont: "12+", forsz: "GEMFORSZ", prioritas: 53, alert: "Felüllicit: gémerő, kérdez"}
+      - {minta: "(1S) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
+      - {minta: "(1S) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1S) X (P) 2D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
+      - {minta: "(1S) X (P) 3D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1S) X (P) 2H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
+      - {minta: "(1S) X (P) 3H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1S) X (P) 1NT", pont: "6-9", fogas: ["S"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
+      - {minta: "(1S) X (P) 2NT", pont: "10-12", fogas: ["S"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
+      - {minta: "(1S) X (P) 2S", pont: "12+", forsz: "GEMFORSZ", prioritas: 54, alert: "Felüllicit: gémerő, kérdez"}
+  - fejezet: "Felmentés: kontra induló erő nélkül a minorra (2026-10-21)"
+    # A szerkesztő: jó elosztású, 8-9 lapos nemes lappal (a kontrázott
+    # színben legfeljebb 2 lap) induló erő nélkül is kontra — nem kell az
+    # ötös nemest mondani. Rossz pontokkal (dáma-bubi, kevés ász-király:
+    # legalább 2 kontroll, ász = 2, király = 1) nem.
+    szabalyok:
+      - {minta: "(1C) X", pont: "9-11", hossz: {C: 0-2}, minoseg: nem_rossz, kontroll: 2+,
+         vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}],
+         forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 58,
+         alert: "Információs kontra (felmentés): 8-9 lap a nemesekben, legfeljebb 2 treff"}
+      - {minta: "(1D) X", pont: "9-11", hossz: {D: 0-2}, minoseg: nem_rossz, kontroll: 2+,
+         vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}],
+         forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 58,
+         alert: "Információs kontra (felmentés): 8-9 lap a nemesekben, legfeljebb 2 káró"}
+  - fejezet: "Kontra, majd szan a blokkra (2026-10-21)"
+    # A szerkesztő: erős egyenletes lappal kontra, és a következő körben
+    # szan (ugrás nélkül) — a nem ugró szan-közbeszólás erősebb párja.
+    szabalyok:
+      - {minta: "(2M) X (P) nA (P) +NT", pont: "19+", fogas: ["M"], elosztas: "BAL", prioritas: 57,
+         magyarazat: "Kontra, majd szan: erős egyenletes lap (19+), fogással"}
+      - {minta: "(2M) P (3M) X (P) nA (P) +NT", pont: "19+", fogas: ["M"], elosztas: "BAL", prioritas: 57,
+         magyarazat: "Kontra, majd szan: erős egyenletes lap (19+), fogással"}
+      - {minta: "(3M) X (P) nA (P) +NT", pont: "19+", fogas: ["M"], elosztas: "BAL", prioritas: 57,
+         magyarazat: "Kontra, majd szan: erős egyenletes lap (19+), fogással"}
+  - fejezet: "Erős kontra, majd a saját szín (2026-10-21)"
+    # A szerkesztő: 18+ ponttal kontra, utána a saját (5+) szín — erős lap
+    # (a minor kontrája egyébként legalább 4-3 a nemesekben).
+    szabalyok:
+      - {minta: "(1A) X (P) nB (P) +C", pont: "18-21", hossz: {C: 5+},
+         ha: {nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: C}]}, partner_nem_mondta: C},
+         prioritas: 56, magyarazat: "Kontra, majd saját szín: erős lap (18-21), 5+ lap"}
+      - {minta: "(1A) X (P) nB (P) +D", pont: "18-21", hossz: {D: 5+},
+         ha: {nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: D}]}, partner_nem_mondta: D},
+         prioritas: 56, magyarazat: "Kontra, majd saját szín: erős lap (18-21), 5+ lap"}
+      - {minta: "(1A) X (P) nB (P) +H", pont: "18-21", hossz: {H: 5+},
+         ha: {nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: H}]}, partner_nem_mondta: H},
+         prioritas: 56, magyarazat: "Kontra, majd saját szín: erős lap (18-21), 5+ lap"}
+      - {minta: "(1A) X (P) nB (P) +S", pont: "18-21", hossz: {S: 5+},
+         ha: {nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: S}]}, partner_nem_mondta: S},
+         prioritas: 56, magyarazat: "Kontra, majd saját szín: erős lap (18-21), 5+ lap"}
+      # a kontrázó emelése a partner (1-es szintű) kényszerválaszára
+      - {minta: "(1A) X (P) 1M (P) 2M", pont: "16-18", hossz: {M: 4+}, prioritas: 57, magyarazat: "Emelés: 16-18 FP, 4+ adu"}
+      - {minta: "(1A) X (P) 1M (P) 3M", pont: "19-21", hossz: {M: 4+}, prioritas: 57, magyarazat: "Ugró emelés: 19-21 FP, 4+ adu (invit)"}
+      - {minta: "(1A) X (P) 1M (P) 4M", pont: "22+", hossz: {M: 4+}, prioritas: 57, magyarazat: "Gém: 22+ FP, 4+ adu"}

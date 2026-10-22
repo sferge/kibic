@@ -1,0 +1,52 @@
+rendszer:
+  kod: SPLINTER
+  nev: Splinter
+  nev_en: Splinter Bids
+  fajta: KONVENCIO
+  tema: "Rövidséget mutató ugró emelés"
+  leiras: "Ugró licit egy rövidség (szingli/sikén) színében, négyes adutámogatással, gémerővel."
+  jegyzet: >-
+    Moha (2026-09-30): szingli ászt nem licitálunk szinglinek. A splinter
+    a partner kezében fedőt teremt: ahol neki xxx van, ott 2 fedő (nem 3
+    pont) — a szingli ász viszont a partner KD-jével elvesztegetett érték.
+fejezetek:
+  - fejezet: Splinter a nemes nyitásra
+    szabalyok:
+      - {minta: 1M-4C, pont: 10-14, hossz: {M: 4+, C: 0-1}, nincs: [CA], forsz: GEMFORSZ, prioritas: 61,
+         alert: "Splinter: rövid treff, 4+ adu", nyers: "4m! | SPL."}
+      - {minta: 1M-4D, pont: 10-14, hossz: {M: 4+, D: 0-1, C: 2+}, nincs: [DA], forsz: GEMFORSZ, prioritas: 61,
+         alert: "Splinter: rövid káró, 4+ adu"}
+      - {minta: 1H-3S, pont: 10-14, hossz: {H: 4+, S: 0-1}, nincs: [SA], forsz: GEMFORSZ, prioritas: 62,
+         alert: "Splinter: rövid pikk, 4+ kőr", nyers: "3♠ (1♥-re) | SPL."}
+      - {minta: 1S-4H, pont: 10-14, hossz: {S: 4+, H: 0-1}, nincs: [HA], forsz: GEMFORSZ, prioritas: 62,
+         alert: "Splinter: rövid kőr, 4+ pikk", nyers: "4♥ (1♠-re) | SPL."}
+  - fejezet: Splinter a nyitótól
+    szabalyok:
+      - {minta: 1H-1S-4C, pont: 18+, hossz: {S: 4, C: 0-1}, nincs: [CA], forsz: GEMFORSZ, prioritas: 60,
+         alert: "Splinter pikk mellett: rövid treff", nyers: "4m! | SPLINTER pikk mellett"}
+      - {minta: 1H-1S-4D, pont: 18+, hossz: {S: 4, D: 0-1}, nincs: [DA], forsz: GEMFORSZ, prioritas: 61,
+         alert: "Splinter pikk mellett: rövid káró"}
+  - fejezet: Önsplinter a 2/1 után
+    szabalyok:
+      - {minta: 1S-2C-3S, ha: {ules: [1, 2]}, pont: 12+, hossz: {S: 6+, H: 0-1}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Önsplinter: önálló pikk, rövid kőr", nyers: "3♠, 4♣, 4♦, 4♥! | önSPL"}
+  - fejezet: "Splinter-elv"
+    jegyzet: >-
+      2026-10-02, Moha: ha van színtalálkozás — legalább FELTÉTELEZETT, 8
+      lapos nemes színben (a partner tudottan 4+ lapot mondott, nálam a
+      többi) —, az UGRÁS ÚJ SZÍNBEN a nemes 3-as szintje fölé (a géme alá)
+      splinter: szingli vagy sikén abban a színben, és egyben a fitet is
+      tudatja (pl. 1m-1M-4mm; 1NT-2♣-2♠-4♥). Ami nem megy a 3-as szint fölé
+      (pl. 2♠ után a 3♥), az nem splinter. A 3-as szint alatti
+      „minisplinter” külön megállapodás. 3NT fölött nincs alert.
+      ELV: a helyzetet a `ha: {splinter: true}` dönti el (motor/helyzet.py),
+      nem egy konkrét menet; konkrét szabály előtte jár.
+    szabalyok:
+      - {minta: ".. 3B", kulcs: SPL-ELV-3, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {B: 0-1}, forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 4B", kulcs: SPL-ELV-4, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {B: 0-1}, forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}

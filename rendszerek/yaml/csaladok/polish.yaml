@@ -1,0 +1,44 @@
+# POLISH — a „lengyel treff” rendszercsalád ÁLTALÁNOS rendszere
+# (2026-10-02, gépi javaslat — átnézendő).
+#
+# MIÉRT CSALÁD: az 1♣ se nem természetes, se nem erős treff, hanem
+# HÁROMÁGÚ: (a) gyenge szan-erő (12-14 egyenletes), (b) természetes treff
+# (15+, 5+ treff), (c) erős (18+, bármi). Ide tartozik a Wspólny Język
+# (WJ), a Polski Klub és a hasonló „kétértelmű 1♣” rendszerek. A Precision
+# ezzel szemben NEM család, hanem az erős treff család egyik rendszere
+# (alaprendszer a STRONG_CLUB alatt).
+#
+# Csak a családra általánosan igaz nyitásokat írjuk le, tág sávokkal.
+rendszer:
+  kod: POLISH
+  nev: Lengyel treff (általános)
+  nev_en: Polish club (generic)
+  fajta: RENDSZERCSALAD
+  csalad: POLISH
+  leiras: "Lengyel treff család általános rendszere: 1♣ 12-14 egyenletes VAGY 15+ természetes treff VAGY 18+ erős; 1♦ 4+ káró; 1M 5+ 11-17; 1NT 15-17; 2♣ 6+ treff (vagy 5♣ + 4M) 11-15."
+hivatkozasok:
+  - EMELES_ELV
+fejezetek:
+  - fejezet: Nyitások
+    szabalyok:
+      - {minta: 1C, prioritas: 90, forsz: EGY_MENET,
+         vagy: [{pont: 12-14, elosztas: BAL}, {pont: 15+, hossz: {C: 5+}}, {pont: 18+}],
+         alert: "Lengyel treff: 12-14 egyenletes, VAGY természetes treff 15+, VAGY erős 18+"}
+      - {minta: 1D, pont: 11-17, hossz: {D: 4+, H: 0-4, S: 0-4}, prioritas: 80,
+         magyarazat: "11-17, 4+ káró, nincs 5-ös nemes"}
+      - {minta: 1H, pont: 11-17, hossz: {H: 5+}, prioritas: 80, magyarazat: "11-17, 5+ kőr"}
+      - {minta: 1S, pont: 11-17, hossz: {S: 5+}, prioritas: 80, magyarazat: "11-17, 5+ pikk"}
+      - {minta: 1NT, pont: 15-17, elosztas: BAL, prioritas: 85, magyarazat: "15-17 egyenletes"}
+      - {minta: 2C, pont: 11-15, hossz: {C: 5+}, prioritas: 80,
+         alert: "11-15, 6+ treff, vagy 5 treff + 4-es nemes"}
+      - {minta: 2H, pont: 5-10, hossz: {H: 5+}, prioritas: 70, magyarazat: "Gyenge, 5+ kőr (a változatok eltérnek)"}
+      - {minta: 2S, pont: 5-10, hossz: {S: 5+}, prioritas: 70, magyarazat: "Gyenge, 5+ pikk (a változatok eltérnek)"}
+
+  - fejezet: "Válasz az 1♣-ra"
+    szabalyok:
+      - {minta: 1C-1D, pont: 0-6, forsz: EGY_MENET, prioritas: 60,
+         alert: "Negatív (0-6), vagy bizonyos erős lapok — a rendszertől függ"}
+      - {minta: 1C-1H, pont: 7+, hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 55,
+         magyarazat: "7+, 4+ kőr"}
+      - {minta: 1C-1S, pont: 7+, hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 55,
+         magyarazat: "7+, 4+ pikk"}

@@ -1,0 +1,222 @@
+# AZ 1 MINOR INDULÁS — válaszok és folytatások.
+# Közbeszólás után nincs fordított emelés; kontra után a rekontra 11+ FP;
+# színközbeszólás után a kontra információs (ezek a KIBIC_STAND küzdelmi
+# konvencióiban élnek, itt csak a pároslicit).
+rendszer: {kod: KIBICEGY_STAND}
+fejezetek:
+  - fejezet: Az 1minor indulás
+    szabalyok:
+      - {minta: 1C-1D, pont: 6+, hossz: {D: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Általában 5+ káró (lehet 4-es), nincs 4-es nemes, 6+ FP",
+         nyers: "1♦ | Általában 5+; de lehet 4es is; nincs 4M, 6+ FP; UNBAL"}
+      # 4-4 nemessel 1♥, 5-5-tel 1♠, különben a hosszabb (kieg.: SAYC)
+      - minta: 1m-1H
+        pont: 6+
+        hossz: {H: 4+}
+        vagy: [{rel: ["H>S"]}, {hossz: {H: 4, S: 4}}]
+        forsz: EGY_MENET
+        prioritas: 56
+        magyarazat: "4+ kőr, 6+ FP"
+        nyers: "1M | 4+ Major, 6+FP; ásszal, illetve mariázzsal nem passzolunk!"
+      - minta: 1m-1S
+        pont: 6+
+        hossz: {S: 4+}
+        vagy: [{rel: ["S>H"]}, {hossz: {S: 5+, H: 5+}, rel: ["S>=H"]}]
+        forsz: EGY_MENET
+        prioritas: 56
+        magyarazat: "4+ pikk, 6+ FP"
+      - {minta: 1m-1NT, pont: 6-9, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
+         magyarazat: "6-9 FP, egyenletes, nincs 4-es nemes", nyers: "1N | 6-9FP BAL, nincs 4 M"}
+      - {minta: 1D-2C, pont: 11+, hossz: {C: 5+, S: 0-3, H: 0-3}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "11+ FP, 5+ treff, gémforsz, nincs 4-es nemes",
+         nyers: "2♣ (1♦ra) | 11 fp; 5+  — és: 1♦ – 2♣ (11+, GF, Ø 4-es M)"}
+      # A fordított emelés színenként külön sor, hogy egy konvenció csak az
+      # egyiket módosíthassa (az 1TREFF_DUBLO az 1♣-2♣-höz 5+ treffet kér).
+      - {minta: 1C-2C, pont: 11+, hossz: {C: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Fordított emelés, 11+ FP", nyers: "2m | Fordított emelés; 11+, erre két 2 NT minimum és passzolható, ahogy a 3 m is"}
+      - {minta: 1D-2D, pont: 11+, hossz: {D: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Fordított emelés, 11+ FP", nyers: "2m | Fordított emelés; 11+, erre két 2 NT minimum és passzolható, ahogy a 3 m is"}
+      - {minta: 1C-2D, pont: 2-7, hossz: {D: 6+}, forsz: KIZARO, prioritas: 50,
+         alert: "Gyenge ugró: 6-os káró, 2-7 FP", nyers: "2♦ (1♣-re) | 2-7FP, 6-os szín; gyenge kéz; nincs válaszerő"}
+      - {minta: 1m-2H, pont: 2-7, hossz: {H: 6+}, forsz: KIZARO, prioritas: 50,
+         alert: "Gyenge ugró: 6-os kőr, 2-7 FP", nyers: "2M | 2-7FP, 6-os szín; gyenge kéz; nincs válaszerő"}
+      - {minta: 1m-2S, pont: 2-7, hossz: {S: 6+}, forsz: KIZARO, prioritas: 50,
+         alert: "Gyenge ugró: 6-os pikk, 2-7 FP"}
+      - {minta: 1m-2NT, pont: 10-11, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 48,
+         magyarazat: "10-11 FP, egyenletes, nincs 4-es nemes",
+         nyers: "2N | 10-11 FP; egyenletes  (a fejezetcím szerint: GF, Ø 4-es M — ELLENTMONDÁS a dokumentumban)"}
+      - {minta: 1D-3C, pont: 2-6, hossz: {C: 6+}, forsz: KIZARO, prioritas: 49,
+         magyarazat: "Természetes, kizáró", nyers: "3♣ (1♦-ra) | NAT, kizáró"}
+      - {minta: 1m-3m, pont: 6-9, hossz: {m: 5+, S: 0-3, H: 0-3}, prioritas: 51,
+         alert: "Gyenge emelés (fordított): 6-9, 5-ös támogatás", nyers: "3m | (fordított emelés) 6-9 ep, 5-ös adutámogatás"}
+      - {minta: 1m-3NT, pont: 13-15, elosztas: BAL, hossz: {S: 0-3, H: 0-3, C: 0-4, D: 0-4}, prioritas: 53,
+         magyarazat: "Leállás", nyers: "3N | t/p"}
+
+  - fejezet: "1m – 1M után a nyitó"
+    szabalyok:
+      - {minta: 1m-1H-1S, pont: 12-17, hossz: {S: 4, H: 0-3}, forsz: EGY_MENET, prioritas: 53,
+         magyarazat: "4-es pikk, nincs 4-es kőr; kényszerít, riverz alatt",
+         nyers: "1♠ (1♥-re) | 4-es ♠, Ø 4-es ♥; kényszerít, nem AZ, csak riverz alatt, unbal"}
+      - {minta: 1m-1M-1NT, pont: 12-14, elosztas: BAL, hossz: {M: 0-3}, prioritas: 50,
+         magyarazat: "Nincs 4-es támogatás, kvázi egyenletes", nyers: "1N | Ø 4-es támogatás, kvázi BAL."}
+      - {minta: 1D-1M-2C, pont: 12-15, hossz: {D: 5+, C: 4+, M: 0-3}, prioritas: 51,
+         magyarazat: "Természetes 5-4+, alsó zóna", nyers: "2mm | NAT; 5-4+; AZ"}
+      - {minta: 1m-1M-2m, pont: 12-15, hossz: {m: 6+, M: 0-3}, prioritas: 52,
+         magyarazat: "Természetes, 6+, alsó zóna", nyers: "2m | NAT; 6+; AZ"}
+      - {minta: 1m-1M-2M, pont: 12-14, hossz: {M: 4}, prioritas: 55,
+         magyarazat: "4-es támogatás, alsó zóna", nyers: "2M | NAT, 4-es támogatás; AZ"}
+      - {minta: 1m-1H-2S, pont: 18+, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 56,
+         alert: "Riverz, 18+", nyers: "2MM | Riverz; 18+ 5-4 vagy 44?"}
+      - {minta: 1m-1S-2H, pont: 18+, hossz: {H: 4+, S: 0-3}, forsz: EGY_MENET, prioritas: 56,
+         alert: "Riverz, 18+", nyers: "1♦ – 1♠ – 2♥! (riverz)"}
+      - {minta: 1m-1M-2NT, pont: 18-19, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 53,
+         magyarazat: "18-19 FP, egyenletes, nincs 4-es nemes", nyers: "2N | 18-19 FP; bal; nincs 4M"}
+      - {minta: 1D-1M-3C, pont: 16+, hossz: {D: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Természetes, 5-4+ a minorokban, gémforsz", nyers: "3mm | NAT; 5-4+ a minorokban, GF"}
+      - {minta: 1m-1M-3m, pont: 16-18, hossz: {m: 6+, M: 0-3}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Természetes, 6+, erős", nyers: "3m | NAT; 6+; FZ"}
+      - {minta: 1m-1M-3M, pont: 15-17, hossz: {M: 4}, prioritas: 56,
+         magyarazat: "Ugró emelés: 4-es támogatás, invit", nyers: "Ugró emelés | 4-es támogatás, invit"}
+      - {minta: 1m-1M-3NT, pont: 18-20, hossz: {m: 6+, M: 0-2}, prioritas: 53,   # kieg.
+         magyarazat: "Leállás", nyers: "3nt | To play"}
+
+  - fejezet: "1m – 1M – 1NT után a válaszoló"
+    szabalyok:
+      - {minta: 1C-1M-1NT-2D, pont: 6-10, hossz: {D: 5+}, prioritas: 50,
+         magyarazat: "Természetes, alsó zóna", nyers: "2m (nem treff) | NAT; AZ"}
+      - {minta: 1D-1M-1NT-2D, pont: 6-10, hossz: {D: 3+}, prioritas: 49,
+         magyarazat: "Természetes, alsó zóna"}
+      - {minta: 1m-1H-1NT-2S, pont: 6-10, hossz: {H: 5, S: 4}, prioritas: 51,
+         magyarazat: "5-4 a nemesekben, nem kényszerít", nyers: "2MM | 54 a Majorokban; nem kényszerít"}
+      - {minta: 1m-1M-1NT-2NT, pont: 11-12, hossz: {M: 4}, prioritas: 50,
+         magyarazat: "Invit", nyers: "2NT | INV."}
+      - {minta: 1m-1M-1NT-3m, pont: 11-12, hossz: {m: 4+}, prioritas: 52,
+         magyarazat: "Természetes, invit", nyers: "3m | NAT; INV"}
+      - {minta: 1C-1M-1NT-3D, pont: 13+, hossz: {D: 5+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz", nyers: "3mm | NAT; GF"}
+      - {minta: 1D-1M-1NT-3C, pont: 13+, hossz: {C: 5+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz"}
+      - {minta: 1m-1S-1NT-3H, pont: 13+, hossz: {S: 5+, H: 5+}, forsz: GEMFORSZ, prioritas: 57,
+         magyarazat: "5-5 a nemesekben, gémforsz", nyers: "3♥ (1♠ után) | 55 a Majorokban; GF"}
+      - {minta: 1m-1M-1NT-3M, pont: 11-12, hossz: {M: 6+}, prioritas: 53,
+         magyarazat: "Természetes, 6+, invit", nyers: "3M | NAT; 6+; INV"}
+      - {minta: 1m-1M-1NT-3NT, pont: 13-17, hossz: {M: 4}, prioritas: 49,
+         magyarazat: "Leállás", nyers: "3nt | To play"}
+      - {minta: 1m-1M-1NT-4M, pont: 13+, hossz: {M: 6+}, prioritas: 53,
+         magyarazat: "Leállás", nyers: "4M | To play"}
+
+  - fejezet: "1♦ – 1M – 2♣ után a válaszoló"
+    szabalyok:
+      - {minta: 1D-1M-2C-2D, pont: 6-10, hossz: {D: 2+}, prioritas: 49,
+         magyarazat: "Passzt kér", nyers: "2♦ | Passzt kér"}
+      - {minta: 1D-1M-2C-2M, pont: 6-10, hossz: {M: 5+}, prioritas: 50,
+         magyarazat: "Természetes, legfeljebb invit", nyers: "2M | NAT; max INV"}
+      - {minta: 1D-1H-2C-2S, pont: 13+, forsz: GEMFORSZ, prioritas: 50,
+         alert: "Negyedik szín, gémforsz", nyers: "2MM! | 4. szín; GF"}
+      - {minta: 1D-1M-2C-2NT, pont: 11-12, prioritas: 49,
+         magyarazat: "Invit", nyers: "2N | INV."}
+      - {minta: 1D-1M-2C-3C, pont: 11-12, hossz: {C: 4+}, rel: ["C>D"], prioritas: 50,
+         magyarazat: "Invit", nyers: "3m | INV."}
+      - {minta: 1D-1M-2C-3D, pont: 11-12, hossz: {D: 3+}, rel: ["D>=C"], prioritas: 50,
+         magyarazat: "Invit"}
+      - {minta: 1D-1M-2C-3M, pont: 11-12, hossz: {M: 6+}, prioritas: 51,
+         magyarazat: "Invit, 6+", nyers: "3M | INV.; 6+"}
+      - {minta: 1D-1M-2C-3NT, pont: 13+, prioritas: 48,
+         magyarazat: "Leállás", nyers: "3nt | to play"}
+
+  - fejezet: "1m – 1M – 2m után a válaszoló"
+    szabalyok:
+      - {minta: 1m-1M-2m-2NT, pont: 11-12, prioritas: 49,
+         magyarazat: "Invit", nyers: "2nt | inv"}
+      - {minta: 1m-1M-2m-3m, pont: 11-12, hossz: {m: 3+}, prioritas: 50,
+         magyarazat: "Invit", nyers: "A többi licit nem forsz. És természetes, 3as magasság invit"}
+      - {minta: 1m-1M-2m-3M, pont: 11-12, hossz: {M: 6+}, prioritas: 51,
+         magyarazat: "Invit, 6+"}
+
+  - fejezet: "1m – 1M – 2M után a válaszoló"
+    szabalyok:
+      - {minta: 1m-1M-2M-2NT, pont: 11-12, forsz: EGY_MENET, prioritas: 50,
+         magyarazat: "Ponterős géminvit", nyers: "2N | Ponterős GI, ha nem a relé"}
+      - {minta: 1m-1M-2M-3m, pont: 11-12, hossz: {m: 3+}, prioritas: 51,
+         alert: "Természetes, invit", nyers: "3m! | NAT, INV."}
+      - {minta: 1m-1M-2M-4M, pont: 13+, prioritas: 51,
+         magyarazat: "Leállás"}                                           # kieg.
+
+  - fejezet: "1m – 1M – 2NT után a válaszoló"
+    szabalyok:
+      - {minta: 1m-1M-2NT-3D, pont: 8+, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Természetes, fogadja az invitet", nyers: "3♦ | NAT; fogadja az invitet"}
+      - {minta: 1m-1M-2NT-3M, pont: 6+, hossz: {M: 5+}, forsz: EGY_MENET, prioritas: 51,
+         magyarazat: "Fogadja az invitet", nyers: "3M | 3as szín; fogadja az invitet; nincs 4es MM"}
+      - {minta: 1m-1M-2NT-3NT, pont: 6+, hossz: {M: 4}, prioritas: 49,
+         magyarazat: "Leállás", nyers: "3nt | To play"}
+      - {minta: 1m-1M-2NT-4M, pont: 6+, hossz: {M: 6+}, prioritas: 52,
+         magyarazat: "Leállás", nyers: "4M | To play"}
+
+  - fejezet: "1m – 1M – 3m után a válaszoló"
+    szabalyok:
+      - {minta: 1m-1M-3m-3M, pont: 6+, hossz: {M: 5+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz", nyers: "3M | NAT; GF"}
+      - {minta: 1m-1M-3m-3NT, pont: 8+, prioritas: 49,
+         magyarazat: "Leállás", nyers: "3nt | To play"}
+
+  - fejezet: "1m – 1NT után a nyitó"
+    szabalyok:
+      - {minta: 1m-1NT-2m, pont: 12-14, hossz: {m: 5+}, prioritas: 50,
+         magyarazat: "Természetes, alsó zóna", nyers: "2m | NAT; AZ"}
+      - {minta: 1D-1NT-2C, pont: 12-15, hossz: {D: 5+, C: 4+}, prioritas: 51,
+         magyarazat: "Természetes 5-4, alsó zóna", nyers: "2mm (treff) | NAT; 5-4; AZ"}
+      - {minta: 1C-1NT-2D, pont: 17+, hossz: {C: 5+, D: 4+}, forsz: EGY_MENET, prioritas: 51,
+         alert: "Riverz", nyers: "(1♣-re) 2♦ | Riverz; FZ"}
+      - {minta: 1m-1NT-2H, pont: 17+, hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Riverz", nyers: "2M | Riverz; FZ"}
+      - {minta: 1m-1NT-2S, pont: 17+, hossz: {S: 4+}, rel: ["S>H"], forsz: EGY_MENET, prioritas: 52,
+         alert: "Riverz"}
+      - {minta: 1m-1NT-2NT, pont: 17-18, elosztas: BAL, prioritas: 51,
+         alert: "Invit", nyers: "2N! | inv"}
+      - {minta: 1m-1NT-3m, pont: 16-18, hossz: {m: 6+}, forsz: EGY_MENET, prioritas: 53,
+         magyarazat: "Természetes, 6+, erős", nyers: "3m | NAT; 6+; FZ"}
+
+  - fejezet: "1♦ – 2♣ (gémforsz) után a nyitó"
+    szabalyok:
+      - {minta: 1D-2C-2D, hossz: {D: 5+}, forsz: GEMFORSZ, prioritas: 48,
+         magyarazat: "Fenntartó, 5+ káró, alkalmatlan a többi licitre", nyers: "2♦ | Fenntartó, alkalmatlan a maradék licitekre; 5+"}
+      - {minta: 1D-2C-2H, fogas: [H], forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Fogás kőrben", nyers: "2M | Fogás"}
+      - {minta: 1D-2C-2S, fogas: [S], forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Fogás pikkben"}
+      - {minta: 1D-2C-2NT, fogas: [H, S], forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Fogás mindkét nemesben", nyers: "2N | Major fogások."}
+      - {minta: 1D-2C-3C, hossz: {C: 3+}, nincs_fogas: [H, S], forsz: GEMFORSZ, prioritas: 49,
+         magyarazat: "Treff-emelés, lapleírást kér, nincs nemes fogás", nyers: "3♣ | Lapleírást kér, M fogásokat tagad"}
+      - {minta: 1D-2C-3D, hossz: {D: 6+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, 6+", nyers: "3♦ | NAT; 6+; GF"}
+      - {minta: 1D-2C-3NT, pont: 12-14, elosztas: BAL, fogas: [H, S], prioritas: 53,
+         magyarazat: "Leállás", nyers: "3NT | To play"}
+
+  - fejezet: "1m – 2m (fordított emelés) után a nyitó"
+    szabalyok:
+      - {minta: 1m-2m-2H, pont: 12+, fogas: [H], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Kőrfogás, gémforsz; amit átugrik, abban tagad",
+         nyers: "2M! | Fogást ígér; amit átugrik, abban tagad; GF"}
+      - {minta: 1m-2m-2S, pont: 12+, fogas: [S], nincs_fogas: [H], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Pikkfogás, nincs kőrfogás, gémforsz"}
+      - {minta: 1m-2m-2NT, pont: 12-14, elosztas: BAL, prioritas: 50,
+         magyarazat: "Fogások, minimum", nyers: "2nt; | NAT; fogásokat ígér; minimum"}
+      - {minta: 1D-2D-3C, pont: 12-14, hossz: {C: 4+}, nincs_fogas: [H, S], prioritas: 49,
+         magyarazat: "Természetes, nincs nemes fogás, leállna", nyers: "3♣ (1 ♦indulásra) | NAT, tagadja a major fogásokat; szívesen leállna"}
+      - {minta: 1m-2m-3m, pont: 12-14, prioritas: 48,
+         magyarazat: "Minimum, passzolható"}                               # kieg.
+      - {minta: 1m-2m-3NT, pont: 15-17, fogas: [H, S], prioritas: 52,
+         magyarazat: "Leállás", nyers: "3nt | To play"}
+
+  - fejezet: "1m – 2NT után a nyitó"
+    szabalyok:
+      - {minta: 1m-2NT-3H, hossz: {H: 0-1}, prioritas: 50,
+         magyarazat: "Rövidség kőrben", nyers: "3M | Rövidséget jelez."}
+      - {minta: 1m-2NT-3S, hossz: {S: 0-1, H: 2+}, prioritas: 50,
+         magyarazat: "Rövidség pikkben"}
+      - {minta: 1m-2NT-3m, pont: 12-13, hossz: {m: 5+}, prioritas: 49,
+         magyarazat: "Gyenge, természetes", nyers: "3m | Gyenge, NAT."}
+      - {minta: 1m-2NT-3NT, pont: 14+, prioritas: 48,
+         magyarazat: "Leállás", nyers: "3NT | To play"}

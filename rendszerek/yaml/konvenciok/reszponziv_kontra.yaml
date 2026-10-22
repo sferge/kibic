@@ -1,0 +1,18 @@
+rendszer:
+  kod: RESZPONZIV_KONTRA
+  nev: "Reszponzív kontra"
+  nev_en: "Responsive Double"
+  fajta: KONVENCIO
+  tema: "Partner kontrája és az ő emelésük után: kontra"
+  leiras: "(1x)-X-(emelés)-X: minor után mindkét nemes, nemes után mindkét minor; 3♠-ig."
+fejezetek:
+  - fejezet: "Reszponzív kontra"
+    szabalyok:
+      - {minta: "(1C) X (2C) X", pont: 6+, hossz: {"H": "4+", "S": "4+"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét nemes"}
+      - {minta: "(1C) X (3C) X", pont: 8+, hossz: {"H": "4+", "S": "4+"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét nemes"}
+      - {minta: "(1D) X (2D) X", pont: 6+, hossz: {"H": "4+", "S": "4+"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét nemes"}
+      - {minta: "(1D) X (3D) X", pont: 8+, hossz: {"H": "4+", "S": "4+"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét nemes"}
+      - {minta: "(1H) X (2H) X", pont: 6+, hossz: {"C": "4+", "D": "4+", "S": "0-3"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét minor, nincs 4-es másik nemes"}
+      - {minta: "(1H) X (3H) X", pont: 8+, hossz: {"C": "4+", "D": "4+", "S": "0-3"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét minor, nincs 4-es másik nemes"}
+      - {minta: "(1S) X (2S) X", pont: 6+, hossz: {"C": "4+", "D": "4+", "H": "0-3"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét minor, nincs 4-es másik nemes"}
+      - {minta: "(1S) X (3S) X", pont: 8+, hossz: {"C": "4+", "D": "4+", "H": "0-3"}, forsz: EGY_MENET, prioritas: 56, alert: "Reszponzív kontra: mindkét minor, nincs 4-es másik nemes"}

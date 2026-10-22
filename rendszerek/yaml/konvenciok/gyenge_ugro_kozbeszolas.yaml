@@ -1,0 +1,66 @@
+# Klubdokumentum: "UGRÓ KÖZBESZÓLÁS: kizáró, kivéve bellben mans ellen: ilyenkor
+# indulóerős lapot ígér a megfelelő hosszúsággal (ALERT!)".
+# A sávok (kieg.): 2-es szinten 6 lap, 3-as szinten 7 lap, 5-10 FP;
+# bell-mans (S zóna) 12-16 FP, jó szín.
+rendszer:
+  kod: "GYENGE_UGRO_KOZBESZOLAS"
+  nev: "Gyenge ugró közbeszólás"
+  nev_en: "Weak Jump Overcalls"
+  fajta: "KONVENCIO"
+  tema: "Ugró közbeszólás"
+  leiras: "Az ellenfél nyitására az ugró színlicit kizáró (bell-mans zónában erős)."
+fejezetek:
+  - fejezet: "Ugró közbeszólás"
+    szabalyok:
+      - {minta: "(1C) 2D", hossz: {"D": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"D": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő"}
+      - {minta: "(1C) 3D", hossz: {"D": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"D": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ káró); bell-mans zónában indulóerő"}
+      - {minta: "(1C) 2H", hossz: {"H": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"H": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő"}
+      - {minta: "(1C) 3H", hossz: {"H": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"H": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ kőr); bell-mans zónában indulóerő"}
+      - {minta: "(1C) 2S", hossz: {"S": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1C) 3S", hossz: {"S": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1D) 3C", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"C": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő"}
+      - {minta: "(1D) 2H", hossz: {"H": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"H": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő"}
+      - {minta: "(1D) 3H", hossz: {"H": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"H": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ kőr); bell-mans zónában indulóerő"}
+      - {minta: "(1D) 2S", hossz: {"S": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1D) 3S", hossz: {"S": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1H) 3C", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"C": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő"}
+      - {minta: "(1H) 3D", hossz: {"D": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"D": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő"}
+      - {minta: "(1H) 2S", hossz: {"S": "6"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1H) 3S", hossz: {"S": "7+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"S": "5+"}}], alert: "Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő"}
+      - {minta: "(1S) 3C", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"C": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő"}
+      - {minta: "(1S) 3D", hossz: {"D": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"D": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő"}
+      - {minta: "(1S) 3H", hossz: {"H": "6+"}, forsz: "KIZARO", prioritas: 53, vagy: [{"szkor": "A", "pont": "5-10"}, {"szkor": "M", "pont": "6-10"}, {"szkor": "O", "pont": "4-10"}, {"szkor": "S", "pont": "12-16", "figura": {"H": "5+"}}], alert: "Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő"}
+
+  - fejezet: "Válasz a gyenge ugró közbeszólásra"
+    jegyzet: >-
+      2026-10-02, a feltöltött Weak_Jump_Overcalls.pdf alapján. Csak a
+      tudottan 6+ lapos (ugró) közbeszólás után él (`partner_szin: {B: 6}`).
+      Egyszerű emelés: 3-4 lapos támogatás, kb. 6-13 FP, kizáró, nem
+      kényszerít. Ugró emelés (nemesben gémre): gyenge kizáró 4+ lappal,
+      vagy 5 lapos támogatás erőtől függetlenül, vagy erős lap, ami hisz a
+      gémben. Új szín: természetes, nem kényszerít, 6 lap, tagadja a
+      támogatást. 2NT: mesterséges kényszerítés (jó lap): a közbeszóló
+      minimummal a színét ismétli, maximummal ász/király mellékszínt mond.
+      Felüllicit: kényszerítő emelés gémérdeklődéssel.
+    szabalyok:
+      - {minta: "(1A) 2B (P) +B", ha: {partner_szin: {B: 6}}, pont: 6-13, hossz: {B: 3+}, forsz: KIZARO,
+         prioritas: 55, magyarazat: "Emelés: 3-4 lapos támogatás, kizáró, nem kényszerít"}
+      - {minta: "(1A) 2M (P) 4M", ha: {partner_szin: {M: 6}}, prioritas: 56,
+         vagy: [{pont: 0-10, hossz: {M: 4+}}, {hossz: {M: 5+}}, {pont: 14+, hossz: {M: 3+}}],
+         magyarazat: "Ugró emelés: gyenge kizáró (4+), vagy 5 lapos támogatás, vagy erős lap"}
+      - {minta: "(1A) 2B (P) +E", ha: {partner_szin: {B: 6}}, kulonbozo: [A, B, E], pont: 8-15,
+         hossz: {E: 6+, B: 0-1}, prioritas: 53, magyarazat: "Új szín: természetes, 6 lap, nem kényszerít"}
+      - {minta: "(1A) 2B (P) 2NT", ha: {partner_szin: {B: 6}}, pont: 14+, hossz: {B: 2+}, forsz: EGY_MENET,
+         elvaras: VALASZ, prioritas: 54,
+         alert: "Kérdez (jó lap): minimummal a színed, maximummal ász/király mellékszín"}
+      - {minta: "(1A) 2B (P) +A", ha: {partner_szin: {B: 6}}, pont: 13+, hossz: {B: 3+}, forsz: EGY_MENET,
+         elvaras: VALASZ, prioritas: 57, alert: "Felüllicit: kényszerítő emelés, gémérdeklődés"}
+      # a közbeszóló folytatása
+      - {minta: "(1A) 2B (P) 2NT (P) +B", ha: {en_igertem: {B: 6}}, pont: 0-7, prioritas: 50,
+         magyarazat: "Minimum: a színem"}
+      - {minta: "(1A) 2B (P) 2NT (P) +E", ha: {en_igertem: {B: 6}}, kulonbozo: [A, B, E], pont: 8+,
+         vagy: [{lapok: [EA]}, {lapok: [EK]}], alulrol: true, prioritas: 51, magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: "(1A) 2B (P) +A (P) +B", ha: {en_igertem: {B: 6}}, pont: 0-7, prioritas: 50,
+         magyarazat: "Minimum: a színem a legolcsóbban"}
+      - {minta: "(1A) 2M (P) +A (P) 4M", ha: {en_igertem: {M: 6}}, pont: 8+, prioritas: 51,
+         magyarazat: "Maximum: gém"}

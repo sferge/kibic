@@ -1,0 +1,55 @@
+# A 2♣ INDULÁS — válaszok és folytatások.
+# "2 honőrrel" (kieg.): a három felső honőrből legalább kettő.
+rendszer: {kod: KIBICEGY_STAND}
+fejezetek:
+  - fejezet: A 2♣ indulás
+    szabalyok:
+      - {minta: 2C-2D, forsz: EGY_MENET, prioritas: 40,
+         alert: "Várakozó", nyers: "2♦! | várakozó"}
+      - {minta: 2C-2H, hossz: {H: 5+}, rel: ["H>S"], fohonor: {H: 2+}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Természetes 5+ kőr, 2 honőrrel", nyers: "2M | NAT 5+ szín, 2 honőrrel"}
+      - {minta: 2C-2S, hossz: {S: 5+}, rel: ["S>=H"], fohonor: {S: 2+}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Természetes 5+ pikk, 2 honőrrel"}
+      - {minta: 2C-2NT, pont: 7-9, elosztas: BAL, nincs: [SA, HA, DA, CA], forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "7-9 FP, egyenletes, nincs ász", nyers: "2N | 7-9 p; bal; nincs ász"}
+      - {minta: 2C-3C, hossz: {C: 5+}, rel: ["C>=D"], fohonor: {C: 2+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes 5+ treff, 2 honőrrel", nyers: "3♣ | NAT 5+ szín, 2 h-rel"}
+      - {minta: 2C-3D, hossz: {D: 5+}, rel: ["D>C"], fohonor: {D: 2+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes 5+ káró, 2 honőrrel", nyers: "3♦ | NAT 5+ szín, 2 h-rel"}
+      - {minta: 2C-3H, hossz: {H: 6+}, fohonor: {H: 3}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Zárt 6+ kőr", nyers: "3♥ | NAT 6+; zárt szín"}
+      - {minta: 2C-3S, hossz: {S: 6+}, fohonor: {S: 3}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Zárt 6+ pikk", nyers: "3♠ | NAT 6+; zárt szín"}
+      - {minta: 2C-3NT, pont: 10-11, elosztas: BAL, nincs: [SA, HA, DA, CA], forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "10-11 FP, nincs ász", nyers: "3N | 10-11 fp; nincs ász"}
+      - {minta: 2C-4C, hossz: {C: 6+}, rel: ["C>=D"], fohonor: {C: 3}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Zárt 6+ treff", nyers: "4♣ | NAT 6+; zárt szín"}
+      - {minta: 2C-4D, hossz: {D: 6+}, fohonor: {D: 3}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Zárt 6+ káró", nyers: "4♦ | NAT 6+; zárt szín"}
+      - {minta: 2C-4H, pont: 0-6, hossz: {H: 7+}, prioritas: 54,
+         magyarazat: "Gyenge 7+ kőr", nyers: "4♥ | NAT gyenge 7+ szín"}
+      - {minta: 2C-4S, pont: 0-6, hossz: {S: 7+}, prioritas: 54,
+         magyarazat: "Gyenge 7+ pikk", nyers: "4♠ | NAT gyenge 7+ szín"}
+
+  - fejezet: "2♣ – 2♦ után a nyitó"
+    szabalyok:
+      - {minta: 2C-2D-2H, hossz: {H: 5+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 51,
+         magyarazat: "Természetes", nyers: "2♥ | NAT;"}
+      - {minta: 2C-2D-2S, hossz: {S: 5+}, rel: ["S>=H"], forsz: EGY_MENET, prioritas: 51,
+         magyarazat: "Természetes", nyers: "2♠ | NAT"}
+      - {minta: 2C-2D-2NT, pont: 22-24, elosztas: BAL, prioritas: 52, folytatas: {mint: 2NT, pont: 2},
+         magyarazat: "22-24 FP, egyenletes; a válaszok mint a 2NT után",
+         nyers: "2N | NAT; 23-24 FP; válaszok mint a 2NT után, csak a ponthatárok különböznek"}
+      - {minta: 2C-2D-3C, hossz: {C: 5+}, rel: ["C>=D"], forsz: EGY_MENET, prioritas: 50,
+         magyarazat: "Természetes", nyers: "3♣ | NAT"}
+      - {minta: 2C-2D-3D, hossz: {D: 5+}, rel: ["D>C"], forsz: EGY_MENET, prioritas: 50,
+         magyarazat: "Természetes", nyers: "3♦ | NAT"}
+
+  - fejezet: "2♣ – 2♦ – 2M után a válaszoló"
+    szabalyok:
+      - {minta: 2C-2D-2M-3C, pont: 0-3, prioritas: 50,
+         alert: "Második negatív: abszolút nulla kéz", nyers: "3♣! | Abszolút nulla kéz; semmi értéket nem lát"}
+      - {minta: 2C-2D-2M-3M, pont: 4+, hossz: {M: 3+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Támogatás, gémforsz", nyers: "Minden más licit | GF; NAT"}
+      - {minta: 2C-2D-2M-2NT, pont: 4+, hossz: {M: 0-2}, forsz: GEMFORSZ, prioritas: 49,
+         magyarazat: "Természetes, gémforsz"}

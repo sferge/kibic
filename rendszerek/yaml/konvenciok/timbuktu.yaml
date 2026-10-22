@@ -1,0 +1,180 @@
+# TIMBUKTU — védekezés az ellenfél ERŐS treff (és erős 2♣) indulása ellen
+# (2026-10-02, a Moha-kör Timbuktu.docx-e és a szerkesztő megjegyzései
+# alapján).
+#
+# MIKOR ÉL: `ha: {ellenfel_pont: 16+}` — ha az ellenfél nyitója TUDOTTAN
+# 16+ pontot ígért (erős treff 1♣, természetes erős 2♣; NEM a természetes
+# 1♣ 12-21 és nem az erős treffesek 11-15-ös 2♣-je ellen).
+#
+# A kétértelmű licitek (egyszínű VAGY kétszínű):
+#   X / 2♣ (2♣ ellen: X / 3♣)   káró,  vagy mindkét nemes
+#   1♦ (2♣ ellen 2♦)            kőr,   vagy feketék (♠+♣)
+#   1♥ (2♣ ellen 2♥)            pikk,  vagy minorok (♣+♦)
+#   1♠ (2♣ ellen 2♠)            treff, vagy pirosak (♥+♦)
+#   1NT (2♣ ellen 2NT)          ♣+♥, vagy ♦+♠
+#   minden további színlicit: természetes kizárás
+#
+# NINCS PONTHATÁR (Moha, 2026-10-02): a döntés a vesztők, a várható
+# bukások és az ő feltételezett legjobb eredményük összevetése. A vesztők
+# elve, KÖZELÍTÉS (nem pontos): legfeljebb 6 / 5 / 5 / 4 vesztő a zóna
+# kedvezősége szerint (ők bellben / senki / mindenki / mi bellben). A
+# várható bukáshoz a JÁTÉKÜTÉSEK (és a gyorsütések) számítanak. Felső
+# határ sincs (Moha, 2026-10-02).
+#
+# KONTRA VAGY 2♣ („bűvös kérdés”): ugyanazt jelentik. A kontra alig zavar
+# (sőt, sokszor a támadó vonalnak segít) — kevés vesztővel, de KEVÉS
+# játékütéssel ez; TÖBB játékütéssel a 2♣ (erős 2♣ ellen a 3♣). A határ
+# (6, illetve 7 játékütés) kieg., átnézendő.
+#
+# KIEGÉSZÍTÉS (`# kieg.`): egyszínű 6+ lap (az ugró kizárás 2-es szinten
+# 6+, 3-as szinten 7+); kétszínű 5-4; a zónás vesztőhatár minden
+# Timbuktu-licitre ugyanaz.
+rendszer:
+  kod: TIMBUKTU
+  nev: Timbuktu
+  nev_en: Timbuktu (defence to strong club)
+  fajta: KONVENCIO
+  tema: "Védekezés erős treff / erős 2♣ ellen"
+  leiras: >-
+    Erős (16+) 1♣ és erős 2♣ ellen: a kontra és a legalacsonyabb
+    színlicitek egyszínű VAGY kétszínű lapot mutatnak, az ugrások
+    természetes kizárások. Nincs ponthatár: a vesztők (zónától függően) és
+    a játékütések döntenek. Erős lappal előbb passz. Forrás: Timbuktu.docx.
+fejezetek:
+  - fejezet: "Erős 1♣ ellen"
+    jegyzet: >-
+      Ha az 1♣-os partnere gémforszot licitál, passzolunk; a közbeszóló is
+      csak mentési vagy jelentős zavarási szándékkal szólal meg újra. Ha
+      nem gémforszot licitál, a közbeszóló partnere természetes licitet ad
+      (ez lehet ugró kizárás is). Ezek után minden kontránk büntető.
+    szabalyok:
+      - {minta: "(1C) X", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"}, jatekutes: 0-5.75,
+         vagy: [{hossz: {D: 6+}}, {hossz: {H: 5+, S: 4+}}, {hossz: {H: 4+, S: 5+}}],
+         alert: "Timbuktu: káró, vagy mindkét nemes (5-4) — kevés játékütéssel"}
+      - {minta: "(1C) 2C", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"}, jatekutes: 6+,
+         vagy: [{hossz: {D: 6+}}, {hossz: {H: 5+, S: 4+}}, {hossz: {H: 4+, S: 5+}}],
+         alert: "Timbuktu: káró, vagy mindkét nemes (5-4) — több játékütéssel (mint a kontra)"}
+      - {minta: "(1C) 1D", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {H: 6+}}, {hossz: {S: 5+, C: 4+}}, {hossz: {S: 4+, C: 5+}}],
+         alert: "Timbuktu: kőr, vagy pikk és treff (5-4)"}
+      - {minta: "(1C) 1H", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {S: 6+}}, {hossz: {C: 5+, D: 4+}}, {hossz: {C: 4+, D: 5+}}],
+         alert: "Timbuktu: pikk, vagy mindkét minor (5-4)"}
+      - {minta: "(1C) 1S", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 6+}}, {hossz: {H: 5+, D: 4+}}, {hossz: {H: 4+, D: 5+}}],
+         alert: "Timbuktu: treff, vagy kőr és káró (5-4)"}
+      - {minta: "(1C) 1NT", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 5+, H: 4+}}, {hossz: {C: 4+, H: 5+}}, {hossz: {D: 5+, S: 4+}}, {hossz: {D: 4+, S: 5+}}],
+         alert: "Timbuktu: treff és kőr, vagy káró és pikk (5-4)"}
+      - {minta: "(1C) 2D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 2H", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {H: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 2S", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {S: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 3C", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {C: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 3D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 3H", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {H: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) 3S", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {S: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+
+  - fejezet: "Erős 1♣ – passz – 1♦ (negatív) után"
+    jegyzet: >-
+      Nem érdemes kontrázni: az ellenfélnek értékes licitteret ad. Minden
+      színlicit természetes, ezután már nem keresünk új színt. Az 1NT
+      kétszínű (mansban bell ellen félrevezetésnek lehet 4-4, de inkább
+      5-4); erre a partner passzol, és ha az erős vonal befejezte, a
+      legalacsonyabb legalább dubló színét mondja. Minden kontránk büntető.
+    szabalyok:
+      - {minta: "(1C) P (1D) 1H", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {S: 6+}}, {hossz: {C: 5+, D: 4+}}, {hossz: {C: 4+, D: 5+}}],
+         alert: "Timbuktu: pikk, vagy mindkét minor (5-4)"}
+      - {minta: "(1C) P (1D) 1S", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 6+}}, {hossz: {H: 5+, D: 4+}}, {hossz: {H: 4+, D: 5+}}],
+         alert: "Timbuktu: treff, vagy kőr és káró (5-4)"}
+      - {minta: "(1C) P (1D) 1NT", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 5+, H: 4+}}, {hossz: {C: 4+, H: 5+}}, {hossz: {D: 5+, S: 4+}}, {hossz: {D: 4+, S: 5+}}],
+         alert: "Timbuktu: treff és kőr, vagy káró és pikk (5-4)"}
+      - {minta: "(1C) P (1D) 2C", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {D: 6+}}, {hossz: {H: 5+, S: 4+}}, {hossz: {H: 4+, S: 5+}}],
+         alert: "Timbuktu: káró, vagy mindkét nemes (5-4)"}
+      - {minta: "(1C) P (1D) 2D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 6+}, prioritas: 68, magyarazat: "Természetes"}
+      - {minta: "(1C) P (1D) 2H", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {H: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) P (1D) 2S", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {S: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) P (1D) 3C", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {C: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(1C) P (1D) 3D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 7+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+
+  - fejezet: "Erős 2♣ ellen"
+    jegyzet: >-
+      Ha a 2♣-os partnere gémforszot licitál, csak jó kizáró színnel
+      érdemes megszólalni. Ha az ellenfél gém alatt leáll, óvatosan
+      nyissuk ki újra: csak akkor, ha legalább 9-es adu megtalálására van
+      remény. A ritka kontráink büntetők (esetleg hívásirányítók).
+    szabalyok:
+      - {minta: "(2C) X", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"}, jatekutes: 0-6.75,
+         vagy: [{hossz: {D: 6+}}, {hossz: {H: 5+, S: 4+}}, {hossz: {H: 4+, S: 5+}}],
+         alert: "Timbuktu: káró, vagy mindkét nemes (5-4) — kevés játékütéssel"}
+      - {minta: "(2C) 3C", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"}, jatekutes: 7+,
+         vagy: [{hossz: {D: 6+}}, {hossz: {H: 5+, S: 4+}}, {hossz: {H: 4+, S: 5+}}],
+         alert: "Timbuktu: káró, vagy mindkét nemes (5-4) — több játékütéssel (mint a kontra)"}
+      - {minta: "(2C) 2D", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {H: 6+}}, {hossz: {S: 5+, C: 4+}}, {hossz: {S: 4+, C: 5+}}],
+         alert: "Timbuktu: kőr, vagy pikk és treff (5-4)"}
+      - {minta: "(2C) 2H", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {S: 6+}}, {hossz: {C: 5+, D: 4+}}, {hossz: {C: 4+, D: 5+}}],
+         alert: "Timbuktu: pikk, vagy mindkét minor (5-4)"}
+      - {minta: "(2C) 2S", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 6+}}, {hossz: {H: 5+, D: 4+}}, {hossz: {H: 4+, D: 5+}}],
+         alert: "Timbuktu: treff, vagy kőr és káró (5-4)"}
+      - {minta: "(2C) 2NT", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 5+, H: 4+}}, {hossz: {C: 4+, H: 5+}}, {hossz: {D: 5+, S: 4+}}, {hossz: {D: 4+, S: 5+}}],
+         alert: "Timbuktu: treff és kőr, vagy káró és pikk (5-4)"}
+      - {minta: "(2C) 3D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(2C) 3H", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {H: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+      - {minta: "(2C) 3S", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {S: 6+}, prioritas: 68, magyarazat: "Természetes kizárás"}
+
+  - fejezet: "Erős 2♣ – passz – 2♦ után"
+    jegyzet: >-
+      Nem érdemes kontrázni. Minden színlicit természetes; a 2NT kétszínű.
+      Erre a partner passzol, és ha az ellenfelek kilicitálták magukat, a
+      legalacsonyabban mondható, legalább dubló színét mondja.
+    szabalyok:
+      - {minta: "(2C) P (2D) 2H", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {H: 5+}, prioritas: 68, magyarazat: "Természetes"}
+      - {minta: "(2C) P (2D) 2S", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {S: 5+}, prioritas: 68, magyarazat: "Természetes"}
+      - {minta: "(2C) P (2D) 3C", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {C: 6+}, prioritas: 68, magyarazat: "Természetes"}
+      - {minta: "(2C) P (2D) 3D", ha: {ellenfel_pont: 16+}, vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         hossz: {D: 6+}, prioritas: 68, magyarazat: "Természetes"}
+      - {minta: "(2C) P (2D) 2NT", ha: {ellenfel_pont: 16+}, prioritas: 70, forsz: EGY_MENET,
+         vesztok: {O: "0-6", A: "0-5", M: "0-5", S: "0-4"},
+         vagy: [{hossz: {C: 5+, H: 4+}}, {hossz: {C: 4+, H: 5+}}, {hossz: {D: 5+, S: 4+}}, {hossz: {D: 4+, S: 5+}}],
+         alert: "Kétszínű: treff és kőr, vagy káró és pikk (5-4)"}

@@ -1,0 +1,36 @@
+# FOGASKERES — a fogáskérés az ellenfél színében (a szerkesztő, 2026-10-22).
+#
+# Szan-gémet csak fogással mondunk az ellenfél színében (kimondott, vagy a
+# kontrájukkal ígért nemes: „1♥-ünk kontrája pikket ígér”). Fogás nélkül az
+# ellenfél színének bemondása 3NT alatt FOGÁSKÉRÉS: a partner fogással vagy
+# fél fogással 3NT-t mond, anélkül a közös fitbe megy (menekülőút). Ha a
+# kérésre nincs hely, 3NT fogás nélkül is: ha együtt valószínűleg 5+ lapunk
+# van a színükben, gémerősek vagyunk, és a 4-3 nemes fit vagy az 5m nem
+# jobb. (A döntést a hézag-elv hozza; ez a sor a MEGÉRTÉST adja: a licit
+# nem ígér lapot a színben, egy körre kényszerít.)
+rendszer:
+  kod: FOGASKERES
+  nev: Fogáskérés az ellenfél színében
+  nev_en: Stopper ask in the opponents' suit
+  fajta: ELV_SABLON
+  leiras: >-
+    Az ellenfél (kimondott vagy kontrával ígért) színének bemondása 3NT alatt
+    fogáskérés: a partner fogással vagy fél fogással 3NT-t mond, anélkül a
+    közös fitbe megy.
+sablon:
+  szoveg: >-
+    Az ellenfél színének bemondása 3NT alatt fogáskérés (nem ígér lapot a
+    színben, egy körre kényszerít): a partner fogással vagy fél fogással
+    3NT-t mond, anélkül a közös fitbe megy.
+  parameterek: {}
+fejezetek:
+  - fejezet: "Megértés: a fogáskérés"
+    szabalyok:
+      - minta: ".. +A"
+        kulcs: FOGASKERES
+        fajta: ELV
+        prioritas: 6
+        ha: {ellenfel_szine: A, nem_mondtam: A, partner_nem_mondta: A, nyers: {t: LICIT_LEGFELJEBB, hatar: "3S"}}
+        forsz: EGY_MENET
+        jelentes: {hossz: {"@A": {min: 0}}, csak_megertes: true}
+        alert: "Fogáskérés az ellenfél színében: 3NT-t fogással (fél fogással) kérek"

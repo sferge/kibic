@@ -1,0 +1,45 @@
+# MOHA_2D — a gyenge 2♦ a Moha-kör nemes gyenge ketteseinek táblázatával
+# (2026-10-05, a szerkesztő: „♠D86 ♥D ♦ÁDB942 ♣B104 (12) bellben is lehetne
+# 2♦”). A GYENGE_2D (ideiglenes) azt mondja: „a nemes gyenge kettesekkel
+# azonos zónatáblázattal” — a Moha-kártyán ezek a MOHA_2MAJOR értékei:
+#
+#   zóna                      pont       szín
+#   O  csak ők beliben         0-8        5-7
+#   A  senki                   5-10(11)   5-7    (11): nem jó lappal
+#   M  mindkét vonal beliben   8-10(11)   6-7    (11): nem jó lappal
+#   S  csak mi beliben         10-11(12)  6-7    (12): nem jó lappal
+#
+# és a figurapontok legalább fele a káróban. A válaszok a GYENGE_2D-éi.
+rendszer:
+  kod: MOHA_2D
+  nev: Gyenge 2♦ (Moha)
+  nev_en: Weak two diamonds (Moha)
+  fajta: KONVENCIO
+  alapja: GYENGE_2D
+  viszony: MODOSITAS
+  leiras: "Gyenge 2♦ a Moha nemes gyenge kettesek táblázatával: zónától függően 0/5/8/10 ponttól, beliben rossz nyitóerővel is; a pontok legalább fele a káróban."
+fejezetek:
+  - fejezet: Gyenge 2♦ (Moha)
+    szabalyok:
+      - minta: 2D
+        hossz: {S: 0-3, H: 0-3}
+        fele_a_szinben: D
+        vagy:
+          - {szkor: O, pont: 0-8,  hossz: {D: 5-7}}
+          - {szkor: A, pont: 5-10, hossz: {D: 5-7}}
+          - {szkor: M, pont: 8-10, hossz: {D: 6-7}}
+          - {szkor: S, pont: 10-11, hossz: {D: 6-7}}
+        forsz: KIZARO
+        prioritas: 69
+        alert: "Gyenge kettes káró: zónától függően 0/5/8/10 ponttól; a pontok legalább fele a káróban"
+      - minta: 2D
+        kulcs: 2D~ROSSZ
+        hossz: {S: 0-3, H: 0-3, D: 6-7}
+        fele_a_szinben: D
+        vagy:
+          - {szkor: A, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+          - {szkor: M, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+          - {szkor: S, pont: "12", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+        forsz: KIZARO
+        prioritas: 69
+        alert: "Gyenge kettes káró, rossz nyitóerővel is (11, ill. mi beliben 12)"

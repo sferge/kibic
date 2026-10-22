@@ -1,0 +1,169 @@
+# JUNK STAYMAN — a Stayman Moha-változata az 1NT (15-17) indulásra
+# (2026-10-02, a Moha-kör Stayman_junk.doc-ja alapján).
+#
+# A Stayman ALTERNATÍVÁJA (ugyanaz a téma): nem vált ki semmit — az a
+# rendszer hivatkozik rá, amelyik ezt játssza. A KIBIC_STAND ezt játssza
+# (ott a kártyán a Stayman helyett ez van; amíg a sorai nincsenek
+# jóváhagyva, élesben a Stayman él).
+#
+#   1NT-2♣   a) leállás 4-4 vagy 5-5 nemessel (gyenge), b) legalább invit
+#   1NT-2♣-2♦ (nincs 4-es nemes), erre:
+#       2♥   leállás 4-4 / 5-5 nemessel  -> a nyitó passz vagy 2♠ (javít)
+#       2♠   géminvit 5-4 nemessel       -> P / 2NT: nem fogadja;
+#                                           3M: fogadja, 3 lap a színben
+#                                           (a válaszoló 4M-t játszik, ha ez
+#                                           az ötöse); 3NT: fogadja
+#       2NT  invit, nem ígér 4-es nemest
+#       3m   gémforsz+, 5+ minor (lehet 4-es nemes is)
+#       3M   Smolen: 4 lap a mondott, 5+ a másik nemesben; gémforsz — a
+#            nyitó 3NT-jére transzferrel mutatja a 6+ lapot
+#       3NT  természetes, 4-es nemessel
+#   1NT-2♣-2♥/2♠ (4-es nemes; ha mindkettő, 2♥), erre:
+#       2NT  invit, nem ígér másik nemest
+#       3m   gémforsz+: egyenletes 5-6m, vagy 4-es fit és 5+m, vagy 4 lap a
+#            másik nemesben és 6+m
+#       3M   invit
+#       3NT  4 lap a másik nemesben
+#       3♠ (2♥ után), 4m, 4♥ (2♠ után)  splinter, gémforsz+ (a splinter-elv
+#            szerint: ugrás új színben a nemes 3-as szintje fölé; 3NT fölött
+#            nincs alert). A 2♠ utáni 3♥ NEM splinter: 5 kőr + 4 pikk, nem GF.
+#
+# KIEGÉSZÍTÉS (`# kieg.`): a pontsávok (gyenge 0-7, invit 8-9, gémforsz
+# 10+), a nyitó minimuma 15, maximuma 16-17; a 2♥ utáni 4♥ és a 2♠ utáni 4♠
+# leállás; a 3NT utáni 4♠ javítás.
+# 2♦-2♠ (5-4 géminvit) után a nyitó 3m-je NEM fogadja az invitet, és
+# passzolható; a válaszoló a minorban sikénnel kimehet ugyanazon a
+# szinten az ötös nemesébe (Moha, 2026-10-02).
+rendszer:
+  kod: JUNK_STAYMAN
+  nev: Junk Stayman
+  nev_en: Junk (garbage) Stayman
+  fajta: KONVENCIO
+  tema: "1NT után: négyes nemes keresése"
+  leiras: >-
+    1NT-2♣: négyes nemest kérdez — gyenge 4-4 / 5-5 nemessel (leállás),
+    vagy legalább invit erővel. Smolen és splinterek a folytatásban.
+    Forrás: Stayman_junk.doc.
+fejezetek:
+  - fejezet: "Junk Stayman"
+    szabalyok:
+      - minta: 1NT-2C
+        vagy:
+          - {pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 5}}]}
+          - {pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}]}
+          - {pont: 10+, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}]}
+        forsz: EGY_MENET
+        elvaras: VALASZ
+        prioritas: 58
+        alert: "Junk Stayman: 4-es nemest kérdez — gyenge 4-4 / 5-5 nemessel leáll, vagy legalább invit"
+      - {minta: 1NT-2C-2D, hossz: {S: 0-3, H: 0-3}, prioritas: 50, alert: "Nincs 4-es nemes"}
+      - {minta: 1NT-2C-2H, hossz: {H: 4+}, prioritas: 51,
+         magyarazat: "4-es kőr, mellette lehet 4-es pikk is"}
+      - {minta: 1NT-2C-2S, hossz: {S: 4+, H: 0-3}, prioritas: 51,
+         magyarazat: "4-es pikk, nincs 4-es kőr"}
+      # Stayman az ellenfél mesterséges 2♣-ja után (a Staymantől átvéve)
+      - {minta: "1NT (2C) X", pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}], forsz: EGY_MENET,
+         prioritas: 53, alert: "Stayman (az ellenfél 2♣-ja mesterséges)"}
+
+  - fejezet: "2♦ után (nincs 4-es nemes)"
+    szabalyok:
+      - {minta: 1NT-2C-2D-2H, pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 5}}],
+         prioritas: 53, alert: "Leállás 4-4 vagy 5-5 nemessel: passz vagy javíts 2♠-re"}
+      - {minta: 1NT-2C-2D-2H-P, rel: ["H>=S"], prioritas: 50, magyarazat: "A kőr legalább olyan hosszú"}
+      - {minta: 1NT-2C-2D-2H-2S, rel: ["S>H"], prioritas: 50, magyarazat: "Javítás: hosszabb pikk"}
+      - {minta: 1NT-2C-2D-2S, pont: 8-9, vagy: [{hossz: {S: 5+, H: 4}}, {hossz: {S: 4, H: 5+}}],
+         forsz: EGY_MENET, prioritas: 53,
+         alert: "Géminvit 5-4 nemessel (bármelyik lehet az ötös)"}
+      - {minta: 1NT-2C-2D-2S-P, pont: 15-15, hossz: {S: 3+}, prioritas: 50,
+         magyarazat: "Nem fogadja, 3 lap pikk"}                                      # kieg.
+      - {minta: 1NT-2C-2D-2S-2NT, pont: 15-15, prioritas: 49,
+         magyarazat: "Nem fogadja"}
+      - {minta: 1NT-2C-2D-2S-3C, pont: 15-15, hossz: {C: 5+, S: 0-2}, rel: ["C>=D"], prioritas: 50,
+         magyarazat: "Nem fogadja; 5+ treff, passzolható"}
+      - {minta: 1NT-2C-2D-2S-3D, pont: 15-15, hossz: {D: 5+, S: 0-2}, rel: ["D>C"], prioritas: 50,
+         magyarazat: "Nem fogadja; 5+ káró, passzolható"}
+      - {minta: 1NT-2C-2D-2S-3C-P, hossz: {C: 1+}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1NT-2C-2D-2S-3C-3H, hossz: {C: 0, H: 5+}, rel: ["H>S"], prioritas: 51,
+         magyarazat: "Treff sikénnel kimegy az ötös kőrbe"}
+      - {minta: 1NT-2C-2D-2S-3C-3S, hossz: {C: 0, S: 5+}, rel: ["S>=H"], prioritas: 51,
+         magyarazat: "Treff sikénnel kimegy az ötös pikkbe"}
+      - {minta: 1NT-2C-2D-2S-3D-P, hossz: {D: 1+}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1NT-2C-2D-2S-3D-3H, hossz: {D: 0, H: 5+}, rel: ["H>S"], prioritas: 51,
+         magyarazat: "Káró sikénnel kimegy az ötös kőrbe"}
+      - {minta: 1NT-2C-2D-2S-3D-3S, hossz: {D: 0, S: 5+}, rel: ["S>=H"], prioritas: 51,
+         magyarazat: "Káró sikénnel kimegy az ötös pikkbe"}
+      - {minta: 1NT-2C-2D-2S-3H, pont: 16-17, hossz: {H: 3}, prioritas: 51,
+         magyarazat: "Fogadja, 3 lap kőr (ha ez a partner ötöse: 4♥)"}
+      - {minta: 1NT-2C-2D-2S-3S, pont: 16-17, hossz: {S: 3, H: 0-2}, prioritas: 51,
+         magyarazat: "Fogadja, 3 lap pikk (ha ez a partner ötöse: 4♠)"}
+      - {minta: 1NT-2C-2D-2S-3NT, pont: 16-17, hossz: {S: 0-2, H: 0-2}, prioritas: 50,
+         magyarazat: "Fogadja"}
+      - {minta: 1NT-2C-2D-2S-3H-4H, hossz: {H: 5+}, prioritas: 50, magyarazat: "Az ötös kőr: játsszuk"}
+      - {minta: 1NT-2C-2D-2S-3H-3NT, hossz: {H: 0-4}, prioritas: 49, magyarazat: "Nem a kőr az ötös"}   # kieg.
+      - {minta: 1NT-2C-2D-2S-3H-3NT-4S, hossz: {S: 3}, prioritas: 50,
+         magyarazat: "3-3 nemessel: a pikk is megvan"}                              # kieg.
+      - {minta: 1NT-2C-2D-2S-3S-4S, hossz: {S: 5+}, prioritas: 50, magyarazat: "Az ötös pikk: játsszuk"}
+      - {minta: 1NT-2C-2D-2S-3S-3NT, hossz: {S: 0-4}, prioritas: 49, magyarazat: "Nem a pikk az ötös"}   # kieg.
+      - {minta: 1NT-2C-2D-2NT, pont: 8-9, hossz: {S: 0-4, H: 0-4}, prioritas: 50,
+         magyarazat: "Invit, nem ígér 4-es nemest"}
+      - {minta: 1NT-2C-2D-3C, pont: 10+, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+, 5+ treff (lehet mellette 4-es nemes)"}
+      - {minta: 1NT-2C-2D-3D, pont: 10+, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+, 5+ káró (lehet mellette 4-es nemes)"}
+      - {minta: 1NT-2C-2D-3H, pont: 10+, hossz: {H: 4, S: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 kőr, 5+ pikk, gémforsz"}
+      - {minta: 1NT-2C-2D-3S, pont: 10+, hossz: {S: 4, H: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 pikk, 5+ kőr, gémforsz"}
+      - {minta: 1NT-2C-2D-3H-4S, hossz: {S: 3+}, prioritas: 51, magyarazat: "3-as pikk fit"}
+      - {minta: 1NT-2C-2D-3H-3NT, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Nincs pikk fit"}
+      - {minta: 1NT-2C-2D-3S-4H, hossz: {H: 3+}, prioritas: 51, magyarazat: "3-as kőr fit"}
+      - {minta: 1NT-2C-2D-3S-3NT, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Nincs kőr fit"}
+      - {minta: 1NT-2C-2D-3H-3NT-4H, hossz: {S: 6+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 52,
+         alert: "Transzfer: 6+ pikk (a szanozó játsszon)"}
+      - {minta: 1NT-2C-2D-3H-3NT-4H-4S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 1NT-2C-2D-3S-3NT-4D, hossz: {H: 6+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 52,
+         alert: "Transzfer: 6+ kőr (a szanozó játsszon)"}
+      - {minta: 1NT-2C-2D-3S-3NT-4D-4H, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 1NT-2C-2D-3NT, pont: 10-15, hossz: {S: 0-4, H: 0-4}, vagy: [{hossz: {S: 4}}, {hossz: {H: 4}}],
+         prioritas: 50, magyarazat: "Természetes, 4-es nemessel"}
+
+  - fejezet: "2♥ után (4-es kőr, lehet 4-es pikk is)"
+    szabalyok:
+      - {minta: 1NT-2C-2H-2NT, pont: 8-9, hossz: {H: 0-3}, prioritas: 50,
+         magyarazat: "Invit, nem ígér pikket"}
+      - {minta: 1NT-2C-2H-3C, pont: 10+, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+: egyenletes 5-6 treff, vagy kőr fit és 5+ treff, vagy 4 pikk és 6+ treff"}
+      - {minta: 1NT-2C-2H-3D, pont: 10+, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+: egyenletes 5-6 káró, vagy kőr fit és 5+ káró, vagy 4 pikk és 6+ káró"}
+      - {minta: 1NT-2C-2H-3H, pont: 8-9, hossz: {H: 4+}, prioritas: 51, magyarazat: "Invit, kőr fit"}
+      - {minta: 1NT-2C-2H-3S, pont: 10+, hossz: {H: 4+, S: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: kőr fit, pikk rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2H-4C, pont: 10+, hossz: {H: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Splinter: kőr fit, treff rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2H-4D, pont: 10+, hossz: {H: 4+, D: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Splinter: kőr fit, káró rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2H-3NT, pont: 10-15, hossz: {H: 0-3, S: 4}, prioritas: 50,
+         alert: "4 lap pikk (a nyitó 4 pikkel 4♠-re javít)"}
+      - {minta: 1NT-2C-2H-3NT-4S, hossz: {S: 4+}, prioritas: 50, magyarazat: "4-es pikk is van: javítás"}   # kieg.
+      - {minta: 1NT-2C-2H-4H, pont: 10-15, hossz: {H: 4+}, prioritas: 51, magyarazat: "Leállás, kőr fit"}   # kieg.
+
+  - fejezet: "2♠ után (4-es pikk, nincs 4-es kőr)"
+    szabalyok:
+      - {minta: 1NT-2C-2S-2NT, pont: 8-9, hossz: {S: 0-3}, prioritas: 50,
+         magyarazat: "Invit, nem ígér kőrt"}
+      - {minta: 1NT-2C-2S-3C, pont: 10+, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+: egyenletes 5-6 treff, vagy pikk fit és 5+ treff, vagy 4 kőr és 6+ treff"}
+      - {minta: 1NT-2C-2S-3D, pont: 10+, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz+: egyenletes 5-6 káró, vagy pikk fit és 5+ káró, vagy 4 kőr és 6+ káró"}
+      - {minta: 1NT-2C-2S-3S, pont: 8-9, hossz: {S: 4+}, prioritas: 51, magyarazat: "Invit, pikk fit"}
+      - {minta: 1NT-2C-2S-3NT, pont: 10-15, hossz: {S: 0-3, H: 4}, prioritas: 50,
+         magyarazat: "4 lap kőr, nincs pikk fit"}
+      - {minta: 1NT-2C-2S-4C, pont: 10+, hossz: {S: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Splinter: pikk fit, treff rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2S-4D, pont: 10+, hossz: {S: 4+, D: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Splinter: pikk fit, káró rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2S-3H, pont: 8-9, hossz: {H: 5+, S: 4}, prioritas: 52,
+         magyarazat: "5 kőr + 4 pikk, nem gémforsz"}
+      - {minta: 1NT-2C-2S-4H, pont: 10+, hossz: {S: 4+, H: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Splinter: pikk fit, kőr rövidség, gémforsz+"}
+      - {minta: 1NT-2C-2S-4S, pont: 10-15, hossz: {S: 4+}, prioritas: 51, magyarazat: "Leállás, pikk fit"}   # kieg.

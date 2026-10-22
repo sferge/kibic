@@ -1,0 +1,27 @@
+# 1-RE 1 KÉNYSZERÍT — elv (2026-10-02, a Moha-kör szerint).
+#
+# Párosban (közbeszólás nélkül) az 1-es szintű ÚJ SZÍN egy körre
+# kényszerít — a nyitó második színe is (1♣-1♦-1♥): a válaszoló akkor sem
+# passzolhat, ha csak 6 pontja van. Az 1-re 1 és a riverz elve nem zárja
+# ki egymást: amit rögzíteni kell, az az, hogy a nyitó 1-es szintű új
+# színe TAGADJA A RIVERZ ERŐT (legfeljebb 17); 18+ ponttal riverzet mond.
+#
+# Aki nem játssza, annál az ilyen 1♥ passzolható — akkor is csak akkor,
+# ha a nyitó erős lapja riverzzel mutatkozik be. (A gémesély elve — a
+# PASSZ_ELV — ettől függetlenül él: gémerővel nem passzolunk.)
+#
+# JELENTÉS-ELV (tartalék): csak ott dönt a forszról, ahol a rendszer konkrét
+# szabálya nem mond semmit.
+rendszer:
+  kod: EGYRE_EGY
+  nev: "1-re 1 kényszerít"
+  nev_en: One-over-one forcing
+  fajta: KONVENCIO
+  tema: "Az 1-es szintű új szín forsza"
+  leiras: "Párosban az 1-es szintű új szín (a nyitó második színe is) egy körre kényszerít; a nyitóé riverz alatti (legfeljebb 17)."
+fejezetek:
+  - fejezet: "1-re 1"
+    szabalyok:
+      - {minta: "1A-1B-1E", kulcs: EGYRE_EGY-NYITO, fajta: ELV, prioritas: 1,
+         pont: 11-17, hossz: {E: 4+}, forsz: EGY_MENET, jelentes: {tartalek: true},
+         magyarazat: "1-re 1: az új szín egy körre kényszerít; tagadja a riverz erőt (legfeljebb 17)"}

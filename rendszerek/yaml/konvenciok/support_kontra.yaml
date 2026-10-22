@@ -1,0 +1,26 @@
+rendszer:
+  kod: SUPPORT_KONTRA
+  nev: "Support kontra"
+  nev_en: "Support Double"
+  fajta: KONVENCIO
+  tema: "Nyitó harmadik licitje: hármas fit jelzése"
+  leiras: "1m-(P)-1M-(közbeszólás)-X/XX: pontosan hármas fit a válaszoló színében. Ha csak a kettes szintre kényszerít, minimum is lehet."
+fejezetek:
+  - fejezet: "Support kontra és rekontra"
+    szabalyok:
+      - {minta: "1C (P) 1H (1S) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1C (P) 1H (2C) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1C (P) 1H (2D) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1C (P) 1H (X) XX", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support rekontra: pontosan 3 kőr"}
+      - {minta: "1C (P) 1S (2C) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1C (P) 1S (2D) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1C (P) 1S (2H) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1C (P) 1S (X) XX", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support rekontra: pontosan 3 pikk"}
+      - {minta: "1D (P) 1H (1S) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1D (P) 1H (2C) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1D (P) 1H (2D) X", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 kőr"}
+      - {minta: "1D (P) 1H (X) XX", hossz: {"H": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support rekontra: pontosan 3 kőr"}
+      - {minta: "1D (P) 1S (2C) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1D (P) 1S (2D) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1D (P) 1S (2H) X", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support kontra: pontosan 3 pikk"}
+      - {minta: "1D (P) 1S (X) XX", hossz: {"S": "3"}, forsz: EGY_MENET, prioritas: 57, alert: "Support rekontra: pontosan 3 pikk"}

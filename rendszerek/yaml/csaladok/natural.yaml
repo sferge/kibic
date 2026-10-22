@@ -1,0 +1,32 @@
+# NATURAL — a „természetes, 5-ös nemes” rendszercsalád ÁLTALÁNOS rendszere
+# (2026-10-01, gépi javaslat — átnézendő). SAYC / 2/1 / a magyar
+# klubstandardok közös magja, tágabb sávokkal.
+rendszer:
+  kod: NATURAL
+  nev: Természetes, 5-ös nemes (általános)
+  nev_en: Natural, five-card majors (generic)
+  fajta: RENDSZERCSALAD
+  csalad: NATURAL
+  leiras: "Természetes család általános rendszere: 1m 3+ (az 1♣ lehet 2), 1M 5+ 11-21, 1NT 15-17, 2♣ erős mesterséges, gyenge kettesek."
+hivatkozasok:
+  - EMELES_ELV
+fejezetek:
+  - fejezet: Nyitások
+    szabalyok:
+      - {minta: 1C, pont: 11-21, hossz: {C: 2+, H: 0-4, S: 0-4}, prioritas: 80,
+         magyarazat: "11-21, 2+ treff, nincs 5-ös nemes"}
+      - {minta: 1D, pont: 11-21, hossz: {D: 3+, H: 0-4, S: 0-4}, prioritas: 80,
+         magyarazat: "11-21, 3+ káró, nincs 5-ös nemes"}
+      - {minta: 1H, pont: 11-21, hossz: {H: 5+}, prioritas: 80, magyarazat: "11-21, 5+ kőr"}
+      - {minta: 1S, pont: 11-21, hossz: {S: 5+}, prioritas: 80, magyarazat: "11-21, 5+ pikk"}
+      - {minta: 1NT, pont: 15-17, elosztas: BAL, prioritas: 85, magyarazat: "15-17 egyenletes"}
+      - {minta: 2C, pont: 20+, forsz: EGY_MENET, prioritas: 90,
+         alert: "Erős, mesterséges (22+, vagy gémerő)"}
+      - {minta: 2D, pont: 5-10, hossz: {D: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2H, pont: 5-10, hossz: {H: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2S, pont: 5-10, hossz: {S: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2NT, pont: 20-21, elosztas: BAL, prioritas: 85, magyarazat: "20-21 egyenletes"}
+      - {minta: 3C, pont: 4-10, hossz: {C: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3D, pont: 4-10, hossz: {D: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3H, pont: 4-10, hossz: {H: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3S, pont: 4-10, hossz: {S: 7+}, prioritas: 60, magyarazat: "Blokk"}

@@ -1,0 +1,50 @@
+# A GYENGE 2M INDULÁS — válaszok és folytatások.
+# A nyitó erő- és színminősége a 2NT-relére (kieg.):
+#   gyenge lap = 4-7 FP, erős lap = 8-10 FP;
+#   gyenge szín = legfeljebb 4 figurapont a színben, erős = 5+ (AK, AQ, KQ...).
+rendszer: {kod: KIBICEGY_STAND}
+fejezetek:
+  - fejezet: A 2M indulás
+    szabalyok:
+      - {minta: 2H-2S, pont: 12+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 52,
+         magyarazat: "Természetes, 1 menetre kényszerít", nyers: "2♠ (2♥-re) | NAT, F1"}
+      - {minta: 2M-2NT, pont: 15+, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 50,
+         alert: "Relé, géminvit+", nyers: "2N! | Relé, GI+"}
+      - {minta: 2M-3C, pont: 10-14, hossz: {C: 6+, M: 0-1}, rel: ["C>=D"], prioritas: 49,
+         magyarazat: "Természetes, nem kényszerít", nyers: "3m | NAT, NF"}
+      - {minta: 2M-3D, pont: 10-14, hossz: {D: 6+, M: 0-1}, rel: ["D>C"], prioritas: 49,
+         magyarazat: "Természetes, nem kényszerít"}
+      - {minta: 2S-3H, pont: 12+, hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 52,
+         magyarazat: "Természetes, 1 menetre kényszerít", nyers: "3♥ (2♠-re) | NAT, F1"}
+      - {minta: 2M-3M, pont: 0-14, hossz: {M: 3+}, forsz: KIZARO, prioritas: 51,
+         magyarazat: "Küzdelmi emelés, nem kényszerít", nyers: "Emelés | Küzdelmi; NF"}
+      - {minta: 2M-3NT, pont: 16+, hossz: {M: 0-1}, prioritas: 51,
+         magyarazat: "Leállás", nyers: "3N | t/p"}
+      - {minta: 2M-4M, vagy: [{pont: 16+, hossz: {M: 2+}}, {pont: 0-12, hossz: {M: 4+}}], prioritas: 53,
+         magyarazat: "Leállás (erővel vagy áldozatnak)", nyers: "Gém | t/p"}
+
+  - fejezet: "2M – 2NT (relé) után a nyitó"
+    szabalyok:
+      - {minta: 2M-2NT-3C, pont: 0-7, figura: {M: 0-4}, prioritas: 50,
+         alert: "Gyenge szín és gyenge lap", nyers: "3♣! | Gyenge szín és gyenge lap"}
+      - {minta: 2M-2NT-3D, pont: 8+, figura: {M: 0-4}, prioritas: 50,
+         alert: "Gyenge szín, erős lap", nyers: "3♦! | gyenge szín, erős lap"}
+      - {minta: 2M-2NT-3H, pont: 0-7, figura: {M: 5+}, prioritas: 51,
+         alert: "Erős szín, gyenge lap", nyers: "3♥! | Erős szín, gyenge lap"}
+      - {minta: 2M-2NT-3S, pont: 8+, figura: {M: 5+}, prioritas: 51,
+         alert: "Erős szín, erős lap", nyers: "3♠! | Erős szín, erős lap"}
+      - {minta: 2M-2NT-3NT, hossz: {M: 6+}, figura: {M: 9+}, prioritas: 53,
+         alert: "Zárt nemes: AKQ, 6+", nyers: "3N! | Zárt major; AKQ, 6+"}
+
+  - fejezet: "2M – kontra után"
+    szabalyok:
+      - {minta: "2M (X) XX", pont: 13+, forsz: EGY_MENET, prioritas: 52,
+         alert: "Erős lap", nyers: "Xx! | Erős lap"}
+      - {minta: "2M (X) 2NT", pont: 11+, hossz: {M: 0-2}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         magyarazat: "Lapleírást kér", nyers: "2nt | Lapleírást kér"}
+      - {minta: "2M (X) 3C", pont: 6-12, hossz: {C: 6+}, rel: ["C>=D"], prioritas: 50,
+         magyarazat: "Természetes, nem kényszerít", nyers: "3♣ | NAT, NF"}
+      - {minta: "2M (X) 3D", pont: 6-12, hossz: {D: 6+}, rel: ["D>C"], prioritas: 50,
+         magyarazat: "Természetes, nem kényszerít"}
+      - {minta: "2M (X) 3M", pont: 0-12, hossz: {M: 3+}, forsz: KIZARO, prioritas: 51,
+         magyarazat: "Természetes, nem kényszerít"}

@@ -1,0 +1,23 @@
+rendszer:
+  kod: TEXAS
+  nev: Texas-transzfer
+  nev_en: Texas Transfers
+  fajta: KONVENCIO
+  tema: "NT után: négyes szintű transzfer"
+  leiras: "1NT/2NT után a 4♦ kőrt, a 4♥ pikket ígér (6+), gémerővel. A válasz kötelezően a transzfer teljesítése."
+fejezetek:
+  - fejezet: Texas
+    szabalyok:
+      - {minta: 1NT-4D, pont: 10-13, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 59,
+         alert: "Texas-transzfer: 6+ kőr, gém", nyers: "4♦! | Texas transzfer; 6+ kőr; GF"}
+      - {minta: 1NT-4H, pont: 10-13, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Texas-transzfer: 6+ pikk, gém", nyers: "4♥! | Texas transzfer; 6+ (pikk)"}
+      - {minta: 1NT-4D-4H, prioritas: 50, magyarazat: "Kötelező teljesítés"}
+      - {minta: 1NT-4H-4S, prioritas: 50, magyarazat: "Kötelező teljesítés"}
+      - {minta: 2NT-4D, pont: 5-10, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 58,
+         alert: "Texas-transzfer: 6+ kőr", nyers: "2N – (P) – 4♦ és 4♥! Texas transzfer"}
+      - {minta: 2NT-4H, pont: 5-10, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 58,
+         alert: "Texas-transzfer: 6+ pikk"}
+      - {minta: 2NT-4D-4H, prioritas: 50, magyarazat: "Kötelező teljesítés",
+         nyers: "Kötelező válasz a TRF fogadása."}
+      - {minta: 2NT-4H-4S, prioritas: 50, magyarazat: "Kötelező teljesítés"}

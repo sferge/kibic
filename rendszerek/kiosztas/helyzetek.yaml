@@ -1,0 +1,93 @@
+# A kiosztástervező előre definiált helyzetei (mohabridzs-deal-design/1.1,
+# `target.preset`). A `target` PONTOSAN a protokoll `target` mezője: amit
+# itt megadsz, azt a kérésben is meg lehetne adni — a preset csak név rá.
+#
+# `hands` kulcsai lehetnek ülések (N/E/S/W) vagy az OSZTÓHOZ képesti
+# szerepek: dealer, lho (az osztó bal keze), partner (az osztó partnere),
+# rho. A kézfeltételek csak GYORSÍTANAK (előszűrés): hogy a helyzet tényleg
+# létrejön-e, azt a kibic licitje dönti el a megadott rendszerekkel
+# (`auction.prefix`).
+#
+# `auction.student_role`: a tanuló melyik szerepben ül (az osztó a
+# tanuló üléséhez igazodik). `practice`: bidding / play / defense.
+presets:
+  - code: NT_STAYMAN
+    name: "1NT – Stayman"
+    practice: bidding
+    description: "Az osztó 1NT-t nyit, a partnere Stayman 2♣-t kérdez."
+    tags: [Stayman, páros licit]
+    target:
+      auction: {prefix: ["1N", "P", "2C"], student_role: partner}
+      hands:
+        dealer: {hcp: "15-17", shape: balanced}
+        partner: {hcp: "8+", any_of: [{suits: {S: "4"}}, {suits: {H: "4"}}]}
+
+  - code: NT_TRANSFER
+    name: "1NT – transzfer"
+    practice: bidding
+    description: "Az osztó 1NT-t nyit, a partnere nemes transzfert mond (2♦ / 2♥)."
+    tags: [transzfer, páros licit]
+    target:
+      auction: {prefix: ["1N", "P", "2D|2H"], student_role: partner}
+      hands:
+        dealer: {hcp: "15-17", shape: balanced}
+        partner: {any_of: [{suits: {H: "5+"}}, {suits: {S: "5+"}}]}
+
+  - code: WEAK_TWO
+    name: "Gyenge kettes nyitás"
+    practice: bidding
+    description: "Az osztó gyenge kettest nyit (a rendszer szerint)."
+    tags: [gyenge kettes, kizárás]
+    target:
+      auction: {prefix: ["2D|2H|2S"], student_role: dealer}
+      hands:
+        dealer: {hcp: "5-11", any_of: [{suits: {S: "6"}}, {suits: {H: "6"}}, {suits: {D: "6"}}]}
+
+  - code: PREEMPT_3
+    name: "Hármas kizárás"
+    practice: bidding
+    description: "Az osztó hármas szinten kizárással nyit."
+    tags: [kizárás]
+    target:
+      auction: {prefix: ["3C|3D|3H|3S"], student_role: dealer}
+      hands:
+        dealer: {hcp: "4-10", any_of: [{suits: {S: "7+"}}, {suits: {H: "7+"}}, {suits: {D: "7+"}}, {suits: {C: "7+"}}]}
+
+  - code: NEGATIVE_DOUBLE
+    name: "Negatív kontra"
+    practice: bidding
+    description: "Mi nyitunk, az ellenfél színnel közbeszól, a partner negatív kontrát ad."
+    tags: [negatív kontra, küzdelmi licit]
+    target:
+      auction: {prefix: ["1C|1D|1H", "1D|1H|1S|2C|2D", "X"], student_role: partner, branch: competitive}
+      hands:
+        dealer: {hcp: "12-21"}
+        lho: {hcp: "8-17"}
+        partner: {hcp: "7+"}
+
+  - code: OVERCALL
+    name: "Közbeszólás az ellenfél nyitására"
+    practice: bidding
+    description: "Az ellenfél egyes szinten nyit, a tanuló (a bal keze) közbeszól vagy kontráz."
+    tags: [közbeszólás, védekező licit]
+    target:
+      auction: {prefix: ["1C|1D|1H|1S", "BID|X"], student_role: lho, branch: defensive}
+      hands:
+        dealer: {hcp: "11-21"}
+        lho: {hcp: "8-17"}
+
+  - code: FINESSE
+    name: "Impassz a lejátszásban"
+    practice: play
+    description: "A tanuló a felvevő; a kontraktus egy impasszon múlik (DD csere-teszt)."
+    tags: [lejátszás, impassz]
+    target:
+      play: {contract: auto, student: declarer, technique: finesse, min_level: 2}
+
+  - code: OPENING_LEAD
+    name: "Az indulás dönt"
+    practice: defense
+    description: "A tanuló indul; csak egy színből induló lap buktatja a kontraktust."
+    tags: [ellenjáték, indulás]
+    target:
+      play: {contract: auto, student: leader, lead: single_suit, min_level: 2}

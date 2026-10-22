@@ -1,0 +1,178 @@
+# MOHA_FEDOKERESO — fedőkereső invit (Moha-kör, a szerkesztő leírása alapján,
+# 2026-09-30). 1M-2M és 1m-1M-2M után: mindkét esetben megvan a 8 lapos
+# nemes fit (5-3, illetve 4-4).
+#
+# Alapgondolat: a gémhez 3 vesztő kell. Az egyik kéz VESZTŐT számol (az
+# induló), a másik FEDŐÜTÉST (a válaszoló). A fedőkereső invit annak a
+# mellékszínnek a legolcsóbb licitje, amelyikből az invitálónak 3+ lapja
+# van 2,5-3 vesztővel: „ebben a színben kellene fedő”.
+#
+#   1M-2M (a válaszoló legalább 2 fedőt ígért) — a nyitó:
+#     5 vesztő: 4M;  legfeljebb 4 vagy 6 vesztő: fedőkereső invit;  7+: passz
+#   1m-1M-2M — a válaszoló:  2 fedő: passz;  3+ fedő: fedőkereső invit
+#
+#   Az invitre:  3M = elutasítás (nem maximális erő, vagy kevés fedő / sok
+#   vesztő);  4M = elfogadás;  maximummal információ: 3NT (egyenletes,
+#   gyenge adu) vagy kulcslicit (ász vagy szingli), mindig a legolcsóbb.
+#   1M-2M után a nyitó a válaszra: 5-6 vesztővel gém, elutasítás után 6+
+#   vesztővel passz; legfeljebb 4 vesztővel kulcslapkérdés (az RKC elvből).
+#
+# A NYELV (2026-09-30): "+A" = a legolcsóbb licit az A színben; A, B
+# színváltozó, amelyet a motor licitáláskor bont ki (a feltétel dönti el,
+# melyik szín); `mellekszin: [A]` = nem az adu; `licit_alatt: 4M` = gém
+# alatt; `alulrol: true` = több jó licit közül a legolcsóbb (Bánky).
+#
+# VESZTŐÜTÉS: színenként az első 3 lapból hiányzó A/K/D; a Dxx 2,5. A fél
+# vesztő lefelé kerekedik: „5 vesztő” = 5-5.5. FEDŐÜTÉS: lásd
+# MOHA_NONFORCE_1NT. AP = asztali pont.
+#
+# A kártyán az alaprendszer ELŐTT kell állnia: az alap rövidszín-
+# gémkísérletét (1M-2M-3♣/3♦/3oM), az 1M-2M-4M-et és az 1m-1M-2M-3m
+# természetes invitjét kiváltja.
+rendszer:
+  kod: MOHA_FEDOKERESO
+  nev: Fedőkereső invit (Moha)
+  nev_en: Help-suit game try by covers (Moha)
+  fajta: KONVENCIO
+  tema: "1M–2M és 1m–1M–2M után: gémkísérlet"
+  leiras: "Fedőkereső invit: 1M-2M után a nyitó (vesztő), 1m-1M-2M után a válaszoló (fedő) a 3+ lapos, 2,5-3 vesztős mellékszínt mondja; 3M elutasít, 4M elfogad, maximummal 3NT vagy kulcslicit."
+  jegyzet: >-
+    Az invitáló a színnel azt kérdezi, van-e a partnernek fedője ott, ahol
+    neki 2,5-3 vesztője van. A partner az egész lapját értékeli (erő és
+    fedő, illetve erő és vesztő). (Eldöntve: 2026-09-30.) NYITOTT: az
+    elutasításnál csak a meghívott színben lévő fedő számítson-e; a nyitó
+    gém alatti ugrása (splinter) és kulcslicitje; az 1m-1M-2M ág
+    szlemkutatása; mit tesz az invitáló megfelelő mellékszín nélkül.
+fejezetek:
+  - fejezet: "1M – 2M után a nyitó"
+    jegyzet: >-
+      A nyitó vesztőt számol, a válaszoló legalább 2 fedőütést ígért.
+      5 vesztő: gém; legfeljebb 4 vagy 6 vesztő: fedőkereső invit;
+      7+ vesztő: passz. A vesztő fél értéke lefelé kerekedik (6.5 = 6).
+    szabalyok:
+      - {minta: 1M-2M-4M, vesztok: 5-5.5, prioritas: 56,
+         magyarazat: "5 vesztő: gém (a válaszoló legalább 2 fedőütést ígért)"}
+      - {minta: 1M-2M-P, vesztok: 7+, prioritas: 57, magyarazat: "7+ vesztő: passz"}
+      - minta: 1M-2M-+A
+        mellekszin: [A]
+        vagy: [{vesztok: 0-4.5}, {vesztok: 6-6.5}]
+        hossz: {A: 3+}
+        szin_vesztok: {A: 2.5-3}
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 58
+        alert: "Fedőkereső invit: 3+ lap a színben, 2,5-3 vesztővel"
+      # az alaprendszer rövidszín-gémkísérlete helyett
+      - {minta: 1M-2M-3C, kivalt: true}
+      - {minta: 1M-2M-3D, kivalt: true}
+      - {minta: 1M-2M-3oM, kivalt: true}
+
+  - fejezet: "1M – 2M – fedőkereső invit után a válaszoló"
+    jegyzet: >-
+      Elutasítás (3M): nem maximális — az asztali pont az eddig ígért sáv
+      alsó felében (1M-2M után 6-10: legfeljebb 8) — vagy kevés fedő
+      (legfeljebb 2,75). Elfogadás: 4M; a sáv tetején (maximum) információ:
+      3NT (egyenletes, gyenge adu) vagy kulcslicit (ász, szingli). A sávot a
+      gép a korábbi licitből tudja, nem kell beírni.
+    szabalyok:
+      - minta: 1M-2M-+A-3M
+        mellekszin: [A]
+        vagy:
+          - {igeret: {ap: also}}
+          - {fedoutes: {M: 0-2.75}}
+        prioritas: 55
+        magyarazat: "Elutasítja az invitet: nem maximális (az ígért AP-sáv alsó fele) vagy kevés fedő (legfeljebb 2,75)"
+      - minta: 1M-2M-+A-4M
+        mellekszin: [A]
+        igeret: {ap: felso}
+        fedoutes: {M: 3+}
+        prioritas: 54
+        magyarazat: "Elfogadja az invitet: gém"
+      - minta: 1M-2M-+A-3NT
+        mellekszin: [A]
+        igeret: {ap: max}
+        fedoutes: {M: 3+}
+        elosztas: BAL
+        fohonor: {M: 0-1}
+        alulrol: true
+        prioritas: 56
+        alert: "Elfogadja, maximum: egyenletes lap, gyenge (3-4 lapos) adu"
+      - minta: 1M-2M-+A-+B
+        mellekszin: [A, B]
+        licit_alatt: 4M
+        igeret: {ap: max}
+        vagy: [{hossz: {B: 0-1}}, {lapok: [BA]}]
+        fedoutes: {M: 3+}
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 56
+        alert: "Elfogadja, maximum: kulcslicit (ász vagy szingli a színben)"
+
+  - fejezet: "1M – 2M – fedőkereső invit – válasz után a nyitó"
+    jegyzet: >-
+      Elutasítás után: 5 vesztővel gém, 6+-szal passz. Információ után: 5-6
+      vesztővel gém. Legfeljebb 4 vesztővel a kulcslapkérdés az RKC elvből
+      jön (kőr adu: 4♠, pikk adu: 4NT). (A gém alatti ugrás/splinter és a
+      nyitó kulcslicitje még nincs benne.)
+    szabalyok:
+      - {minta: 1M-2M-+A-3M-4M, mellekszin: [A], vesztok: 5-5.5, prioritas: 54,
+         magyarazat: "5 vesztővel gém"}
+      - {minta: 1M-2M-+A-3M-P, mellekszin: [A], vesztok: 6+, prioritas: 54,
+         magyarazat: "6+ vesztővel passz"}
+      - {minta: 1M-2M-+A-3NT-4M, mellekszin: [A], vesztok: 5-6.5, prioritas: 53,
+         magyarazat: "Gém"}
+      - {minta: 1M-2M-+A-+B-4M, mellekszin: [A, B], vesztok: 5-6.5, prioritas: 53,
+         magyarazat: "Gém"}
+
+  - fejezet: "1m – 1M – 2M után a válaszoló"
+    jegyzet: >-
+      Itt a válaszoló számol fedőt: 2 fedővel passz, 3+ fedővel fedőkereső
+      invit. A meghívott szín lehet az induló minorja is.
+    szabalyok:
+      - {minta: 1m-1M-2M-P, fedoutes: {M: 0-2.75}, prioritas: 57,
+         magyarazat: "2 fedővel (vagy kevesebbel) passz"}
+      - minta: 1m-1M-2M-+A
+        mellekszin: [A]
+        fedoutes: {M: 3+}
+        hossz: {A: 3+}
+        szin_vesztok: {A: 2.5-3}
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 58
+        alert: "Fedőkereső invit: 3+ lap a színben, 2,5-3 vesztővel"
+      # az alaprendszer természetes 3m invitje helyett
+      - {minta: 1m-1M-2M-3m, kivalt: true}
+
+  - fejezet: "1m – 1M – 2M – fedőkereső invit után az induló"
+    jegyzet: >-
+      Az induló vesztőt számol. Elutasítás (3M): a pont az eddig ígért sáv
+      alsó felében (12-14 után legfeljebb 13) vagy 7+ vesztő. Elfogadás: 4M;
+      maximummal információ: 3NT (egyenletes, gyenge adu) vagy kulcslicit.
+    szabalyok:
+      - minta: 1m-1M-2M-+A-3M
+        mellekszin: [A]
+        vagy: [{igeret: {pont: also}}, {vesztok: 7+}]
+        prioritas: 55
+        magyarazat: "Elutasítja: nem maximális (az ígért pontsáv alsó fele) vagy sok vesztő (7+)"
+      - {minta: 1m-1M-2M-+A-4M, mellekszin: [A], igeret: {pont: felso}, vesztok: 0-6.5,
+         prioritas: 54, magyarazat: "Elfogadja: gém"}
+      - {minta: 1m-1M-2M-+A-3NT, mellekszin: [A], igeret: {pont: max}, vesztok: 0-6.5,
+         elosztas: BAL, fohonor: {M: 0-1}, alulrol: true, prioritas: 56,
+         alert: "Elfogadja, maximum: egyenletes lap, gyenge adu"}
+      - minta: 1m-1M-2M-+A-+B
+        mellekszin: [A, B]
+        licit_alatt: 4M
+        igeret: {pont: max}
+        vesztok: 0-6.5
+        vagy: [{hossz: {B: 0-1}}, {lapok: [BA]}]
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 56
+        alert: "Elfogadja, maximum: kulcslicit (ász vagy szingli a színben)"
+
+  - fejezet: "1m – 1M – 2M – invit – információ után a válaszoló"
+    jegyzet: >-
+      KIEG.: egyelőre csak a gém; a szlemkutatás ebben az ágban még nincs leírva.
+    szabalyok:
+      - {minta: 1m-1M-2M-+A-3NT-4M, mellekszin: [A], prioritas: 50, magyarazat: "Gém (kieg.)"}
+      - {minta: 1m-1M-2M-+A-+B-4M, mellekszin: [A, B], prioritas: 50, magyarazat: "Gém (kieg.)"}

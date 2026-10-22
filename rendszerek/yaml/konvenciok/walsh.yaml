@@ -1,0 +1,256 @@
+# WALSH — az 1♣ nyitásra adott válaszok (a szerkesztő megjegyzései
+# alapján, 2026-09-29).
+#
+#   1♣-1♦   alert: 3+ káró, nincs 4-es nemes, 8 pont alatt
+#           VAGY 5+ káró, 11+ FP: 4-es nemessel, 5-4 minorral vagy jó káróval
+#   1♣-1NT  8-10 FP, nincs 4-es nemes; (11): rossz 11
+#   1♣-2NT  11 FP, invit, nincs 4-es nemes; (10): jó 10, (12): nem jó 12
+#   1♣-3NT  jó 12 (5-ös színnel) is
+#   1♣-1♦-1NT  a nyitó egyenletes minimuma, 4-es nemessel is
+#   1♣-1♦-1NT-?  2M: 4-es nemes; 2♣: gyenge 5-4 minor (leállás), 3♣: 5-4
+#                minor 11+; 2♦: javítás 6+ káróval (leállás); 3♦: kvázi
+#                GF (GI+) 6+ káróval, 4♦-ig kötelező; 2NT: invit legfeljebb
+#                5 káróval
+#
+# A "jó" és a "rossz" lap a LAPMINOSEG metrika szerint (023_lapminoseg.sql):
+# jó jelek − rossz jelek; `minoseg: jo` >= 2, `minoseg: rossz` <= -2.
+#
+# A KIBIC_STAND kártyán a KIBICEGY_STAND előtt áll: az 1C-1D kulcsú
+# alapszabályt felülírja.
+rendszer:
+  kod: WALSH
+  nev: Walsh
+  nev_en: Walsh
+  fajta: KONVENCIO
+  tema: "1♣ után: válasz négyes nemes nélkül"
+  leiras: "1♣-1♦: 3+ káró 8 pont alatt, vagy 5+ káró 11+ FP-vel; 1♣-1NT 8-10(11), 1♣-2NT invit; a nyitó 1♦-ra 1NT-t mond egyenletes minimummal."
+  jegyzet: >-
+    Walsh a Moha-kör szerint. 4-es nemes nélkül: 8 pont alatt 5+ treffel
+    emelés (1♣-3♣), különben 1♦. 8-10 pont: 1NT (a rossz 11 is). Invit:
+    2NT — jó 10, 11, nem jó 12; jó 12-vel 3NT. A „jó” az egész lapra
+    vonatkozik: 5-ös színnel jó. 11+ ponttal, 5+ káróval a káró minősége és
+    az elosztás dönt: 5-4 minorral vagy jó káróval (A, K, D közül legalább
+    kettő) előbb 1♦, gyenge káróval azonnal 2NT. (Eldöntve: 2026-09-29.)
+    A „jó” és a „rossz” lap a LAPMINOSEG metrika szerint: rossz jelek a
+    nincs ász, 4-3-3-3, sok dáma-bubi, pontok a rövid színekben, nincs
+    10-es/9-es, elszórt figurák (Kxx, Dx); jó jelek az ász és király, nincs
+    bubi, KD együtt a hosszú színben (KDx), pontok a hosszú színben, 5-ös
+    szín, 10-esek/9-esek. 1♣-1♦-1NT után a 2♣ nem forszol (gyenge 5-4
+    minor), 11+ ponttal 3♣. (Eldöntve: 2026-09-29.)
+fejezetek:
+  - fejezet: Válasz az 1♣ nyitásra
+    szabalyok:
+      - minta: 1C-1D
+        vagy:
+          # gyenge: 5+ treffel a gyenge kéz emel (1♣-3♣), ezért legfeljebb 4 treff
+          - {pont: 6-7, hossz: {D: 3+, C: 0-4, H: 0-3, S: 0-3}}
+          # erős: 5+ káró 11+ ponttal — 4-es nemessel, 5-4 minorral
+          # (nem szan felé) vagy jó káróval
+          - pont: 11+
+            hossz: {D: 5+, H: 0-4, S: 0-4}
+            vagy:
+              - {hossz: {H: 4}}
+              - {hossz: {S: 4}}
+              - {hossz: {C: 4+}}
+              - {fohonor: {D: 2+}}
+        forsz: EGY_MENET
+        prioritas: 57
+        alert: "Walsh: 3+ káró, nincs 4-es nemes, 8 pont alatt; VAGY 5+ káró 11+ ponttal (4-es nemessel, 5-4 minorral vagy jó káróval)"
+        jegyzet: >-
+          Gyenge káróval (A, K, D közül legfeljebb egy), 4-es nemes és 4-es
+          treff nélkül nem ez, hanem azonnal 2NT: jobb, mint 5 káró felé menni.
+      - minta: 1C-1NT
+        pont: "8-10(11)"
+        hossz: {H: 0-3, S: 0-3}
+        prioritas: 49            # 10 ponttal az 1NT nyer (az alap 1m-2NT 10-11, 48)
+        magyarazat: "8-10 FP, nincs 4-es nemes"
+        lehetoseg:
+          minoseg: rossz
+          prioritas: 49
+          magyarazat: "Rossz 11 FP, nincs 4-es nemes"
+      - minta: 1C-2NT
+        pont: 11
+        hossz: {H: 0-3, S: 0-3}
+        minoseg: nem_rossz       # a rossz 11 1NT
+        prioritas: 50
+        magyarazat: "Invit: 11 FP, nincs 4-es nemes"
+      - minta: 1C-2NT
+        kulcs: 1C-2NT~JO10
+        pont: 10
+        hossz: {H: 0-3, S: 0-3}
+        minoseg: jo
+        prioritas: 50
+        magyarazat: "Invit: jó 10 FP, nincs 4-es nemes"
+      - minta: 1C-2NT
+        kulcs: 1C-2NT~12
+        pont: 12
+        hossz: {H: 0-3, S: 0-3}
+        minoseg: nem_jo
+        prioritas: 50
+        magyarazat: "Invit: nem jó 12 FP, nincs 4-es nemes"
+      - minta: 1C-3NT
+        kulcs: 1C-3NT~JO12
+        pont: 12
+        hossz: {H: 0-3, S: 0-3}
+        minoseg: jo
+        prioritas: 53
+        magyarazat: "Leállás: jó 12 FP, nincs 4-es nemes"
+
+  - fejezet: "1♣ – 1♦ után a nyitó"
+    szabalyok:
+      - minta: 1C-1D-1NT
+        pont: 12-14
+        vagy:
+          - {elosztas: BAL}
+          - {elosztas: ["5422"], fohonor: {C: 0-1}}     # gyenge hosszú treffel
+        prioritas: 55
+        magyarazat: "12-14 FP, egyenletes (4-4-3-2 két nemessel is), vagy 5-4-2-2 gyenge hosszú treffel"
+
+  - fejezet: "1♣ – 1♦ után a nyitó (egyéb)"
+    jegyzet: >-
+      2026-10-02, a 1♣-1♦-1♥ tesztparti után (a kibic passzolt 12 ponttal).
+      Az 1♣-1♦-1M nem csak legfeljebb 17 pont, hanem NAGYON EGYENETLEN lap
+      (4-4-3-2 két nemessel, 5-4-2-2 gyenge hosszú színnel még 1NT). Az
+      1-es szintű új szín egy körre kényszerít („1-re 1”) és tagadja a
+      riverz erőt; 18+
+      ponttal a nyitó RIVERZ-et mond: 2-es szinten az indulószínénél
+      magasabb színt — kvázi gémforsz, 4 minorig kényszerít. A pontsávok
+      a KIBICEGY_STAND 1m-1M utáni soraiból (kieg., átnézendő).
+    szabalyok:
+      - {minta: 1C-1D-1H, pont: 11-17, hossz: {H: 4+}, vagy: [{elosztas: ["4441", "5431", "5440", "5521", "5530", "6322", "6331", "6421", "6430", "6511", "6520", "7222", "7321", "7330", "7411", "7420", "7510", "8221", "8311", "8320", "8410"]}, {elosztas: ["5422"], fohonor: {C: 2+}}], forsz: EGY_MENET,
+         prioritas: 54, magyarazat: "4+ kőr, 11-17, NAGYON egyenetlen lap; kényszerít (1-re 1), riverz alatt"}
+      - {minta: 1C-1D-1S, pont: 11-17, hossz: {S: 4+, H: 0-3}, vagy: [{elosztas: ["4441", "5431", "5440", "5521", "5530", "6322", "6331", "6421", "6430", "6511", "6520", "7222", "7321", "7330", "7411", "7420", "7510", "8221", "8311", "8320", "8410"]}, {elosztas: ["5422"], fohonor: {C: 2+}}], forsz: EGY_MENET,
+         prioritas: 54, magyarazat: "4+ pikk, nincs 4 kőr, 11-17, NAGYON egyenetlen lap; kényszerít (1-re 1), riverz alatt"}
+      - {minta: 1C-1D-2C, pont: 11-15, hossz: {C: 6+, H: 0-3, S: 0-3}, prioritas: 52,
+         magyarazat: "Természetes, 6+ treff, alsó zóna"}
+      - {minta: 1C-1D-2D, pont: 11-15, hossz: {D: 4+, H: 0-3, S: 0-3}, elosztas: NEM_BAL, prioritas: 51,
+         magyarazat: "Káróemelés, 4+ lap, alsó zóna"}
+      - {minta: 1C-1D-2H, pont: 18+, hossz: {H: 4+, C: 5+}, rel: ["C>H"], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Riverz: 18+, 5+ treff és 4+ kőr — 4 minorig kényszerít"}
+      - {minta: 1C-1D-2S, pont: 18+, hossz: {S: 4+, C: 5+, H: 0-3}, rel: ["C>S"], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Riverz: 18+, 5+ treff és 4+ pikk — 4 minorig kényszerít"}
+      - {minta: 1C-1D-2NT, pont: 18-19, elosztas: BAL, prioritas: 53,
+         magyarazat: "18-19 FP, egyenletes"}
+      - {minta: 1C-1D-3C, pont: 16-18, hossz: {C: 6+, H: 0-3, S: 0-3}, forsz: EGY_MENET, prioritas: 53,
+         magyarazat: "Természetes, 6+ treff, erős"}
+      - {minta: 1C-1D-3D, pont: 16-18, hossz: {D: 4+, H: 0-3, S: 0-3}, elosztas: NEM_BAL, prioritas: 52,
+         magyarazat: "Ugró káróemelés, invit"}
+
+  - fejezet: "1♣ – 1♦ – 1M után a válaszoló"
+    jegyzet: >-
+      2026-10-02, gépi javaslat (kieg., átnézendő). Az 1♦ kétféle lehet:
+      gyenge (6-7, nincs 4-es nemes) vagy erős (11+, 5+ káró). A gyenge
+      ág leírja magát (1NT, preferencia, saját szín); az erős ág gémforsz:
+      nemes fittel gém, fogással szan, minor 5-4-gyel / 6+ káróval 3-as
+      szinten, egyébként a negyedik szín (NEGYEDIK_SZIN elv). Az 1♣-1♦-1♥
+      utáni 1♠ természetes (4 pikk, az erős ágban).
+    szabalyok:
+      - {minta: 1C-1D-1H-1S, pont: 11+, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "4+ pikk (erős Walsh), kényszerít"}
+      - {minta: 1C-1D-1M-1NT, pont: 6-7, hossz: {M: 0-3}, prioritas: 52,
+         magyarazat: "Gyenge Walsh, nincs fit"}
+      - {minta: 1C-1D-1M-2C, pont: 6-7, hossz: {C: 4+, M: 0-3}, prioritas: 53,
+         magyarazat: "Gyenge Walsh, treff preferencia (4 lap)"}
+      - {minta: 1C-1D-1M-2D, pont: 6-7, hossz: {D: 6+, M: 0-3}, prioritas: 53,
+         magyarazat: "Gyenge Walsh, 6+ káró"}
+      - {minta: 1C-1D-1M-4M, pont: 11-15, hossz: {M: 4+}, prioritas: 55,
+         magyarazat: "Erős Walsh, 4+ lapos fit: gém"}
+      - {minta: 1C-1D-1H-2NT, pont: 11, hossz: {H: 0-3}, fogas: [S], prioritas: 53,
+         magyarazat: "Invit, pikkfogással"}
+      - {minta: 1C-1D-1S-2NT, pont: 11, hossz: {S: 0-3}, fogas: [H], prioritas: 53,
+         magyarazat: "Invit, kőrfogással"}
+      - {minta: 1C-1D-1H-3NT, pont: 12-15, hossz: {H: 0-3}, fogas: [S], prioritas: 53,
+         magyarazat: "Gém, pikkfogással"}
+      - {minta: 1C-1D-1S-3NT, pont: 12-15, hossz: {S: 0-3}, fogas: [H], prioritas: 53,
+         magyarazat: "Gém, kőrfogással"}
+      - {minta: 1C-1D-1M-3C, pont: 11+, hossz: {C: 4+, D: 5+, M: 0-3}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Erős Walsh: 5-4 a minorokban, gémforsz"}
+      - {minta: 1C-1D-1M-3D, pont: 11+, hossz: {D: 6+, C: 0-3, M: 0-3}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Erős Walsh: 6+ káró, gémforsz"}
+
+  - fejezet: "1♣ – 1♦ – 1NT után a válaszoló"
+    szabalyok:
+      - minta: 1C-1D-1NT-2C
+        pont: 6-10
+        hossz: {D: 5+, C: 4+, H: 0-3, S: 0-3}
+        forsz: NEM
+        prioritas: 55
+        magyarazat: "Gyenge 5-4 a minorokban, leállás"
+      - minta: 1C-1D-1NT-3C
+        pont: 11+
+        hossz: {D: 5+, C: 4+, H: 0-3, S: 0-3}
+        prioritas: 55
+        magyarazat: "5-4 a minorokban, 11+ FP (nem szan felé)"
+      - minta: 1C-1D-1NT-2H
+        pont: 11+
+        hossz: {D: 5+, H: 4}
+        forsz: EGY_MENET
+        alulrol: true                # 4-4 nemessel: a legolcsóbb (2♥)
+        prioritas: 56
+        alert: "Walsh: 5+ káró és 4 kőr, 11+ FP"
+      - minta: 1C-1D-1NT-2S
+        pont: 11+
+        hossz: {D: 5+, S: 4}
+        forsz: EGY_MENET
+        alulrol: true                # 4-4 nemessel: a legolcsóbb (2♥)
+        prioritas: 56
+        alert: "Walsh: 5+ káró és 4 pikk, 11+ FP"
+      # A szerkesztő (2026-10-04, 9. leosztás): 6+ károval nem 2NT, hanem
+      # színben: 2♦ = javítás (sok káró, szanban kevés ütés; leállás),
+      # 3♦ = "kvázi gémforsz" (GI+, 11-12 FP, a "rossz 11" is): 4♦-ig
+      # kötelező. A 2NT legfeljebb 5 káróval.
+      - minta: 1C-1D-1NT-2D
+        pont: 0-10
+        hossz: {D: 6+, C: 0-3, H: 0-3, S: 0-3}     # 6-4 minorral a 2♣
+        forsz: NEM
+        prioritas: 55
+        magyarazat: "Javítás: 6+ káró, szanban kevés ütés — leállás"
+      - minta: 1C-1D-1NT-3D
+        pont: 11-12
+        hossz: {D: 6+, C: 0-3, H: 0-3, S: 0-3}
+        forsz: EGY_MENET
+        prioritas: 55
+        alert: "Kvázi gémforsz (GI+): 6+ káró, 11-12 FP — 4♦-ig kötelező; a nyitó a nemes fogásait mutatja"
+      - minta: 1C-1D-1NT-2NT
+        pont: 11-12
+        hossz: {D: 4-5, C: 0-3, H: 0-3, S: 0-3}
+        prioritas: 54
+        magyarazat: "Invit: legfeljebb 5 káró, 11-12 FP"
+      - minta: 1C-1D-1NT-3NT
+        pont: 13+
+        hossz: {D: 5+, C: 0-3, H: 0-3, S: 0-3}
+        prioritas: 54
+        magyarazat: "Leállás: 5+ jó káró, 13+ FP"     # kieg.
+
+  - fejezet: "1♣ – 1♦ – 1NT – 2♦/3♦ után"
+    jegyzet: >-
+      A szerkesztő (2026-10-04): a 2♦ javítás (leállás): a nyitó passzol.
+      A 3♦ "kvázi gémforsz" (GI+), 4♦-ig kötelező. A nyitó: mindkét
+      nemesben fogással 3NT; egyikben sem: 4♦ (nem 5♦ — nem gémforsz);
+      csak az egyikben: bemondja (3♥ / 3♠). Erre az invitáló: a másik
+      nemesben fogással 3NT; anélkül 4♦, vagy 5♦, ha olyan az elosztása
+      (rövid a nem licitált nemesben). A 4♦ után a nyitó passzol.
+    szabalyok:
+      - {minta: 1C-1D-1NT-2D-P, prioritas: 50, magyarazat: "Passz: a 2♦ leállás"}
+      - {minta: 1C-1D-1NT-3D-3NT, fogas: [H, S], prioritas: 53,
+         magyarazat: "Fogás mindkét nemesben"}
+      - {minta: 1C-1D-1NT-3D-3H, fogas: [H], nincs_fogas: [S], forsz: EGY_MENET, prioritas: 52,
+         magyarazat: "Kőrfogás (pikkben nincs); 3NT-hez a pikkfogás kell"}
+      - {minta: 1C-1D-1NT-3D-3S, fogas: [S], nincs_fogas: [H], forsz: EGY_MENET, prioritas: 52,
+         magyarazat: "Pikkfogás (kőrben nincs); 3NT-hez a kőrfogás kell"}
+      - {minta: 1C-1D-1NT-3D-4D, nincs_fogas: [H, S], prioritas: 51,
+         magyarazat: "Egyik nemesben sincs fogás: 4♦ (nem gémforsz)"}
+      - {minta: 1C-1D-1NT-3D-3H-3NT, fogas: [S], prioritas: 53,
+         magyarazat: "Pikkfogás: 3NT"}
+      - {minta: 1C-1D-1NT-3D-3S-3NT, fogas: [H], prioritas: 53,
+         magyarazat: "Kőrfogás: 3NT"}
+      - {minta: 1C-1D-1NT-3D-3H-5D, nincs_fogas: [S], hossz: {S: 0-1}, prioritas: 52,
+         magyarazat: "Nincs pikkfogás, de pikkben rövid: 5♦"}
+      - {minta: 1C-1D-1NT-3D-3S-5D, nincs_fogas: [H], hossz: {H: 0-1}, prioritas: 52,
+         magyarazat: "Nincs kőrfogás, de kőrben rövid: 5♦"}
+      - {minta: 1C-1D-1NT-3D-3H-4D, nincs_fogas: [S], prioritas: 51,
+         magyarazat: "Nincs pikkfogás: 4♦"}
+      - {minta: 1C-1D-1NT-3D-3S-4D, nincs_fogas: [H], prioritas: 51,
+         magyarazat: "Nincs kőrfogás: 4♦"}
+      - {minta: 1C-1D-1NT-3D-4D-P, prioritas: 50, magyarazat: "Passz: a 4♦ a vég"}
+      - {minta: 1C-1D-1NT-3D-3M-4D-P, prioritas: 50, magyarazat: "Passz: a 4♦ a vég"}

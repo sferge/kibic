@@ -1,0 +1,34 @@
+# PASSZ-ELV: ha semmilyen konkrét szabály nem illik, és a partner utolsó
+# licitje NEM kényszerít, a kibic passzol — ELV alapon (a naplóban
+# "ELV"-ként látszik, nem tartalékként, és nem is SZABALY-ként: a
+# lefedettség-mérés így tisztességes marad).
+# A forszos helyzetben a hallgatás továbbra is NINCS: ott passzolni hiba
+# volna, és ezt látni kell.
+#
+# 2026-10-02: a partner licitjét akkor sem passzoljuk ELVBŐL, ha gémesély
+# van a partner ígért sávjával (kifejezes.gemesely): nemes fittel 25,
+# minor fittel 27, szanban 24 figurapont — szanban egyenlő pontelosztásnál
+# (12-12, legfeljebb 14-10); 15-9-től 5-ös szín, 19-5-től 6-os, 7-es
+# (húzós) szín kell hozzá. Ha ilyenkor nincs konkrét szabály, az
+# tartalékként (és nem elvként) látszik — a hiány címével.
+# 2026-10-04: a `.. (*) P` sor (az ellenfél hívása — akár passza — után)
+# eddig gémesély-feltétel NÉLKÜL passzolt, így a partner licitje + az
+# ellenfél passza után a gémesélyes lap is passzolt (1♥ (2♠) X (3♠) P (P):
+# erős lappal passz). Most mindhárom sor: nincs gémesély ÉS nem vagyunk
+# gémforszban — különben a hézag-elv dönt (motor/hezag.py: gémszinten a
+# gémforsz teljesült, ott ő passzol).
+rendszer:
+  kod: PASSZ_ELV
+  nev: Passz-elv
+  nev_en: Default pass principle
+  fajta: KONVENCIO
+  leiras: "Ha nincs konkrét szabály és a partner nem forszolt: passz (ELV)."
+fejezetek:
+  - fejezet: Passz-elv
+    szabalyok:
+      - {minta: ".. (*) P", fajta: ELV, ha: {partner_forszol: false, gemforsz: false}, gemeselyes: false, prioritas: 1,
+         magyarazat: "Nincs konkrét megállapodás, és nem kötelező licitálni: passz"}
+      - {minta: ".. nA P", fajta: ELV, ha: {partner_forszol: false, gemforsz: false}, gemeselyes: false, prioritas: 1,
+         magyarazat: "Nincs konkrét megállapodás, és nem kötelező licitálni: passz"}
+      - {minta: ".. nNT P", fajta: ELV, ha: {partner_forszol: false, gemforsz: false}, gemeselyes: false, prioritas: 1,
+         magyarazat: "Nincs konkrét megállapodás, és nem kötelező licitálni: passz"}

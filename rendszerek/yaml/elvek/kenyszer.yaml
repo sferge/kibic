@@ -1,0 +1,64 @@
+# KENYSZER — „Kényszer alatt nem passzolunk” (elv-lap 1, a szerkesztővel
+# közösen, 2026-10-11/12; doc: „A licithelyzet szótára”).
+#
+# A kényszer hét típusa (F1, invitkényszer, gémforsz, szlemkényszer,
+# kényszerítő passz, kérdés, kérés) a szótárban és az elv-lapon van leírva.
+# Ma a motor alapfüggvénye tudja: az F1-et (az ellenfél közbeszólása
+# feloldja), a gémforszt a határáig (alapból a gém; a Moha 1M-2m: 4 minor),
+# a szlemkényszer egy részét (a partner gém fölötti kulcslicitje nem
+# passzolható). Ez az ELV-SABLON az első adatként leírt részt adja:
+#
+#   A GÉMFORSZ MEGSZŰNÉSE — „ha a licitből közösen kiderül, hogy nincs
+#   esélyes gém”: fogást kértem (HELP), a partner nem mutatott benne
+#   fogást (a 3NT nem megy), nincs nemes fit (4-3 sem), és a pontom + a
+#   partner ígért minimuma az 5 minorhoz kevés → passz.
+#
+# A közös tudás a licitből jön (mindketten tudjuk, hogy a szín fedetlen és
+# nincs fit); a döntést a kérdező a saját erejével hozza.
+# KÖVETKEZŐ KÖR: az invitkényszer és a közös minta (határ alatti
+# közbeszólás után a passz kényszerítő, a határ szintjén tett licit a
+# minimum), a szlemkényszer határa, a kérés (transzfer) feloldása.
+rendszer:
+  kod: KENYSZER
+  nev: Kényszer — kényszer alatt nem passzolunk
+  nev_en: Forcing — no pass while forced
+  fajta: ELV_SABLON
+  leiras: >-
+    Ha a vonalunk kényszerben van, nem passzolunk, amíg a kényszer tart; a
+    gémforsz megszűnik, ha a licitből közösen kiderül, hogy nincs esélyes gém.
+sablon:
+  szoveg: >-
+    Ha a vonalunk kényszerben van, nem passzolunk, amíg a kényszer tart. Az
+    egy menetre kényszerítő licitet az ellenfél közbeszólása feloldja; a
+    gémforszt nem, az a határáig tart (alapból a gém; egy konvenció lejjebb
+    viheti). A gémforsz megszűnik, ha a licitből közösen kiderül, hogy nincs
+    esélyes gém: fogást kértem (HELP), a partner nem mutatott benne fogást,
+    nincs nemes fit (4-3 sem: mindkettőnknél legalább 3 lap, együtt legalább
+    {NEMES_FIT_MIN}), és a pontom + a partner ígért minimuma {MINOR_GEM_ERO}
+    alatt van (az 5 minorhoz kevés). Ilyenkor passzolhatok.
+  parameterek:
+    NEMES_FIT_MIN:
+      alap: 7
+      tartomany: 7-8
+      leiras: "Ennyi lapos nemes fit (mindkét kézben 3+) már játszható: a gémforsz nem szűnik meg"
+    MINOR_GEM_ERO:
+      alap: 27
+      tartomany: 25-29
+      leiras: "Az 5 minorhoz kellő közös erő (a pontom + a partner ígért minimuma)"
+fejezetek:
+  - fejezet: "A gémforsz megszűnése"
+    szabalyok:
+      - minta: ".. nA P"
+        kulcs: KENYSZER-MEGSZUNES
+        prioritas: 56
+        ha: {gemforsz: volt}
+        gem_eselytelen: {nemes_fit_min: {sablon: NEMES_FIT_MIN}, minor_gem_ero: {sablon: MINOR_GEM_ERO}}
+        jelentes: {csak_dontes: true}
+        magyarazat: "A gémforsz megszűnt: a HELP-színben nincs fogás, nemes fit nincs, és az 5 minorhoz kevés az erő — passz"
+      - minta: ".. (*) P"
+        kulcs: KENYSZER-MEGSZUNES-K
+        prioritas: 56
+        ha: {gemforsz: volt}
+        gem_eselytelen: {nemes_fit_min: {sablon: NEMES_FIT_MIN}, minor_gem_ero: {sablon: MINOR_GEM_ERO}}
+        jelentes: {csak_dontes: true}
+        magyarazat: "A gémforsz megszűnt: a HELP-színben nincs fogás, nemes fit nincs, és az 5 minorhoz kevés az erő — passz"

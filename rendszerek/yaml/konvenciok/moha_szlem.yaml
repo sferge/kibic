@@ -1,0 +1,142 @@
+# MOHA_SZLEM — kulcslicit vagy ászkérdés? A szerkesztő szlem-elve
+# (2026-09-30), HELYZETI ELVként. Emberi leírás: doc/moha-elvek.md.
+#
+# Megállapodott adu mellett a lap SZLEMJELLEGE (a gép számolja):
+#   maradék vesztő = a saját vesztőim − a partner fedői (a kényszertárból;
+#   ha a partner fedőt nem mondott, a felső becslés a pontjából: pont/3)
+#   igen:  a partner legkevesebb fedőjével is 1-nél kevesebb marad
+#   nem:   a partner legtöbb fedőjével is legalább 1 marad (szlem kizárt)
+#   talán: a kettő között
+#
+#   igen + az 5-ös szint biztonságos  -> ászkérdés (RKC, külön konvenció)
+#   a szlem nem kizárt                -> KULCSLICIT (szleminvit), alulról
+#   különben (gémforszban)            -> gém
+#
+# KULCSLICIT: gém alatt ász, király, sikén vagy szingli; gém fölött csak
+# ász (és csak egyértelmű szlemjelleggel). Gémforszban a „nem kizárt” is
+# elég; GI helyzetben csak az egyértelmű igen (a kulcslicit ott teremt GF-t).
+rendszer:
+  kod: MOHA_SZLEM
+  nev: Kulcslicit vagy ászkérdés (Moha szlem-elv)
+  nev_en: Cue bid or key-card ask (Moha slam principle)
+  fajta: KONVENCIO
+  tema: "Adu megállapodása után: szlemkutatás"
+  leiras: "Megállapodott adu mellett: egyértelmű szlemjelleggel és biztonságos 5-ös szinttel ászkérdés, ha a szlem nem kizárt: kulcslicit alulról (gém alatt A/K/sikén/szingli, fölötte ász), különben gém."
+  jegyzet: >-
+    A szerkesztő saját megfogalmazása (doc/moha-elvek.md). A szlemhez
+    1-nél KEVESEBB maradék vesztő kell: a gémnél az 1 hiányzó ütés
+    vállalható kockázat, a szlemnél nem. A partner fedőit a gép a
+    kényszertárból veszi; ha a partner nem mondott fedőt, pontból becsül
+    (pont/3; nyitott felső határnál minimum + 6 pontból) — ezt később
+    finomítani kell. Minden kulcslicit +1 fedőt mutat (ez összeadódik). NYITOTT: a második kulcslicit
+    ugyanabban a színben (ász és még valami).
+fejezetek:
+  - fejezet: Kulcslicit
+    szabalyok:
+      - minta: ".. +B"
+        kulcs: KL-GEM-ALATT-GF
+        fajta: ELV
+        ha: {adu: barmely, gemforsz: true}
+        nem_adu: [B]
+        licit_alatt: gem
+        nem_rkc: true
+        szlem: nem_kizart
+        vagy: [{lapok: [BA]}, {lapok: [BK]}, {hossz: {B: 0-1}}]
+        alulrol: true
+        forsz: EGY_MENET
+        jelentes: {fedo_plusz: 1}
+        prioritas: 4
+        alert: "Kulcslicit (szleminvit): ász, király, sikén vagy szingli a színben"
+      - minta: ".. +B"
+        kulcs: KL-GEM-ALATT-GI
+        fajta: ELV
+        ha: {adu: barmely, gemforsz: false}
+        nem_adu: [B]
+        licit_alatt: gem
+        nem_rkc: true
+        szlem: igen
+        vagy: [{lapok: [BA]}, {lapok: [BK]}, {hossz: {B: 0-1}}]
+        alulrol: true
+        forsz: GEMFORSZ
+        jelentes: {fedo_plusz: 1}
+        prioritas: 4
+        alert: "Kulcslicit (szleminvit, gémforszt teremt): ász, király, sikén vagy szingli"
+      - minta: ".. +B"
+        kulcs: KL-GEM-FELETT
+        fajta: ELV
+        ha: {adu: barmely}
+        nem_adu: [B]
+        licit_felett: gem
+        nem_rkc: true
+        szlem: igen
+        lapok: [BA]
+        alulrol: true
+        forsz: EGY_MENET
+        jelentes: {fedo_plusz: 1}
+        prioritas: 4
+        alert: "Kulcslicit gém fölött: ász a színben"
+
+      # „Udvariassági” kulcslicit (a szerkesztő, 2026-10-21): a partner
+      # kulcslicitjére gém fölött, az adu 5-ös szintje alatt — HAJLANDÓSÁG
+      # (nem bizonyosság): helyet hagy a partnernek az ászkérdésre. A gém
+      # bemondása kétséget, az ászkérdés bizonyosságot fejez ki.
+      - minta: ".. +B"
+        kulcs: KL-VALASZ-GEM-FELETT
+        fajta: ELV
+        ha: {adu: barmely, partner_kulcslicitelt: true, nem_mondtam: B, partner_nem_mondta: B}
+        nem_adu: [B]
+        licit_felett: gem
+        licit_alatt: otos
+        nem_rkc: true
+        szlem: nem_kizart
+        lapok: [BA]
+        alulrol: true
+        forsz: EGY_MENET
+        jelentes: {fedo_plusz: 1}
+        prioritas: 4
+        alert: "Kulcslicit a partner kulcslicitjére (szlem-hajlandóság): ász a színben"
+
+  - fejezet: Gém
+    szabalyok:
+      - minta: ".. +A"
+        kulcs: GEM-ADU
+        fajta: ELV
+        ha: {adu: barmely, gemforsz: true}
+        adu_szin: [A]
+        licit_gem: gem
+        prioritas: 2
+        magyarazat: "Gém a megállapodott aduban (a szlem kizárt, vagy nincs több kulcslicit)"
+      # gém fölötti kulcslicit-csere után (2026-10-21): nincs több kulcslicit
+      # — kétséggel vissza az aduba az 5-ös szinten, bizonyossággal kis szlem
+      - minta: ".. +A"
+        kulcs: OTOS-ADU
+        fajta: ELV
+        ha: {adu: barmely, partner_kulcslicitelt: true}
+        adu_szin: [A]
+        licit_felett: gem
+        licit_alatt: otos
+        prioritas: 2
+        magyarazat: "Vissza az aduba (kétség): nincs több kulcslicitem, a partner dönt"
+      - minta: ".. 6A"
+        kulcs: KIS-SZLEM-ADU
+        fajta: ELV
+        ha: {adu: barmely, partner_kulcslicitelt: true}
+        adu_szin: [A]
+        szlem: igen
+        prioritas: 3
+        magyarazat: "Kis szlem a megállapodott aduban (egyértelmű szlemjelleg)"
+
+  - fejezet: "Kvantitatív 4NT (nincs megállapodott adu)"
+    jegyzet: >-
+      A szerkesztő (2026-10-04, 7. leosztás): megállapodott adu nélkül a 4NT
+      szleminvit (a szan-szlem 33+ FP) — nem ászkérdés. A választ adó a
+      sávja felső felével 6NT-t mond, az alsóval passzol. (A 4NT-t a
+      hézag-elv mondja, ha a közös erő felső becslése eléri a 33-at, az
+      alsó nem.)
+    szabalyok:
+      - {minta: ".. 4NT 6NT", kulcs: KVANT-4NT-ELFOGAD, fajta: ELV, ha: {adu: nincs},
+         igeret: {pont: felso}, prioritas: 3,
+         magyarazat: "Elfogadja a kvantitatív szleminvitet: a sávja felső fele"}
+      - {minta: ".. 4NT P", kulcs: KVANT-4NT-PASSZ, fajta: ELV, ha: {adu: nincs},
+         igeret: {pont: also}, prioritas: 3,
+         magyarazat: "Nem fogadja el a kvantitatív szleminvitet: a sávja alsó fele"}

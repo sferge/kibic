@@ -1,0 +1,160 @@
+# RUBENSOHL — válaszok, ha az ellenfél az 1NT indulásunkra 2-es szinten
+# közbeszólt (2026-10-02, a Moha-kör Rubensohl.doc-ja alapján).
+#
+# A Lebensohl ALTERNATÍVÁJA (ugyanaz a téma) — két „világ”: van, aki ezt,
+# van, aki azt játssza. Nem vált ki semmit: az a RENDSZER vagy ALAPRENDSZER
+# hivatkozik rá, amelyik ezt játssza (pl. SylPrec). A KIBIC_STAND a
+# Lebensohlt játssza.
+#
+# TERMÉSZETES közbeszólás után (Y = az ő színük):
+#   X                 büntető
+#   2-es színlicit    természetes, 5+, küzdelmi (invit alatti) lap
+#   2NT/3♣/3♦/3♥      transzfer ♣/♦/♥/♠-ra, 5+ lap; ha a színt 2-es szinten
+#                     is mondhattuk volna: invit+, egyébként legalább erős
+#                     küzdelmi; felső határ nincs
+#   transzfer Y-ra    TRANSZFER-FELÜLLICIT: nemes közbeszólásnál 4 lap a
+#                     másik nemesben, minor közbeszólásnál 4 lap legalább az
+#                     egyik nemesben; gémforsz
+#   3♠                nincs 4-es nemes, NINCS fogás — gémforsz
+#   3NT               nincs 4-es nemes, VAN fogás — leállás
+#
+# TRANSZFER- és CAPELLETTI-közbeszólás után: a saját fejezeteik; a többi
+# licit mint fent. Hogy a közbeszólás mesterséges, azt az ellenfél
+# rendszeréből vagy az alertjéből tudjuk (`ha: {ellenfel_szin: …}`).
+#
+# KIEGÉSZÍTÉS (`# kieg.`): a pontsávok 15-17-es szanhoz (invit = 8-9,
+# gémforsz = 10+, „erős küzdelmi” = 5+); a nyitó válasza a
+# transzfer-felüllicitre. A Capelletti utáni kényszerítő passz a motorban
+# még nem ábrázolható (a passz nem ígér semmit) — a szöveg leírja.
+rendszer:
+  kod: RUBENSOHL
+  nev: Rubensohl
+  nev_en: Rubensohl
+  fajta: KONVENCIO
+  tema: "1NT nyitásunk után: kettes közbeszólás"
+  leiras: >-
+    1NT nyitásunkra adott 2-es közbeszólás után: büntető kontra, 2-es
+    szinten természetes küzdelmi licit, 2NT-től felfelé transzferek; a
+    közbeszólás színébe adott transzfer gémforsz négyes (másik) nemessel.
+    Forrás: Rubensohl.doc.
+fejezetek:
+  - fejezet: "Természetes 2♣ közbeszólás után"
+    szabalyok:
+      - {minta: "1NT (2C) X", kulcs: "RUBENSOHL 1NT (2C) X", ha: {ellenfel_szin: {C: 5}}, pont: "8+", hossz: {"C": "4+"}, prioritas: 56, alert: "Büntető kontra (természetes 2♣ után)"}
+      - {minta: "1NT (2C) 2D", pont: "0-7", hossz: {"D": "5+"}, rel: ["D>H", "D>S"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2C) 2H", pont: "0-7", hossz: {"H": "5+"}, rel: ["H>=D", "H>S"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2C) 2S", pont: "0-7", hossz: {"S": "5+"}, rel: ["S>=D", "S>=H"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2C) 2NT", pont: "10+", hossz: {"H": "0-4", "S": "0-4"}, vagy: [{"hossz": {"H": "4"}}, {"hossz": {"S": "4"}}], forsz: GEMFORSZ, prioritas: 58, alert: "Rubensohl transzfer-felüllicit: legalább az egyik nemesben 4 lap, gémforsz"}
+      - {minta: "1NT (2C) 3C", pont: "8+", hossz: {"D": "5+"}, rel: ["D>H", "D>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer káróra (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2C) 3C (P) 3D", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2C) 3D", pont: "8+", hossz: {"H": "5+"}, rel: ["H>=D", "H>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer kőrre (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2C) 3D (P) 3H", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2C) 3H", pont: "8+", hossz: {"S": "5+"}, rel: ["S>=D", "S>=H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer pikkre (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2C) 3H (P) 3S", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2C) 3S", pont: "10+", hossz: {"H": "0-3", "S": "0-3"}, nincs_fogas: ["C"], forsz: GEMFORSZ, prioritas: 57, alert: "Nincs 4-es nemes, NINCS fogás az ellenfél színében; gémforsz"}
+      - {minta: "1NT (2C) 3NT", pont: "10-15", hossz: {"H": "0-3", "S": "0-3"}, fogas: ["C"], prioritas: 56, magyarazat: "Nincs 4-es nemes, van fogás az ellenfél színében; leállás"}
+      - {minta: "1NT (2C) 2NT (P) 3H", hossz: {"H": "4+"}, prioritas: 51, magyarazat: "4+ kőr"}   # kieg.
+      - {minta: "1NT (2C) 2NT (P) 3S", hossz: {"S": "4+", "H": "0-3"}, prioritas: 51, magyarazat: "4+ pikk, nincs 4 kőr"}   # kieg.
+      - {minta: "1NT (2C) 2NT (P) 3NT", hossz: {"H": "0-3", "S": "0-3"}, prioritas: 50, magyarazat: "Nincs 4-es nemes"}   # kieg.
+  - fejezet: "Természetes 2♦ közbeszólás után"
+    szabalyok:
+      - {minta: "1NT (2D) X", pont: "8+", hossz: {"D": "4+"}, prioritas: 57, alert: "Büntető kontra"}
+      - {minta: "1NT (2D) 2H", pont: "0-7", hossz: {"H": "5+"}, rel: ["H>=C", "H>S"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2D) 2S", pont: "0-7", hossz: {"S": "5+"}, rel: ["S>=C", "S>=H"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2D) 2NT", pont: "5+", hossz: {"C": "5+"}, rel: ["C>H", "C>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer treffre (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2D) 2NT (P) 3C", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2D) 3C", pont: "10+", hossz: {"H": "0-4", "S": "0-4"}, vagy: [{"hossz": {"H": "4"}}, {"hossz": {"S": "4"}}], forsz: GEMFORSZ, prioritas: 58, alert: "Rubensohl transzfer-felüllicit: legalább az egyik nemesben 4 lap, gémforsz"}
+      - {minta: "1NT (2D) 3D", pont: "8+", hossz: {"H": "5+"}, rel: ["H>=C", "H>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer kőrre (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2D) 3D (P) 3H", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2D) 3H", pont: "8+", hossz: {"S": "5+"}, rel: ["S>=C", "S>=H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer pikkre (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2D) 3H (P) 3S", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2D) 3S", pont: "10+", hossz: {"H": "0-3", "S": "0-3"}, nincs_fogas: ["D"], forsz: GEMFORSZ, prioritas: 57, alert: "Nincs 4-es nemes, NINCS fogás az ellenfél színében; gémforsz"}
+      - {minta: "1NT (2D) 3NT", pont: "10-15", hossz: {"H": "0-3", "S": "0-3"}, fogas: ["D"], prioritas: 56, magyarazat: "Nincs 4-es nemes, van fogás az ellenfél színében; leállás"}
+      - {minta: "1NT (2D) 3C (P) 3H", hossz: {"H": "4+"}, prioritas: 51, magyarazat: "4+ kőr"}   # kieg.
+      - {minta: "1NT (2D) 3C (P) 3S", hossz: {"S": "4+", "H": "0-3"}, prioritas: 51, magyarazat: "4+ pikk, nincs 4 kőr"}   # kieg.
+      - {minta: "1NT (2D) 3C (P) 3NT", hossz: {"H": "0-3", "S": "0-3"}, prioritas: 50, magyarazat: "Nincs 4-es nemes"}   # kieg.
+  - fejezet: "Természetes 2♥ közbeszólás után"
+    szabalyok:
+      - {minta: "1NT (2H) X", pont: "8+", hossz: {"H": "4+"}, prioritas: 57, alert: "Büntető kontra"}
+      - {minta: "1NT (2H) 2S", pont: "0-7", hossz: {"S": "5+"}, rel: ["S>=C", "S>=D"], prioritas: 54, magyarazat: "Természetes, 5+ lap, küzdelmi (invit alatti) lap"}
+      - {minta: "1NT (2H) 2NT", pont: "5+", hossz: {"C": "5+"}, rel: ["C>D", "C>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer treffre (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2H) 2NT (P) 3C", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2H) 3C", pont: "5+", hossz: {"D": "5+"}, rel: ["D>=C", "D>S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer káróra (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2H) 3C (P) 3D", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2H) 3D", pont: "10+", hossz: {"S": "4"}, forsz: GEMFORSZ, prioritas: 58, alert: "Rubensohl transzfer-felüllicit: 4 pikk, gémforsz"}
+      - {minta: "1NT (2H) 3H", pont: "8+", hossz: {"S": "5+"}, rel: ["S>=C", "S>=D"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer pikkre (5+), invit vagy erősebb, felső határ nélkül"}
+      - {minta: "1NT (2H) 3H (P) 3S", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2H) 3S", pont: "10+", hossz: {"H": "0-3", "S": "0-3"}, nincs_fogas: ["H"], forsz: GEMFORSZ, prioritas: 57, alert: "Nincs 4-es nemes, NINCS fogás az ellenfél színében; gémforsz"}
+      - {minta: "1NT (2H) 3NT", pont: "10-15", hossz: {"H": "0-3", "S": "0-3"}, fogas: ["H"], prioritas: 56, magyarazat: "Nincs 4-es nemes, van fogás az ellenfél színében; leállás"}
+      - {minta: "1NT (2H) 3D (P) 3S", hossz: {"S": "4+"}, prioritas: 51, magyarazat: "4+ pikk: megvan a nemes fit"}   # kieg.
+      - {minta: "1NT (2H) 3D (P) 3NT", hossz: {"S": "0-3"}, prioritas: 50, magyarazat: "Nincs nemes fit"}   # kieg.
+  - fejezet: "Természetes 2♠ közbeszólás után"
+    szabalyok:
+      - {minta: "1NT (2S) X", pont: "8+", hossz: {"S": "4+"}, prioritas: 57, alert: "Büntető kontra"}
+      - {minta: "1NT (2S) 2NT", pont: "5+", hossz: {"C": "5+"}, rel: ["C>D", "C>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer treffre (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2S) 2NT (P) 3C", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2S) 3C", pont: "5+", hossz: {"D": "5+"}, rel: ["D>=C", "D>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer káróra (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2S) 3C (P) 3D", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2S) 3D", pont: "5+", hossz: {"H": "5+"}, rel: ["H>=C", "H>=D"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55, alert: "Rubensohl: transzfer kőrre (5+), legalább erős küzdelmi, felső határ nélkül"}
+      - {minta: "1NT (2S) 3D (P) 3H", prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: "1NT (2S) 3H", pont: "10+", hossz: {"H": "4"}, forsz: GEMFORSZ, prioritas: 58, alert: "Rubensohl transzfer-felüllicit: 4 kőr, gémforsz"}
+      - {minta: "1NT (2S) 3S", pont: "10+", hossz: {"H": "0-3", "S": "0-3"}, nincs_fogas: ["S"], forsz: GEMFORSZ, prioritas: 57, alert: "Nincs 4-es nemes, NINCS fogás a pikkben; gémforsz"}
+      - {minta: "1NT (2S) 3NT", pont: "10-15", hossz: {"H": "0-3", "S": "0-3"}, fogas: ["S"], prioritas: 56, magyarazat: "Nincs 4-es nemes, van fogás az ellenfél színében; leállás"}
+      - {minta: "1NT (2S) 3H (P) 4H", hossz: {"H": "4+"}, prioritas: 51, magyarazat: "4+ kőr: megvan a nemes fit"}   # kieg.
+      - {minta: "1NT (2S) 3H (P) 3NT", hossz: {"H": "0-3"}, prioritas: 50, magyarazat: "Nincs nemes fit"}   # kieg.
+  - fejezet: "Transzfer-közbeszólás után"
+    jegyzet: >-
+      Ha az ellenfél közbeszólása transzfer (az ő rendszerük vagy az alertjük
+      szerint a következő színt mutatja), a kontra legalább invit erejű, és a
+      közbeszólás színében nincs rövidség (a nyitó nyugodtan lepasszolhatja);
+      az ő valódi színük bemondása 4 lap a másik nemesben, invit alatt
+      (információs kontra-szerű, nem gémforsz). A transzfer-felüllicit a
+      bemondott színhez képest jár, de a másik nemest a valódi színükhöz
+      mérjük: 1NT (2♦=♥) 3♣ = 4 pikk, gémforsz.
+    szabalyok:
+      - {minta: "1NT (2D) X", ha: {ellenfel_szin: {H: 5}}, pont: 8+, hossz: {D: 2+}, prioritas: 60,
+         alert: "Transzfer-közbeszólás után: legalább invit, nincs rövidség a káróban (büntetésre is jó)"}
+      - {minta: "1NT (2D) 2H", ha: {ellenfel_szin: {H: 5}}, pont: 0-7, hossz: {S: 4}, prioritas: 60,
+         alert: "Az ő színük: 4 pikk, invit alatti lap"}
+      - {minta: "1NT (2D) 3C", ha: {ellenfel_szin: {H: 5}}, pont: 10+, hossz: {S: 4}, forsz: GEMFORSZ,
+         prioritas: 61, alert: "Transzfer-felüllicit: 4 pikk, gémforsz"}
+      - {minta: "1NT (2H) X", ha: {ellenfel_szin: {S: 5}}, pont: 8+, hossz: {H: 2+}, prioritas: 60,
+         alert: "Transzfer-közbeszólás után: legalább invit, nincs rövidség a kőrben (büntetésre is jó)"}
+      - {minta: "1NT (2H) 2S", ha: {ellenfel_szin: {S: 5}}, pont: 0-7, hossz: {H: 4}, prioritas: 60,
+         alert: "Az ő színük: 4 kőr, invit alatti lap"}
+      - {minta: "1NT (2H) 3D", ha: {ellenfel_szin: {S: 5}}, pont: 10+, hossz: {H: 4}, forsz: GEMFORSZ,
+         prioritas: 61, alert: "Transzfer-felüllicit: 4 kőr, gémforsz"}
+  - fejezet: "Capelletti 2♦ (mindkét nemes) után"
+    jegyzet: >-
+      A 2♦ nem káró: a kontra büntető jellegű — legalább invit, és nincs
+      rövidség a káróban, a nyitó benne maradhat. Ha nem marad benne, az
+      azért van, mert rövid (dubló) a kárója: játszható káró aduhoz ezért a
+      válaszolónak 6 lap kell. Ha a közbeszóló ezután bemondja a színét, a
+      válaszoló passza kényszerítő (a nyitó kontráz vagy licitál), minden
+      más licit többleterő (legalább gémforsz) és természetes; a kontra
+      ekkor büntető.
+    szabalyok:
+      - {minta: "1NT (2D) X", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 8+, hossz: {D: 4+},
+         prioritas: 62, alert: "Capelletti 2♦ ellen: legalább invit, jó káró — büntetésre is"}
+      - {minta: "1NT (2D) X (P) P (2H) X", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 8+, hossz: {H: 4+},
+         prioritas: 56, alert: "Büntető"}
+      - {minta: "1NT (2D) X (P) P (2H) 2S", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 4+, S: 4+}, forsz: GEMFORSZ, prioritas: 56,
+         magyarazat: "Gémforsz, káró és pikk"}
+      - {minta: "1NT (2D) X (P) P (2H) 3C", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 4+, C: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Gémforsz, káró és treff"}
+      - {minta: "1NT (2D) X (P) P (2H) 3D", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 6+}, forsz: GEMFORSZ, prioritas: 57,
+         magyarazat: "Gémforsz, legalább 6 káró"}
+      - {minta: "1NT (2D) X (P) P (2S) X", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 8+, hossz: {S: 4+},
+         prioritas: 56, alert: "Büntető"}
+      - {minta: "1NT (2D) X (P) P (2S) 3C", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 4+, C: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Gémforsz, káró és treff"}
+      - {minta: "1NT (2D) X (P) P (2S) 3D", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 6+}, forsz: GEMFORSZ, prioritas: 57,
+         magyarazat: "Gémforsz, legalább 6 káró"}
+      - {minta: "1NT (2D) X (P) P (2S) 3H", ha: {ellenfel_szin: {H: 4, S: 4}}, pont: 10+,
+         hossz: {D: 4+, H: 4+}, forsz: GEMFORSZ, prioritas: 56,
+         magyarazat: "Gémforsz, káró és kőr"}

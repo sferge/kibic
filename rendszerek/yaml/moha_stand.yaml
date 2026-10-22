@@ -1,0 +1,44 @@
+# MOHA_STAND — a Moha-kör rendszere (2026-10-02): a KIBIC_STAND, plusz a
+# Moha-kör saját stílus-megállapodásai. Ami ide kerül, az a KIBIC_STAND-on
+# NINCS (a KIBIC_STAND a kibic semleges alapértelmezése marad).
+#
+#   + LOTT   a törvény: küzdelmi licitben annyi szintig versenyzünk,
+#            ahány adunk van
+#   + SZABAD_LICIT_MIN = 11: a pozitív szabad licit 11+ (a KIBIC_STAND-on 10)
+#
+# A sorrend számít: ami a KIBIC_STAND ELŐTT áll, az felülírja.
+rendszer:
+  kod: MOHA_STAND
+  nev: Moha standard
+  nev_en: Moha club standard
+  fajta: RENDSZER
+  csalad: NATURAL
+  verzio: "0.1"
+  leiras: >-
+    A Moha-kör rendszere: a Kibic standard (5-ös nemes, 15-17 szan, 2/1,
+    Walsh, Junk Stayman, Lebensohl, Timbuktu …) és a törvény (LoTT) a
+    küzdelmi licitben.
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+  SZABAD_LICIT_MIN: "11"        # pozitív szabad licit: 11+ (a KIBIC_STAND-on 10)
+hivatkozasok:
+  - LOTT                        # a Moha-kör stílusa: licitáld az aduid számát
+  - FELMENTES                   # elv: az 1./2. kézben a 8 vesztős (13 FP alatt) és a rossz 11-12 pont nem induló erő
+  - MOHA_2MAJOR                 # gyenge kettes nemes a Moha-kör szerint (2026-09-29; eddig lemaradt a kártyáról)
+  - MOHA_2D                     # gyenge 2♦ a Moha nemes táblázatával (2026-10-05)
+  - MOHA_NONFORCE_1NT           # 1M-1NT és az egyszerű emelés fedőütéssel (2026-09-30; eddig lemaradt)
+  - MOHA_FEDOKERESO             # fedőkereső invit 1M-2M után (2026-09-30; eddig lemaradt)
+  - {kod: LIMITALT_UJ_SZIN, ervenyes: ["1M-1NT"]}   # elv: a limitált lap új színe lezárás (2026-10-19)
+  - MOHA_INFO_KONTRA            # információs kontra a Moha szerint: induló erő, 18+ (2026-10-21)
+  - KIBIC_STAND
+
+kartya:
+  jatekosok: "Moha-kör — MOHA_STAND"
+  kategoria: "klubverseny (Moha)"
+  altalanos: >-
+    Mint a KIBIC_STAND (ötös nemes, 15-17 szan, 2/1, Walsh, Junk Stayman,
+    Lebensohl, Timbuktu, 1-re 1, negyedik szín), és küzdelmi licitben a
+    törvény: 8 lapos adunál a 2-es, 9 laposnál a 3-as, 10 laposnál a 4-es
+    szintig versenyzünk.

@@ -1,0 +1,185 @@
+# POZITÍV SZABAD LICIT (2026-10-02, Moha). Megállapodás: ha a nyitásunk
+# után az ellenfél közbeszól, a válaszoló NEM UGRÓ új színe a 2-es (3-as)
+# szinten POZITÍV: legalább SZABAD_LICIT_MIN figurapont (alapból 10; van,
+# aki 11-et játszik — a rendszer vagy a pár paramétere) és 5+ lap; egy körre
+# kényszerít. Egy ponttal kevesebb is elég, ha a lap JÓ (LAPMINOSEG).
+# Ami ide nem fér (kevesebb pont, nincs ötös szín), arra a negatív kontra
+# való, 10 ponttal pedig nem passzolunk (NEGATIV_KONTRA: „minden más”).
+#
+# Az alternatívája a NEGATÍV szabad licit (gyenge, nem kényszerítő új szín)
+# — az még nincs megírva.
+#
+# A KIBIC_STAND-on a KIBICEGY_KUZDELMI ugyanezen licitjeit felülírja (azok
+# 10+ fix határral szóltak). Az 1-es szintű új szín (1♣ (1♦) 1♥) nem
+# szabad licit: az 6+, 4+ lap marad.
+# A 3-as szintű szabad licit (pl. 1♠ (2♥) 3♣) határa ugyanez — kieg.
+rendszer:
+  kod: POZITIV_SZABAD_LICIT
+  nev: Pozitív szabad licit
+  nev_en: Positive free bid
+  fajta: KONVENCIO
+  tema: "Közbeszólás után: a válaszoló új színe"
+  leiras: "A nyitásunkra adott közbeszólás után a válaszoló nem ugró új színe 2-es (3-as) szinten pozitív: SZABAD_LICIT_MIN+ FP (alapból 10), 5+ lap, kényszerít."
+fejezetek:
+  - fejezet: "Pozitív szabad licit"
+    szabalyok:
+      - {minta: "1C (1H) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1C (1H) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (1S) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1C (1S) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (1S) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1C (1S) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2D) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1C (2D) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2D) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1C (2D) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2H) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1C (2H) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2H) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1C (2H) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2S) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1C (2S) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1C (2S) 3H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1C (2S) 3H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (1H) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1D (1H) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (1S) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1D (1S) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (1S) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1D (1S) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2C) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1D (2C) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2C) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1D (2C) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2H) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1D (2H) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2H) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1D (2H) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2S) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1D (2S) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1D (2S) 3H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1D (2S) 3H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (1S) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1H (1S) 2C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (1S) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1H (1S) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2C) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1H (2C) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2C) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1H (2C) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2D) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1H (2D) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2D) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+},
+         forsz: EGY_MENET, prioritas: 60, magyarazat: "Pozitív szabad licit: 5+ pikk, kényszerít"}
+      - {minta: "1H (2D) 2S", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 60,
+         magyarazat: "Pozitív szabad licit: 5+ pikk, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2S) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1H (2S) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1H (2S) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1H (2S) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2C) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1S (2C) 2D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2C) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1S (2C) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2D) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1S (2D) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2D) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+},
+         forsz: EGY_MENET, prioritas: 59, magyarazat: "Pozitív szabad licit: 5+ kőr, kényszerít"}
+      - {minta: "1S (2D) 2H", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59,
+         magyarazat: "Pozitív szabad licit: 5+ kőr, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2H) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {C: 5+},
+         forsz: EGY_MENET, prioritas: 57, magyarazat: "Pozitív szabad licit: 5+ treff, kényszerít"}
+      - {minta: "1S (2H) 3C", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {C: 5+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "Pozitív szabad licit: 5+ treff, egy ponttal kevesebb jó lappal"}
+      - {minta: "1S (2H) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+},
+         forsz: EGY_MENET, prioritas: 58, magyarazat: "Pozitív szabad licit: 5+ káró, kényszerít"}
+      - {minta: "1S (2H) 3D", pont: {param: SZABAD_LICIT_MIN, alap: 10, eltolas: -1}, minoseg: jo,
+         hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 58,
+         magyarazat: "Pozitív szabad licit: 5+ káró, egy ponttal kevesebb jó lappal"}

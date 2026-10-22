@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kibic/schemas/kibic-dd-tabla.response.json",
+  "title": "POST /v1/kibic/dd-tabla — válasz (HTTP 200)",
+  "description": "Minden pontszám É-D (NS) szemszögéből előjelezett, mint a jegyzőkönyvekben: pozitív = NS nyer. Kivétel: best_contract.<side>.score, ami az adott vonal saját szemszöge. Szín-kódok: C D H S, szan = N. A kontraktus-SZÖVEG a /v1/kibic/dd-vel egyezően '4S', '3NT', '5DX' alakú.",
+  "type": "object",
+  "required": ["request_id", "vulnerability", "dealer", "dd_table", "side_max",
+               "best_contract", "par", "contract_analysis", "warning", "elapsed_ms"],
+  "properties": {
+    "request_id": {"type": ["string", "null"]},
+    "vulnerability": {"type": "string", "description": "A kérésből, változatlanul."},
+    "dealer": {"$ref": "#/$defs/ules", "description": "A par számításához használt osztó (megadott vagy feltételezett)."},
+    "dd_table": {
+      "description": "A 20 mezős DD-tábla: felvevő → szín → hány ütést visz a felvevő tökéletes játékkal (kezdőkijátszás: a felvevőtől balra ülő).",
+      "type": "object",
+      "required": ["N", "E", "S", "W"],
+      "properties": {
+        "N": {"$ref": "#/$defs/tablasor"}, "E": {"$ref": "#/$defs/tablasor"},
+        "S": {"$ref": "#/$defs/tablasor"}, "W": {"$ref": "#/$defs/tablasor"}
+      }
+    },
+    "side_max": {
+      "description": "Vonalanként és színenként a jobbik felvevő eredménye (N vs S, illetve E vs W).",
+      "type": "object",
+      "required": ["NS", "EW"],
+      "properties": {"NS": {"$ref": "#/$defs/vonalsor"}, "EW": {"$ref": "#/$defs/vonalsor"}}
+    },
+    "best_contract": {
+      "description": "Vonalanként a legtöbbet érő TELJESÍTHETŐ kontraktus, az ellenfél licitjét figyelmen kívül hagyva (\"mit tudunk mi\"). null, ha a vonal semmit sem teljesít.",
+      "type": "object",
+      "required": ["NS", "EW"],
+      "properties": {
+        "NS": {"$ref": "#/$defs/legjobb"},
+        "EW": {"$ref": "#/$defs/legjobb"}
+      }
+    },
+    "par": {
+      "type": "object",
+      "required": ["score_ns", "contracts", "passed_out", "dealer", "dealer_assumed", "dealer_sensitive"],
+      "properties": {
+        "score_ns": {"type": "integer", "description": "A par-pontszám NS szemszögből."},
+        "contracts": {
+          "type": "array",
+          "description": "A par-kontraktus(ok). Több elem, ha több egyenértékű van (pl. 4H és 4S). Üres, ha a par a bedobott lap.",
+          "items": {"$ref": "#/$defs/kontraktus"}
+        },
+        "passed_out": {"type": "boolean", "description": "true = a par a bedobott lap (0)."},
+        "dealer": {"$ref": "#/$defs/ules"},
+        "dealer_assumed": {"type": "boolean", "description": "true = a kérésben nem volt `dealer`, feltételeztük."},
+        "dealer_sensitive": {
+          "type": ["boolean", "null"],
+          "description": "Csak feltételezett osztónál: változna-e a par, ha a másik vonal osztana. Megadott osztónál null."
+        }
+      }
+    },
+    "contract_analysis": {
+      "description": "A ténylegesen játszott kontraktus értékelése. null, ha a kérésben nem volt `contract`.",
+      "oneOf": [
+        {"type": "null"},
+        {
+          "title": "passzolt lap",
+          "type": "object",
+          "required": ["contract", "passed_out", "score_ns", "vs_par"],
+          "properties": {
+            "contract": {"const": "P"},
+            "passed_out": {"const": true},
+            "score_ns": {"const": 0},
+            "vs_par": {
+              "type": "object",
+              "required": ["total"],
+              "properties": {"total": {"$ref": "#/$defs/elteres"}}
+            }
+          }
+        },
+        {
+          "title": "játszott kontraktus",
+          "type": "object",
+          "required": ["contract", "declarer", "side", "needed_tricks", "dd_tricks",
+                       "dd_result", "dd_score_ns", "actual_tricks", "actual_result",
+                       "actual_score_ns", "actual_source", "vs_par"],
+          "properties": {
+            "contract": {"type": "string", "examples": ["4S", "3NT", "5DX"]},
+            "declarer": {"$ref": "#/$defs/ules"},
+            "side": {"enum": ["NS", "EW"]},
+            "needed_tricks": {"type": "integer"},
+            "dd_tricks": {"type": "integer", "description": "Ennyit vinne a felvevő ebben a kontraktusban tökéletes játékkal."},
+            "dd_result": {"$ref": "#/$defs/eredmenyjel"},
+            "dd_score_ns": {"type": "integer"},
+            "actual_tricks": {"type": ["integer", "null"], "description": "A tényleges ütésszám; null, ha nem ismert (nincs declarer_tricks és nem teljes a play)."},
+            "actual_result": {"oneOf": [{"$ref": "#/$defs/eredmenyjel"}, {"type": "null"}]},
+            "actual_score_ns": {"type": ["integer", "null"]},
+            "actual_source": {"enum": ["declarer_tricks", "play", null]},
+            "vs_par": {
+              "type": "object",
+              "required": ["bidding", "play_tricks_diff", "total"],
+              "properties": {
+                "bidding": {
+                  "description": "A LICIT: a kontraktus DD-értéke mínusz a par. Negatív = NS rosszabb kontraktusba került, mint a par.",
+                  "$ref": "#/$defs/elteres"
+                },
+                "play_tricks_diff": {
+                  "type": ["integer", "null"],
+                  "description": "A JÁTÉK: tényleges ütésszám mínusz DD-ütésszám, a FELVEVŐ szemszögéből (negatív = a felvevő kevesebbet vitt, mint lehetett; pozitív = a védekezés hibázott)."
+                },
+                "total": {
+                  "description": "A kettő együtt: a tényleges pontszám mínusz a par. null, ha a tényleges ütésszám nem ismert.",
+                  "oneOf": [{"$ref": "#/$defs/elteres"}, {"type": "null"}]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "warning": {"type": "string", "description": "A DD-korlát rövid leírása; érdemes a felhasználónak is megmutatni."},
+    "elapsed_ms": {"type": "integer"}
+  },
+  "$defs": {
+    "ules": {"enum": ["N", "E", "S", "W"]},
+    "szin": {"enum": ["C", "D", "H", "S", "N"]},
+    "eredmenyjel": {"type": "string", "pattern": "^(=|[+-]([1-9]|1[0-3]))$", "examples": ["=", "+1", "-2"]},
+    "tablasor": {
+      "type": "object",
+      "required": ["C", "D", "H", "S", "N"],
+      "properties": {
+        "C": {"$ref": "#/$defs/utes"}, "D": {"$ref": "#/$defs/utes"},
+        "H": {"$ref": "#/$defs/utes"}, "S": {"$ref": "#/$defs/utes"},
+        "N": {"$ref": "#/$defs/utes"}
+      }
+    },
+    "utes": {"type": "integer", "minimum": 0, "maximum": 13},
+    "vonalsor": {
+      "type": "object",
+      "required": ["C", "D", "H", "S", "N"],
+      "additionalProperties": {"$ref": "#/$defs/vonalmax"},
+      "properties": {
+        "C": {"$ref": "#/$defs/vonalmax"}, "D": {"$ref": "#/$defs/vonalmax"},
+        "H": {"$ref": "#/$defs/vonalmax"}, "S": {"$ref": "#/$defs/vonalmax"},
+        "N": {"$ref": "#/$defs/vonalmax"}
+      }
+    },
+    "vonalmax": {
+      "type": "object",
+      "required": ["tricks", "declarers", "max_level"],
+      "properties": {
+        "tricks": {"$ref": "#/$defs/utes"},
+        "declarers": {"type": "array", "items": {"$ref": "#/$defs/ules"}, "minItems": 1, "maxItems": 2,
+                      "description": "Melyik felvevővel érhető el (mindkettő, ha egyenlő)."},
+        "max_level": {"type": ["integer", "null"], "minimum": 1, "maximum": 7,
+                      "description": "A legmagasabb teljesíthető szint (tricks − 6); null, ha 7 ütés sincs."}
+      }
+    },
+    "kontraktus": {
+      "type": "object",
+      "required": ["contract", "level", "strain", "doubled", "side", "declarers", "tricks", "result", "score_ns"],
+      "properties": {
+        "contract": {"type": "string", "examples": ["4S", "5HX", "3NT"]},
+        "level": {"type": "integer", "minimum": 1, "maximum": 7},
+        "strain": {"$ref": "#/$defs/szin"},
+        "doubled": {"type": "boolean", "description": "A bukó kontraktus mindig kontrázott (par-konvenció)."},
+        "side": {"enum": ["NS", "EW"]},
+        "declarers": {"type": "array", "items": {"$ref": "#/$defs/ules"}},
+        "tricks": {"$ref": "#/$defs/utes"},
+        "result": {"$ref": "#/$defs/eredmenyjel"},
+        "score_ns": {"type": "integer"}
+      }
+    },
+    "legjobb": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["score", "contracts"],
+          "properties": {
+            "score": {"type": "integer", "description": "A VONAL SAJÁT szemszögéből (pozitív)."},
+            "contracts": {"type": "array", "items": {"$ref": "#/$defs/kontraktus"}, "minItems": 1}
+          }
+        }
+      ]
+    },
+    "elteres": {
+      "type": "object",
+      "required": ["score_diff_ns", "imp_ns"],
+      "properties": {
+        "score_diff_ns": {"type": "integer", "description": "Pontkülönbség NS szemszögből."},
+        "imp_ns": {"type": "integer", "description": "Ugyanez IMP-ben (WBF-skála)."}
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+rendszer:
+  kod: BERGEN
+  nev: Bergen-emelések
+  nev_en: Bergen Raises
+  fajta: KONVENCIO
+  tema: "1M után: limit- és gyenge emelés"
+  leiras: "1M után a 3♣ gyenge, a 3♦ erős emelés 4+ aduval. Utána az új szín invit (kieg.: a sávok a Bergen.pdf szerint)."
+fejezetek:
+  - fejezet: Bergen
+    szabalyok:
+      - {minta: 1M-3C, pont: 7-9, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Gyenge Bergen: 7-10 FP, 4+ adu", nyers: "3♣ | Gyenge Bergen (utána új szín, invit)"}
+      - {minta: 1M-3D, pont: 10-12, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Erős Bergen: 10-12 FP, 4+ adu", nyers: "3♦ | Erős Bergen (utána új szín, invit)"}
+      # a nyitó (kieg.)
+      - {minta: 1M-3C-3M, pont: 12-14, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1M-3C-4M, pont: 15+, prioritas: 51, magyarazat: "Gém"}
+      - {minta: 1M-3D-3M, pont: 12-13, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1M-3D-4M, pont: 14+, prioritas: 51, magyarazat: "Gém"}

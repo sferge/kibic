@@ -1,0 +1,68 @@
+# A TÖRVÉNY — Law of Total Tricks (LoTT), küzdelmi ELVKÉNT (2026-10-02;
+# Vernes 1966/1969, Larry Cohen 1992; forrás: A_t_rv_ny.pdf).
+#
+# "Licitáld az aduid számát": küzdelmi licitben (az ellenfél is licitált)
+# 8 lapos közös aduval a 2-es, 9 lapossal a 3-as, 10 lapossal a 4-es szintig
+# érdemes versenyezni — a szerződés vagy teljesül, vagy jó mentés.
+# A KÖZÖS ADU = a saját lapjaim + amit a partner BIZTOSAN ígért (`fit`).
+#
+# ELV (tartalék): csak akkor él, ha konkrét szabály nem illik — a
+# megállapodott licitek (Bergen, a küzdelmi emelések) előbb jönnek. A
+# passzt a PASSZ_ELV adja: ha a közös adu ennél kevesebb, a kibic nem
+# versenyez tovább ("ne licitálj az adud fölé").
+#
+# FENNTARTÁS: a törvény ÁTLAGOS összefüggés. Ginsberg (GIB, kb. 450 000
+# leosztás) szerint a total tricks a total trumps-szal csak a leosztások
+# kb. 40%-ában egyezik; a 18 fölötti összaduknál, rossz adukkal,
+# kettős fittel téved. Ezért ez csak a GYORS elv: ahol a kibicnek van ideje
+# szimulálni (MÉRLEGELŐ sor + DD-minta), ott a szimuláció dönt, nem ez.
+#
+# HOVÁ VALÓ: ez a pár MEGÁLLAPODÁSA (stílusa), ezért a RENDSZER hivatkozik
+# rá, mint egy konvencióra — a MOHA_STAND igen (a KIBIC_STAND nem). Családba, alaprendszerbe
+# nem kell: az ellenfél küzdelmi emelését enélkül is természetesen értjük.
+# Hogy egy pár mennyire merész (pl. a törvény fölött), az a pár
+# paramétere lehetne (a pár paramétertárában) — ez még nincs.
+rendszer:
+  kod: LOTT
+  nev: "A törvény (Law of Total Tricks)"
+  nev_en: Law of Total Tricks
+  fajta: KONVENCIO
+  tema: "Küzdelmi licit: meddig versenyezzünk"
+  leiras: >-
+    Küzdelmi licitben az aduk száma szerint versenyzünk: 8 lapos fittel a
+    2-es, 9 lapossal a 3-as, 10 lapossal a 4-es szintig (Vernes / Cohen).
+fejezetek:
+  - fejezet: "Licitáld az aduid számát"
+    jegyzet: >-
+      2026-10-02, szigorítva. Részszerződés-csata: csak küzdelmi licitben
+      (az ellenfél is licitált — kontrával is), gémforsz nélkül; a nyitóra
+      és a válaszolóra egyaránt (pl. 1M-2M-P-P-X után 4 lappal 3M). A 2-es
+      szint 8 lappal bármely zónában jó (legalább 5 FP). A 3-as / 4-es szint
+      9 / 10 lappal: mi-bellben-ők-nem zónában csak extra elosztással
+      (legfeljebb 7 vesztő). A törvény FÖLÖTT (eggyel több, mint az aduk
+      száma) csak kedvező zónában (ők bellben) és extra elosztással — és ott
+      sem ez dönt, csak jelöltet ad a mérlegelésnek (szimuláció).
+    szabalyok:
+      - {minta: ".. 2A", kulcs: LOTT-2, fajta: ELV, prioritas: 3,
+         ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false},
+         fit: {A: 8+}, pont: 5+, jelentes: {tartalek: true},
+         magyarazat: "A törvény: 8 lapos közös aduval a 2-es szintig versenyzünk"}
+      - {minta: ".. 3A", kulcs: LOTT-3, fajta: ELV, prioritas: 3,
+         ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false},
+         fit: {A: 9+}, vesztok: {O: "0-12", A: "0-12", M: "0-12", S: "0-7"},
+         jelentes: {tartalek: true},
+         magyarazat: "A törvény: 9 lapos közös aduval a 3-as szintig versenyzünk"}
+      - {minta: ".. 4A", kulcs: LOTT-4, fajta: ELV, prioritas: 3,
+         ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false},
+         fit: {A: 10+}, vesztok: {O: "0-12", A: "0-12", M: "0-12", S: "0-7"},
+         jelentes: {tartalek: true},
+         magyarazat: "A törvény: 10 lapos közös aduval a 4-es szintig versenyzünk"}
+      # a törvény fölött: csak kedvező zónában, extra elosztással, MÉRLEGELÉSRE
+      - {minta: ".. 3A", kulcs: LOTT-3-FELETTE, fajta: ELV, prioritas: 2, dontesi_mod: MERLEGELO,
+         ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false, szkor: O},
+         fit: {A: 8}, vesztok: 0-6, jelentes: {tartalek: true},
+         magyarazat: "A törvény fölött (8 adu, 3-as szint): kedvező zónában, extra elosztással — mérlegelésre"}
+      - {minta: ".. 4A", kulcs: LOTT-4-FELETTE, fajta: ELV, prioritas: 2, dontesi_mod: MERLEGELO,
+         ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false, szkor: O},
+         fit: {A: 9}, vesztok: 0-6, jelentes: {tartalek: true},
+         magyarazat: "A törvény fölött (9 adu, 4-es szint): kedvező zónában, extra elosztással — mérlegelésre"}

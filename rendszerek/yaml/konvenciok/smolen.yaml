@@ -1,0 +1,24 @@
+rendszer:
+  kod: SMOLEN
+  nev: Smolen
+  nev_en: Smolen
+  fajta: KONVENCIO
+  tema: "Stayman után: 5-4 nemes gémerővel"
+  leiras: "Stayman és nemleges válasz után a 3M: pontosan négyes a bemondott nemes, 5+ a másik; gémforsz."
+fejezetek:
+  - fejezet: Smolen
+    szabalyok:
+      - {minta: 1NT-2C-2D-3H, pont: 10+, hossz: {H: 4, S: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 kőr, 5+ pikk, gémforsz",
+         nyers: "3M | Szmolen konvenció; pontosan négyes a bemondott major és 5+ a másik major; GF"}
+      - {minta: 1NT-2C-2D-3S, pont: 10+, hossz: {S: 4, H: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 pikk, 5+ kőr, gémforsz"}
+      - {minta: 2NT-3C-3D-3H, pont: 4+, hossz: {H: 4, S: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 kőr, 5+ pikk", nyers: "3♥, 3♠!: Smolen"}
+      - {minta: 2NT-3C-3D-3S, pont: 4+, hossz: {S: 4, H: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 pikk, 5+ kőr"}
+      # a nyitó (kieg.): 3-as fittel a hosszú nemest mondja, anélkül 3NT
+      - {minta: 1NT-2C-2D-3H-4S, hossz: {S: 3+}, prioritas: 51, magyarazat: "3-as pikk fit"}
+      - {minta: 1NT-2C-2D-3H-3NT, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Nincs pikk fit"}
+      - {minta: 1NT-2C-2D-3S-4H, hossz: {H: 3+}, prioritas: 51, magyarazat: "3-as kőr fit"}
+      - {minta: 1NT-2C-2D-3S-3NT, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Nincs kőr fit"}

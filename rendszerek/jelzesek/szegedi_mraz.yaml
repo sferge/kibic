@@ -1,0 +1,147 @@
+# SZEGEDI_MRAZ — a Szegedi–Mráz rendszer (2008) jelzésrendszere.
+#
+# Forrás: szegedimraz_rendszer2008.pdf, 58. oldal ("Ellenjáték") és 54. oldal
+# (speciális kontrák). A 2007-es (ifi) változatban nincs ellenjáték-fejezet.
+#
+# ALAPRENDSZER: ugyanúgy hivatkozni lehet rá, mint egy licit-alaprendszerre
+# (lásd moha_stand.yaml). Minden sor egy kulccsal azonosítható; a ráépülő
+# rendszer azonos kulcsú sorral felülírja, `kihagy: KULCS`-csal kihagyja, a
+# `kizarasok:` egy fejezetét veszi ki.
+#
+# Az indító lapot a LEGKONKRÉTABB illeszkedő sor választja (több konkrét lap
+# a mintában, több feltétel), nem a sorrend.
+#
+# allapot: a sorok ELFOGADOTT-ak (a rendszerleírás kimondja őket); ahol a
+# leírás nem mond semmit és a kibic feltételezett, ott JAVASOLT — ezek a
+# kártyán kérdőjellel jelennek meg, a szerkesztőben jóváhagyhatók.
+jelzesrendszer:
+  kod: SZEGEDI_MRAZ
+  nev: Szegedi–Mráz jelzésrendszer (2008)
+  fajta: ALAPRENDSZER
+  verzio: "2008"
+  alap_allapot: ELFOGADOTT
+  forras: "Szegedi Balázs & Mráz Máté: Licitrendszer, 2008 — Ellenjáték"
+  leiras: >-
+    Szín ellen páratlanból a legkisebb, párosból a harmadik, dublóból a
+    nagyobb; szan ellen felülről a negyedik, ha van legalább tízes, különben
+    a legnagyobb nélkülözhető; sorozat és belső sorozat teteje. Kicsivel
+    kérünk, maradék lapszámot jelzünk fordítva; Lavinthal; Smith.
+
+fejezetek:
+  - fejezet: "Indítás szín ellen"
+    sorok:
+      - {felvetel: SZIN, minta: [AK+, KQ+, QJ+, JT+, T9+], lap: SOROZAT_TETEJE,
+         kulcs: "INDITAS/SZIN/SOROZAT", megjegyzes: "sorozat teteje (AK-ból K csak különleges helyzetben)"}
+      - {felvetel: SZIN, minta: [AQJ+, AJT+, KJT+, AT9+, KT9+, QT9+], lap: SOROZAT_TETEJE,
+         kulcs: "INDITAS/SZIN/BELSO_SOROZAT", megjegyzes: "belső sorozat teteje"}
+      - {felvetel: SZIN, hossz: "1", lap: LEGNAGYOBB, cel: LSZ}
+      - {felvetel: SZIN, hossz: "2", lap: NAGYOBB, cel: LSZ, megjegyzes: "dublóból a nagyobb"}
+      - {felvetel: SZIN, minta: "xxx+", kontextus: IGERT_HAROM, lap: LEGNAGYOBB_NELKULOZHETO,
+         cel: LSZ, megjegyzes: "ha már ígértünk három lapot, figura nélkül a legnagyobb nélkülözhető"}
+      - {felvetel: SZIN, hossz: "3+", lap: PARATLAN_PAROS(LEGKISEBB;FELULROL(3)), cel: LSZ,
+         megjegyzes: "páratlanból a legkisebb, párosból a harmadik"}
+
+  - fejezet: "Indítás szan ellen"
+    sorok:
+      - {felvetel: SZAN, minta: [AKQ+, KQJ+, QJT+, JT9+, T98+], lap: SOROZAT_TETEJE,
+         kulcs: "INDITAS/SZAN/SOROZAT", megjegyzes: "háromlapos sorozat teteje"}
+      - {felvetel: SZAN, minta: [AQJ+, AJT+, KJT+, AT9+, KT9+, QT9+], lap: SOROZAT_TETEJE,
+         kulcs: "INDITAS/SZAN/BELSO_SOROZAT", megjegyzes: "belső sorozat teteje"}
+      - felvetel: SZAN
+        minta: [AK+, KQ+, QJ+, JT+, T9+]
+        lap: SOROZAT_TETEJE
+        kulcs: "INDITAS/SZAN/KETLAPOS_SOROZAT"
+        allapot: JAVASOLT
+        megjegyzes: "két érintkező figura kis lapokkal (KD72): a leírás nem mondja meg, sorozatnak számít-e"
+      - {felvetel: SZAN, hossz: "1", lap: LEGNAGYOBB, cel: LSZ}
+      - {felvetel: SZAN, hossz: "2", lap: NAGYOBB, cel: LSZ, allapot: JAVASOLT,
+         megjegyzes: "a leírás dublót csak szín ellen említ"}
+      - {felvetel: SZAN, hossz: "4+", legalabb: T, lap: FELULROL(4), cel: FIG,
+         megjegyzes: "felülről a negyedik, ha van legalább tízes a színben (11-es szabály)"}
+      - {felvetel: SZAN, hossz: "3", legalabb: T, lap: LEGKISEBB, cel: FIG, allapot: JAVASOLT,
+         megjegyzes: "háromból figurával: a leírás nem írja; a szokásos a legkisebb"}
+      - {felvetel: SZAN, lap: LEGNAGYOBB_NELKULOZHETO, cel: FIG,
+         megjegyzes: "különben a legnagyobb nélkülözhető"}
+
+  - fejezet: "Menet közbeni hívás"
+    jegyzet: >-
+      A forrás: „Attitűd: figurából harmadik-ötödik, egyébként a legnagyobb
+      nélkülözhető, dublóból a nagyobb.” Ebből három sor lett, mint a többi
+      jelzésnél: a Jelzési rácsban, hogy MIT jelez a hívott lap (3+ lapból
+      attitűd); a Módszerekben, hogy HOGYAN (figurából „harmadik-ötödik”,
+      különben a legnagyobb nélkülözhető); és a „harmadik-ötödik” technika
+      definíciója. Itt csak a rövid színek maradtak.
+    sorok:
+      - {helyzet: HIVAS, hossz: "1", lap: LEGNAGYOBB, cel: KER}
+      - {helyzet: HIVAS, hossz: "2", lap: NAGYOBB, cel: KER, megjegyzes: "dublóból a nagyobb"}
+      # a „legnagyobb nélkülözhető” játék közben (a forrás nem részletezi; a
+      # magában álló 10-es / 9-es szabálya a motorban van, a 8-as mérlegelés)
+      - elv: NELKULOZHETO_KOZEPLAP
+        terulet: HIVAS
+        merlegelo: true
+        szoveg: >-
+          A legnagyobb nélkülözhető lap játék közben: a magában álló 10-es vagy 9-es
+          fontos lehet (különösen, ha a jobbunkon leterülő asztalon olyan
+          villát látunk, amibe beleillik) — ilyenkor a második legnagyobb a
+          nélkülözhető. Néha a 8-as is ilyen: ezt a parti dönti el.
+
+  - fejezet: "Jelzési rács"
+    jegyzet: >-
+      A WBF-kártya "Signals in order of priority" táblázata. A rendszer
+      leírja a jelzéseket, de azt nem mindig, hogy egy helyzetben melyik az
+      elsődleges: ahol ezt a kibic feltételezte, a sor JAVASOLT.
+    sorok:
+      - {racs: PARTNER_INDIT, felvetel: "*", sorrend: 1, jel: KERES}
+      - {racs: PARTNER_INDIT, felvetel: "*", sorrend: 2, jel: LAPSZAM, allapot: JAVASOLT}
+      - {racs: FELVEVO_HIV, felvetel: "*", sorrend: 1, jel: SMITH}
+      - {racs: FELVEVO_HIV, felvetel: "*", sorrend: 2, jel: LAPSZAM}
+      - {racs: DOBAS, felvetel: "*", sorrend: 1, jel: PREF, allapot: JAVASOLT}
+      - {racs: VEDO_HIV, felvetel: "*", hossz: "3+", sorrend: 1, jel: ATTITUD,
+         megjegyzes: "menet közbeni hívás 3+ lapból: attitűd (a dubló és a szingli a Menet közbeni hívás fejezetben)"}
+
+  - fejezet: "Módszerek"
+    sorok:
+      - {modszer: KERES, ertek: KICSI, megjegyzes: "mindig kicsivel kérünk"}
+      - {modszer: LAPSZAM, ertek: FORDITOTT, megjegyzes: "kicsi-nagy = páros"}
+      - {modszer: LAPSZAM_ALAP, ertek: MARADEK, megjegyzes: "mindig maradék lapszámot jelzünk"}
+      - {modszer: PREF, ertek: LAVINTHAL_3, megjegyzes: "kisebb = alacsonyabb szín, nagyobb = magasabb, közepes = semleges"}
+      - {modszer: SMITH, ertek: KICSI_POZITIV, megjegyzes: "kis lap: jól indultam / jól indultál"}
+      # attitűd a HÍVOTT lappal (menet közbeni hívás)
+      - modszer: ATTITUD
+        hivas:
+          - {legalabb: J, lap: HARMADIK_OTODIK}       # van figura
+          - {lap: LEGNAGYOBB_NELKULOZHETO}            # nincs figura
+        megjegyzes: "figurából harmadik-ötödik, egyébként a legnagyobb nélkülözhető"
+      # TECHNIKA: egy névvel ellátott lapválasztás, esetekre bontva
+      - technika: HARMADIK_OTODIK
+        esetek:
+          - {hossz: "6+", lap: FELULROL(3)}
+          - {hossz: "5", lap: LEGKISEBB}
+          - {hossz: "3-4", lap: FELULROL(3)}
+        szoveg: "figura alól: hatosból és hosszabból a harmadik legnagyobb, ötösből a legkisebb (az ötödik), hármasból-négyesből a harmadik legnagyobb"
+
+  - fejezet: "Elvek"
+    sorok:
+      - {elv: PARTNER_SZUKSEGLETE, terulet: JELZES, szoveg: "Mindig azt jelezzük, amire a partnernek szüksége van."}
+
+  - fejezet: "Különleges helyzetek"
+    sorok:
+      - {kulonleges: SMITH, szoveg: "Második ütésben, ha a felvevő ütött és hív: Smith Peter (kis lap: jól indultam / jól indultál); a válaszolótól Smith Count: maradék lapszám az indulás színében."}
+      - {kulonleges: AK_K, szoveg: "AK-ból K-val indulunk: szek AK, külső szingli, 4x kontra, 5-ös magasságú felvétel ellen."}
+      - {kulonleges: A_DXX, szoveg: "Ász indulásba, ha az asztalon Dxx vagy Bxxx terül: kicsi = dubló, nagy-kicsi = 3, nagy-nagy = 4 (ha már ígértünk három lapot: sima lapszám)."}
+      - {kulonleges: A_SZINGLI, szoveg: "Ász indulás után szingli terül az asztalon, vagy tudottan szingli a kézben: Lavinthal."}
+      - {kulonleges: ASZTAL_VISZI, szoveg: "Az indulást az asztal ellopja, vagy zárt színnel viszi: Lavinthal, közepes lap = folytatás."}
+      - {kulonleges: D_UT, szoveg: "Ha dáma vagy annál kisebb lap üt az asztalon: lapszám."}
+      - {kulonleges: ADU_INDULAS, szoveg: "Adu indulásba Lavinthal."}
+      - {kulonleges: K_HIVAS, szoveg: "Asztalon dáma, parti közben király hívás: lapszámot kér."}
+      - {kulonleges: SZAN_SZINGLI_FIG, szoveg: "Szanban, ha szingli vagy dubló figura üt az asztalon: lapszám, később Smith."}
+      - {kulonleges: LAVINTHAL_SZINGLI, szoveg: "Lavinthallal szinglit általában nem kérünk."}
+
+  - fejezet: "Indítást irányító licitek"
+    jegyzet: "A licittábla része, de a jelentésük az indításra szól."
+    sorok:
+      - {licit: KONTRA_3NT, szoveg: "3NT kontrája, sorrendben: indulj az asztal első színével; ne indulj a te licitált színeddel; ne az én licitált színemmel indulj; az én másik színemmel indulj; indulj a rövidebbik nemeseddel."}
+      - {licit: KONTRA_4M, szoveg: "4M kontrája: ha az asztal várhatóan rövid aduban, induljunk aduval; ha licitáltunk egy színt, amit a partner nem emelt, hívjuk azt; ha összeemeltünk egyet, érdemes mással indulni."}
+      - {licit: KONTRA_SZLEM, szoveg: "Szlem kontrája: lopni szeretnék."}
+      - {licit: KONTRA_SPLINTER, szoveg: "Splinter kontrája: indulj az alacsonyabb rangú fragmenttel."}
+      - {licit: LENGYEL_KONTRA, szoveg: "Lengyel kontra (az ellenfél mesterséges felüllicitjére, ha már 4-es színt ígért valamelyikünk): indulj mással; 1 minor indulás után valódi szín."}

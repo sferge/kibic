@@ -1,0 +1,21 @@
+rendszer:
+  kod: WOLFF
+  nev: Wolff-leállás
+  nev_en: Wolff Signoff
+  fajta: KONVENCIO
+  tema: "1m–1M–2NT után: leállás és kérdés"
+  leiras: "A nyitó 2NT újralicitje (18-19) után a 3♣ kötelezően 3♦-t kér; utána passz vagy 3M = leállás."
+fejezetek:
+  - fejezet: Wolff
+    szabalyok:
+      - {minta: 1H-1S-2NT-3C, pont: 0-6, vagy: [{hossz: {S: 6+}}, {hossz: {D: 6+}}, {hossz: {C: 6+}}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+         alert: "Wolff-leállás: 3♦-t kér", nyers: "3♣ | Wolff leállás; 3 kárót kér"}
+      - {minta: 1m-1M-2NT-3C, pont: 0-6, vagy: [{hossz: {M: 6+}}, {hossz: {D: 6+}}, {hossz: {C: 6+}}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+         alert: "Wolff-leállás: 3♦-t kér"}
+      - {minta: 1H-1S-2NT-3C-3D, prioritas: 50, magyarazat: "Kötelező 3♦",
+         nyers: "Wolff leállás: három kárót kér, amire ha 3 Major mond, vagy passzol, le akar állni."}
+      - {minta: 1m-1M-2NT-3C-3D, prioritas: 50, magyarazat: "Kötelező 3♦"}
+      - {minta: 1H-1S-2NT-3C-3D-3S, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás pikkben"}
+      - {minta: 1m-1M-2NT-3C-3D-3M, hossz: {M: 6+}, prioritas: 51, magyarazat: "Leállás a nemesben"}

@@ -1,0 +1,43 @@
+rendszer:
+  kod: "LEBENSOHL"
+  nev: "Lebensohl"
+  nev_en: "Lebensohl"
+  fajta: "KONVENCIO"
+  tema: "1NT nyitásunk után: kettes közbeszólás"
+  leiras: "1NT nyitásunkra adott természetes kettes közbeszólás után. Forrás: KÜZDELMI & VÉDEKEZŐ licitek.doc"
+fejezetek:
+  - fejezet: "Lebensohl"
+    szabalyok:
+      - {minta: "1NT (2D) X", pont: "8+", hossz: {"D": "4+"}, prioritas: 56, alert: "Büntető kontra", nyers: "DBL | PEN (büntetési javaslat)"}
+      - {minta: "1NT (2D) 2H", pont: "0-9", hossz: {"H": "5+"}, prioritas: 54, magyarazat: "Leállás, természetes", nyers: "2Y | T/P", rel: ["H>S"]}
+      - {minta: "1NT (2D) 2S", pont: "0-9", hossz: {"S": "5+"}, prioritas: 54, magyarazat: "Leállás, természetes", nyers: "2Y | T/P", rel: ["S>=H"]}
+      - {minta: "1NT (2D) 2NT", forsz: "EGY_MENET", elvaras: "VALASZ", prioritas: 53, vagy: [{"pont": "0-8", "vagy": [{"hossz": {"C": "5+"}}]}, {"pont": "10+", "fogas": ["D"]}], alert: "Lebensohl: 3♣-t kér (gyenge leállás, vagy lassú út fogással)", nyers: "2NT | LEBENSOHL (1. leállás m-ban; 2. INV M-ban; 3. GF fogással)"}
+      - {minta: "1NT (2D) 2NT (P) 3C", prioritas: 50, magyarazat: "Kötelező 3♣"}
+      - {minta: "1NT (2D) 3C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 55, magyarazat: "Invit+, 5+ szín", nyers: "3m: INV+ 5+m", rel: ["C>=D"]}
+      - {minta: "1NT (2D) 3D", pont: "10+", vagy: [{"hossz": {"H": "4"}}, {"hossz": {"S": "4"}}], nincs_fogas: ["D"], forsz: "GEMFORSZ", prioritas: 57, alert: "Felüllicit: 4-es nemes, nincs fogás", nyers: "FL | 4-es M, nincs fogás", rel: ["D>C"]}
+      - {minta: "1NT (2D) 3NT", pont: "10+", nincs_fogas: ["D"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 54, alert: "Gémerő, NINCS fogás (HELP)", nyers: "3NT | HELP!!! (gémerő fogás nélkül)"}
+      - {minta: "1NT (2D) 2NT (P) 3C (P) 3NT", pont: "10+", fogas: ["D"], prioritas: 52, magyarazat: "Gémerő, fogással", nyers: "3NT: T/P (fogás(ok)kal)"}
+      - {minta: "1NT (2D) 2NT (P) 3C (P) 3D", pont: "0-7", fogas: ["D"], vagy: [{"hossz": {"H": "4"}}, {"hossz": {"S": "4"}}], forsz: "GEMFORSZ", prioritas: 53, magyarazat: "4-es nemes ÉS fogás", nyers: "FL: 4-es M, és fogás a közbeszólás színében", rel: ["D>C"]}
+      - {minta: "1NT (2H) X", pont: "8+", hossz: {"H": "4+"}, prioritas: 56, alert: "Büntető kontra", nyers: "DBL | PEN (büntetési javaslat)"}
+      - {minta: "1NT (2H) 2S", pont: "0-9", hossz: {"S": "5+"}, prioritas: 54, magyarazat: "Leállás, természetes", nyers: "2Y | T/P", rel: ["S>=H"]}
+      - {minta: "1NT (2H) 2NT", forsz: "EGY_MENET", elvaras: "VALASZ", prioritas: 53, vagy: [{"pont": "0-8", "vagy": [{"hossz": {"C": "5+"}}, {"hossz": {"D": "5+"}}]}, {"pont": "10+", "fogas": ["H"]}], alert: "Lebensohl: 3♣-t kér (gyenge leállás, vagy lassú út fogással)", nyers: "2NT | LEBENSOHL (1. leállás m-ban; 2. INV M-ban; 3. GF fogással)"}
+      - {minta: "1NT (2H) 2NT (P) 3C", prioritas: 50, magyarazat: "Kötelező 3♣"}
+      - {minta: "1NT (2H) 3C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 55, magyarazat: "Invit+, 5+ szín", nyers: "3m: INV+ 5+m", rel: ["C>=D"]}
+      - {minta: "1NT (2H) 3D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 55, magyarazat: "Invit+, 5+ szín", nyers: "3m: INV+ 5+m", rel: ["D>C"]}
+      - {minta: "1NT (2H) 3H", pont: "10+", vagy: [{"hossz": {"S": "4"}}], nincs_fogas: ["H"], forsz: "GEMFORSZ", prioritas: 57, alert: "Felüllicit: 4-es nemes, nincs fogás", nyers: "FL | 4-es M, nincs fogás", rel: ["H>S"]}
+      - {minta: "1NT (2H) 3NT", pont: "10+", nincs_fogas: ["H"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 54, alert: "Gémerő, NINCS fogás (HELP)", nyers: "3NT | HELP!!! (gémerő fogás nélkül)"}
+      - {minta: "1NT (2H) 2NT (P) 3C (P) 3NT", pont: "10+", fogas: ["H"], prioritas: 52, magyarazat: "Gémerő, fogással", nyers: "3NT: T/P (fogás(ok)kal)"}
+      - {minta: "1NT (2H) 2NT (P) 3C (P) 3H", pont: "10+", fogas: ["H"], vagy: [{"hossz": {"S": "4"}}], forsz: "GEMFORSZ", prioritas: 53, magyarazat: "4-es nemes ÉS fogás", nyers: "FL: 4-es M, és fogás a közbeszólás színében", rel: ["H>S"]}
+      - {minta: "1NT (2H) 2NT (P) 3C (P) 3D", pont: "0-7", hossz: {"D": "5+"}, prioritas: 51, magyarazat: "Leállás", rel: ["D>C"]}
+      - {minta: "1NT (2S) X", pont: "8+", hossz: {"S": "4+"}, prioritas: 56, alert: "Büntető kontra", nyers: "DBL | PEN (büntetési javaslat)"}
+      - {minta: "1NT (2S) 2NT", forsz: "EGY_MENET", elvaras: "VALASZ", prioritas: 53, vagy: [{"pont": "0-8", "vagy": [{"hossz": {"C": "5+"}}, {"hossz": {"D": "5+"}}, {"hossz": {"H": "5+"}}]}, {"pont": "10+", "fogas": ["S"]}], alert: "Lebensohl: 3♣-t kér (gyenge leállás, vagy lassú út fogással)", nyers: "2NT | LEBENSOHL (1. leállás m-ban; 2. INV M-ban; 3. GF fogással)"}
+      - {minta: "1NT (2S) 2NT (P) 3C", prioritas: 50, magyarazat: "Kötelező 3♣"}
+      - {minta: "1NT (2S) 3C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 55, magyarazat: "Invit+, 5+ szín", nyers: "3m: INV+ 5+m", rel: ["C>=D"]}
+      - {minta: "1NT (2S) 3D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 55, magyarazat: "Invit+, 5+ szín", nyers: "3m: INV+ 5+m", rel: ["D>C"]}
+      - {minta: "1NT (2S) 3H", pont: "10+", hossz: {"H": "5+"}, forsz: "GEMFORSZ", prioritas: 57, magyarazat: "Gémforsz, 5+ nemes", nyers: "3M | GF 5+ M-ral", rel: ["H>S"]}
+      - {minta: "1NT (2S) 3S", pont: "10+", vagy: [{"hossz": {"H": "4"}}], nincs_fogas: ["S"], forsz: "GEMFORSZ", prioritas: 57, alert: "Felüllicit: 4-es nemes, nincs fogás", nyers: "FL | 4-es M, nincs fogás", rel: ["S>=H"]}
+      - {minta: "1NT (2S) 3NT", pont: "10+", nincs_fogas: ["S"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 54, alert: "Gémerő, NINCS fogás (HELP)", nyers: "3NT | HELP!!! (gémerő fogás nélkül)"}
+      - {minta: "1NT (2S) 2NT (P) 3C (P) 3NT", pont: "10+", fogas: ["S"], prioritas: 52, magyarazat: "Gémerő, fogással", nyers: "3NT: T/P (fogás(ok)kal)"}
+      - {minta: "1NT (2S) 2NT (P) 3C (P) 3S", pont: "10+", fogas: ["S"], vagy: [{"hossz": {"H": "4"}}], forsz: "GEMFORSZ", prioritas: 53, magyarazat: "4-es nemes ÉS fogás", nyers: "FL: 4-es M, és fogás a közbeszólás színében", rel: ["S>=H"]}
+      - {minta: "1NT (2S) 2NT (P) 3C (P) 3D", pont: "0-7", hossz: {"D": "5+"}, prioritas: 51, magyarazat: "Leállás", rel: ["D>C"]}
+      - {minta: "1NT (2S) 2NT (P) 3C (P) 3H", pont: "8-9", hossz: {"H": "4+"}, prioritas: 51, magyarazat: "Invit, 4+ nemes", nyers: "3M: INV- 4+ M-ral", rel: ["H>S"]}

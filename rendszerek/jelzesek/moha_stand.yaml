@@ -1,0 +1,234 @@
+# MOHA_STAND — a Moha standard jelzésrendszere.
+#
+# RENDSZER: a SZEGEDI_MRAZ-ra hivatkozik, és ezzel annak minden sorát
+# behozza. Ami itt áll, az NYER: azonos kulcsú sorral felülírja az
+# örököltet; `kihagy: KULCS` kihagyja; a `kizarasok` egy fejezetét veszi ki.
+#
+# Forrás: a 2026-10-20-i egyeztetés.
+jelzesrendszer:
+  kod: MOHA_STAND
+  nev: Moha standard jelzések
+  fajta: RENDSZER
+  verzio: "0.1"
+  alap_allapot: ELFOGADOTT
+  forras: "Moha standard, 2026-10-20 (a Szegedi–Mráz 2008 alapján)"
+  leiras: >-
+    A Szegedi–Mráz indításai; kicsivel kérünk, a lapszám és a maradék
+    lapszám fordított (kicsi-nagy = páros); első dobás egyenes kérés;
+    Smith a felvevő első hívásában, nagy lap = jó az indítás.
+
+hivatkozasok: [SZEGEDI_MRAZ]
+
+fejezetek:
+  - fejezet: "Az indulás színe"
+    jegyzet: >-
+      Indításnál a lapot a megállapodás adja, a színt az elemzés (DD) választja
+      — kivéve, ha a partner licitált: az ő színe elsőbbséget élvez,
+      különösen szan ellen.
+    sorok:
+      - szinvalasztas: PARTNER_SZINE
+        felvetel: "*"
+        kiveve: [NINCS_LAP, KIS_SZINGLI, SAJAT_EROS_SZIN, LOPAS]
+        szoveg: >-
+          Ha a partner licitált, az ő színével indulunk (különösen szan ellen),
+          kivéve: nincs lapunk benne, vagy csak egyetlen kis lap (a 10-es már
+          nagy); szan ellen saját hosszú, erős, buktatási esélyű színünk;
+          szín ellen saját lopási esélyünk rövid aduval (hosszú aduból nem
+          lopunk).
+
+  - fejezet: "Indítás szan ellen"
+    jegyzet: >-
+      Két érintkező figura (ÁK, KD, DB, B10) legalább három lappal: a 2. és a
+      3. lap közötti HÉZAG dönt. Ha legfeljebb egy rang hiányzik (KD10x: csak
+      a bubi), a figurával indulunk; ha több (KD9x, KD72), kis lappal — azt a
+      többi indítási sor adja (pl. felülről a negyedik).
+    sorok:
+      - felvetel: SZAN
+        minta: [AK+, KQ+, QJ+, JT+]
+        hossz: "3+"
+        hezag: "1-"
+        lap: SOROZAT_TETEJE
+        kulcs: "INDITAS/SZAN/KETLAPOS_SOROZAT"
+        megjegyzes: "két érintkező figura: a figurával, ha a 2. és 3. lap között legfeljebb 1 hely van"
+
+  - fejezet: "Jelzési rács"
+    sorok:
+      # a partner indít: a Szegedi–Mráz sorai maradnak, a 2. most jóváhagyva
+      - {racs: PARTNER_INDIT, felvetel: "*", sorrend: 2, jel: LAPSZAM}
+      # a felvevő hív
+      - {racs: FELVEVO_HIV, felvetel: SZIN, sorrend: 1, jel: LAPSZAM}
+      - {racs: FELVEVO_HIV, felvetel: SZIN, sorrend: 2, jel: MARADEK}
+      - {racs: FELVEVO_HIV, felvetel: SZAN, sorrend: 1, jel: SMITH,
+         mikor: "a felvevő első hívásában", kulonben: LAPSZAM}
+      - {racs: FELVEVO_HIV, felvetel: SZAN, sorrend: 2, jel: MARADEK}
+      # első dobás: marad a preferencia, most jóváhagyva
+      - {racs: DOBAS, felvetel: "*", sorrend: 1, jel: PREF}
+      # szlem ellen nincs jelzés: a jelzés a felvevőnek többet segít
+      - nincs_jelzes: SZLEM
+        szint: "6+"
+        felvetel: "*"
+        szoveg: >-
+          Szlem ellen nem jelzünk (színadásnál és dobásnál): a jelzés a
+          felvevőnek többet segítene, mint a partnernek.
+      # menet közbeni hívás: LAPSZÁM (nem attitűd), 2 lapból is
+      - {racs: VEDO_HIV, felvetel: "*", hossz: "2+", sorrend: 1, jel: LAPSZAM,
+         megjegyzes: "az elsődleges cél a partner tájékoztatása a lapjaink számáról"}
+
+  - fejezet: "Módszerek"
+    sorok:
+      - {modszer: LAPSZAM, ertek: FORDITOTT,
+         hivas: "PARATLAN_PAROS(LEGNAGYOBB_KISLAP;LEGKISEBB)",
+         megjegyzes: "lapszám és maradék lapszám: kicsi-nagy = páros, nagy-kicsi = páratlan; hívásnál páratlanból a legnagyobb kis lap (3 kis lapból a legnagyobb), párosból a legkisebb (2 lapból a kisebb)"}
+      - {kihagy: MODSZER/LAPSZAM_ALAP, megjegyzes: "a rács mondja meg, mikor teljes és mikor maradék"}
+      - {modszer: PREF, ertek: EGYENES, megjegyzes: "első dobás: kis lap kéri a dobott színt, nagy nem kéri"}
+      - {modszer: SMITH, ertek: NAGY_POZITIV, megjegyzes: "nagy lap = jó az indítás"}
+
+  - fejezet: "Színadás"
+    jegyzet: >-
+      Ahol az elemzés (DD) vak: nyílt lapokkal az információnak nincs ára, a
+      valóságban viszont az, hogy ütésben maradunk és mindent látunk, sokat ér.
+    sorok:
+      # második kéz: dubló figurából (K, D, B — ászra nem) a figura
+      - {helyzet: MASODIK_KEZ, minta: [Kx, Qx, Jx], lap: LEGNAGYOBB, kulcs: "MASODIK_KEZ/DUBLO_FIGURA",
+         megjegyzes: "dubló figurából a figura (pl. D10-ből a D): utána a kisebbel ütésben maradhatunk, és mindent tudunk"}
+      # ha az asztal előttünk (jobbra) van, a lapjai módosítják — az átmenetektől függetlenül
+      - {helyzet: MASODIK_KEZ, minta: [Kx, Qx, Jx], asztal: ELOTTUNK, kozbenso: "2+", lap: LEGKISEBB,
+         kulcs: "MASODIK_KEZ/DUBLO_FIGURA/VARUNK",
+         megjegyzes: "az asztalon két közbenső lap (pl. B10xx a Dx előtt): várunk a következő hívásig"}
+      - {helyzet: MASODIK_KEZ, minta: [Kx, Qx, Jx], asztal: ELOTTUNK, kozbenso: "1", hivott: KICSI,
+         lap: LEGKISEBB, kulcs: "MASODIK_KEZ/DUBLO_FIGURA/KICSIRE",
+         megjegyzes: "az asztalon egy közbenső lap (Bxxx, 10xxx), kicsit hívtak: nem kell fedni"}
+      - {helyzet: MASODIK_KEZ, minta: [Kx, Qx, Jx], asztal: ELOTTUNK, kozbenso: "1", hivott: NAGY,
+         lap: LEGNAGYOBB, kulcs: "MASODIK_KEZ/DUBLO_FIGURA/FEDES",
+         megjegyzes: "a közbenső nagy lapot hívták (pl. a B-t Bxxx-ből): fedünk"}
+
+      # következtetés a lejátszásból: az ellenjátékos a partnerét segíti, a lapja
+      # beszél; a felvevőé nem (hamis lap). A kibic maga is így játszik.
+      - kovetkeztetes: LEGKISEBB_EGYENERTEKU
+        kitol: [ELLENJATEKOSOK]
+        sajat: true
+        szoveg: >-
+          Harmadik és negyedik kézben, ha ütést próbálunk vinni, az
+          egyenértékűek közül a legkisebbet tesszük (KD-ből a D-t) — ha a
+          partner a K-t tette, nincs nála a D.
+      - kovetkeztetes: LEGOLCSOBB_NYERO
+        kitol: [ELLENJATEKOSOK]
+        sajat: true
+        szoveg: >-
+          Negyedik kézben a legolcsóbb nyerő lappal ütünk — ha a partner
+          negyedikként nagyobbal ütött, kisebb nyerő lapja nem volt.
+      # mérlegelés: ahol a DD vak, mert a partnert is mindentudónak hiszi
+      - merlegeles: ATVETEL
+        szoveg: >-
+          Ha az elemzés szerint mindegy, ki viszi az ütést, a partner ütését
+          nyerő lappal átvesszük, és mi folytatjuk: amit mi tudunk (pl. melyik
+          színt kell hívni), azt a partnernek nem kell kitalálnia.
+      - merlegeles: PARTNER_KERESE
+        tures: 0.25
+        szoveg: >-
+          A partnerség kedvéért: a partner első dobással kért színét hívjuk
+          menet közben, és ütést is veszünk érte (lopunk, átvesszük az
+          ütését), hogy mi hívhassuk — akkor is, ha az elemzés szerint ez
+          legfeljebb negyed ütéssel rosszabb (átlagosan). A partner a saját
+          lapját ismeri; a kérése többet tud, mint a mi becslésünk.
+      # a partner JELZÉSEI és a licit: nem kizárnak, hanem SÚLYOZNAK — ami
+      # ellentmond nekik, az az elosztás `suly`-nyit ér (0 = kizárjuk)
+      - kovetkeztetes: PARTNER_INDITASA
+        kitol: [PARTNER]
+        suly: 0.2
+        szoveg: >-
+          A partner indító lapja a megállapodásunk szerinti lap: ha egy
+          elosztásban a lapjaiból mást indult volna (pl. a lapszám szerint
+          páratlan lapból a legkisebbet), az az elosztás kevésbé valószínű.
+      - kovetkeztetes: PARTNER_DOBASA
+        kitol: [PARTNER]
+        suly: 0.25
+        szoveg: >-
+          A partner első dobása a dobási jel szerint kér vagy nem kér: ha kis
+          lappal kérte a színt, van benne figurája (Á, K vagy D); ha nagy
+          lappal nem kérte, nincs benne ásza vagy királya.
+      - kovetkeztetes: LICIT_PONTHATAR
+        kitol: [ELLENJATEKOSOK, FELVEVO]
+        tures: 2
+        suly: 0.5
+        szoveg: >-
+          A licit pontsávja nem éles határ: aki 12+-t ígért, annál a 11 pont
+          is lehet (fél súllyal), a 10 is (negyed súllyal) — a jó elosztás,
+          a renonsz pótolja a pontot. A hosszígéret marad éles.
+
+  - fejezet: "Menet közbeni hívás"
+    jegyzet: >-
+      Játék közben a szabályok LEÉRTÉKELŐDNEK: az asztalt látjuk, a lejátszott
+      lapokat ismerjük, így a tények (és az elemzés) döntik el, melyik lap jó.
+      A szabály csak azt mondja meg, hogy a jó lapok közül melyikkel
+      üzenünk a partnernek.
+    sorok:
+      # többfigurás színek: a sorozat teteje (az érintkezőknél a hézag dönt)
+      - {helyzet: HIVAS, minta: [AK+, KQ+, QJ+, JT+], hossz: "3+", hezag: "1-",
+         lap: SOROZAT_TETEJE, kulcs: "HIVAS/SOROZAT",
+         megjegyzes: "érintkező figurák: a figurával, ha a 2. és 3. lap között legfeljebb 1 hely van; különben lapszám szerint"}
+      - {helyzet: HIVAS, minta: [AQJ+, AJT+, KJT+, AT9+, KT9+, QT9+], lap: SOROZAT_TETEJE,
+         kulcs: "HIVAS/BELSO_SOROZAT", megjegyzes: "belső sorozat teteje, mint az indításnál"}
+      - {kihagy: "HIVAS/*/*/h2", megjegyzes: "dublóból nem a nagyobb: a lapszám szerint a kisebb (a rács és a módszer adja)"}
+      - elv: JATEK_KOZBEN_TENYEK
+        terulet: HIVAS
+        merlegelo: true
+        kartyan: false
+        szoveg: >-
+          Játék közben a szabályok leértékelődnek: az asztalt és a lejátszott
+          lapokat látjuk, így valódi információ alapján dönthető el, melyik
+          lap jó, melyik biztosan rossz és melyik talán nem rossz (józan ész,
+          elemzés). A szabály a jó lapok közül választ: azzal üzenünk.
+      - elv: HIVAS_HARMADIK_FIGURA
+        terulet: HIVAS
+        merlegelo: true
+        szoveg: >-
+          Harmadik figurából csak akkor hívjuk a figurát, ha az asztal ezt
+          indokolja és a partnernek előnyös. Például Dxx-ből a jobbunkon
+          (előttünk) leterülő asztali KBx ellen a legkisebbet hívjuk, hogy a
+          villa kisebb lapját a dámával fedni tudjuk; ha ugyanez az asztal a
+          balunkon (utánunk) van, a középsőt — ne oldjuk meg a felvevő
+          problémáját.
+
+  - fejezet: "Elvek"
+    sorok:
+      - {kihagy: ELV/PARTNER_SZUKSEGLETE, megjegyzes: "nem 'mindig azt, amire a partnernek szüksége van'"}
+      - elv: KERES_KORLATA
+        terulet: JELZES
+        szoveg: >-
+          Csak akkor kérünk, ha a kéréssel nem vesztünk ütést (különösen
+          szanban), és ha a kérés nem segíti jobban a felvevőt, mint a partnert.
+      # Mérlegelő elvek: a táblázat ilyenkor csak jelölt, a döntés a
+      # lejátszó modulé (szimuláció, DD). A kártyára nem kerülnek.
+      - elv: KIRE_INDULUNK
+        terulet: INDITAS
+        merlegelo: true
+        kartyan: false
+        szoveg: >-
+          Szan ellen az első döntés: kire induljunk. A hosszú szín sokadik
+          lapját az tudja lehívni, aki késő ütésben is ütéshez jut — ez
+          inkább a nagyobb laperejű. Gyenge lappal a partnerre indulunk,
+          olyan színnel, ami őt segíti: négyes és hármas színből a
+          rövidebbel, remélve, hogy az nála hosszú; ilyenkor nagy lappal,
+          akkor is, ha nincs sorozat, a lapszámtól függetlenül.
+      # KIVÉTEL: a fenti elv alól vesz ki egy esetet (mint a licitnél)
+      - kivetel: SAJAT_HOSSZU_SZIN
+        alol: KIRE_INDULUNK
+        terulet: INDITAS
+        merlegelo: true
+        kartyan: false
+        szoveg: >-
+          Hatos, két magasfigurás sorozat vezetésű szín és semmi
+          más, kevés pont (5-7), a partnernek akár kétszer annyi — a mi
+          színünk lehet a nyerő. Ilyenkor nem a magas figurával, hanem
+          kicsivel indulunk: az első körben kilőjük a felvevő fogását, és a
+          partner később vissza tudja adni az ütést.
+
+  - fejezet: "Különleges helyzetek"
+    sorok:
+      - kulonleges: SMITH
+        szoveg: >-
+          Smith: a felvevő első hívásában (ez lehet a harmadik ütés is)
+          mindkét védő jelez, az indító és a partnere is: nagy lap = jó az
+          indítás. Smith után az indított szín ismételt hívásakor: maradék
+          lapszám.

@@ -1,0 +1,26 @@
+Az alkalmazhat¢ jel”l‚sek:
+H,S,D,C       a sz¡nben tal lhat¢ lapok
+n(..)         neg ci¢
+i             indul¢er‹(egy bels‹ fggv‚ny alapj n)
+f1..f4        az annyiadik rang£ sz¡nben lev‹ figurapontok
+F,P           figurapont, pont
+L1..L4        leghosszabb..legr”videbb sz¡n hossza
+@M,@A,@S,@O   szk¢rhelyzet
+&,o           logikai ‚s, vagy
+exxxx         xxxx eloszt s(sorban a n‚gy sz¡n)
+axxxx         xxxx eloszt s cs”kken‹ hosszsorrendben
+=,+
+vxy           1, ha n la van az xy k rtya, 0 mikor nincs
+K             kontroll
+j             a j t‚kt‚sek sz m nak 10-szerese
+t             a gyorst‚sek sz m nak 10-szerese
+b             'egyenletes': legal bb k‚t lap minden sz¡nben
+[x,y]         intervallumbaes‚s
+
+A licitrendszer le¡r sa:
+El‹sz”r j”nnek az ind¡t¢licitek, ut na a kl”nb”z‹ licithelyzetek:
+!!
+licithelyzet
+L1:felt‚tel1
+L2:felt‚tel2 stb.
+

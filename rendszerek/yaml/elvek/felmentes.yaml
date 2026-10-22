@@ -1,0 +1,113 @@
+# FELMENTES — a második elv-sablon (2026-10-05): ki NEM induló erős az 1./2. kézben.
+#
+# A szerkesztő megfogalmazása (a FOGASMUTATAS összevetésének E csoportja után):
+# „a 8 vesztős lapok csak 13 FP-tal indíthatók, a 4-4-3-2 elosztásnál nem
+# számítható fel hosszúsági pont. Az üres Dxx és Bxx kapjon -0.5 vagy -0.25
+# pont büntetést; rossz 11-12 pont se legyen induló erő — az első és második
+# helyen! 3.-4. helyen viszont — ennek fejében, kihasználva a Drury helyzetet
+# — gyengébb lappal is induljunk el.”
+#
+# A kibic nyitási sorai figurapontot néznek (hosszúsági pontot nem), ezért a
+# 4-4-3-2 szabálya ma magától teljesül. A 3./4. kézbeli csökkentett nyitás a
+# MOHA_1M-ben van (nemes szín, 4 lappal is).
+#
+# A 3./4. kéz MINORJA (a szerkesztő, 2026-10-05 23:12): „ha nincs induló
+# erő, max rossz 11-12, és nem lehet 2 minorral indulni — mert nincs 6 db —,
+# akkor 4-es major hiányában 10 pont alatt ne, 10+ ponttal is csak akkor, ha
+# van 3-3 major.” A 4-es nemessel a MOHA_1M csökkentett 1M-je nyit; e nélkül
+# a 10-11 pont (és a rossz 12) csak 3-3 nemessel nyit 1m-et, különben passz.
+#
+# A sablon egyetlen licitet ad: PASSZT az 1./2. kézben, ha a lap a fenti
+# értelemben nem induló erős — az 1-es szintű nyitások elé (65 > 62), de a
+# gyenge kettesek (70, 69) és a blokkok (66) mögé: a rossz 11-12 gyenge
+# kettes (pl. beliben 2M) így megmarad.
+# Jelentést nem ad (`csak_dontes`): a passz az ellenfélnek továbbra is csak
+# passz, nem „rossz 11-12”.
+rendszer:
+  kod: FELMENTES
+  nev: Felmentés az indulás alól (1./2. kéz)
+  nev_en: Exemption from opening (1st/2nd seat)
+  fajta: ELV_SABLON
+  leiras: >-
+    Az 1./2. kézben a 8 vesztős lap csak 13 FP-tól induló erő, és a rossz
+    11-12 pont (üres dáma/bubi, rossz lapminőség) sem az.
+sablon:
+  szoveg: >-
+    Az első és második kézben a 8 (vagy több) vesztős lap csak 13 FP-tól
+    induló erő. A rossz 11-12 pont sem induló erő: az üres dáma és bubi
+    (Dxx, Bxx — ász és király nélkül, legfeljebb 3 lapos színben) levonást
+    kap; ha így a korrigált pont (FP + hosszúsági pont − levonás) a küszöb
+    alatt van, vagy a lapminőség rossz, passz. A 4-4-3-2 elosztásnál nincs
+    hosszúsági pont (csak az 5+ lapos szín ad). A 3./4. kézben gyengébb
+    lappal is indulunk (Drury): 4-es nemessel a csökkentett 1M; nélküle a
+    minor csak 10 ponttól és csak 3-3 nemessel (10-11 pont,
+    vagy rossz 12), különben passz.
+  parameterek:
+    VESZTO8_MIN_FP:
+      alap: 13
+      tartomany: 12-14
+      leiras: "8 (vagy több) vesztővel ennyi FP kell az induláshoz"
+    URES_LEVONAS:
+      alap: 0.5
+      tartomany: 0.25-0.5
+      leiras: "Levonás egy üres dámáért / bubiért (A és K nélkül, legfeljebb 3 lapos színben)"
+    KORR_KUSZOB:
+      alap: 13
+      tartomany: 12-14
+      leiras: "Korrigált pont (FP + hosszúsági pont − levonás): ha van üres figura, ez alatt rossz a 11-12 pont"
+fejezetek:
+  - fejezet: "Nem induló erő az 1./2. kézben"
+    szabalyok:
+      - minta: "P"
+        kulcs: FELMENTES-VESZTO
+        prioritas: 65
+        ha: {ules: [1, 2]}
+        pont: 11+
+        vesztok: 8+
+        feltetel: {t: OSSZE, op: "<", bal: {t: ERT, kod: HCP}, jobb: {t: SZAM, v: {sablon: VESZTO8_MIN_FP}}}
+        jelentes: {csak_dontes: true}
+        magyarazat: "Felmentés: 8 vesztős lap 13 FP alatt nem induló erő"
+      - minta: "P"
+        kulcs: FELMENTES-ROSSZ
+        prioritas: 65
+        ha: {ules: [1, 2]}
+        pont: 11-12
+        vagy:
+          - {minoseg: rossz}
+          - {ures_figura: 1+, feltetel: {t: OSSZE, op: "<", bal: {t: KORR_PONT, levonas: {sablon: URES_LEVONAS}},
+                                         jobb: {t: SZAM, v: {sablon: KORR_KUSZOB}}}}
+        jelentes: {csak_dontes: true}
+        magyarazat: "Felmentés: rossz 11-12 pont (üres dáma/bubi vagy rossz lapminőség) nem induló erő"
+
+  - fejezet: "3./4. kéz: minornyitás induló erő nélkül"
+    jegyzet: >-
+      A szerkesztő (2026-10-05): 4-es nemes nélkül 10 pont alatt nincs
+      nyitás; 10-11 ponttal (és rossz 12-vel) csak 3-3 nemessel 1m. Ha 2m
+      gyenge kettes lehet, az nyer (69 > 52).
+    szabalyok:
+      - minta: 1D
+        kulcs: KONNYU-1D
+        prioritas: 52
+        ha: {ules: [3, 4]}
+        pont: 10-11
+        hossz: {S: "3", H: "3", D: 4+}
+        rel: ["D>=C"]
+        magyarazat: "3./4. kézben induló erő nélkül (10-11 pont), 3-3 nemessel, 4+ káró"
+      - minta: 1C
+        kulcs: KONNYU-1C
+        prioritas: 51
+        ha: {ules: [3, 4]}
+        pont: 10-11
+        hossz: {S: "3", H: "3", C: 4+, D: 0-3}   # 3-3 nemes mellett a treff így 4+ (3-3-4-3: 1♦)
+        magyarazat: "3./4. kézben induló erő nélkül (10-11 pont), 3-3 nemessel"
+      - minta: "P"
+        kulcs: FELMENTES-34-ROSSZ12
+        prioritas: 65
+        ha: {ules: [3, 4]}
+        pont: "12"
+        hossz: {S: 0-3, H: 0-3}
+        vagy:                    # nem 3-3 nemes (S vagy H legfeljebb 2), és rossz a lap
+          - {hossz: {S: 0-2}, vagy: [{minoseg: rossz}, {ures_figura: 1+, feltetel: {t: OSSZE, op: "<", bal: {t: KORR_PONT, levonas: {sablon: URES_LEVONAS}}, jobb: {t: SZAM, v: {sablon: KORR_KUSZOB}}}}]}
+          - {hossz: {H: 0-2}, vagy: [{minoseg: rossz}, {ures_figura: 1+, feltetel: {t: OSSZE, op: "<", bal: {t: KORR_PONT, levonas: {sablon: URES_LEVONAS}}, jobb: {t: SZAM, v: {sablon: KORR_KUSZOB}}}}]}
+        jelentes: {csak_dontes: true}
+        magyarazat: "Felmentés (3./4. kéz): rossz 12 pont 4-es nemes és 3-3 nemes nélkül nem induló erő"

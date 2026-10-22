@@ -1,0 +1,57 @@
+# STRONG_CLUB — az „erős treff” rendszercsalád ÁLTALÁNOS rendszere
+# (2026-10-01, gépi javaslat — átnézendő).
+#
+# Akkor használja a kibic, ha egy pár rendszerét nem ismeri, csak a
+# családját: a MohaBridzs a game.systems-ben "STRONG_CLUB"-ot küld (vagy
+# {"code": "VALAMI", "family": "STRONG_CLUB"}-ot). A kibic ezzel érti az
+# ő licitjeiket: a kényszertár róluk így reális (az 1♣ 16+, nem 12-21).
+#
+# Csak azt írjuk le, ami a család minden tagjára (Precision, Blue Club,
+# Moscito…) nagyjából igaz — tágabb sávokkal, mint egy konkrét rendszer.
+# Ami családonként nagyon eltér (2♦, 2NT nyitás), az kimarad: arra a kibic
+# az általános elvek szerint értelmez (és az alert szövegére támaszkodik).
+rendszer:
+  kod: STRONG_CLUB
+  nev: Erős treff (általános)
+  nev_en: Strong club (generic)
+  fajta: RENDSZERCSALAD
+  csalad: STRONG_CLUB
+  leiras: "Erős treff család általános rendszere: 1♣ 16+ mesterséges, 1♦ 11-15 (lehet rövid), 1M 5+ 11-15, 1NT 13-16, 2♣ 11-15 hosszú treff; 1♣-1♦ negatív."
+hivatkozasok:
+  - EMELES_ELV
+fejezetek:
+  - fejezet: Nyitások
+    szabalyok:
+      - {minta: 1C, pont: 16+, forsz: EGY_MENET, prioritas: 90,
+         alert: "Erős treff: 16+, bármilyen elosztás (mesterséges)"}
+      - {minta: 1D, pont: 11-15, hossz: {H: 0-4, S: 0-4}, prioritas: 80,
+         alert: "11-15, nincs 5-ös nemes; a káró lehet rövid"}
+      - {minta: 1H, pont: 11-15, hossz: {H: 5+}, prioritas: 80,
+         magyarazat: "11-15, 5+ kőr"}
+      - {minta: 1S, pont: 11-15, hossz: {S: 5+}, prioritas: 80,
+         magyarazat: "11-15, 5+ pikk"}
+      - {minta: 1NT, pont: 13-16, elosztas: BAL, prioritas: 85,
+         magyarazat: "13-16 egyenletes (a rendszertől függően 13-15 vagy 14-16)"}
+      - {minta: 2C, pont: 11-15, hossz: {C: 5+}, prioritas: 80,
+         alert: "11-15, hosszú treff (6+, vagy 5 treff + 4-es nemes)"}
+      - {minta: 2H, pont: 5-10, hossz: {H: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 2S, pont: 5-10, hossz: {S: 6+}, prioritas: 70, magyarazat: "Gyenge kettes"}
+      - {minta: 3C, pont: 4-10, hossz: {C: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3D, pont: 4-10, hossz: {D: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3H, pont: 4-10, hossz: {H: 7+}, prioritas: 60, magyarazat: "Blokk"}
+      - {minta: 3S, pont: 4-10, hossz: {S: 7+}, prioritas: 60, magyarazat: "Blokk"}
+
+  - fejezet: "Válasz az 1♣-ra"
+    szabalyok:
+      - {minta: 1C-1D, pont: 0-7, forsz: EGY_MENET, prioritas: 60,
+         alert: "Negatív: 0-7 pont (mesterséges)"}
+      - {minta: 1C-1H, pont: 8+, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Pozitív: 8+, 5+ kőr"}
+      - {minta: 1C-1S, pont: 8+, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Pozitív: 8+, 5+ pikk"}
+      - {minta: 1C-1NT, pont: 8-13, elosztas: BAL, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Pozitív: 8-13 egyenletes"}
+      - {minta: 1C-2C, pont: 8+, hossz: {C: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Pozitív: 8+, 5+ treff"}
+      - {minta: 1C-2D, pont: 8+, hossz: {D: 5+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Pozitív: 8+, 5+ káró"}

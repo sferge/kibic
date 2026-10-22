@@ -1,0 +1,93 @@
+# TERMESZETES_ALAP — a megállapodás nélküli színlicit természetes
+# (a szerkesztővel közösen, 2026-10-21; a leosztás: (2♠)-P-(3♠)-4♦-(P)-4♥-
+# (P)-5♣-(P)-? — a kibic egyik licitet sem értette, és passzolt 5♦ helyett).
+#
+# A szótár 4c csoportja (alapértelmezés): ha egy színlicitnek nincs
+# megállapodott jelentése, az TERMÉSZETES. Az első szín 5+ lap; ha ugyanaz
+# a játékos később új színt mond, az a második színe (4+). A kettő együtt
+# kétszínű lap; az első legalább olyan hosszú — KIVÉVE, ha az első nemes és
+# a második minor: a minor hosszabb is lehet (főleg, ha a partner először a
+# 4-es szinten mondja).
+#
+# A partner preferenciája: kétszínű partner mellett a jobb fitbe igazítunk;
+# egyforma fitnél az első színbe (nemes–minor sorrendnél a minorban
+# maradunk, mert az hosszabb is lehet).
+#
+# Megállapodott adu mellett nem él: ott az új szín kulcslicit (MOHA_SZLEM).
+#
+# A jelentés-sorok CSAK A MEGÉRTÉST szolgálják (`csak_megertes`): a kibic
+# maga nem ezek alapján licitál.
+rendszer:
+  kod: TERMESZETES_ALAP
+  nev: A megállapodás nélküli színlicit természetes
+  nev_en: Undiscussed suit bids are natural
+  fajta: ELV_SABLON
+  leiras: >-
+    Ha egy színlicitnek nincs megállapodott jelentése, természetes: az első
+    szín 5+, a később mondott új szín a második (4+). Kétszínű partner
+    mellett a jobb fitbe igazítunk; egyforma fitnél az első színbe.
+sablon:
+  szoveg: >-
+    Ha egy színlicitnek nincs megállapodott jelentése, az természetes: az
+    első szín legalább {ELSO_MIN} lap; ha ugyanaz a játékos később új színt
+    mond, az a második színe (legalább {MASODIK_MIN} lap). Az első legalább
+    olyan hosszú, kivéve, ha az első nemes és a második minor (a minor
+    hosszabb is lehet). Kétszínű partner mellett a jobb fitbe igazítunk;
+    egyforma fitnél az első színbe — nemes, majd minor sorrendnél a minorban
+    maradunk.
+  parameterek:
+    ELSO_MIN: {alap: 5, tartomany: 4-6, leiras: "Az első (megállapodás nélküli) szín legalább ennyi lap"}
+    MASODIK_MIN: {alap: 4, tartomany: 4-5, leiras: "A második szín legalább ennyi lap"}
+fejezetek:
+  - fejezet: "Megértés: a természetes jelentés"
+    szabalyok:
+      - minta: ".. nA"
+        kulcs: TERMESZETES-ELSO
+        fajta: ELV
+        prioritas: 0
+        ha: {adu: nincs, en_nyilatkoztam: false, partner_nem_mondta: A, nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: "@A"}]}}
+        jelentes: {hossz: {"@A": {min: {sablon: ELSO_MIN}}}, csak_megertes: true, tartalek: true}
+        magyarazat: "Természetes (megállapodás nélkül): 5+ lap"
+      - minta: ".. nA"
+        kulcs: TERMESZETES-MASODIK
+        fajta: ELV
+        prioritas: 0
+        ha: {adu: nincs, en_nyilatkoztam: true, nem_mondtam: A, partner_nem_mondta: A, nyers: {t: NEM, gy: [{t: MONDVA, ki: ok, szin: "@A"}]}}
+        jelentes: {hossz: {"@A": {min: {sablon: MASODIK_MIN}}}, csak_megertes: true, tartalek: true}
+        magyarazat: "Természetes második szín (megállapodás nélkül): 4+ lap"
+  - fejezet: "A partner kétszínű lapja: preferencia"
+    szabalyok:
+      # a partner második színe után (az ellenfél passzát a minta nem írja ki)
+      - {minta: ".. nm +om", kulcs: TERMESZETES-PREF0-MM, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: om,
+         jelentes: {hossz: {"@om": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {om: 5, m: 4}}, rel: ["om>=m"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nM +oM", kulcs: TERMESZETES-PREF0-NN, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: oM,
+         jelentes: {hossz: {"@oM": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {oM: 5, M: 4}}, rel: ["oM>=M"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nM +m", kulcs: TERMESZETES-PREF0-MN, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: m,
+         jelentes: {hossz: {"@m": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {m: 5, M: 4}}, rel: ["m>=M"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nm +M", kulcs: TERMESZETES-PREF0-NM, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: M,
+         jelentes: {hossz: {"@M": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {M: 5, m: 4}}, rel: ["M>m"],
+         magyarazat: "Preferencia a partner első (nemes) színébe — csak határozottan jobb fittel"}
+      # ugyanez, ha közben az ellenfél licitált
+      - {minta: ".. nm (*) +om", kulcs: TERMESZETES-PREF-MM, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: om,
+         jelentes: {hossz: {"@om": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {om: 5, m: 4}}, rel: ["om>=m"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nM (*) +oM", kulcs: TERMESZETES-PREF-NN, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: oM,
+         jelentes: {hossz: {"@oM": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {oM: 5, M: 4}}, rel: ["oM>=M"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nM (*) +m", kulcs: TERMESZETES-PREF-MN, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: m,
+         jelentes: {hossz: {"@m": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {m: 5, M: 4}}, rel: ["m>=M"],
+         magyarazat: "Preferencia a partner első színébe (jobb vagy egyforma fit)"}
+      - {minta: ".. nm (*) +M", kulcs: TERMESZETES-PREF-NM, fajta: ELV, prioritas: 3, leghosszabb_partner_szin: M,
+         jelentes: {hossz: {"@M": {min: 2}}, tartalek: true},
+         ha: {adu: nincs, partner_szin: {M: 5, m: 4}}, rel: ["M>m"],
+         magyarazat: "Preferencia a partner első (nemes) színébe — csak határozottan jobb fittel"}

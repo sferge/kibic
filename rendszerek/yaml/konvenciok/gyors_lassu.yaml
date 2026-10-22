@@ -1,0 +1,61 @@
+# GYORS_LASSU — "erővel lassú" (Bánky Zoli szabálya), HELYZETI ELVként.
+# A szerkesztő megfogalmazása (2026-09-30), emberi leírás: doc/moha-elvek.md.
+#
+# Gémforszban a partner 5+ lapos színét támogatva:
+#   LASSÚ (a legolcsóbb emelés, gém alatt) = plusz erő, SZLEMINVIT —
+#     alacsonyan tartjuk a licitet, hogy maradjon hely a kulcslicitnek;
+#   GYORS (ugrás a gémbe) = LEÁLLÁS, minimális gémerő.
+# Példa: 1♥-2♣-2♥-3♥ = plusz erő, szleminvit; 1♥-2♣-2♥-4♥ = 5+ treff,
+# 3 kőr, minimális gémerő, leállás.
+#
+# "Minimális gémerő": az eddig ígért sáv alja (2♣ gémforsz 12+ után:
+# legfeljebb 14 pont) ÉS legalább 7 vesztő. Ami ennél több (15+ pont VAGY
+# legfeljebb 6 vesztő), az plusz erő.
+#
+# ELV: csak akkor él, ha a konkrét menetre nincs szabály. A lassú emelés
+# után az adu megvan, és a szlemkutatás a MOHA_SZLEM (kulcslicit) és az
+# RKC (ászkérdés) elvből jön.
+rendszer:
+  kod: GYORS_LASSU
+  nev: Gyors-lassú elv (erővel lassú)
+  nev_en: Fast arrival (strength goes slow)
+  fajta: KONVENCIO
+  tema: "Gémforszban a partner színének támogatása"
+  leiras: "Gémforszban a partner 5+ lapos színének lassú (legolcsóbb, gém alatti) emelése plusz erő és szleminvit; az ugrás a gémbe minimális gémerejű leállás."
+  jegyzet: >-
+    Bánky Zoli szabálya: erővel lassú, azaz alacsonyan kell tartani a
+    licitet. (Eldöntve: 2026-09-30.) A "plusz erő" határa a gépben: az
+    ígért sáv alja + 2 pont fölött, vagy legfeljebb 6 vesztő.
+fejezetek:
+  - fejezet: A partner színének támogatása gémforszban
+    szabalyok:
+      - minta: ".. +A"
+        kulcs: GYORS-LASSU-LASSU
+        fajta: ELV
+        ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5}}
+        hossz: {A: 3+}
+        licit_alatt: {gem: A}
+        vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}]
+        forsz: EGY_MENET
+        prioritas: 5
+        alert: "Lassú emelés (gyors-lassú elv): plusz erő, szleminvit"
+      - minta: ".. 4A"
+        kulcs: GYORS-LASSU-GYORS-NEMES
+        fajta: ELV
+        ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5}}
+        hossz: {A: 3+}
+        licit_gem: {gem: A}
+        igeret: {pont: also}
+        vesztok: 7+
+        prioritas: 4
+        magyarazat: "Gyors emelés (gyors-lassú elv): minimális gémerő, leállás"
+      - minta: ".. 5A"
+        kulcs: GYORS-LASSU-GYORS-MINOR
+        fajta: ELV
+        ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5}}
+        hossz: {A: 3+}
+        licit_gem: {gem: A}
+        igeret: {pont: also}
+        vesztok: 7+
+        prioritas: 4
+        magyarazat: "Gyors emelés (gyors-lassú elv): minimális gémerő, leállás"

@@ -1,0 +1,272 @@
+# MOHA_1M — az 1M nyitás a Moha-kör szerint (2026-09-29).
+#
+# A KIBIC_STAND kártyán az ALAPRENDSZER ELŐTT áll, ezért az azonos kulcsú
+# (1S, 1H) alapszabályokat FELÜLÍRJA; a 3./4. kézbeli csökkentett erős
+# nyitások saját kulcsot kapnak (1S-34, 1H-34), azok kiegészítések.
+#
+#   általános:     11-21 FP, 5+ nemes; 5 pikkel MINDIG 1♠, akkor is, ha
+#                  hosszabb a kőr
+#   3./4. kézben:  csökkentett erő, zónától függően (figurapont):
+#                  ők bellben 8+, senki 9+, mindenki bellben 10+, mi bellben 11+
+#                  -> 5+ nemes, vagy 4 pikk (kőr-követelmény nélkül)
+#                  -> 4 kőr csak 3+ pikkel
+#   4-4 nemessel (csökkentett erővel) 1♥: a lehető legalacsonyabb szinten
+#   akarunk megállni (1♠-re és 1NT-re passz).
+rendszer:
+  kod: MOHA_1M
+  nev: 1M nyitás (Moha)
+  fajta: KONVENCIO
+  tema: "1M nyitás"
+  leiras: "11-21 FP, 5+ nemes, 5 pikkel mindig 1♠; 3./4. kézben csökkentett erővel (zónától függően 8+…11+) 4 pikkel, illetve 4 kőrrel és 3+ pikkel is."
+  jegyzet: >-
+    A KIBIC_STAND kártyán az alaprendszer ELŐTT áll: az általános 1♠/1♥
+    szabálya így felülírja az alaprendszerét (azonos kulcs). A 3./4. kézbeli
+    csökkentett erős nyitások saját kulcsot kapnak (1S-34, 1H-34): ezek
+    kiegészítések. A csökkentett erő zónától függ (figurapont): ők bellben
+    8+, senki 9+, mindenki bellben 10+, mi bellben 11+; felső határ 10, mert
+    11-től az általános nyitás él. (Eldöntve: 2026-09-29.)
+fejezetek:
+  - fejezet: Általános 1M
+    jegyzet: >-
+      11-21 FP és 5+ nemes. A Moha-szabály: ha van 5 pikk, az indulás 1♠,
+      akkor is, ha a kőr hosszabb. Az 1♥ ezért legfeljebb 4 pikket ígér.
+    szabalyok:
+      - minta: 1S
+        pont: 11-21
+        hossz: {S: 5+}
+        prioritas: 62
+        magyarazat: "11-21 FP, 5+ pikk (5 pikkel mindig 1♠)"
+      - minta: 1H
+        pont: 11-21
+        hossz: {H: 5+, S: 0-4}
+        prioritas: 61
+        magyarazat: "11-21 FP, 5+ kőr, legfeljebb 4 pikk"
+
+  - fejezet: 3./4. kézbeli 1M, csökkentett erővel
+    jegyzet: >-
+      Minden nyitás KÉT sorban van az adatbázisban, mert a lapszám (4)5+: a
+      rendes sor az 5+ lapot, a „lehetőség” sor a 4 lapost fedi le. Két sor
+      kell, mert a kettőnek más a feltétele és más lehet a prioritása. A
+      négylapos 1♠ szándékosan alacsonyabb (59), hogy 4-4 nemessel az 1♥ (60)
+      nyerjen: a lehető legalacsonyabb szinten akarunk megállni (1♠-re és
+      1NT-re passz). Ha egy lehetőséghez nincs feltétel, a második sor
+      „mérlegelő” lesz: nem a szabály dönt róla.
+    szabalyok:
+      - minta: 1S
+        kulcs: 1S-34
+        ha: {ules: [3, 4]}
+        pont: {O: 8-10, A: 9-10, M: "10"}
+        hossz: {S: "(4)5+"}
+        lehetoseg:
+          prioritas: 59        # 4-4 nemessel az 1♥ (60) nyer
+          magyarazat: "3./4. kézben csökkentett erővel, négy pikkel"
+        prioritas: 62
+        magyarazat: "3./4. kézben csökkentett erővel, 5+ pikkel"
+      - minta: 1H
+        kulcs: 1H-34
+        ha: {ules: [3, 4]}
+        pont: {O: 8-10, A: 9-10, M: "10"}
+        hossz: {H: "(4)5+", S: 0-4}
+        lehetoseg:
+          hossz: {S: 3-4}
+          magyarazat: "3./4. kézben csökkentett erővel, négy kőrrel és 3+ pikkel (a partner 1♠-je passzolható)"
+          jegyzet: >-
+            A négylapos 1♥ csak 3+ pikkel: a válaszoló 1♠-je minimális lappal
+            passzolható, ezt a nyitónak el kell bírnia.
+        prioritas: 61
+        magyarazat: "3./4. kézben csökkentett erővel, 5+ kőrrel"
+
+  - fejezet: "Válasz az 1M-re: 1NT és 2m (Moha)"
+    jegyzet: >-
+      A szerkesztő (2026-10-04): a Moha-körben az 1M-2m EGYÉRTELMŰ gémforsz
+      (2♣: lehet dubló is — később kiderülhet a nemes fit; 2♦: 5+ káró), és
+      a 3m viszontválasz után is gémforsz marad. Következménye: az 1M-1NT
+      lehet rossz 11 FP is; a nem rossz 11 már 2m. (A KIBICEGY-ben az 1M-2♦
+      11+ és egy körre kényszerít — "GI+"; a Moha-kártyán ez írja felül.)
+    szabalyok:
+      - minta: 1M-1NT
+        pont: "6-10(11)"
+        hossz: {M: 0-2}
+        prioritas: 40
+        magyarazat: "6-10 FP, nem kényszerít; minimummal 5332-vel passzt kér"
+        lehetoseg:
+          # rossz 11 (a szerkesztő, 2026-10-05): rossz lapminőség, vagy üres
+          # dáma/bubi (A, K nélkül, legfeljebb 3 lapos színben) úgy, hogy az 5+
+          # lapos szín hossza sem pótolja (korrigált pont = FP + hosszúsági pont
+          # − 0.5/üres figura < 11.5); 3 lapos támogatással is, ha nincs 2 fedőütés
+          vagy:
+            - {minoseg: rossz, vagy: [{hossz: {M: 0-2}}, {hossz: {M: 3}, fedoutes: {M: 0-1.75}}]}
+            - {ures_figura: 1+, korr_pont: "-11.4", vagy: [{hossz: {M: 0-2}}, {hossz: {M: 3}, fedoutes: {M: 0-1.75}}]}
+          prioritas: 40
+          magyarazat: "Rossz 11 FP (üres dáma/bubi vagy rossz lapminőség), nem kényszerít; lehet 3 lapos támogatás"
+      - minta: 1H-1NT
+        kulcs: 1H-1NT
+        pont: "6-10(11)"
+        hossz: {H: 0-2, S: 0-3}
+        prioritas: 41
+        magyarazat: "6-10 FP, nincs 4-es pikk, nincs kőrtámogatás"
+        lehetoseg:
+          hossz: {S: 0-3}
+          vagy:
+            - {minoseg: rossz, vagy: [{hossz: {H: 0-2}}, {hossz: {H: 3}, fedoutes: {H: 0-1.75}}]}
+            - {ures_figura: 1+, korr_pont: "-11.4", vagy: [{hossz: {H: 0-2}}, {hossz: {H: 3}, fedoutes: {H: 0-1.75}}]}
+          prioritas: 41
+          magyarazat: "Rossz 11 FP (üres dáma/bubi vagy rossz lapminőség), nincs 4-es pikk; lehet 3 lapos kőr"
+      - minta: 1M-2C
+        ha: {ules: [3, 4]}            # passzolt kézzel nem gémforsz (Drury)
+        jelentes: {gf_hatar: "4C"}      # kvázi gémforsz: 4 minorig kötelez (a szerkesztő, 2026-10-05)
+        pont: "(11)12+"
+        hossz: {C: 2+}
+        forsz: GEMFORSZ
+        prioritas: 50
+        alert: "2/1: gémforsz, lehet dubló is"
+        lehetoseg:
+          minoseg: nem_rossz
+          vagy: [{ures_figura: "0"}, {korr_pont: "11.5+"}]
+          prioritas: 50
+      - minta: 1M-2D
+        ha: {ules: [3, 4]}
+        jelentes: {gf_hatar: "4C"}      # kvázi gémforsz: 4 minorig kötelez (a szerkesztő, 2026-10-05)
+        pont: "(11)12+"
+        hossz: {D: 5+}
+        forsz: GEMFORSZ
+        prioritas: 52
+        alert: "2/1: gémforsz, 5+ káró"
+        lehetoseg:
+          minoseg: nem_rossz
+          vagy: [{ures_figura: "0"}, {korr_pont: "11.5+"}]
+          prioritas: 52
+
+  - fejezet: "1M – 2m (gémforsz) után a nyitó (Moha)"
+    jegyzet: >-
+      A szerkesztő (2026-10-04): 2M = semmit nem ígér (többlethosszt sem) —
+      várakozó; 3NT = fogás a nem licitált színekben (a partner 5-ös színe
+      felér egy fogással), nincs plusz erő; 2NT = ugyanez plusz erővel; 2♥ (1♠
+      után) = 4-es kőr, nincs plusz erő (plusz erővel 3♥); 2♠ (1♥ után) =
+      riverz: 4-es pikk és plusz erő; 3m = plusz erő, 4+ a színben (és
+      gémforsz marad); 3♠ (1♥ után) = önsplinter: 0-1 pikk, valószínűleg 6+
+      kőr — nyitva hagyja a 3NT-t is. Plusz erő a gépben: 15+ FP.
+    szabalyok:
+      - {minta: 1M-2m-2M, ha: {ules: [1, 2]}, forsz: GEMFORSZ, prioritas: 40,
+         magyarazat: "Várakozó: semmit nem ígér (többlethosszt sem)"}
+      - {minta: 1M-2C-2D, ha: {ules: [1, 2]}, pont: 11-14, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, 4+ káró, nincs plusz erő"}
+      - {minta: 1S-2m-2H, ha: {ules: [1, 2]}, pont: 11-14, hossz: {H: 4+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "4-es kőr, nincs plusz erő"}
+      - {minta: 1S-2m-3H, ha: {ules: [1, 2]}, pont: 15+, hossz: {H: 4+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "4-es kőr, plusz erő"}
+      - {minta: 1H-2m-2S, ha: {ules: [1, 2]}, pont: 15+, hossz: {S: 4+}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Riverz: 4-es pikk és plusz erő"}
+      - {minta: 1H-2m-3S, ha: {ules: [1, 2]}, hossz: {S: 0-1, H: 6+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Önsplinter: 0-1 pikk (valószínűleg 6+ kőr); a 3NT is nyitva"}
+      - {minta: 1S-2m-2NT, ha: {ules: [1, 2]}, pont: 15+, fogas: [H, om], forsz: GEMFORSZ, prioritas: 53,
+         alert: "Fogás a nem licitált színekben, plusz erő"}
+      - {minta: 1H-2m-2NT, ha: {ules: [1, 2]}, pont: 15+, fogas: [S, om], forsz: GEMFORSZ, prioritas: 53,
+         alert: "Fogás a nem licitált színekben, plusz erő"}
+      - {minta: 1S-2m-3NT, ha: {ules: [1, 2]}, pont: 11-14, fogas: [H, om], prioritas: 53,
+         alert: "Fogás a nem licitált színekben, nincs plusz erő"}
+      - {minta: 1H-2m-3NT, ha: {ules: [1, 2]}, pont: 11-14, fogas: [S, om], prioritas: 53,
+         alert: "Fogás a nem licitált színekben, nincs plusz erő"}
+      - {minta: 1M-2m-3m, ha: {ules: [1, 2]}, pont: 15+, hossz: {m: 4+}, forsz: GEMFORSZ, prioritas: 54,   # a 4+ támogatás a 2NT előtt
+         magyarazat: "Plusz erő, 4+ a partner minorjában (gémforsz marad)"}
+      - {minta: 1M-2C-3D, ha: {ules: [1, 2]}, pont: 15+, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Plusz erő, 4+ káró"}
+      - {minta: 1M-2D-3C, ha: {ules: [1, 2]}, pont: 15+, hossz: {C: 4+}, forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Plusz erő, 4+ treff"}
+      # a KIBICEGY 1M-2♣ utáni sorai helyett
+      - {minta: 1M-2C-2M, kivalt: true}
+      - {minta: 1S-2C-2H, kivalt: true}
+      - {minta: 1H-2C-2S, kivalt: true}
+      - {minta: 1M-2C-2NT, kivalt: true}
+      - {minta: 1M-2C-3C, kivalt: true}
+      - {minta: 1M-2C-3NT, kivalt: true}
+
+  - fejezet: "1M – 2m – 2M és 1♥ – 2m – 3♠ után a válaszoló (Moha)"
+    jegyzet: >-
+      A várakozó 2M után az emelés 3+ lapot ígér (a gyors-lassú elv: a lassú
+      3M szleminvit, a gyors 4M leállás). Az önsplinter (3♠) után: sok
+      ponttal és több fogással a pikkben 3NT; kőr fittel 4♥; különben 4m
+      (természetes — nem ORKC, nincs összeemelt minor).
+    szabalyok:
+      - {minta: 1M-2m-2M-3M, ha: {ules: [3, 4]}, hossz: {M: 3+}, fohonor: {m: 2+},
+         vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}], forsz: EGY_MENET, prioritas: 56,
+         jelentes: {szin_fedo: {"@m": {min: 1, valoszinu: 2}}},
+         alert: "Lassú emelés (gyors-lassú elv): plusz erő, szleminvit; nagyon jó minor (1-2 fedő)"}
+      - {minta: 1M-2m-2M-4M, ha: {ules: [3, 4]}, hossz: {M: 3+}, igeret: {pont: also},
+         vesztok: 7+, prioritas: 51,
+         magyarazat: "Leállás: minimális gémerő (gyors-lassú elv)"}
+      - {minta: 1M-2C-2M-3M, kivalt: true}
+      - {minta: 1M-2C-2M-4M, kivalt: true}
+      - {minta: 1H-2m-3S-3NT, ha: {ules: [3, 4]}, pont: 14+, hossz: {S: 3+}, fohonor: {S: 2+},
+         prioritas: 53, magyarazat: "Sok pont, több fogás a pikkben: 3NT"}
+      - {minta: 1H-2m-3S-4H, ha: {ules: [3, 4]}, hossz: {H: 2+}, prioritas: 52,
+         magyarazat: "Kőr fit: gém"}
+      - {minta: 1H-2m-3S-4m, ha: {ules: [3, 4]}, hossz: {m: 6+, H: 0-1}, forsz: EGY_MENET, prioritas: 51,
+         magyarazat: "Természetes: hosszú minor (nem ORKC — nincs összeemelt minor)"}
+
+  - fejezet: "1M – 2m – 2M után: a válaszoló új színe és a nyitó felelete (Moha)"
+    jegyzet: >-
+      A szerkesztő (2026-10-05, 1♠-2♣-2♠-3♦ leosztás): a várakozó 2M után a
+      válaszoló új színe TERMÉSZETES, és FOGÁST mutat a színben — nem ígér
+      plusz erőt, és négy lapot sem (gémforsz marad). Nincs színtalálkozás,
+      az irány a 3NT: a nyitó fogással a még nem licitált színben 3NT-t
+      mond (1♠-2♣-2♠-3♦ után kőrfogással). Ha a válaszolónak mindkét nem
+      licitált színben van fogása: 3NT (nincs plusz erő) vagy 2NT (plusz
+      erő) — mint a nyitónál. EZT a fejezetet a MOHA_STAND_ELV próba-
+      rendszerben a FOGASMUTATAS elv-sablon váltja ki (elvek/fogasmutatas.yaml).
+    szabalyok:
+      - {minta: 1M-2C-2M-3D, ha: {ules: [3, 4]}, hossz: {M: 0-2}, fogas: [D], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Természetes, fogás a káróban (nem ígér négy lapot, plusz erőt sem); gémforsz, irány a 3NT"}
+      - {minta: 1S-2m-2S-3H, ha: {ules: [3, 4]}, hossz: {S: 0-2}, fogas: [H], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Természetes, fogás a kőrben (nem ígér négy lapot, plusz erőt sem); gémforsz, irány a 3NT"}
+      - {minta: 1M-2D-2M-3C, ha: {ules: [3, 4]}, hossz: {M: 0-2}, fogas: [C], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Természetes, fogás a treffben (nem ígér négy lapot, plusz erőt sem); gémforsz, irány a 3NT"}
+      - {minta: 1H-2m-2H-2S, ha: {ules: [3, 4]}, hossz: {H: 0-2}, fogas: [S], forsz: GEMFORSZ, prioritas: 56,
+         alert: "Természetes, fogás a pikkben (nem ígér négy lapot, plusz erőt sem); gémforsz, irány a 3NT"}
+      - {minta: 1M-2m-2M-3NT, ha: {ules: [3, 4]}, pont: "(11)12-14", hossz: {M: 0-2}, fogas: [oM, om], prioritas: 57,
+         magyarazat: "Fogás mindkét nem licitált színben, nincs plusz erő"}
+      - {minta: 1M-2m-2M-2NT, ha: {ules: [3, 4]}, pont: 15+, hossz: {M: 0-2}, fogas: [oM, om], forsz: GEMFORSZ, prioritas: 57,
+         alert: "Fogás mindkét nem licitált színben, plusz erő"}
+      - {minta: 1S-2C-2S-3D-3NT, ha: {ules: [1, 2]}, fogas: [H], prioritas: 55,
+         magyarazat: "Fogás a kőrben (a még nem licitált színben)"}
+      - {minta: 1H-2C-2H-3D-3NT, ha: {ules: [1, 2]}, fogas: [S], prioritas: 55,
+         magyarazat: "Fogás a pikkben (a még nem licitált színben)"}
+      - {minta: 1S-2D-2S-3C-3NT, ha: {ules: [1, 2]}, fogas: [H], prioritas: 55,
+         magyarazat: "Fogás a kőrben (a még nem licitált színben)"}
+      - {minta: 1H-2D-2H-3C-3NT, ha: {ules: [1, 2]}, fogas: [S], prioritas: 55,
+         magyarazat: "Fogás a pikkben (a még nem licitált színben)"}
+      - {minta: 1S-2m-2S-3H-3NT, ha: {ules: [1, 2]}, fogas: [om], prioritas: 55,
+         magyarazat: "Fogás a még nem licitált minorban"}
+      - {minta: 1H-2m-2H-2S-3NT, ha: {ules: [1, 2]}, fogas: [om], prioritas: 55,
+         magyarazat: "Fogás a még nem licitált minorban"}
+      - {minta: 1M-2m-2M-3m-3NT, ha: {ules: [1, 2]}, fogas: [oM, om], prioritas: 55,
+         magyarazat: "Fogás a nem licitált színekben"}
+      - {minta: 1S-2C-2S-3D-3S-3NT, ha: {ules: [3, 4]}, hossz: {S: 0-1}, fogas: [H], prioritas: 54,
+         magyarazat: "Fogás a kőrben is, nincs pikk fit"}
+      - {minta: 1H-2C-2H-3D-3H-3NT, ha: {ules: [3, 4]}, hossz: {H: 0-1}, fogas: [S], prioritas: 54,
+         magyarazat: "Fogás a pikkben is, nincs kőr fit"}
+
+  - fejezet: "1M – 2m – 2M után: saját szín és fit (Moha, a kibic javaslata)"
+    jegyzet: >-
+      A fogásmutatás mellé (a kibic javaslata, a szerkesztő hagyja jóvá): a
+      minor ismétlése 1M-2♣-2M-3♣ = 5+ treff, 1M-2♦-2M-3♦ = 6+ káró; a nyitó
+      fogás nélkül 6+ nemessel 3M, a 2♦ (5+) mellé 3+ káróval 3♦. A 3M után
+      a válaszoló nemes fittel (2+) 4M, hosszú treffel 4♣ (a szerkesztő az
+      asztalnál: „a treff hosszabb, mint a káró”).
+    szabalyok:
+      - {minta: 1M-2C-2M-3C, ha: {ules: [3, 4]}, hossz: {C: 5+, M: 0-2}, forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Természetes, 5+ treff, gémforsz"}
+      - {minta: 1M-2D-2M-3D, ha: {ules: [3, 4]}, hossz: {D: 6+, M: 0-2}, forsz: GEMFORSZ, prioritas: 50,
+         magyarazat: "Természetes, 6+ káró, gémforsz"}
+      - {minta: 1M-2C-2M-3D-3M, ha: {ules: [1, 2]}, hossz: {M: 6+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "6+ lapos nemes, nincs fogás a még nem licitált színben"}
+      - {minta: 1M-2D-2M-3C-3M, ha: {ules: [1, 2]}, hossz: {M: 6+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "6+ lapos nemes, nincs fogás a még nem licitált színben"}
+      - {minta: 1M-2D-2M-3C-3D, ha: {ules: [1, 2]}, hossz: {D: 3+}, forsz: GEMFORSZ, prioritas: 53,
+         magyarazat: "Káró fit (3+ a partner 5+ lapja mellé), nincs fogás a még nem licitált színben"}
+      - {minta: 1M-2m-2M-3m-3M, ha: {ules: [1, 2]}, hossz: {M: 6+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "6+ lapos nemes, nincs fogás a nem licitált színekben"}
+      - {minta: 1M-2C-2M-3D-3M-4M, ha: {ules: [3, 4]}, hossz: {M: 2+}, prioritas: 53,
+         magyarazat: "Nemes fit (2+ a 6+ mellé)"}
+      - {minta: 1M-2C-2M-3D-3M-4C, ha: {ules: [3, 4]}, hossz: {C: 5+}, rel: ["C>D"], forsz: GEMFORSZ,
+         prioritas: 52, magyarazat: "Természetes: a treff hosszabb a kárónál (gémforsz)"}

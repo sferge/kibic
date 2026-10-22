@@ -1,0 +1,77 @@
+# A GYENGE UGRÁS — ELV (2026-10-02 este, Moha).
+#
+# „A két gyenge ugró konvenció (Weak Jump Shifts, Weak Jump Overcalls)
+# inkább ELV: nem egy-egy konkrét licithelyzetben él."
+#
+# Ahol NEM vagyunk licitálásra kényszerítve (szabad licit-helyzet), és egy
+# színt mondhatnánk alacsonyabban is — arra van szabály, tehát az
+# alacsonyabb licitből KÖVETKEZTETNI lehetne —, de mi átugorjuk, és eggyel
+# vagy kettővel magasabban mondjuk be: az GYENGESÉG (kizárás, blokk), NEM
+# többleterő. Ez a megállapodás lényege.
+#
+# A motorban (motor/helyzet.py, `ha: {gyenge_ugras: 1|2}`):
+#   * új szín (senki nem mondta még), és most szólalok meg először;
+#   * pontosan egy (1) vagy két (2) szintnyi ugrás;
+#   * a partner nem forszolt, és nem vagyunk gémforszban;
+#   * nem splinter-helyzet (az a konkrétabb elv);
+#   * az alacsonyabb licit ebben a színben DEFINIÁLT (van rá konkrét
+#     szabály), maga az ugrás viszont NEM (ha van rá konkrét szabály —
+#     pl. Bergen-emelés, transzfer —, akkor az a jelentése).
+#
+# A „nem plusz erő" a rendszerből jön: a megértésnél (propagálás) a
+# pontplafon az alacsonyabb licit minimuma alatt van eggyel; a
+# döntésnél pedig az elv csak akkor szólal meg, ha egyetlen konkrét
+# szabály sem illett a lapra (tehát az alacsonyabb licit sem).
+#
+# Példák: 1♣-(passz)-2♥/3♥; 1♦-(1♠)-3♥; (1♣)-2♥/3♥; 1♣-(X)-2♥;
+# (1♣)-1♦-(passz)-2♠ — mindenhol, ahol a fenti feltételek igazak.
+#
+# A PÁRJA (2026-10-02, 22:24, Moha): MÁSODIK (vagy későbbi) megszólalásban
+# az ugrás új színben éppenséggel PLUSZT ígér — gémforsz. A nyitótól
+# 17-19 FP (pl. 1♣-1♥-2♠), mástól kb. 15+ FP (pl. 1♣-1♥-1NT-3♦). Itt is:
+# ha az ugrás konkrétan definiált, vagy splinter-helyzet, az előbb jár
+# (`ha: {eros_ugras: true}`).
+#
+# NYITOTT (kieg.): a zónás pontsáv és a hossz (egyszeres ugrás 6-7 lap,
+# dupla 7+) a klubdokumentum ugró közbeszólásából átvéve; a szín
+# minősége nincs előírva.
+rendszer:
+  kod: GYENGE_UGRAS_ELV
+  nev: Az ugrás elve (első licitben gyenge, később erős)
+  nev_en: Weak jumps (principle)
+  fajta: KONVENCIO
+  tema: "Gyenge ugrás új színben"
+  leiras: "Kényszer nélkül, első megszólalásként az ugró új szín (amit alacsonyabban is mondhatnánk) gyenge, kizáró: egyszeres ugrás 6-7 lap, dupla 7+. Második megszólalásként az ugrás új színben erő, gémforsz."
+fejezetek:
+  - fejezet: "Gyenge ugrás új színben"
+    szabalyok:
+      - {minta: ".. 2B", kulcs: GYENGE-UGRAS-2-1, fajta: ELV, prioritas: 5,
+         ha: {gyenge_ugras: 1}, hossz: {B: 6-7}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         forsz: KIZARO, alert: "Gyenge ugrás: 6+ lap, gyenge (kizáró) — nem erő"}
+      - {minta: ".. 3B", kulcs: GYENGE-UGRAS-3-1, fajta: ELV, prioritas: 5,
+         ha: {gyenge_ugras: 1}, hossz: {B: 6-7}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         forsz: KIZARO, alert: "Gyenge ugrás: 6+ lap, gyenge (kizáró) — nem erő"}
+      - {minta: ".. 4B", kulcs: GYENGE-UGRAS-4-1, fajta: ELV, prioritas: 5,
+         ha: {gyenge_ugras: 1}, hossz: {B: 7+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         forsz: KIZARO, alert: "Gyenge ugrás: hosszú szín, gyenge (kizáró) — nem erő"}
+      - {minta: ".. 3B", kulcs: GYENGE-UGRAS-3-2, fajta: ELV, prioritas: 6,
+         ha: {gyenge_ugras: 2}, hossz: {B: 7+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         forsz: KIZARO, alert: "Gyenge dupla ugrás: 7+ lap, gyenge (kizáró) — nem erő"}
+      - {minta: ".. 4B", kulcs: GYENGE-UGRAS-4-2, fajta: ELV, prioritas: 6,
+         ha: {gyenge_ugras: 2}, hossz: {B: 7+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         forsz: KIZARO, alert: "Gyenge dupla ugrás: 7+ lap, gyenge (kizáró) — nem erő"}
+
+  - fejezet: "Ugrás új színben második megszólalásként: erő"
+    szabalyok:
+      - {minta: ".. 2B", kulcs: EROS-UGRAS-2-NY, fajta: ELV, prioritas: 5,
+         ha: {eros_ugras: true, en_nyitottam: true}, hossz: {B: 4+}, pont: 17-19,
+         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
+      - {minta: ".. 3B", kulcs: EROS-UGRAS-3-NY, fajta: ELV, prioritas: 5,
+         ha: {eros_ugras: true, en_nyitottam: true}, hossz: {B: 4+}, pont: 17-19,
+         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
+      - {minta: ".. 2B", kulcs: EROS-UGRAS-2, fajta: ELV, prioritas: 5,
+         ha: {eros_ugras: true, en_nyitottam: false}, hossz: {B: 4+}, pont: 15+,
+         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
+      - {minta: ".. 3B", kulcs: EROS-UGRAS-3, fajta: ELV, prioritas: 5,
+         ha: {eros_ugras: true, en_nyitottam: false}, hossz: {B: 4+}, pont: 15+,
+         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}

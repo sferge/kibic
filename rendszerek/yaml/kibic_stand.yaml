@@ -1,0 +1,91 @@
+# KIBIC_STAND — a kibic (a mi MI-nk) alapértelmezett rendszere.
+# Konvenciókártya: a Kibic egyesület standardja + konvenciók.
+#
+# A SORREND SZÁMÍT: ha két hivatkozott rendszer ugyanarra a kulcsra
+# (mintára) ad szabályt, az előrébb álló nyer. Egy konvenció kikapcsolása:
+# `aktiv: false` (vagy az adatbázisban a hivatkozas_aktiv = 0).
+rendszer:
+  kod: KIBIC_STAND
+  nev: Kibic standard
+  nev_en: Kibic standard card
+  fajta: RENDSZER
+  csalad: NATURAL
+  verzio: "0.1"
+  leiras: >-
+    A kibic alapértelmezett rendszere: a Kibic egyesület standardja
+    (5-ös nemes, 15-17 szan, 2/1) a klub küzdelmi licitjeivel és
+    konvenciókkal kiegészítve.
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+hivatkozasok:
+  - MOHA_1M                     # az alaprendszer ELŐTT: az 1♠/1♥ nyitását felülírja
+  - 1TREFF_DUBLO                # az alaprendszer ELŐTT: az 1♣/1♦ nyitását felülírja
+  - WALSH                       # az alaprendszer ELŐTT: az 1♣-1♦ választ felülírja
+  - MOHA_2C_KUKA                # az alaprendszer ELŐTT: a 2♣ válaszait (2♥ kuka) felülírja
+  - PUPPET_STAYMAN              # az alaprendszer ELŐTT: a 2NT-3♣ Stayman-szerű licitjét felülírja
+  - MOHA_JACOBY                 # az alaprendszer ELŐTT: a Jacoby 2NT folytatása az ígérthez mérve; 2M-2NT
+  - TIMBUKTU                    # a küzdelmi rész ELŐTT: erős (16+) 1♣ / erős 2♣ ellen (csak ott írja felül)
+  - JUNK_STAYMAN                # az alaprendszer ELŐTT: ezen a kártyán a Stayman helyett ez van (azonos téma)
+  - KIBICEGY_STAND
+  - GYENGE_UGRO_VALASZ          # a gyenge ugró válasz folytatásai (nyitó, 2NT-kérdés)
+  - POZITIV_SZABAD_LICIT        # a küzdelmi rész ELŐTT: a 2-es szintű új szín pozitív (SZABAD_LICIT_MIN)
+  - KOZBESZOLAS_NYITAS          # a KÜZDELMI ELŐTT: a közbeszólás egyenértékű a nyitással (2026-10-21)
+  - KIBICEGY_KUZDELMI
+  - NEGATIV_KONTRA
+  - SUPPORT_KONTRA
+  - INFORMATIV_KONTRA
+  - RESZPONZIV_KONTRA
+  - LEBENSOHL
+  - MICHAELS
+  - SZOKATLAN_2NT
+  - GYENGE_UGRO_KOZBESZOLAS
+  - FESU                        # az adatbázisban (015_fesu.sql), JAVASOLT
+  - DRURY
+  - GAMBLING_3NT
+  - GYENGE_2D                   # ideiglenes, a saját leírásod fogja felváltani
+  - BLOKK_NYITASOK
+  - MOHA_SZLEM                  # helyzeti elv: megállapodott adu mellett kulcslicit vagy ászkérdés (2026-09-30)
+  - MOHA_3NT_4M                 # helyzeti elv: a partner 3NT-je után a 4m ORKC (az RKC ELŐTT)
+  - RKC                         # helyzeti elv: kulcslapkérdés megállapodott adu mellett
+  - GYORS_LASSU                 # helyzeti elv: gémforszban lassú emelés = szleminvit, gyors = leállás
+  - MOHA_PC                     # helyzeti elv: GI alatt a partner színe 3 lappal = passz vagy javíts
+  - EMELES_ELV                  # jelentés-elv: a partner színének emelése = támogatás
+  - EGYRE_EGY                   # elv: az 1-es szintű új szín egy körre kényszerít
+  - NEGYEDIK_SZIN               # elv: a negyedik szín egy körre kényszerít, lapleírást kér
+  - GYENGE_UGRAS_ELV            # elv: kényszer nélkül az ugró új szín gyenge (nem erő)
+  - FOGASKERES                  # elv: az ellenfél színe 3NT alatt fogáskérés (2026-10-22)
+  - TERMESZETES_ALAP            # elv: a megállapodás nélküli színlicit természetes; preferencia (2026-10-21)
+  - PASSZ_ELV
+
+# A KONVENCIÓKÁRTYA kézzel írt része (a többit a szabályokból generáljuk:
+# python -m kibic.cli.kartya ...). Ami "kitöltendő", az még nincs meg.
+kartya:
+  jatekosok: "kibic (AI) — KIBIC_STAND"
+  kategoria: "klubverseny (Moha)"
+  altalanos: >-
+    Ötös nemes, erős szan (15-17), 2/1 gémforsz a 2♣ válaszra. Gyenge 2♦,
+    2♥, 2♠ zónafüggő erővel. Bergen-emelések, Jacoby 2NT, splinter.
+    1NT után Junk Stayman, Jacoby- és Texas-transzfer, Smolen, Gerber; a
+    közbeszólás után Lebensohl. 1-re 1 kényszerít; riverz 18+. Fordított minoremelés, Kanthar (ellenőrző
+    2♣), Wolff-leállás. Erős treff (és erős 2♣) ellen Timbuktu. Negyedik
+    szín: egy körre kényszerít.
+  kenyszerito_passz: >-
+    Forszpassz, ha (a) beliben gémet mondtunk és az ellenfél mansban
+    rálicitál; (b) a vonalunkon elfogadott invit volt; (c) a vonalunkon
+    gémforsz licit volt — mindhárom esetben mindkét kéz passza forszpassz.
+  kulonleges:
+    - "Lengyel kontra / rekontra: a licitált (legalább 4-es) színünkre adott felüllicit kontrája / információs kontra rekontrája: jobb indulása van"
+    - "Ha az ellenfél megkontrázza a fogást kereső 3x licitünket: P = nincs fogás, XX = fél fogás, színlicit = nincs fogás, 3NT = másfél fogás"
+    - "Alacsony büntető kontrára a rekontra SOS; a közbeszóló partnerének rekontrája dubló magasfigura (Rosenberg)"
+    - "3NT-(X)-XX: mindkét részről kétség — kétségnél a partner menjen ki 4m-ba"
+  szlem:
+    - "Gerber (4♣) az 1NT és a 2NT nyitás után"
+    - "Kulcslapkérdés (RKCB / Kickback): kitöltendő"
+  pszichik: null       # kitöltendő
+
+# KÁRTYAJELZÉSEK: melyik jelzésrendszert játssza (rendszerek/jelzesek/).
+# Az indítási táblázatot és a jelzési rácsot a kártya ebből generálja.
+# A Moha standard a Szegedi–Mráz (2008) jelzésrendszerre épül.
+jelzesek: MOHA_STAND

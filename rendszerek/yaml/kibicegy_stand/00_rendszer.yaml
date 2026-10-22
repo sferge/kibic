@@ -1,0 +1,40 @@
+# KIBICEGY_STAND — a budapesti Kibic bridzsegyesület standard rendszere,
+# pontosan annyi, amennyi a klubdokumentumban áll:
+#   rendszerek/kibic_standard_1.0.doc
+#
+# A dokumentumban NÉV SZERINT szereplő konvenciók (Stayman, Jacoby-
+# transzfer, Bergen, Jacoby 2NT, Wolff, Kanthar, Smolen, Texas, Gerber,
+# splinter) külön konvencióként élnek (rendszerek/yaml/konvenciok/), és
+# ez a rendszer HIVATKOZIK rájuk. Így a KIBIC_STAND ugyanazt a Staymant
+# használja, nem egy második másolatot.
+#
+# Pontok: a dokumentum végig FP-ben (figurapont, HCP) beszél.
+# Ahol a dokumentum nem ad ponthatárt, ott a sáv KIEGÉSZÍTÉS — ezeket a
+# sorok mellett `# kieg.` megjegyzés jelöli; átnézéskor érdemes rájuk
+# figyelni.
+rendszer:
+  kod: KIBICEGY_STAND
+  nev: Kibic egyesület standard
+  nev_en: Kibic club standard (Budapest)
+  fajta: ALAPRENDSZER
+  csalad: NATURAL
+  verzio: "1.0"
+  leiras: >-
+    Ötös nemes, erős (15-17) szan, 2/1 gémforsz a 2 treffre, gyenge
+    kettes nemes nyitások. Forrás: kibic_standard_1.0.doc.
+  forras: rendszerek/kibic_standard_1.0.doc
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+hivatkozasok:
+  - STAYMAN
+  - JACOBY_TRANSZFER
+  - TEXAS
+  - SMOLEN
+  - BERGEN
+  - JACOBY_2NT
+  - WOLFF
+  - KANTHAR
+  - SPLINTER
+  - GERBER

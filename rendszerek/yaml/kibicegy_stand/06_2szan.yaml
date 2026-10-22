@@ -1,0 +1,37 @@
+# A 2NT INDULÁS (20-21) — válaszok. A Jacoby- és a Texas-transzfer, a
+# Smolen és a Gerber külön konvenció; a 3♣ "Stayman-szerű" licit viszont a
+# rendszer saját megoldása, ezért itt van.
+rendszer: {kod: KIBICEGY_STAND}
+fejezetek:
+  - fejezet: A 2N indulás
+    szabalyok:
+      - {minta: 2NT-3C, pont: 4+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}], forsz: GEMFORSZ,
+         elvaras: VALASZ, prioritas: 55, alert: "Stayman-szerű licit", nyers: "3♣! | Stayman szerű licit"}
+      - {minta: 2NT-3S, pont: 0-3, hossz: {C: 6+}, forsz: EGY_MENET, prioritas: 50,
+         alert: "Treff transzfer", nyers: "3♠! | Treff xfer"}
+      - {minta: 2NT-3NT, pont: 4-10, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
+         magyarazat: "Leállás", nyers: "3NT | Leállás"}
+      - {minta: 2NT-4S, pont: 0-3, hossz: {D: 6+}, forsz: EGY_MENET, prioritas: 50,
+         alert: "Káró transzfer", nyers: "4♠! | Káró xfer"}
+      - {minta: 2NT-3S-4C, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2NT-4S-5D, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+
+  - fejezet: "2NT – 3♣ után a nyitó"
+    szabalyok:
+      - {minta: 2NT-3C-3D, hossz: {S: 0-3, H: 0-3}, prioritas: 50,
+         alert: "Nincs 4-es nemes", nyers: "3♦! | ø 4-es Major"}
+      - {minta: 2NT-3C-3H, hossz: {H: 4+, S: 0-3}, prioritas: 51,
+         alert: "Természetes, 4+ kőr", nyers: "3♥! | NAT"}
+      - {minta: 2NT-3C-3S, hossz: {S: 4+, H: 0-3}, prioritas: 51,
+         alert: "Természetes, 4+ pikk", nyers: "3♠! | NAT"}
+      - {minta: 2NT-3C-3NT, hossz: {S: 4, H: 4}, prioritas: 52,
+         alert: "Mindkét nemes négyes", nyers: "3NT! | Mindkét nemes négyes"}
+      - {minta: 2NT-3C-3D-3NT, prioritas: 50, magyarazat: "Természetes, leállás", nyers: "3N: NAT, leállás."}
+
+  - fejezet: "2NT – kontra után"
+    szabalyok:
+      - {minta: "2NT (X) XX", pont: 0-3, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}, {hossz: {H: 5+}}, {hossz: {S: 5+}}],
+         forsz: EGY_MENET, prioritas: 52, alert: "Egyszínű menekülés: 3♣-t kér",
+         nyers: "XX | Egyszínű menekülés, 3teffet!-et kér, ami bemutatja színét passzal, vagy korrekcióval"}
+      - {minta: "2NT (X) P", pont: 4+, prioritas: 50,
+         magyarazat: "Büntető szándék", nyers: "passz | Büntető szándék"}

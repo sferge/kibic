@@ -1,0 +1,25 @@
+# EMELES_ELV — az emelés elve, JELENTÉS-elvként (2026-09-30).
+#
+# Ha a partner színét mondjuk be (bármely szinten), és erre nincs konkrét
+# szabály, az TÁMOGATÁST ígér: 3+ lapot, ha a partner 5+-t ígért, 4+-t,
+# ha csak 4-et. Így a gép akkor is tudja, hogy megvan az adu (és él az
+# RKC, a kulcslicit), ha a licitmenet maga nincs leírva.
+#
+# TARTALÉK: csak akkor számít, ha más szabály vagy elv nem értelmezte a
+# licitet (pl. a 4-es minoremelés ORKC-je erősebb).
+# Csak jelentést ad: licitálni nem ezzel licitál a kibic (az "n" szint
+# nem dönthető el), csak MEGÉRTI a partner emelését.
+rendszer:
+  kod: EMELES_ELV
+  nev: Az emelés elve
+  nev_en: Raise principle
+  fajta: KONVENCIO
+  tema: "A partner színének emelése"
+  leiras: "A partner színének bemondása támogatást ígér: 3+ lap a partner 5+ lapos színéhez, 4+ a 4 laposhoz."
+fejezetek:
+  - fejezet: Emelés
+    szabalyok:
+      - {minta: ".. nA", kulcs: EMELES-5, fajta: ELV, ha: {partner_szin: {A: 5}},
+         hossz: {A: 3+}, jelentes: {tartalek: true}, prioritas: 1, magyarazat: "Emelés: 3+ lapos támogatás"}
+      - {minta: ".. nA", kulcs: EMELES-4, fajta: ELV, ha: {partner_szin: A},
+         hossz: {A: 4+}, jelentes: {tartalek: true}, prioritas: 1, magyarazat: "Emelés: 4+ lapos támogatás"}

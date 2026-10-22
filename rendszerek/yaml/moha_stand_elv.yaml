@@ -1,0 +1,44 @@
+# MOHA_STAND_ELV — PRÓBA-RENDSZER (2026-10-05): a MOHA_STAND, de az
+# 1M-2m-2M utáni folytatásokat nem a MOHA_1M szabálysorai, hanem a
+# FOGASMUTATAS elv-sablon írja le (elvek/fogasmutatas.yaml).
+#
+# Azért külön rendszer, hogy a kettő egymás mellett mérhető legyen
+# (aranykészlet, árnyék mód). A szerkesztő dönt utána: a MOHA_STAND-ot
+# nyessük vissza, vagy ebből lesz az új MOHA_STAND (a régi pedig
+# MOHA_STAND_OLDSCHOOL).
+rendszer:
+  kod: MOHA_STAND_ELV
+  nev: Moha standard (elv-sablonnal, próba)
+  nev_en: Moha club standard (principle templates, trial)
+  fajta: RENDSZER
+  csalad: NATURAL
+  verzio: "0.1"
+  leiras: >-
+    A MOHA_STAND, de az 1M-2m-2M utáni fogásmutatást egyetlen elv-sablon
+    (FOGASMUTATAS) írja le a MOHA_1M soronkénti szabályai helyett.
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+  SZABAD_LICIT_MIN: "11"
+hivatkozasok:
+  - LOTT
+  - FELMENTES                   # elv: az 1./2. kézben a 8 vesztős (13 FP alatt) és a rossz 11-12 pont nem induló erő
+  - MOHA_2MAJOR                 # gyenge kettes nemes a Moha-kör szerint (2026-09-29; eddig lemaradt a kártyáról)
+  - MOHA_2D                     # gyenge 2♦ a Moha nemes táblázatával (2026-10-05)
+  - MOHA_NONFORCE_1NT           # 1M-1NT és az egyszerű emelés fedőütéssel (2026-09-30; eddig lemaradt)
+  - MOHA_FEDOKERESO             # fedőkereső invit 1M-2M után (2026-09-30; eddig lemaradt)
+  - KENYSZER                    # elv: kényszer alatt nem passzolunk; a gémforsz megszűnése (2026-10-12)
+  - FORSZPASSZ_KIBIC            # elv: kényszerítő passz (2026-10-12)
+  - {kod: FOGASMUTATAS, ervenyes: ["1M-2m-2M"]}
+  - {kod: LIMITALT_UJ_SZIN, ervenyes: ["1M-1NT"]}   # elv: a limitált lap új színe lezárás (2026-10-19)
+  - MOHA_INFO_KONTRA            # információs kontra a Moha szerint: induló erő, 18+ (2026-10-21)
+  - KIBIC_STAND
+kizarasok:
+  - {kod: MOHA_1M, fejezet: "1M – 2m – 2M után: a válaszoló új színe és a nyitó felelete (Moha)"}
+kartya:
+  jatekosok: "Moha-kör — MOHA_STAND_ELV (próba)"
+  kategoria: "klubverseny (Moha)"
+  altalanos: >-
+    Mint a MOHA_STAND; az 1M-2m-2M után a fogásmutatás elve: az új szín
+    természetes, fogást mutat, a cél a 3NT.

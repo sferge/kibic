@@ -1,0 +1,226 @@
+# RKC — kulcslapkérdés, HELYZETI ELVként (Moha-kör, 2026-09-30).
+#
+# Nem licitmenetenként egy sor: ".." = bármilyen licitmenet, és a helyzet
+# dönt — van-e MEGÁLLAPODOTT ADUNK (a kényszertár szerint ismert 8+ lapos
+# fit; nemes előbb), és gémforszban vagyunk-e. Az ellenfél passza a
+# licitek között átlátszó.
+#
+#   A KÉRDÉS: az összeemelt színből a 4-es szint +1 lépcső
+#     kőr adu:  4♠ = RKC          pikk adu:  4NT = RKC
+#     minor adu, GÉMFORSZBAN:      4 az adu minorból = ORKC
+#     minor adu, NEM gémforszban:  4 az adu minorból = invit (nem kérdés)
+#     a partner minorjának összeemelése NÉGYES szinten (még nincs adu),
+#       ha már licitáltunk, és a 3-as szint szabad volt (1♦-1M-2♦-4♦):
+#       adut jelöl, gémforszt teremt, és maga az ORKC. Az 1♦-4♦ kizárás.
+#   GÉMFORSZ: definiáltan gémforsz licit után, VAGY elfogadott géminvit után.
+#   GI után: gém vagy fölötte = elfogad; az összeemelt szín a GI szintjén
+#   (3M, 4m) = elutasít; alatta = további invit (F1); fölötte, gém alatt = GF.
+#     minor adu, bármikor:  4NT = opcionális ászkérdés és szleminvit
+#   A kőr adu melletti 4NT (a 4♠ RKC kihagyásával) kulcslicit pikkben —
+#   ez a „mikor kulcslicit, mikor ászkérdés” elvhez tartozik (még nincs).
+#
+#   VÁLASZ (5 ász = 4 ász + adu király), lépcsőkben a kérdés fölött:
+#     1. 0 vagy 3   2. 1 vagy 4   3. 2 adu dáma nélkül   4. 2 adu dámával
+#   Az opcionális 4NT-re (minor, nincs adu): 5♣ 0 vagy 3, 5♦ 1 vagy 4,
+#   5♥ 2 ász; passz: nem szlem jellegű a lap (kevés ász-király, sok vesztő).
+#
+# A kérdező (a szerkesztő szlem-elve, doc/moha-elvek.md): akkor kérdez,
+# ha a lapja EGYÉRTELMŰEN szlemjellegű (a saját vesztői mínusz a partner
+# legkevesebb fedője < 1), ÉS az 5-ös szint biztonságos (a két kéz
+# tudottan 30+ pont, vagy legfeljebb 2 vesztő marad), ÉS a partner lapjára
+# nem kíváncsi, CSAK a kulcslapjaira: minden külső színben van kontrollja
+# (ász, király, sikén vagy szingli) — különben két gyors vesztő lehet egy
+# színben, amit az ászkérdés nem derít ki. Egyébként kulcslicit (MOHA_SZLEM). A válasz UTÁN: MOHA_SPIRAL (motor/spiral.py).
+rendszer:
+  kod: RKC
+  nev: Kulcslapkérdés (RKC, ORKC)
+  nev_en: Roman Key Card Blackwood (with minor RKC)
+  fajta: KONVENCIO
+  tema: "Adu megállapodása után: ászkérdés"
+  leiras: "Az összeemelt színből a 4-es szint +1 lépcső a kulcslapkérdés (kőr: 4♠, pikk: 4NT; minor gémforszban: 4m); 0-3 / 1-4 / 2 / 2+D. Minor mellett a 4NT opcionális ászkérdés és szleminvit."
+  jegyzet: >-
+    Helyzeti elv: bármely licitmenetben érvényes, ahol a vonalunknak ismert
+    8+ lapos fitje van. (Eldöntve: 2026-09-30.) NYITOTT: a „mikor
+    kulcslicit, mikor ászkérdés” elv (pl. kőr adu mellett a 4NT = kulcslicit
+    pikkben). A kulcslap-válasz után a folytatás spirállal (MOHA_SPIRAL,
+    motor/spiral.py).
+fejezetek:
+  - fejezet: A kérdés
+    szabalyok:
+      - {minta: ".. 4S", kulcs: RKC-KOR, fajta: ELV, ha: {adu: H}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (kőr adu): 5 ász"}
+      - {minta: ".. 4NT", kulcs: RKC-PIKK, fajta: ELV, ha: {adu: S}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (pikk adu): 5 ász"}
+      # Kőr adu mellett a pikk-kulcslicit a 4NT (a 4♠ az RKC). Gém fölött:
+      # ász kell. "Kulcslicitre kulcslicit, ha lehet" (Moha, 2026-10-04):
+      # nem kizárt szlemnél a pikk ász birtokában ez a licit.
+      - {minta: ".. 4NT", kulcs: KULCSLICIT-PIKK, fajta: ELV, ha: {adu: H, gemforsz: true},
+         szlem: nem_kizart, lapok: [SA], forsz: EGY_MENET, prioritas: 4,
+         jelentes: {fedo_plusz: 1},
+         alert: "Kulcslicit pikkben (a 4♠ az RKC): pikk ász"}
+      - {minta: ".. 4C", kulcs: ORKC-TREFF, fajta: ELV, ha: {adu: C, gemforsz: true},
+         szlem: igen, ot_biztos: true, kontrollok: true, forsz: EGY_MENET, prioritas: 5,
+         alert: "Minor kulcslapkérdés (ORKC, treff adu): 5 ász"}
+      - {minta: ".. 4D", kulcs: ORKC-KARO, fajta: ELV, ha: {adu: D, gemforsz: true},
+         szlem: igen, ot_biztos: true, kontrollok: true, forsz: EGY_MENET, prioritas: 5,
+         alert: "Minor kulcslapkérdés (ORKC, káró adu): 5 ász"}
+      - {minta: ".. 4C", kulcs: INVIT-TREFF, fajta: ELV, ha: {adu: C, gemforsz: false},
+         dontesi_mod: MERLEGELO, prioritas: 3,
+         magyarazat: "Invit (nem gémforszban a 4 az adu minorból nem kérdés)"}
+      - {minta: ".. 4D", kulcs: INVIT-KARO, fajta: ELV, ha: {adu: D, gemforsz: false},
+         dontesi_mod: MERLEGELO, prioritas: 3,
+         magyarazat: "Invit (nem gémforszban a 4 az adu minorból nem kérdés)"}
+      # A partner minorjának összeemelése NÉGYES szinten (még nincs adu, a
+      # partner 4+ lapot ígért), ha MÁR LICITÁLTUNK és a 3-as szint még
+      # szabad volt (1♦-1M-2♦-4♦): kijelöli az adut, gémforszt teremt, és
+      # maga a licit az ORKC. Az azonnali 1♦-4♦ NEM ez: az kizárás.
+      - {minta: ".. 4C", kulcs: ORKC-TREFF-EMELES, fajta: ELV,
+         ha: {adu: nincs, partner_szin: C, en_nyilatkoztam: true, legfeljebb: 2NT},
+         hossz: {C: 4+}, szlem: nem_kizart,
+         dontesi_mod: MERLEGELO, forsz: GEMFORSZ, prioritas: 5,
+         alert: "Treff-emelés négyes szintre: adu, gémforsz és kulcslapkérdés (ORKC)"}
+      - {minta: ".. 4D", kulcs: ORKC-KARO-EMELES, fajta: ELV,
+         ha: {adu: nincs, partner_szin: D, en_nyilatkoztam: true, legfeljebb: 3C},
+         hossz: {D: 4+}, szlem: nem_kizart,
+         dontesi_mod: MERLEGELO, forsz: GEMFORSZ, prioritas: 5,
+         alert: "Káró-emelés négyes szintre: adu, gémforsz és kulcslapkérdés (ORKC)"}
+      - {minta: ".. 4NT", kulcs: ASZKERDES-MINOR, fajta: ELV, ha: {adu: minor},
+         szlem: nem_kizart, dontesi_mod: MERLEGELO, prioritas: 4,
+         alert: "Opcionális ászkérdés és szleminvit (passzolható)"}
+
+  - fejezet: Válasz — kőr adu (4♠ kérdés)
+    szabalyok:
+      - {minta: ".. 4S 4NT", kulcs: RKC-KOR-1, fajta: ELV, jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null}}, ha: {adu: H}, kulcslapok: [0, 3],
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4S 5C", kulcs: RKC-KOR-2, fajta: ELV, jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null}}, ha: {adu: H}, kulcslapok: [1, 4],
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4S 5D", kulcs: RKC-KOR-3, fajta: ELV, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false}}, ha: {adu: H}, kulcslapok: 2,
+         adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4S 5H", kulcs: RKC-KOR-4, fajta: ELV, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true}}, ha: {adu: H}, kulcslapok: 2,
+         adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
+
+  - fejezet: Válasz — pikk adu (4NT kérdés)
+    szabalyok:
+      - {minta: ".. 4NT 5C", kulcs: RKC-PIKK-1, fajta: ELV, jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null}}, ha: {adu: S}, kulcslapok: [0, 3],
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4NT 5D", kulcs: RKC-PIKK-2, fajta: ELV, jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null}}, ha: {adu: S}, kulcslapok: [1, 4],
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4NT 5H", kulcs: RKC-PIKK-3, fajta: ELV, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false}}, ha: {adu: S}, kulcslapok: 2,
+         adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4NT 5S", kulcs: RKC-PIKK-4, fajta: ELV, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true}}, ha: {adu: S}, kulcslapok: 2,
+         adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
+
+  - fejezet: Válasz — minor adu, gémforszban (ORKC)
+    szabalyok:
+      - {minta: ".. 4C 4D", kulcs: ORKC-TREFF-1, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: [0, 3], prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4C 4H", kulcs: ORKC-TREFF-2, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: [1, 4], prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4C 4S", kulcs: ORKC-TREFF-3, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: 2, adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4C 4NT", kulcs: ORKC-TREFF-4, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: 2, adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
+      - {minta: ".. 4D 4H", kulcs: ORKC-KARO-1, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: [0, 3], prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4D 4S", kulcs: ORKC-KARO-2, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: [1, 4], prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4D 4NT", kulcs: ORKC-KARO-3, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: 2, adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4D 5C", kulcs: ORKC-KARO-4, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: 2, adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
+
+  - fejezet: Válasz — minor adu, opcionális 4NT
+    szabalyok:
+      - {minta: ".. 4NT P", kulcs: ASZKERDES-MINOR-P, fajta: ELV, ha: {adu: minor},
+         vagy: [{kontroll: 0-2}, {vesztok: 8+}], prioritas: 11,
+         magyarazat: "Nem szlem jellegű a lap (kevés ász-király vagy sok vesztő): passz"}
+      - {minta: ".. 4NT 5C", kulcs: ASZKERDES-MINOR-1, fajta: ELV, ha: {adu: minor},
+         vagy: [{aszok: 0}, {aszok: 3}], prioritas: 10, alert: "0 vagy 3 ász"}
+      - {minta: ".. 4NT 5D", kulcs: ASZKERDES-MINOR-2, fajta: ELV, ha: {adu: minor},
+         vagy: [{aszok: 1}, {aszok: 4}], prioritas: 10, alert: "1 vagy 4 ász"}
+      - {minta: ".. 4NT 5H", kulcs: ASZKERDES-MINOR-3, fajta: ELV, ha: {adu: minor},
+         aszok: 2, prioritas: 10, alert: "2 ász"}
+
+  - fejezet: "Exclusion RKC (2026-10-21)"
+    jegyzet: >-
+      A szerkesztő (2026-10-21, 21. leosztás): megállapodott nemes adu mellett
+      az UGRÁS az 5-ös szintre egy színben, amelyben sikénem van, kulcslap-
+      kérdés az abban a színben levő ász nélkül (a partner színében is).
+      Válasz lépcsőkben: 0/3, 1/4, 2 adu dáma nélkül, 2 adu dámával. A
+      folytatás a spirál (a kizárt ászt nem számolja).
+    szabalyok:
+      - {minta: ".. 5C", kulcs: EXCL-S-C, fajta: ELV, ha: {adu: S, ugras: true},
+         hossz: {C: 0}, szlem: nem_kizart, ot_biztos: vesztok, kontrollok: true, forsz: EGY_MENET, prioritas: 6,
+         alert: "Exclusion: kulcslapkérdés a treff ász nélkül (ott sikénem van)"}
+      - {minta: ".. 5D", kulcs: EXCL-S-D, fajta: ELV, ha: {adu: S, ugras: true},
+         hossz: {D: 0}, szlem: nem_kizart, ot_biztos: vesztok, kontrollok: true, forsz: EGY_MENET, prioritas: 6,
+         alert: "Exclusion: kulcslapkérdés a káró ász nélkül (ott sikénem van)"}
+      - {minta: ".. 5H", kulcs: EXCL-S-H, fajta: ELV, ha: {adu: S, ugras: true},
+         hossz: {H: 0}, szlem: nem_kizart, ot_biztos: vesztok, kontrollok: true, forsz: EGY_MENET, prioritas: 6,
+         alert: "Exclusion: kulcslapkérdés a kőr ász nélkül (ott sikénem van)"}
+      - {minta: ".. 5C", kulcs: EXCL-H-C, fajta: ELV, ha: {adu: H, ugras: true},
+         hossz: {C: 0}, szlem: nem_kizart, ot_biztos: vesztok, kontrollok: true, forsz: EGY_MENET, prioritas: 6,
+         alert: "Exclusion: kulcslapkérdés a treff ász nélkül (ott sikénem van)"}
+      - {minta: ".. 5D", kulcs: EXCL-H-D, fajta: ELV, ha: {adu: H, ugras: true},
+         hossz: {D: 0}, szlem: nem_kizart, ot_biztos: vesztok, kontrollok: true, forsz: EGY_MENET, prioritas: 6,
+         alert: "Exclusion: kulcslapkérdés a káró ász nélkül (ott sikénem van)"}
+      - {minta: ".. 5C 5D", kulcs: EXCL-S-C-1, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null, kizart: C}}, kulcslapok: [0, 3], kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 0 vagy 3 kulcslap"}
+      - {minta: ".. 5C 5H", kulcs: EXCL-S-C-2, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null, kizart: C}}, kulcslapok: [1, 4], kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 1 vagy 4 kulcslap"}
+      - {minta: ".. 5C 5S", kulcs: EXCL-S-C-3, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false, kizart: C}}, kulcslapok: 2, adu_dama: false, kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 5C 5NT", kulcs: EXCL-S-C-4, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true, kizart: C}}, kulcslapok: 2, adu_dama: true, kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 2 kulcslap, adu dámával"}
+      - {minta: ".. 5D 5H", kulcs: EXCL-S-D-1, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null, kizart: D}}, kulcslapok: [0, 3], kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 0 vagy 3 kulcslap"}
+      - {minta: ".. 5D 5S", kulcs: EXCL-S-D-2, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null, kizart: D}}, kulcslapok: [1, 4], kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 1 vagy 4 kulcslap"}
+      - {minta: ".. 5D 5NT", kulcs: EXCL-S-D-3, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false, kizart: D}}, kulcslapok: 2, adu_dama: false, kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 5D 6C", kulcs: EXCL-S-D-4, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true, kizart: D}}, kulcslapok: 2, adu_dama: true, kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 2 kulcslap, adu dámával"}
+      - {minta: ".. 5H 5S", kulcs: EXCL-S-H-1, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null, kizart: H}}, kulcslapok: [0, 3], kulcs_kizart: H,
+         prioritas: 10, alert: "Exclusion-válasz (kőr ász nélkül): 0 vagy 3 kulcslap"}
+      - {minta: ".. 5H 5NT", kulcs: EXCL-S-H-2, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null, kizart: H}}, kulcslapok: [1, 4], kulcs_kizart: H,
+         prioritas: 10, alert: "Exclusion-válasz (kőr ász nélkül): 1 vagy 4 kulcslap"}
+      - {minta: ".. 5H 6C", kulcs: EXCL-S-H-3, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false, kizart: H}}, kulcslapok: 2, adu_dama: false, kulcs_kizart: H,
+         prioritas: 10, alert: "Exclusion-válasz (kőr ász nélkül): 2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 5H 6D", kulcs: EXCL-S-H-4, fajta: ELV, ha: {adu: S, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true, kizart: H}}, kulcslapok: 2, adu_dama: true, kulcs_kizart: H,
+         prioritas: 10, alert: "Exclusion-válasz (kőr ász nélkül): 2 kulcslap, adu dámával"}
+      - {minta: ".. 5C 5D", kulcs: EXCL-H-C-1, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null, kizart: C}}, kulcslapok: [0, 3], kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 0 vagy 3 kulcslap"}
+      - {minta: ".. 5C 5H", kulcs: EXCL-H-C-2, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null, kizart: C}}, kulcslapok: [1, 4], kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 1 vagy 4 kulcslap"}
+      - {minta: ".. 5C 5S", kulcs: EXCL-H-C-3, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false, kizart: C}}, kulcslapok: 2, adu_dama: false, kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 5C 5NT", kulcs: EXCL-H-C-4, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true, kizart: C}}, kulcslapok: 2, adu_dama: true, kulcs_kizart: C,
+         prioritas: 10, alert: "Exclusion-válasz (treff ász nélkül): 2 kulcslap, adu dámával"}
+      - {minta: ".. 5D 5H", kulcs: EXCL-H-D-1, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null, kizart: D}}, kulcslapok: [0, 3], kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 0 vagy 3 kulcslap"}
+      - {minta: ".. 5D 5S", kulcs: EXCL-H-D-2, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null, kizart: D}}, kulcslapok: [1, 4], kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 1 vagy 4 kulcslap"}
+      - {minta: ".. 5D 5NT", kulcs: EXCL-H-D-3, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false, kizart: D}}, kulcslapok: 2, adu_dama: false, kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 5D 6C", kulcs: EXCL-H-D-4, fajta: ELV, ha: {adu: H, partner_ugrott: true},
+         jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true, kizart: D}}, kulcslapok: 2, adu_dama: true, kulcs_kizart: D,
+         prioritas: 10, alert: "Exclusion-válasz (káró ász nélkül): 2 kulcslap, adu dámával"}

@@ -1,0 +1,126 @@
+# MOHA_JACOBY — módosított Jacoby 2NT (a szerkesztő, 2026-09-30).
+#
+# A Jacoby 2NT folytatása változatlan (rövidség / sikén / 3M szleminvit /
+# 4M minimum), csak a "minimum" és a "nem minimális" az eddig ÍGÉRT
+# sávhoz képest értendő (`igeret: {pont: also | felso}`): az ígért sáv
+# alsó fele a minimum. Így ugyanaz a folytatás szolgál az 1M-2NT és a
+# 2M-2NT után is — a 2M-2NT "mint az 1M-2NT után" folytatódik
+# (`folytatas`), a gyenge kettes (zónától függő) sávjához mérve.
+#
+# A kártyán a KIBICEGY_STAND ELŐTT áll: a JACOBY_2NT folytatás-sorait
+# (fix ponthatárok: 11-14 / 15+) felülírja; az 1M-2NT maga onnan jön. Az
+# alaprendszer 2M-2NT Ogust-válaszait kiváltja.
+rendszer:
+  kod: MOHA_JACOBY
+  nev: Módosított Jacoby 2NT (Moha)
+  nev_en: Modified Jacoby 2NT (Moha)
+  fajta: KONVENCIO
+  tema: "1M-2NT és 2M-2NT után: a nyitó"
+  leiras: "Jacoby 2NT folytatás, a minimum / nem minimális az eddig ígért sávhoz mérve; a 2M-2NT ugyanígy folytatódik."
+  jegyzet: >-
+    (Eldöntve: 2026-09-30.) A minimum = az ígért pontsáv alsó része: széles
+    sávnál (7+ pont) a 35%-áig (1M 11-21 után: 11-14), keskenynél a
+    közepéig. A 2M-2NT feltétele zónafüggő (lásd a fejezetet).
+fejezetek:
+  - fejezet: "1M – 2NT után a nyitó"
+    szabalyok:
+      - {minta: 1M-2NT-3C, igeret: {pont: also}, forsz: GEMFORSZ, prioritas: 49,
+         alert: "Minimum (az ígért sáv alsó fele); a válaszoló rövidségét kérdezi"}
+      - {minta: 1M-2NT-3D, igeret: {pont: felso}, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Nem minimális, szingli káró"}
+      - {minta: 1M-2NT-3oM, igeret: {pont: felso}, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Nem minimális, szingli a másik nemesben"}
+      - {minta: 1M-2NT-3NT, igeret: {pont: felso}, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
+         alert: "Nem minimális, szingli treff"}
+      - {minta: 1M-2NT-3M, igeret: {pont: felso}, hossz: {S: 2+, H: 2+, D: 2+, C: 2+},
+         forsz: GEMFORSZ, prioritas: 50, alert: "Nem minimális, nincs rövidség: szleminvit"}
+      - {minta: 1M-2NT-4C, igeret: {pont: felso}, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Nem minimális, sikén treff"}
+      - {minta: 1M-2NT-4D, igeret: {pont: felso}, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Nem minimális, sikén káró"}
+      - {minta: 1M-2NT-4M, igeret: {pont: also}, elosztas: BAL, prioritas: 50,
+         magyarazat: "Minimum, egyenletes: leállás"}
+
+  - fejezet: "1M – 2NT – 3♣ után: a 3♦ rövidségkérdés"
+    jegyzet: >-
+      A szerkesztő (2026-10-04, 8. leosztás): a 3♣ minimum után a kérdező
+      3♦-ja alert: gémforsz, és az INDULÓ rövidségét kérdezi. Válasz: nincs
+      rövidség = 4M; egyébként az eredeti válaszok egy lépcsővel feljebb
+      tolva: 3M = szingli káró, 3MM = szingli a másik nemesben, 3NT =
+      szingli treff, 4♣ / 4♦ = sikén. Pikk adunál a kőr sikén 4♥; kőr
+      adunál a pikk sikén nem fér el 4♥ alatt (a 4♥ a "nincs rövidség"),
+      ezért ott a 3♠ szingli VAGY sikén pikket mutat. A 2M-2NT ugyanígy
+      folytatódik (mint 1M-2NT).
+      Mikor kérdez: ha a rövidség dönt — a kéz vesztői a partner biztos
+      fedői után 4-4,5 (a gém a fiten múlik; 3,5-ig magától 4M), vagy szlemérdek
+      (16+ FP az 1M-2NT után).
+    szabalyok:
+      - minta: 1M-2NT-3C-3D
+        vagy:
+          - {maradek_vesztok: 4-4.5}
+          - {pont: 16+}
+        forsz: GEMFORSZ
+        prioritas: 52
+        alert: "Gémforsz; az induló rövidségét kérdezi (nincs rövidség: 4M)"
+      - {minta: 1M-2NT-3C-3D-3M, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Szingli káró"}
+      - {minta: 1M-2NT-3C-3D-3oM, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Szingli a másik nemesben"}
+      - {minta: 1H-2NT-3C-3D-3S, hossz: {S: 0}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Sikén pikk (kőr adunál a 4♥ a 'nincs rövidség')"}
+      - {minta: 1M-2NT-3C-3D-3NT, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
+         alert: "Szingli treff"}
+      - {minta: 1M-2NT-3C-3D-4C, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Sikén treff"}
+      - {minta: 1M-2NT-3C-3D-4D, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Sikén káró"}
+      - {minta: 1S-2NT-3C-3D-4H, hossz: {H: 0}, forsz: GEMFORSZ, prioritas: 54,   # két sikénnel az alsó
+         alert: "Sikén kőr"}
+      - {minta: 1M-2NT-3C-3D-4M, hossz: {S: 2+, H: 2+, D: 2+, C: 2+}, prioritas: 50,
+         alert: "Nincs rövidség"}
+
+  - fejezet: "2M – 2NT (módosított Jacoby)"
+    jegyzet: >-
+      A szerkesztő (2026-09-30): itt sem a pont számít elsősorban, hanem a
+      szkórhelyzet. Bellben a gém megtalálása a cél: 2NT, ha a gém
+      elérhető (saját asztali pont + az induló ígért maximuma legalább
+      25). Mansban a 2M "terrorista": a 2NT azt is kérdezheti, érdemes-e
+      majd az ellenfél gémjét lementeni — sok adu (4+) és saját rövidség
+      (szingli/sikén) mellett, pontra való tekintet nélkül. Ha az
+      indulónak is van rövidsége ("jó fit": rövidség a mi xxx színünkkel
+      szemben), kevés figuraponttal is lehet gém.
+    szabalyok:
+      - minta: 2M-2NT
+        vagy:
+          - {hossz: {M: 3+}, osszesen: {ap: 25+}}
+          - {szkor: A, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}]}
+          - {szkor: O, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}]}
+        forsz: EGY_MENET
+        prioritas: 55
+        folytatas: {mint: 1M-2NT}
+        alert: "Módosított Jacoby: az induló rövidségét / erejét kérdezi (mansban mentés-kérdés is)"
+
+  - fejezet: "2M – 2NT – válasz után a kérdező"
+    jegyzet: >-
+      Gém a vesztők alapján: a saját vesztőim mínusz az induló biztos
+      fedői — köztük a mutatott rövidsége a mi xxx színünkkel szemben
+      ("jó fit") — legfeljebb 3. Különben leállás 3M-ben (ha még lehet).
+      A mentés (tudatosan vállalt kontrázott bukás az ellenfél gémje
+      ellen) mérlegelése a következő lépés.
+    szabalyok:
+      # a 3♣ minimum után a 3♦ rövidségkérdés (lásd az 1M-2NT-3C-3D sort):
+      # itt is kell, mert a konkrét 2M-2NT sorok elsőbbek az átirányításnál
+      - {minta: 2M-2NT-3C-3D, maradek_vesztok: 4-4.5, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémforsz; az induló rövidségét kérdezi (nincs rövidség: 4M)"}
+      - {minta: 2M-2NT-nA-4M, maradek_vesztok: 0-3.5, prioritas: 51,
+         magyarazat: "Gém: legfeljebb 3 maradék vesztő (jó fit)"}
+      - {minta: 2M-2NT-nNT-4M, maradek_vesztok: 0-3.5, prioritas: 51,
+         magyarazat: "Gém: legfeljebb 3 maradék vesztő (jó fit)"}
+      - {minta: 2M-2NT-nA-+M, licit_alatt: {gem: M}, maradek_vesztok: 4+, prioritas: 50,
+         magyarazat: "Leállás: nincs gém"}
+      # az alaprendszer Ogust-válaszai helyett (a folytatás mint az 1M-2NT után)
+      - {minta: 2M-2NT-3C, kivalt: true}
+      - {minta: 2M-2NT-3D, kivalt: true}
+      - {minta: 2M-2NT-3H, kivalt: true}
+      - {minta: 2M-2NT-3S, kivalt: true}
+      - {minta: 2M-2NT-3NT, kivalt: true}

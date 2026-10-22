@@ -1,0 +1,20 @@
+# BLOKKNYITÁSOK — a klubdokumentum nem írja le őket; kieg. a SAYC szerint:
+# 3-as szinten 7 lap, 4-es szinten 8 lap, 5-10 FP.
+rendszer:
+  kod: BLOKK_NYITASOK
+  nev: Blokknyitások
+  nev_en: Preemptive Openings
+  fajta: KONVENCIO
+  tema: "Hármas és négyes blokknyitások"
+  leiras: "Hármas és négyes blokknyitások (SAYC-szerű, kiegészítés)."
+fejezetek:
+  - fejezet: Blokknyitások
+    szabalyok:
+      - {minta: 3C, pont: 5-10, hossz: {C: 7, S: 0-3, H: 0-3}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 7 treff"}
+      - {minta: 3D, pont: 5-10, hossz: {D: 7, S: 0-3, H: 0-3}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 7 káró"}
+      - {minta: 3H, pont: 5-10, hossz: {H: 7, S: 0-3}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 7 kőr"}
+      - {minta: 3S, pont: 5-10, hossz: {S: 7, H: 0-3}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 7 pikk"}
+      - {minta: 4C, pont: 5-10, hossz: {C: 8+}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 8+ treff"}
+      - {minta: 4D, pont: 5-10, hossz: {D: 8+}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 8+ káró"}
+      - {minta: 4H, pont: 5-11, hossz: {H: 8+}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 8+ kőr"}
+      - {minta: 4S, pont: 5-11, hossz: {S: 8+}, forsz: KIZARO, prioritas: 66, magyarazat: "Blokk: 8+ pikk"}

@@ -1,0 +1,61 @@
+# MOHA_PC — "passz vagy javíts" a géminvit alatt, HELYZETI ELVként
+# (a szerkesztő pontosítása, 2026-09-30; emberi leírás: doc/moha-elvek.md).
+#
+# A partner GÉMINVITJE (GI) után a lezárás (3M / 4m) ALATT mondott licit
+# általában további invit (F1). KIVÉTEL: ha a PARTNER korábban mondott
+# színét mondjuk be 3 lappal, az nem F1, hanem P/C (passz vagy javíts):
+#   1♦-1M-1NT-3♦ (GI káróban) - 3M = "nem fogadom el; 3 lapom van a
+#   színedben". A 4-3-as nemes fit részjátéknak akár játszható, és
+#   nagyobb esélyű, mint a 4♦ leállás. A partner passzol, vagy 4♦-ra javít.
+#
+# Csak a gép kiegészítése: P/C-t az mond, aki az invitet NEM fogadja el
+# (az eddig ígért pontsáv alsó felében van).
+#
+# A P/C UTÁN (a szerkesztő, 2026-09-30): a 3M-hez 9 ütés kell, a 4m-hez
+# 10 — az dönt, melyiknek nagyobb a teljesítési esélye (hány plusz ütés
+# szerezhető lopással, mennyire fenyeget, hogy az ellenfél a magas
+# lapjainkat lopja), NEM az aduk száma. Ez ÍTÉLET, nem küszöb: a két
+# lehetőség MÉRLEGELŐ sor, a szimuláció választ közöttük.
+rendszer:
+  kod: MOHA_PC
+  nev: Passz vagy javíts a géminvit alatt (Moha)
+  nev_en: Pass or correct below the game-try signoff (Moha)
+  fajta: KONVENCIO
+  tema: "Géminvit után: a lezárás alatti licit"
+  leiras: "A partner minor géminvitje után a lezárás (4m) alatt a partner korábbi színének bemondása 3 lappal nem forszírozó P/C: nem fogadja el az invitet, a 4-3-as fitet ajánlja; a partner passzol vagy 4m-re javít."
+  jegyzet: >-
+    (Eldöntve: 2026-09-30.) A lezárás alatti egyéb licit további invit
+    (F1). Kiegészítés (a gép): P/C-t a nem maximális lap mond. A P/C után
+    a passz és a 4m közül a várható ütésszám dönt (lopás, az ellenfél
+    lopásveszélye) — mérlegelés, szimulációval.
+fejezetek:
+  - fejezet: P/C a géminvit alatt
+    szabalyok:
+      - minta: ".. 3B +A"
+        kulcs: PC-GI-ALATT
+        fajta: ELV
+        ha: {partner_gi: true, partner_szin: A}
+        hossz: {A: 3}
+        licit_alatt: {lezaras: B}
+        igeret: {pont: also}
+        forsz: NEM
+        prioritas: 5
+        alert: "P/C (passz vagy javíts): 3 lap a színedben, az invitet nem fogadom el"
+
+  - fejezet: P/C után
+    szabalyok:
+      - minta: ".. 3B +A P"
+        kulcs: PC-UTAN-PASSZ
+        fajta: ELV
+        ha: {gemforsz: false}         # P/C csak GI-helyzetben (gémforszban nincs)
+        dontesi_mod: MERLEGELO
+        prioritas: 5
+        magyarazat: "Passz: a 4-3-as nemes részjáték (9 ütés) esélyesebb"
+      - minta: ".. 3B +A 4B"
+        kulcs: PC-UTAN-JAVIT
+        fajta: ELV
+        ha: {gemforsz: false}         # P/C csak GI-helyzetben (gémforszban nincs)
+        dontesi_mod: MERLEGELO
+        hossz: {B: 5+}
+        prioritas: 5
+        magyarazat: "Javít a minorra: a 4m (10 ütés) esélyesebb"

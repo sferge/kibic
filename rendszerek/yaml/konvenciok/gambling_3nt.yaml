@@ -1,0 +1,24 @@
+# Gambling 3NT: zárt (AKD-s) 7+ lapos minor, oldalt nincs ász és király
+# (a "mérsékelt" változat: legfeljebb dáma/bubi). Forrás: Gambling 3NT.pdf
+rendszer:
+  kod: GAMBLING_3NT
+  nev: Gambling 3NT
+  nev_en: Gambling 3NT
+  fajta: KONVENCIO
+  tema: "3NT nyitás"
+  leiras: "3NT nyitás: zárt 7+ lapos minor, oldalt nincs ász és király."
+fejezetek:
+  - fejezet: Gambling 3NT
+    szabalyok:
+      - minta: 3NT
+        vagy:
+          - {hossz: {C: 7+}, lapok: [CA, CK, CQ], nincs: [SA, SK, HA, HK, DA, DK]}
+          - {hossz: {D: 7+}, lapok: [DA, DK, DQ], nincs: [SA, SK, HA, HK, CA, CK]}
+        hossz: {S: 0-3, H: 0-3}
+        prioritas: 88
+        alert: "Gambling: zárt 7+ minor, oldalt nincs ász és király"
+      - {minta: 3NT-4C, pont: 0-11, prioritas: 50, forsz: EGY_MENET,
+         alert: "Passz vagy javíts (a minorodba)"}
+      - {minta: 3NT-4C-4D, hossz: {D: 7+}, prioritas: 50, magyarazat: "A színem káró"}
+      - {minta: 3NT-4H, pont: 0-11, hossz: {H: 6+}, prioritas: 51, magyarazat: "Természetes, jó 6+ kőr"}
+      - {minta: 3NT-4S, pont: 0-11, hossz: {S: 6+}, prioritas: 51, magyarazat: "Természetes, jó 6+ pikk"}

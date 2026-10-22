@@ -1,0 +1,91 @@
+# MOHA_3NT_4M — a partner 3NT-je után a 4m ORKC (a szerkesztő, 2026-10-04).
+#
+# A 3NT gyakran "kényszerből" jön (pl. 1♠-2♣-3NT: 5332, minimum). Erre a
+# 4m nem leállás és nem invit, hanem GÉMFORSZ + kulcslapkérdés (ORKC) —
+# kivétel a "gémforsz a gémnél teljesül" alól.
+#
+#   A) Ha a minort a vonalunk tudottan 4+ lappal ígérte, VAGY a 3NT előtt
+#      már SZÍNKÉNT licitálta (nem kérdés, relé, transzfer, lépcsőválasz:
+#      a licit jelentése legalább 2 lapot ígér benne) (INDIREKT ígéret: 1♠-2♣-3NT-4♣ — a 2♣ formálisan
+#      lehet rövid is, de az ismétlés hosszú treffet mutat; ez a
+#      természetes jelentés, a megállapodás a GF és az ORKC):
+#      4m = ORKC abban a minorban.
+#   B) Ha nem: 4♦ = ORKC káró aduval; 4♣ = kétirányú (5+ treff): 4♦ = a
+#      treff tetszik, 4♥ = a káró tetszik (utána relé-RKC), a 3. lépcsőtől
+#      kulcslap-válasz treff aduval.
+#
+# A VÁLASZ lépcsői (5 ász = 4 ász + az adu minor királya):
+#   1. lépcső = "tetszik" (elfogadja a szleminvitet: szlemjellegű lap —
+#      az ígért sáv felső fele, vagy a pontok gyorsütésekben, 3+ adu
+#      mellett); utána a kérdező a következő lépcsővel (relé, pl. 4♥)
+#      kérdezi a kulcslapokat;
+#   2. 0 vagy 3   3. 1 vagy 4   4. 2 adu dáma nélkül   5. 2 adu dámával
+#   Az 5m válasz DEFINÍCIÓ SZERINT 2 kulcslap + adu dáma — akkor is, ha a
+#   lap "tetszik" (a szerkesztő, 2026-10-05): ez megelőzi az 1. lépcsőt.
+#   Ez a 4♦-re és az egyértelműen treff 4♣-re (A-ág) igaz. A kétutas 4♣-re
+#   (B-ág) a 4♠-tól treff aduval jönnek a válaszok, a káró dáma nem számít:
+#   4♠ 0/3, 4NT 1/4, 5♣ 2 kulcslap treff dáma nélkül, 5♦ 2 + treff dáma.
+#   (A B-ág 4♣-jére a 2. lépcső a "káró tetszik", a kulcslapok a 3.
+#   lépcsőtől jönnek.) A reléválaszok: 0/3, 1/4, 2, 2+D.
+#
+# A kulcslap-válasz UTÁN: MOHA_SPIRAL (motor/spiral.py) — a relé a
+# spirál következő tételét kérdezi; a 4NT és az 5m (reléként is) leállás.
+#
+# Megállapodott NEMES adu mellett nem él (ott a 4m kulcslicit / RKC).
+# A kártyán az RKC ELŐTT áll.
+rendszer:
+  kod: MOHA_3NT_4M
+  nev: 3NT után 4m ORKC (Moha)
+  nev_en: 4m ORKC over partner's 3NT (Moha)
+  fajta: KONVENCIO
+  tema: "A partner 3NT-je után: 4♣ / 4♦"
+  leiras: "A partner 3NT-je után a 4m gémforsz és kulcslapkérdés (ORKC): ha a minort a vonalunk ígérte vagy a 3NT előtt licitálta, abban; különben 4♦ = káró ORKC, 4♣ = kétirányú (4♦ treff tetszik, 4♥ káró tetszik). Válasz: 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D; utána spirál."
+  jegyzet: >-
+    (A szerkesztő, 2026-10-04, 7. leosztás: 1♠-2♣-3NT-4♣ → 4♦ "tetszik";
+    "mereven" a 4NT is jó: 2 kulcslap.) A lépcsők sorrendje megerősítve;
+    a "tetszik" után a relé a következő lépcső (4♥).
+fejezetek:
+  - fejezet: "A kérdés (a partner 3NT-je után)"
+    szabalyok:
+      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, minor_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 3+}, osszesen: {pont: 31+}, forsz: GEMFORSZ, prioritas: 6, alert: "ORKC treff aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
+      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-KETIRANYU, fajta: ELV, ha: {en_nyilatkoztam: true, minor_nem_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 5+}, jelentes: {hossz: {}}, osszesen: {pont: 31+}, forsz: GEMFORSZ, prioritas: 6, alert: "Gémforsz, szleminvit (a treff nem volt ígérve): 4♦ treff tetszik, 4♥ káró tetszik, 4♠-tól kulcslap treff aduval"}
+      - {minta: ".. 3NT 4D", kulcs: MOHA-3NT-4D-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {D: 3+}, osszesen: {pont: 31+}, forsz: GEMFORSZ, prioritas: 6, alert: "ORKC káró aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
+  - fejezet: "Válasz a 4♣-ra (treff ígérve: ORKC treffben)"
+    szabalyok:
+      - {minta: ".. 3NT 4C 4D", kulcs: MOHA-3NT-4C-A-TETSZIK, fajta: ELV, ha: {minor_igerve: C}, hossz: {C: 3+}, vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12, alert: "Tetszik (elfogadja a szleminvitet); a kulcslapokat a 4♥ kérdezi"}
+      - {minta: ".. 3NT 4C 4H", kulcs: MOHA-3NT-4C-A-1, fajta: ELV, ha: {minor_igerve: C}, kulcslapok: [0, 3], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 4S", kulcs: MOHA-3NT-4C-A-2, fajta: ELV, ha: {minor_igerve: C}, kulcslapok: [1, 4], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 4NT", kulcs: MOHA-3NT-4C-A-3, fajta: ELV, ha: {minor_igerve: C}, kulcslapok: 2, adu_dama: false, kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, treff dáma nélkül (treff adu)"}
+      - {minta: ".. 3NT 4C 5C", kulcs: MOHA-3NT-4C-A-4, fajta: ELV, ha: {minor_igerve: C}, kulcslapok: 2, adu_dama: true, kulcs_adu: C, prioritas: 13, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, treff dámával (treff adu)"}
+  - fejezet: "Válasz a 4♣-ra (treff nem ígérve: kétirányú)"
+    szabalyok:
+      - {minta: ".. 3NT 4C 4D", kulcs: MOHA-3NT-4C-B-TREFF, fajta: ELV, ha: {minor_nem_igerve: C}, hossz: {C: 3+}, rel: ["C>=D"], vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12, alert: "A treff tetszik; a kulcslapokat a 4♥ kérdezi"}
+      - {minta: ".. 3NT 4C 4H", kulcs: MOHA-3NT-4C-B-KARO, fajta: ELV, ha: {minor_nem_igerve: C}, hossz: {D: 3+}, rel: ["D>C"], vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12, alert: "A káró tetszik; a kulcslapokat a 4♠ kérdezi"}
+      - {minta: ".. 3NT 4C 4S", kulcs: MOHA-3NT-4C-B-1, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: [0, 3], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 4NT", kulcs: MOHA-3NT-4C-B-2, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: [1, 4], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 5C", kulcs: MOHA-3NT-4C-B-3, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: 2, adu_dama: false, kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, treff dáma nélkül (treff adu)"}
+      - {minta: ".. 3NT 4C 5D", kulcs: MOHA-3NT-4C-B-4, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: 2, adu_dama: true, kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, treff dámával (treff adu)"}
+  - fejezet: "Válasz a 4♦-ra (ORKC káróban)"
+    szabalyok:
+      - {minta: ".. 3NT 4D 4H", kulcs: MOHA-3NT-4D-TETSZIK, fajta: ELV, hossz: {D: 3+}, vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12, alert: "Tetszik (elfogadja a szleminvitet); a kulcslapokat a 4♠ kérdezi"}
+      - {minta: ".. 3NT 4D 4S", kulcs: MOHA-3NT-4D-1, fajta: ELV, kulcslapok: [0, 3], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4D 4NT", kulcs: MOHA-3NT-4D-2, fajta: ELV, kulcslapok: [1, 4], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4D 5C", kulcs: MOHA-3NT-4D-3, fajta: ELV, kulcslapok: 2, adu_dama: false, kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, káró dáma nélkül (káró adu)"}
+      - {minta: ".. 3NT 4D 5D", kulcs: MOHA-3NT-4D-4, fajta: ELV, kulcslapok: 2, adu_dama: true, kulcs_adu: D, prioritas: 13, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, káró dámával (káró adu)"}
+  - fejezet: "A „tetszik” után: relé-kulcslapkérdés és válaszai"
+    szabalyok:
+      - {minta: ".. 3NT 4C 4D 4H", kulcs: MOHA-3NT-RELE-TREFF, fajta: ELV, forsz: EGY_MENET, prioritas: 12, alert: "Relé: kulcslapkérdés treff aduval"}
+      - {minta: ".. 3NT 4C 4H 4S", kulcs: MOHA-3NT-RELE-KARO-B, fajta: ELV, ha: {minor_nem_igerve: C}, forsz: EGY_MENET, prioritas: 12, alert: "Relé: kulcslapkérdés káró aduval"}
+      - {minta: ".. 3NT 4D 4H 4S", kulcs: MOHA-3NT-RELE-KARO, fajta: ELV, forsz: EGY_MENET, prioritas: 12, alert: "Relé: kulcslapkérdés káró aduval"}
+      - {minta: ".. 3NT 4C 4D 4H 4S", kulcs: MOHA-3NT-RELE-TREFF-1, fajta: ELV, kulcslapok: [0, 3], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 4D 4H 4NT", kulcs: MOHA-3NT-RELE-TREFF-2, fajta: ELV, kulcslapok: [1, 4], kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (treff adu)"}
+      - {minta: ".. 3NT 4C 4D 4H 5C", kulcs: MOHA-3NT-RELE-TREFF-3, fajta: ELV, kulcslapok: 2, adu_dama: false, kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, treff dáma nélkül (treff adu)"}
+      - {minta: ".. 3NT 4C 4D 4H 5D", kulcs: MOHA-3NT-RELE-TREFF-4, fajta: ELV, kulcslapok: 2, adu_dama: true, kulcs_adu: C, prioritas: 11, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, treff dámával (treff adu)"}
+      - {minta: ".. 3NT 4C 4H 4S 4NT", kulcs: MOHA-3NT-RELE-KARO-B-1, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: [0, 3], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4C 4H 4S 5C", kulcs: MOHA-3NT-RELE-KARO-B-2, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: [1, 4], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4C 4H 4S 5D", kulcs: MOHA-3NT-RELE-KARO-B-3, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: 2, adu_dama: false, kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, káró dáma nélkül (káró adu)"}
+      - {minta: ".. 3NT 4C 4H 4S 5H", kulcs: MOHA-3NT-RELE-KARO-B-4, fajta: ELV, ha: {minor_nem_igerve: C}, kulcslapok: 2, adu_dama: true, kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, káró dámával (káró adu)"}
+      - {minta: ".. 3NT 4D 4H 4S 4NT", kulcs: MOHA-3NT-RELE-KARO-1, fajta: ELV, kulcslapok: [0, 3], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4D 4H 4S 5C", kulcs: MOHA-3NT-RELE-KARO-2, fajta: ELV, kulcslapok: [1, 4], kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap (káró adu)"}
+      - {minta: ".. 3NT 4D 4H 4S 5D", kulcs: MOHA-3NT-RELE-KARO-3, fajta: ELV, kulcslapok: 2, adu_dama: false, kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, káró dáma nélkül (káró adu)"}
+      - {minta: ".. 3NT 4D 4H 4S 5H", kulcs: MOHA-3NT-RELE-KARO-4, fajta: ELV, kulcslapok: 2, adu_dama: true, kulcs_adu: D, prioritas: 11, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, alert: "2 kulcslap, káró dámával (káró adu)"}

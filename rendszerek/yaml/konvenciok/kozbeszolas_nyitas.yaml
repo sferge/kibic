@@ -1,0 +1,77 @@
+# KOZBESZOLAS_NYITAS — a közbeszólás egyenértékű a nyitással (2026-10-21).
+# A szerkesztő: „Megállapodás kérdése, hogy a közbeszóló indítás egyenértékű-e
+# a szabad indulással. Ebben az esetben a (1S)-2H egyenértékű az 1H
+# indulással; a 2H-ra 3D válasz egyenértékű az 1H-ra adott 2D licittel:
+# F1 (kvázi GF, 4m-ig forsz).”
+#
+# Így a közbeszóló partnerének nem ugró új színe azt jelenti, amit a nyitás
+# után ugyanaz a válasz: a magasabb szín ugyanazon a szinten egy körre
+# kényszerít (mint az 1-re 1), az alacsonyabb szín a következő szinten a
+# 2/1 megfelelője — kvázi gémforsz, 4 minorig kötelez.
+#
+# Az 1-es szintű közbeszólásra a 2-es szintű ALACSONYABB szín (az „1-re 2”)
+# a szerkesztő szerint (2026-10-21) „enyhébb kvázi gémforsz”: még egy
+# megszólalást ígér, a saját színe 3-as szintjéig kötelez (a 3-as ismétlés
+# passzolható). Ez felülírja a klub dokumentumának (KIBICEGY_KUZDELMI)
+# „8-12, 6+, nem kényszerít” sorait — ezért áll előtte a kártyán.
+rendszer:
+  kod: KOZBESZOLAS_NYITAS
+  nev: A közbeszólás egyenértékű a nyitással
+  nev_en: Overcall equals opening
+  fajta: KONVENCIO
+  tema: "A közbeszóló partnerének új színe"
+  leiras: >-
+    A közbeszólás egyenértékű ugyanannak a színnek a nyitásával: a partner
+    nem ugró új színe azt jelenti, amit a nyitás után ugyanaz a válasz
+    (magasabb szín ugyanazon a szinten: F1; alacsonyabb szín a következő
+    szinten: kvázi gémforsz, 4 minorig).
+fejezetek:
+  - fejezet: "Az 1-es szintű közbeszólás: az 1-re 2 (2026-10-21)"
+    szabalyok:
+      - {minta: "(1C) 1H (P) 2D", pont: "10+", hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3D"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3D-ig kötelez"}
+      - {minta: "(1D) 1H (P) 2C", pont: "10+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3C"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3C-ig kötelez"}
+      - {minta: "(1C) 1S (P) 2D", pont: "10+", hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3D"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3D-ig kötelez"}
+      - {minta: "(1C) 1S (P) 2H", pont: "10+", hossz: {H: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3H"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3H-ig kötelez"}
+      - {minta: "(1D) 1S (P) 2C", pont: "10+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3C"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3C-ig kötelez"}
+      - {minta: "(1D) 1S (P) 2H", pont: "10+", hossz: {H: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3H"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3H-ig kötelez"}
+      - {minta: "(1H) 1S (P) 2C", pont: "10+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3C"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3C-ig kötelez"}
+      - {minta: "(1H) 1S (P) 2D", pont: "10+", hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "3D"}, prioritas: 53,
+         alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3D-ig kötelez"}
+  - fejezet: "A 2-es szintű közbeszólás: a partner új színe"
+    szabalyok:
+      # magasabb szín ugyanazon a szinten — mint az 1-re 1: egy körre kényszerít
+      - {minta: "(1D) 2C (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
+      - {minta: "(1D) 2C (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
+      - {minta: "(1H) 2C (*) 2D", pont: "8+", hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
+      - {minta: "(1H) 2C (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
+      - {minta: "(1S) 2C (*) 2D", pont: "8+", hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
+      - {minta: "(1S) 2C (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
+      - {minta: "(1H) 2D (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♠)"}
+      - {minta: "(1S) 2D (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♥)"}
+      # alacsonyabb szín a következő szinten — a 2/1 megfelelője: kvázi gémforsz
+      - {minta: "(1H) 2D (*) 3C", pont: "11+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4C"}, prioritas: 53,
+         alert: "Új szín (mint 2/1): kvázi gémforsz, 4 minorig"}
+      - {minta: "(1S) 2D (*) 3C", pont: "11+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4C"}, prioritas: 53,
+         alert: "Új szín (mint 2/1): kvázi gémforsz, 4 minorig"}
+      - {minta: "(1S) 2H (*) 3C", pont: "11+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4C"}, prioritas: 53,
+         alert: "Új szín (mint 2/1): kvázi gémforsz, 4 minorig"}
+      - {minta: "(1S) 2H (*) 3D", pont: "11+", hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4C"}, prioritas: 53,
+         alert: "Új szín (mint 2/1): kvázi gémforsz, 4 minorig"}
+  - fejezet: "A közbeszóló viszontválasza a kvázi gémforszra"
+    # mint az 1M-2m-2M (Moha): a saját szín ismétlése várakozó, semmit nem
+    # ígér — nyitva tartja a 3NT-t (a szerkesztő, 2026-10-21: „a 3 kőr jó,
+    # mert a 3 szan esélyét megadja”)
+    szabalyok:
+      - {minta: "(1H) 2D (*) 3C (*) 3D", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
+      - {minta: "(1S) 2D (*) 3C (*) 3D", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
+      - {minta: "(1S) 2H (*) 3C (*) 3H", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
+      - {minta: "(1S) 2H (*) 3D (*) 3H", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
+      # az 1-re 2 után (mint az 1M-2m-2M): a saját nemes ismétlése várakozó
+      - {minta: "(1E) 1M (P) 2A (P) 2M", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}

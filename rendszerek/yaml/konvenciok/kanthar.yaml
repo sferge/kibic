@@ -1,0 +1,24 @@
+rendszer:
+  kod: KANTHAR
+  nev: Kanthar (ellenőrző 2♣)
+  nev_en: Checkback 2C (Kibic club)
+  fajta: KONVENCIO
+  tema: "1NT újralicit után: ellenőrző kérdés"
+  leiras: >-
+    Inviterős kézzel, 5-ös nemessel a nyitó 1NT újralicitjére mindig 2♣-t
+    mondunk: van-e a nyitónak 3-as támogatása. Ha van, bemutatja; ha nincs,
+    2♦ gyengével, szan erőssel (1m után a 4-es másik nemest is bemutatja).
+fejezetek:
+  - fejezet: Kanthar
+    szabalyok:
+      - {minta: 1H-1S-1NT-2C, pont: 11+, hossz: {S: 5}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 56,
+         alert: "Kanthar: géminvit+, 5+ pikk; 3-as támogatást kérdez", nyers: "2♣! | Kanthar; géminvit+; 5+ pikk"}
+      - {minta: 1m-1M-1NT-2C, pont: 11+, hossz: {M: 5}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 56,
+         alert: "Kanthar: géminvit+, 5+ nemes; 3-as támogatást kérdez", nyers: "2♣! | Kanthar"}
+      - {minta: 1H-1S-1NT-2C-2S, hossz: {S: 3}, prioritas: 52, magyarazat: "3-as pikktámogatás"}
+      - {minta: 1H-1S-1NT-2C-2D, pont: 12-13, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Nincs 3-as támogatás, gyenge"}
+      - {minta: 1H-1S-1NT-2C-2NT, pont: 14, hossz: {S: 0-2}, prioritas: 51, magyarazat: "Nincs 3-as támogatás, erős"}
+      - {minta: 1m-1M-1NT-2C-2M, hossz: {M: 3}, prioritas: 52, magyarazat: "3-as támogatás"}
+      - {minta: 1m-1H-1NT-2C-2S, hossz: {S: 4, H: 0-2}, prioritas: 53, magyarazat: "4-es pikk"}
+      - {minta: 1m-1M-1NT-2C-2D, pont: 12-13, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Nincs 3-as támogatás, gyenge"}
+      - {minta: 1m-1M-1NT-2C-2NT, pont: 14, hossz: {M: 0-2}, prioritas: 51, magyarazat: "Nincs 3-as támogatás, erős"}

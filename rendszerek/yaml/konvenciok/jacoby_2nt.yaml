@@ -1,0 +1,34 @@
+# A dokumentum táblázata a nyitó válaszairól:
+#   3♣ rövidséget kérdez (11-14) | 3♦ szingli | 3MM szingli | 3M szleminvit
+#   3N szingli treff | 4m sikén | 4M leállás
+# Értelmezés (kieg.): 3♣ = minimum; 3♦ / 3oM / 3NT = szingli káró / másik
+# nemes / treff extra erővel; 4♣/4♦ = sikén; 3M = extra, rövidség nélkül;
+# 4M = minimum, egyenletes.
+rendszer:
+  kod: JACOBY_2NT
+  nev: Jacoby 2NT
+  nev_en: Jacoby 2NT
+  fajta: KONVENCIO
+  tema: "1M után: gémforsz emelés"
+  leiras: "1M-2NT: 4+ adu, gémforsz. A nyitó rövidséget vagy erőt mutat."
+fejezetek:
+  - fejezet: Jacoby 2NT
+    szabalyok:
+      - {minta: 1M-2NT, pont: 13+, hossz: {M: 4+}, forsz: GEMFORSZ, elvaras: VALASZ, prioritas: 60,
+         alert: "Jacoby 2NT: 4+ adu, gémforsz", nyers: "2N! | Jacoby 2NT; 4+ adu"}
+      - {minta: 1M-2NT-3C, pont: 11-14, prioritas: 49, forsz: GEMFORSZ,
+         alert: "Minimum; a válaszoló rövidségét kérdezi", nyers: "3♣ | Kérdezi a rövidség; 11-14"}
+      - {minta: 1M-2NT-3D, pont: 15+, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Szingli káró", nyers: "3♦ | Szingli"}
+      - {minta: 1M-2NT-3oM, pont: 15+, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Szingli a másik nemesben", nyers: "3MM | szingli"}
+      - {minta: 1M-2NT-3NT, pont: 15+, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
+         alert: "Szingli treff", nyers: "3N | Szingli treff"}
+      - {minta: 1M-2NT-3M, pont: 15+, hossz: {S: 2+, H: 2+, D: 2+, C: 2+}, forsz: GEMFORSZ, prioritas: 50,
+         alert: "Szleminvit, nincs rövidség", nyers: "3M | szleminvit"}
+      - {minta: 1M-2NT-4C, pont: 15+, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Sikén treff", nyers: "4m | Sikén"}
+      - {minta: 1M-2NT-4D, pont: 15+, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Sikén káró"}
+      - {minta: 1M-2NT-4M, pont: 12-14, elosztas: BAL, prioritas: 50,
+         magyarazat: "Minimum, leállás", nyers: "4M | To play"}

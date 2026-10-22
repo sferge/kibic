@@ -1,0 +1,33 @@
+# GYENGE 2♦ NYITÁS — IDEIGLENES, a felhasználó saját leírása fogja
+# felülírni. Addig a KIBICEGY_STAND gyenge 2M táblázatát követi:
+#   O mans-bell 4-8 FP, 5-7 lap   A mans-mans 5-10 FP, 5-7 lap
+#   M bell-bell 6-10 FP, 6-7 lap  S bell-mans 8-10 FP, 6-7 lap
+rendszer:
+  kod: GYENGE_2D
+  nev: Gyenge 2♦
+  nev_en: Weak Two Diamonds
+  fajta: KONVENCIO
+  tema: "2♦ nyitás"
+  leiras: "Gyenge kettes káró, a nemes gyenge kettesekkel azonos zónatáblázattal (ideiglenes)."
+fejezetek:
+  - fejezet: Gyenge 2♦
+    szabalyok:
+      - minta: 2D
+        hossz: {S: 0-3, H: 0-3}
+        vagy:
+          - {szkor: O, pont: 4-8,  hossz: {D: 6}}
+          - {szkor: A, pont: 5-10, hossz: {D: 6}}
+          - {szkor: M, pont: 6-10, hossz: {D: 6}}
+          - {szkor: S, pont: 8-10, hossz: {D: 6}}
+        forsz: KIZARO
+        prioritas: 69
+        alert: "Gyenge kettes káró"
+      - {minta: 2D-2H, pont: 12+, hossz: {H: 5+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 52, magyarazat: "Természetes, F1"}
+      - {minta: 2D-2S, pont: 12+, hossz: {S: 5+}, rel: ["S>=H"], forsz: EGY_MENET, prioritas: 52, magyarazat: "Természetes, F1"}
+      - {minta: 2D-2NT, pont: 15+, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 50, alert: "Relé, géminvit+"}
+      - {minta: 2D-3D, pont: 0-14, hossz: {D: 3+}, forsz: KIZARO, prioritas: 51, magyarazat: "Küzdelmi emelés"}
+      - {minta: 2D-3NT, pont: 16+, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2D-2NT-3C, pont: 0-7, figura: {D: 0-4}, prioritas: 50, alert: "Gyenge szín, gyenge lap"}
+      - {minta: 2D-2NT-3D, pont: 8+, figura: {D: 0-4}, prioritas: 50, alert: "Gyenge szín, erős lap"}
+      - {minta: 2D-2NT-3H, pont: 0-7, figura: {D: 5+}, prioritas: 51, alert: "Erős szín, gyenge lap"}
+      - {minta: 2D-2NT-3S, pont: 8+, figura: {D: 5+}, prioritas: 51, alert: "Erős szín, erős lap"}

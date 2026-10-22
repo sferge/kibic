@@ -1,0 +1,135 @@
+# Klubdokumentum: "MICHAELS KULCSLICIT: direkt helyzetben és kényszerítő
+# 1NT válasz után (minor után 54/55M, M után 5MM+5m)".
+# "LEAPING MICHAELS (MAJOR kizárás után): 4m = 55+ a minorban és a MM-ban".
+# ERŐ (a szerkesztő, 2026-10-21): a kétszínű közbeszólásnál (Michaels,
+# Leaping Michaels, szokatlan szan) a VESZTŐK számítanak, nem a pontok:
+#   5-5: legfeljebb 6,5 (mi mansban, ők bellben) · 5,5 (senki) · 5 (mindenki)
+#        · 4 (mi bellben, ők mansban); 5-4 (a minorra adott Michaels): eggyel kevesebb.
+#   A 6-4 és a 7-4 NEM Michaels (a szerkesztő, 2026-10-21): az egyszínű licit.
+rendszer:
+  kod: MICHAELS
+  nev: Michaels kulcslicit
+  nev_en: Michaels Cue Bid
+  fajta: KONVENCIO
+  tema: "Kétszínű felüllicit az ellenfél nyitására"
+  leiras: "Az ellenfél színének felüllicitje kétszínű kezet mutat."
+fejezetek:
+  - fejezet: Michaels
+    szabalyok:
+      - {minta: "(1C) 2C", pont: 8+, vagy: [{hossz: {S: 5+, H: 5+}, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}},
+                                {hossz: {S: 5, H: 4}, vesztok: {A: 0-4.5, M: 0-4, S: 0-3, O: 0-5.5}}, {hossz: {H: 5, S: 4}, vesztok: {A: 0-4.5, M: 0-4, S: 0-3, O: 0-5.5}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: mindkét nemes (5-4/5-5)"}
+      - {minta: "(1D) 2D", pont: 8+, vagy: [{hossz: {S: 5+, H: 5+}, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}},
+                                {hossz: {S: 5, H: 4}, vesztok: {A: 0-4.5, M: 0-4, S: 0-3, O: 0-5.5}}, {hossz: {H: 5, S: 4}, vesztok: {A: 0-4.5, M: 0-4, S: 0-3, O: 0-5.5}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: mindkét nemes (5-4/5-5)"}
+      - {minta: "(1H) 2H", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: 5+ pikk és egy 5+ minor"}
+      - {minta: "(1S) 2S", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: 5+ kőr és egy 5+ minor"}
+      # kényszerítő 1NT válasz után
+      - {minta: "(1H) P (1NT) 2H", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: 5+ pikk és egy 5+ minor"}
+      - {minta: "(1S) P (1NT) 2S", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: EGY_MENET, prioritas: 59, alert: "Michaels: 5+ kőr és egy 5+ minor"}
+      # Leaping Michaels a gyenge kettesre (az erő: lásd a fejléc vesztő-elvét)
+      - {minta: "(2H) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ pikk"}
+      - {minta: "(2H) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ pikk"}
+      - {minta: "(2S) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ kőr"}
+      - {minta: "(2S) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ kőr"}
+      # Leaping Michaels az EMELT gyenge kettesre és a 3-as nemes nyitásra is
+      # (a szerkesztő, 2026-10-21: „nem mindenki játssza, de létező konvenció”)
+      - {minta: "(2H) P (3H) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ pikk"}
+      - {minta: "(2H) P (3H) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ pikk"}
+      - {minta: "(3H) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ pikk"}
+      - {minta: "(3H) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {S: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ pikk"}
+      - {minta: "(2S) P (3S) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ kőr"}
+      - {minta: "(2S) P (3S) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ kőr"}
+      - {minta: "(3S) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, C: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ treff és 5+ kőr"}
+      - {minta: "(3S) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, D: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: 5+ káró és 5+ kőr"}
+      # a minor blokkra: az ő színük a 4-es szinten = mindkét nemes (a szerkesztő, 2026-10-22)
+      - {minta: "(2D) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, S: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: mindkét nemes, 5-5"}
+      - {minta: "(2D) P (3D) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, S: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: mindkét nemes, 5-5"}
+      - {minta: "(3D) 4D", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, S: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: mindkét nemes, 5-5"}
+      - {minta: "(3C) 4C", pont: 8+, vesztok: {A: 0-5.5, M: 0-5, S: 0-4, O: 0-6.5}, hossz: {H: 5+, S: 5+}, forsz: EGY_MENET, prioritas: 59,
+         alert: "Leaping Michaels: mindkét nemes, 5-5"}
+  - fejezet: "Válasz a Leaping Michaelsre (minor blokk ellen: mindkét nemes)"
+    szabalyok:
+      - {minta: "(2D) 4D (P) 4H", rel: ["H>=S"], prioritas: 52, magyarazat: "Választás: kőr (egyforma hossznál az olcsóbb)"}
+      - {minta: "(2D) 4D (P) 4S", rel: ["S>H"], prioritas: 52, magyarazat: "Választás: pikk"}
+      - {minta: "(2D) P (3D) 4D (P) 4H", rel: ["H>=S"], prioritas: 52, magyarazat: "Választás: kőr (egyforma hossznál az olcsóbb)"}
+      - {minta: "(2D) P (3D) 4D (P) 4S", rel: ["S>H"], prioritas: 52, magyarazat: "Választás: pikk"}
+      - {minta: "(3D) 4D (P) 4H", rel: ["H>=S"], prioritas: 52, magyarazat: "Választás: kőr (egyforma hossznál az olcsóbb)"}
+      - {minta: "(3D) 4D (P) 4S", rel: ["S>H"], prioritas: 52, magyarazat: "Választás: pikk"}
+      - {minta: "(3C) 4C (P) 4H", rel: ["H>=S"], prioritas: 52, magyarazat: "Választás: kőr (egyforma hossznál az olcsóbb)"}
+      - {minta: "(3C) 4C (P) 4S", rel: ["S>H"], prioritas: 52, magyarazat: "Választás: pikk"}
+  - fejezet: "Válasz a minorra adott Michaelsre: mindkét nemes"
+    # A szerkesztő által feltöltött leírás (Michaels.pdf, 2026-10-21) szerint.
+    szabalyok:
+      - {minta: "(1m) 2m (P) 2H", pont: 0-11, hossz: {H: 2+}, rel: ["H>=S"], prioritas: 52, magyarazat: "Lezárás: kőr (egyforma hossznál az olcsóbb)"}
+      - {minta: "(1m) 2m (P) 2S", pont: 0-11, hossz: {S: 3+}, rel: ["S>H"], prioritas: 52, magyarazat: "Lezárás: pikk"}
+      - {minta: "(1m) 2m (P) 3H", pont: 0-9, hossz: {H: 4+}, rel: ["H>=S"], prioritas: 53, magyarazat: "Blokk: 4+ kőr (a törvény szerint), nem forsz"}
+      - {minta: "(1m) 2m (P) 3S", pont: 0-9, hossz: {S: 4+}, rel: ["S>H"], prioritas: 53, magyarazat: "Blokk: 4+ pikk (a törvény szerint), nem forsz"}
+      - {minta: "(1m) 2m (P) 4H", rel: ["H>=S"], vagy: [{pont: 10-15, hossz: {H: 4+}}, {pont: 12-15, hossz: {H: 3}}, {pont: 0-9, hossz: {H: 5+}}],
+         prioritas: 54, magyarazat: "Játékra: kőr gém"}
+      - {minta: "(1m) 2m (P) 4S", rel: ["S>H"], vagy: [{pont: 10-15, hossz: {S: 4+}}, {pont: 12-15, hossz: {S: 3}}, {pont: 0-9, hossz: {S: 5+}}],
+         prioritas: 54, magyarazat: "Játékra: pikk gém"}
+      - {minta: "(1m) 2m (P) 3m", pont: 16+, vagy: [{hossz: {H: 3+}}, {hossz: {S: 3+}}], forsz: GEMFORSZ, prioritas: 55,
+         alert: "Az ő színük: gém- vagy szlemérdekeltség valamelyik nemesben, forsz"}
+      - {minta: "(1m) 2m (P) +om", pont: 6-15, hossz: {om: 6+, H: 0-2, S: 0-2}, prioritas: 52, magyarazat: "Természetes: jó 6+ lapos szín, nem forsz"}
+      - {minta: "(1m) 2m (P) 3NT", pont: 13+, hossz: {H: 0-2, S: 0-2}, fogas: [m], prioritas: 51, magyarazat: "Játékra"}
+  - fejezet: "Válasz a nemesre adott Michaelsre: a másik nemes + egy minor"
+    szabalyok:
+      - {minta: "(1H) 2H (P) 2S", pont: 0-11, hossz: {S: 2+}, prioritas: 51, magyarazat: "Lezárás: pikk"}
+      - {minta: "(1H) 2H (P) 3S", pont: 0-9, hossz: {S: 4+}, prioritas: 53, magyarazat: "Blokk: 4+ pikk (a törvény szerint), nem forsz"}
+      - {minta: "(1S) 2S (P) 3H", pont: 0-11, hossz: {H: 2+}, prioritas: 51, magyarazat: "Lezárás: kőr"}
+      - {minta: "(1H) 2H (P) 4S", vagy: [{pont: 10+, hossz: {S: 4+}}, {pont: 12+, hossz: {S: 3}}, {pont: 0-9, hossz: {S: 5+}}],
+         prioritas: 54, magyarazat: "Játékra: pikk gém"}
+      - {minta: "(1S) 2S (P) 4H", vagy: [{pont: 10+, hossz: {H: 4+}}, {pont: 12+, hossz: {H: 3}}, {pont: 0-9, hossz: {H: 5+}}],
+         prioritas: 54, magyarazat: "Játékra: kőr gém"}
+      # az ő színük: gémforsz ÉS szleminvit (a szerkesztő, 2026-10-21)
+      - {minta: "(1H) 2H (P) 3H", pont: 13+, hossz: {S: 3+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Az ő színük: gémforsz és szleminvit (pikk vagy a minor)"}
+      - {minta: "(1S) 2S (P) 3S", pont: 13+, hossz: {H: 3+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Az ő színük: gémforsz és szleminvit (kőr vagy a minor)"}
+      - {minta: "(1H) 2H (P) 2NT", pont: 0-9, hossz: {S: 0-1}, forsz: EGY_MENET, prioritas: 50, alert: "Mondd a minorodat"}
+      - {minta: "(1S) 2S (P) 2NT", pont: 0-9, hossz: {H: 0-1}, forsz: EGY_MENET, prioritas: 50, alert: "Mondd a minorodat"}
+      - {minta: "(1H) 2H (P) 3C", pont: 6-12, hossz: {C: 6+, S: 0-1}, prioritas: 51, magyarazat: "Természetes: jó 6+ treff, nem forsz"}
+      - {minta: "(1H) 2H (P) 3D", pont: 6-12, hossz: {D: 6+, S: 0-1}, prioritas: 51, magyarazat: "Természetes: jó 6+ káró, nem forsz"}
+      - {minta: "(1S) 2S (P) 3C", pont: 6-12, hossz: {C: 6+, H: 0-1}, prioritas: 51, magyarazat: "Természetes: jó 6+ treff, nem forsz"}
+      - {minta: "(1S) 2S (P) 3D", pont: 6-12, hossz: {D: 6+, H: 0-1}, prioritas: 51, magyarazat: "Természetes: jó 6+ káró, nem forsz"}
+      - {minta: "(1H) 2H (P) 3NT", pont: 13+, hossz: {S: 0-2}, fogas: [H], prioritas: 51, magyarazat: "Játékra"}
+      - {minta: "(1S) 2S (P) 3NT", pont: 13+, hossz: {H: 0-2}, fogas: [S], prioritas: 51, magyarazat: "Játékra"}
+  - fejezet: "A Michaels-licitáló folytatása"
+    szabalyok:
+      # a 2NT kérdésre: a minor
+      - {minta: "(1M) 2M (P) 2NT (P) 3C", hossz: {C: 5+}, prioritas: 53, magyarazat: "A minorom: treff"}
+      - {minta: "(1M) 2M (P) 2NT (P) 3D", hossz: {D: 5+}, prioritas: 53, magyarazat: "A minorom: káró"}
+      # az ő színükre (gémforsz): 0-10 ponttal a legolcsóbb színem a legolcsóbb
+      # szinten; minden más licit 11+ és gémig kötelez
+      - {minta: "(1m) 2m (P) 3m (P) 3H", pont: 0-10, prioritas: 53, magyarazat: "Minimum: a legolcsóbb színem"}
+      - {minta: "(1m) 2m (P) 3m (P) 3S", pont: 11+, rel: ["S>=H"], prioritas: 53, magyarazat: "Erősebb lap (11+), pikk"}
+      - {minta: "(1m) 2m (P) 3m (P) 4H", pont: 11+, rel: ["H>S"], prioritas: 53, magyarazat: "Erősebb lap (11+), kőr"}
+      - {minta: "(1H) 2H (P) 3H (P) 3S", pont: 0-10, prioritas: 53, magyarazat: "Minimum: a legolcsóbb színem"}
+      - {minta: "(1H) 2H (P) 3H (P) 4C", pont: 11+, hossz: {C: 5+}, prioritas: 53, magyarazat: "Erősebb lap (11+), a minorom: treff"}
+      - {minta: "(1H) 2H (P) 3H (P) 4D", pont: 11+, hossz: {D: 5+}, prioritas: 53, magyarazat: "Erősebb lap (11+), a minorom: káró"}
+      - {minta: "(1S) 2S (P) 3S (P) 4H", pont: 0-10, prioritas: 53, magyarazat: "Minimum: kőr"}
+      - {minta: "(1S) 2S (P) 3S (P) 4C", pont: 11+, hossz: {C: 5+}, prioritas: 53, magyarazat: "Erősebb lap (11+), a minorom: treff"}
+      - {minta: "(1S) 2S (P) 3S (P) 4D", pont: 11+, hossz: {D: 5+}, prioritas: 53, magyarazat: "Erősebb lap (11+), a minorom: káró"}
+      # a lezárásra és a blokkra: passz (a választás eldőlt, második színt nem említ)
+      - {minta: "(1m) 2m (P) 3M (P) P", prioritas: 50, magyarazat: "A partner blokkja: passz"}
+      - {minta: "(1H) 2H (P) 3S (P) P", prioritas: 50, magyarazat: "A partner blokkja: passz"}

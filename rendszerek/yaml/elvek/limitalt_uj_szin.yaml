@@ -1,0 +1,69 @@
+# LIMITALT_UJ_SZIN — a limitált lap új színe: lezárás hosszú színnel
+# (a szerkesztővel közösen, 2026-10-19; az aranykészlet #57 leosztása:
+# ♠103 ♥B4 ♦10 ♣ÁDB109872, 1♥-1NT-2♥ után 3♣).
+#
+# „Az 1 szanos 2. megszólalása gyenge lapot, de hosszú (általában 7+) színt
+# ígér” — jó minőségű 6-os (ÁKD vezetésű) is elég, legfeljebb dubló a partner
+# nemeséből. A partner passzol, kivéve, ha a 3NT-hez meg tudja számolni a 9
+# ütést (a szín a partnernél fut, ha van benne figurám; a többi színben
+# fogásom és gyorsütéseim vannak) — ütésszámlálással, nem ponterővel.
+#
+# HOL ÉL: a hivatkozás mondja meg (`ervenyes`); először az 1M-1NT után. A
+# fedőkeresőben a limitált kéz új színe kérdésre felel — ott NEM élhet.
+rendszer:
+  kod: LIMITALT_UJ_SZIN
+  nev: A limitált lap új színe — lezárás
+  nev_en: New suit by a limited hand — to play
+  fajta: ELV_SABLON
+  leiras: >-
+    Aki a lapját nem kényszerítő licittel limitálta, annak a későbbi új
+    színe (ugrás nélkül) gyenge lap, hosszú szín: lezárás.
+sablon:
+  szoveg: >-
+    Ha a lapomat nem kényszerítő licittel limitáltam, a későbbi új színem
+    (ugrás nélkül, legfeljebb {LEGFELJEBB}-ig) gyenge lap, hosszú szín:
+    lezárás. Hossz: {HOSSZ_MIN}+ lap, vagy {HOSSZ_MIN_JO} lap legalább
+    {JO_FOHONOR} felső honőrrel (Á, K, D); a partner nemeséből legfeljebb
+    dubló. A partner passzol, kivéve, ha a 3NT-hez meg tudja számolni a 9
+    ütést: figura a színben, fogás minden más le nem fedett színben, és
+    legalább {SZAN_GYORS} gyorsütés.
+  parameterek:
+    HOSSZ_MIN: {alap: 7, tartomany: 6-8, leiras: "Ennyi lappal mindig lezárás"}
+    HOSSZ_MIN_JO: {alap: 6, tartomany: 6-7, leiras: "Ennyi lappal, ha a szín jó minőségű"}
+    JO_FOHONOR: {alap: 2, tartomany: 2-3, leiras: "A jó minőséghez ennyi felső honőr (Á, K, D) kell a színben"}
+    LEGFELJEBB: {alap: "3S", leiras: "Eddig a licitig lezárás az új szín"}
+    SZAN_GYORS: {alap: 3, tartomany: 2-4, leiras: "A partner 3NT-jéhez ennyi gyorsütés kell (a szín mellett)"}
+fejezetek:
+  - fejezet: "A limitált kéz új színe"
+    szabalyok:
+      - minta: ".. +A"
+        kulcs: LIMITALT-UJ-SZIN
+        prioritas: 55
+        ha: {partner_forszol: false, partner_szin: {M: 5}, nem_mondtam: A, partner_nem_mondta: A,
+             nyers: {t: LICIT_LEGFELJEBB, hatar: {sablon: LEGFELJEBB}}}
+        hossz: {M: 0-2}
+        vagy:
+          - {feltetel: {t: OSSZE, op: ">=", bal: {t: SZIN, szin: "@A"}, jobb: {t: SZAM, v: {sablon: HOSSZ_MIN}}}}
+          - feltetel:
+              t: ES
+              gy:
+                - {t: OSSZE, op: ">=", bal: {t: SZIN, szin: "@A"}, jobb: {t: SZAM, v: {sablon: HOSSZ_MIN_JO}}}
+                - {t: OSSZE, op: ">=", bal: {t: OSSZEG, gy: [{t: LAP, lap: "@A:A"}, {t: LAP, lap: "@A:K"}, {t: LAP, lap: "@A:Q"}]}, jobb: {t: SZAM, v: {sablon: JO_FOHONOR}}}
+        jelentes: {hossz: {"@A": {min: {sablon: HOSSZ_MIN_JO}}, "@M": {max: 2}}}
+        magyarazat: "A limitált lap új színe: gyenge lap, hosszú szín — lezárás"
+  - fejezet: "A partner felelete a lezárásra"
+    szabalyok:
+      - minta: ".. nA 3NT"
+        kulcs: LIMITALT-UJ-SZIN-3NT
+        prioritas: 54
+        ha: {partner_forszol: false, partner_szin: {A: 6}, en_igertem: {M: 5}, nem_mondtam: A}
+        fohonor: {A: 1+}
+        fogas_maradek: true
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: GYORSUTES}, jobb: {t: SZAM, v: {sablon: SZAN_GYORS}}}
+        magyarazat: "A partner hosszú színe figurámmal fut, a többi színben fogás és gyorsütések: 3NT (9 ütés)"
+      - minta: ".. nA P"
+        kulcs: LIMITALT-UJ-SZIN-P
+        prioritas: 53
+        ha: {partner_forszol: false, partner_szin: {A: 6}, en_igertem: {M: 5}, nem_mondtam: A}
+        jelentes: {csak_dontes: true}
+        magyarazat: "A partner lezárt hosszú színnel: passz"

@@ -1,0 +1,204 @@
+# FOGASMUTATAS — az első ELV-SABLON (2026-10-05).
+#
+# A szerkesztő megfogalmazása (1♠-2♣-2♠-3♦ leosztás): a várakozó 2M után a
+# válaszoló új színe „csak természetes és FOGÁS a színben (GF marad) …
+# nem kell plusz erő, sőt négyes szín sem … irány a 3 szan, mert nincs
+# színtalálkozás”.
+#
+# Ez itt ÁLTALÁNOSAN van leírva (`.. +A`, `.. 3NT`): nem 1♠-2♣-2♠-3♦,
+# 1♥-2♦-2♥-3♣ … soronként, hanem egyszer. Azt, hogy HOL él, a rendszer
+# hivatkozása mondja meg (moha_stand_elv.yaml):
+#
+#     - {kod: FOGASMUTATAS, ervenyes: ["1M-2m-2M"]}
+#
+# A „még le nem fedett szín” a kényszertárból számolódik: a vonal
+# természetesen licitált színei (ha a TERMESZETES_FEDETT paraméter igaz) és
+# a már megmutatott fogások fedettek; a többiben kell fogás a 3NT-hez.
+#
+# A 2NT (plusz erővel) a kibic JAVASLATA: a Moha gyors-lassú elve (erővel
+# lassú) és a nyitó 1M-2m utáni 2NT/3NT-je mintájára. Nélküle a nagyon
+# erős kiegyensúlyozott lap is rögtön 3NT-t mondana (a szlem elveszne).
+#
+# Amit az elv NEM mond (a szerkesztő nem mondta): mi legyen fogás nélkül.
+# Ott a rendszer többi szabálya, végül a hézag-elv dönt.
+rendszer:
+  kod: FOGASMUTATAS
+  nev: Fogásmutatás a 3NT felé
+  nev_en: Stopper showing towards 3NT
+  fajta: ELV_SABLON
+  leiras: >-
+    Gémforszban, színtalálkozás nélkül, 3NT alatt az új szín természetes, és
+    fogást mutat (hosszt, plusz erőt nem ígér); minden még le nem fedett
+    színben fogással 3NT (plusz erővel a lassú 2NT). Ha már minden szín le
+    van fedve: önálló nemes 4M, második szín, 6+ nemes ismétlése, vagy kétség.
+sablon:
+  szoveg: >-
+    Ha gémforszban vagyunk és nincs színtalálkozás, 3NT alatt az új szín
+    természetes, és FOGÁST mutat a színben — nem ígér négy lapot, plusz
+    erőt sem; a gémforsz marad, az irány a 3NT. Ha minden még le nem
+    fedett színben van fogásom: 3NT. Ha nincs: a legolcsóbb fogásomat
+    mutatom.
+  parameterek:
+    FIT_MIN:
+      alap: 8
+      tartomany: 7-9
+      leiras: "Színtalálkozás: ennyi közös lap (a saját lapjaim + a partner ígért minimuma)"
+    FIT_SZINEK:
+      alap: nemes
+      leiras: "Melyik színben számít a színtalálkozás: nemes (a minor fit nem állítja meg a 3NT-keresést) vagy barmely"
+    TERMESZETES_FEDETT:
+      alap: true
+      leiras: "A vonal természetesen licitált színe fedettnek számít (a partner 5-ös színe felér egy fogással)"
+    PLUSZ_ERO:
+      alap: 15
+      tartomany: 14-17
+      leiras: "Plusz erő (FP): ennyivel a lassú 2NT, alatta a 3NT (a kibic javaslata, gyors-lassú elv)"
+  # Az elv TERÜLETE: ahol él (gémforszban, színtalálkozás nélkül, új szín 3NT
+  # alatt a legolcsóbb szinten, vagy szan 3NT-ig), ott a kártyán mögötte álló
+  # régi sorok nem élnek — pl. a KIBICEGY 1M-2♣-2M-3NT „leállás”-a fogás
+  # nélkül. Kikapcsolható a hivatkozásban: `kivalt: false`.
+  terulet:
+    fogasmutatas_terulet: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK},
+                           termeszetes: {sablon: TERMESZETES_FEDETT}}
+fejezetek:
+  - fejezet: Fogásmutatás
+    szabalyok:
+      - minta: ".. 2NT"
+        kulcs: FOGASMUTATAS-2NT
+        prioritas: 60
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK},
+                            termeszetes: {sablon: TERMESZETES_FEDETT}}}
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: HCP}, jobb: {t: SZAM, v: {sablon: PLUSZ_ERO}}}
+        nincs_fit: {min: {sablon: FIT_MIN}, szinek: {sablon: FIT_SZINEK}}
+        fogas_maradek: {termeszetes: {sablon: TERMESZETES_FEDETT}}
+        forsz: GEMFORSZ
+        jelentes: {fogas_maradek: true, fogas_termeszetes: {sablon: TERMESZETES_FEDETT},
+                   pont: {min: {sablon: PLUSZ_ERO}}}
+        alert: "Fogás minden még le nem fedett színben, plusz erő (a lassú 2NT)"
+      - minta: ".. 3NT"
+        kulcs: FOGASMUTATAS-3NT
+        prioritas: 59
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK},
+                            termeszetes: {sablon: TERMESZETES_FEDETT}}}
+        nincs_fit: {min: {sablon: FIT_MIN}, szinek: {sablon: FIT_SZINEK}}
+        fogas_maradek: {termeszetes: {sablon: TERMESZETES_FEDETT}}
+        ketseg: false
+        jelentes: {fogas_maradek: true, fogas_termeszetes: {sablon: TERMESZETES_FEDETT}}
+        magyarazat: "Fogás minden még le nem fedett színben: 3NT"
+      - minta: ".. +A"
+        kulcs: FOGASMUTATAS-SZIN
+        prioritas: 58
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK},
+                            termeszetes: {sablon: TERMESZETES_FEDETT}}}
+        nincs_fit: {min: {sablon: FIT_MIN}, szinek: {sablon: FIT_SZINEK}}
+        fogas: [A]
+        forsz: GEMFORSZ
+        alert: "Természetes: fogás ebben a színben (nem ígér négy lapot, plusz erőt sem); gémforsz, irány a 3NT"
+
+  - fejezet: "Ha már minden szín le van fedve (a szerkesztő, 2026-10-05)"
+    szabalyok:
+      # A várakozó 2M csak a plusz erőt tagadja — a többlethosszt és a két
+      # színű lapot nem. Ha a partner már minden színt lefedett (pl. a lassú
+      # 2NT), a nyitó ezt még elmondhatja, mielőtt a 3NT-ben kötnénk ki.
+      - minta: ".. 4M"
+        kulcs: FOGASMUTATAS-ONALLO
+        prioritas: 65
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: barmely}, en_mondtam: M}
+        hossz: {M: 6+}
+        onallo_adu: M
+        magyarazat: "Önállóan játszható nemes szín: gém"
+      - minta: ".. +A"
+        kulcs: FOGASMUTATAS-KETSZINU
+        prioritas: 64
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: lefedve}, nem_mondtam: A, en_3_szinten: false}
+        hossz: {A: 4+}
+        vagy: [{hossz: {S: 0-1}}, {hossz: {H: 0-1}}, {hossz: {D: 0-1}}, {hossz: {C: 0-1}}]
+        forsz: GEMFORSZ
+        magyarazat: "Természetes második szín (4+), mellette szingli vagy sikén — a 2M a két színű lapot nem tagadta"
+      # 1♠ nyitó (a 2♠ tagadta a 4-es kőrt): 6+ pikkel és kőrfogással a
+      # 3♥ fogás — a partner kétes fogással és 2 pikkel 3♠-et mondhat
+      # (a szerkesztő, 2026-10-05; 1♥ nyitóval ez nem működik, ott 3M)
+      # A szerkesztő (2026-10-19): gémforszban (vagy kvázi gémforszban) a 3NT
+      # alatti szín CSAK FOGÁS is lehet (természetes, de nem feltétlenül 4-es).
+      # Ezért a 6+ lapos nemes mellett az új szín fogást mutat, és a partner
+      # kétes fogással és 2 lappal a nemesben visszaválaszthatja azt. Egy sor
+      # mindkét nemesre (a régi „6+ pikk mellett 3♥” sor helyett). Csak BIZTOS
+      # fogással (ász, kétszeres, vagy 3+ lapos: Kxx, KB3): a 10-05-i döntés szerint
+      # ♠ÁB9432 ♥432 ♦K7 ♣KB után a 3♠ marad.
+      - minta: ".. +A"
+        kulcs: FOGASMUTATAS-FOGAS-3NT-ALATT
+        prioritas: 63
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: lefedve}, en_mondtam: M, nem_mondtam: A, partner_nem_mondta: A, en_3_szinten: false}
+        hossz: {M: 6+, A: 0-3}
+        fogas: [A]
+        eros_fogas: [A]           # biztos fogás (ász, kétszeres vagy 3+ lapos): a ♦Kx-szel a 3M marad
+        forsz: EGY_MENET
+        magyarazat: "Fogás a színben (gémforszban a 3NT alatti szín csak fogás is lehet) — 6+ lapos nemes mellett"
+      - minta: ".. +M"
+        kulcs: FOGASMUTATAS-ISMETLES
+        prioritas: 62
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: lefedve}, en_mondtam: M, en_3_szinten: false}
+        hossz: {M: 6+}
+        forsz: GEMFORSZ
+        magyarazat: "6+ lapos nemes (a 2M a többlethosszt nem ígérte): a partner választ a 3NT és a 4M között"
+      - minta: ".. +A"
+        kulcs: FOGASMUTATAS-KETSEG
+        prioritas: 61
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: lefedve}, csak_partner_fogas: A, en_3_szinten: true}
+        hossz: {A: 0-1}
+        forsz: GEMFORSZ
+        magyarazat: "Kétség: ebben a színben rövid vagyok, csak a partner fogása áll — 3NT csak dupla fogással"
+      # a 6+ lapos nemes ismétlésére 2 lappal: 3NT vagy 4M — a DD-mintavétel
+      # dönt (szimulációval); nélküle a hézag-elv (a 8 lapos fitben 4M).
+      # Egy-egy sor mindkét nemesre: a 3NT sorában az M a feltételből kötődik
+      # („van olyan nemes, amelyben a partner 6+ lapot ígért”).
+      - {minta: ".. 3NT", kulcs: FOGASMUTATAS-VALASZT-3NT, prioritas: 62, dontesi_mod: MERLEGELO,
+         ha: {partner_szin: {M: 6}, gemforsz: true}, hossz: {M: "2"},
+         magyarazat: "A partner 6+ lapos nemese mellé 2 lappal: 3NT vagy a nemes gém (DD-mintavétel)"}
+      - {minta: ".. 4M", kulcs: FOGASMUTATAS-VALASZT-4M, prioritas: 62, dontesi_mod: MERLEGELO,
+         ha: {partner_szin: {M: 6}, gemforsz: true}, hossz: {M: "2"},
+         magyarazat: "A partner 6+ lapos nemese mellé 2 lappal: a nemes gém vagy 3NT (DD-mintavétel)"}
+      # a kétség után kétszeres fogás nélkül: a nemes gém az 5-2 fitben
+      - {minta: ".. 4M", kulcs: FOGASMUTATAS-KETSEG-4M, prioritas: 62,
+         ha: {partner_szin: {M: 5}, gemforsz: true}, ketseg: true, hossz: {M: 2+},
+         magyarazat: "A partner kétsége után kétszeres fogás nélkül: a nemes gém az 5-2 fitben"}
+      # a partner 5+ nemese mellé 2 lappal és kétes (nem ász, nem kétszeres)
+      # fogással: 3M — a partner dönt (6 lappal 4M), nem a 3NT
+      - minta: ".. +M"
+        kulcs: FOGASMUTATAS-KETES-FOGAS
+        prioritas: 60
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: lefedve}, partner_szin: {M: 5}}
+        hossz: {M: "2"}
+        gyenge_fogas: true
+        forsz: EGY_MENET
+        magyarazat: "Kétes fogás(ok) és 2 lap a partner nemesében: 3M — a partner dönt"
+
+  - fejezet: "Negyedik szín: HELP (a szerkesztő, 2026-10-05)"
+    jegyzet: >-
+      Gémforszban, 3NT alatt, ha már csak EGY szín nincs lefedve (a két vonalon
+      három színt licitáltunk vagy fogásként mutattunk), és nincs önállóan
+      játszható adunk vagy 8 lapos nemes fitünk: a negyedik szín fogáskérés
+      (HELP) — „nincs fogásom ebben a színben”. Fogással benne a válasz 3NT.
+      (Ha van fogásom, magam mondom a 3NT-t.)
+    szabalyok:
+      - minta: ".. +A"
+        kulcs: FOGASMUTATAS-HELP
+        prioritas: 51
+        ha: {fogasmutatas: {fit_min: {sablon: FIT_MIN}, fit_szinek: {sablon: FIT_SZINEK}, termeszetes: {sablon: TERMESZETES_FEDETT}, mod: help}}
+        nincs_fit: {min: {sablon: FIT_MIN}, szinek: {sablon: FIT_SZINEK}}
+        nincs_fogas: [A]
+        forsz: EGY_MENET
+        jelentes: {help: "@A"}
+        alert: "Negyedik szín, HELP: nincs fogásom ebben a színben — fogással 3NT"
+      # a HELP-re fogás nélkül: 4 minor a fitben — a kvázi gémforsz (1M-2m)
+      # miatt passzolható (a szerkesztő: „ha erre 4♦ jön, az kínlicit, passzolnám”)
+      - minta: ".. 4m"
+        kulcs: FOGASMUTATAS-HELP-4M
+        prioritas: 52
+        ha: {help_utan: p}
+        help_fogas: false
+        fit: {m: 8+}
+        magyarazat: "Nincs fogásom a kért színben: 4 minor (leállás — a kvázi gémforsz itt teljesült)"
+      # A HELP-re adott 4 minor utáni passz (régen: FOGASMUTATAS-HELP-PASSZ,
+      # 0-15 ponttal) 2026-10-12 óta a KENYSZER elv „a gémforsz megszűnése”
+      # sora: egy fogalom — egy hely (elvek/kenyszer.yaml).

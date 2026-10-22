@@ -1,0 +1,82 @@
+rendszer:
+  kod: JACOBY_TRANSZFER
+  nev: Jacoby-transzfer
+  nev_en: Jacoby Transfers
+  fajta: KONVENCIO
+  tema: "NT után: nemes transzfer"
+  leiras: "1NT/2NT után a 2♦/3♦ kőrt, a 2♥/3♥ pikket ígér (5+). Forrás: kibic_standard_1.0.doc"
+fejezetek:
+  - fejezet: Transzfer az 1NT-re
+    szabalyok:
+      - {minta: 1NT-2D, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 57,
+         alert: "Jacoby-transzfer: 5+ kőr", nyers: "2♦! | Jacoby transzfer; 5+ kőr"}
+      - {minta: 1NT-2H, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 57,
+         alert: "Jacoby-transzfer: 5+ pikk", nyers: "2♥! | Jacoby transzfer; 5+ pikk"}
+      # a nyitó
+      - {minta: 1NT-2D-2H, prioritas: 50, magyarazat: "A transzfer teljesítése",
+         nyers: "Transzferált szín | NAT"}
+      - {minta: 1NT-2H-2S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 1NT-2D-2NT, pont: 17, hossz: {H: 4+}, elosztas: ["4333", "4432"], prioritas: 53,
+         alert: "Maximum, 4-es adu, nincs gyenge dubló", nyers: "2nt | Maximum; 4es adurámogatás; nincs gyenge dublója"}
+      - {minta: 1NT-2H-2NT, pont: 17, hossz: {S: 4+}, elosztas: ["4333", "4432"], prioritas: 53,
+         alert: "Maximum, 4-es adu, nincs gyenge dubló"}
+      - {minta: 1NT-2D-3H, pont: 15-16, hossz: {H: 4+}, prioritas: 52,
+         alert: "Minimum, 4-es adu (védekező licit)", nyers: "Transzferált szín a 3-as magasságon | Minimum; 4es adutámogatás; védekező licit"}
+      - {minta: 1NT-2H-3S, pont: 15-16, hossz: {S: 4+}, prioritas: 52,
+         alert: "Minimum, 4-es adu (védekező licit)"}
+      # (Új szín = maximum, 4-es adu, figura nélküli dubló: a figura-feltétel kieg.)
+      - {minta: 1NT-2D-2S, pont: 17, hossz: {H: 4+, S: 2}, figura: {S: 0}, prioritas: 56,
+         alert: "Maximum, 4-es adu, figura nélküli pikk dubló",
+         nyers: "Új szín! | Maximum; 4es adutámogatás; figura nélküli dubló a bemondott szín"}
+      - {minta: 1NT-2D-3C, pont: 17, hossz: {H: 4+, C: 2}, figura: {C: 0}, prioritas: 55,
+         alert: "Maximum, 4-es adu, figura nélküli treff dubló"}
+      - {minta: 1NT-2D-3D, pont: 17, hossz: {H: 4+, D: 2}, figura: {D: 0}, prioritas: 54,
+         alert: "Maximum, 4-es adu, figura nélküli káró dubló"}
+      - {minta: 1NT-2H-3C, pont: 17, hossz: {S: 4+, C: 2}, figura: {C: 0}, prioritas: 55,
+         alert: "Maximum, 4-es adu, figura nélküli treff dubló"}
+      - {minta: 1NT-2H-3D, pont: 17, hossz: {S: 4+, D: 2}, figura: {D: 0}, prioritas: 54,
+         alert: "Maximum, 4-es adu, figura nélküli káró dubló"}
+      - {minta: 1NT-2H-3H, pont: 17, hossz: {S: 4+, H: 2}, figura: {H: 0}, prioritas: 56,
+         alert: "Maximum, 4-es adu, figura nélküli kőr dubló"}
+      # a válaszoló a teljesítés után (M = a transzferált nemes)
+      - {minta: 1NT-2D-2H-2NT, pont: 8-9, hossz: {H: 5}, elosztas: ["5332"], prioritas: 50,
+         magyarazat: "Invit, pontosan 5-ös kőr, 5332", nyers: "2nt | Invit pontosan ötös majorral; 5332-vel"}
+      - {minta: 1NT-2H-2S-2NT, pont: 8-9, hossz: {S: 5}, elosztas: ["5332"], prioritas: 50,
+         magyarazat: "Invit, pontosan 5-ös pikk, 5332"}
+      - {minta: 1NT-2D-2H-3H, pont: 8-9, hossz: {H: 6+}, prioritas: 51,
+         magyarazat: "Invit, 6-os kőr", nyers: "3M | Invit hatos színnel"}
+      - {minta: 1NT-2H-2S-3S, pont: 8-9, hossz: {S: 6+}, prioritas: 51,
+         magyarazat: "Invit, 6-os pikk"}
+      - {minta: 1NT-2D-2H-3NT, pont: 10-15, hossz: {H: 5}, elosztas: ["5332"], prioritas: 50,
+         magyarazat: "Leállás, 5332 (választás a 3NT és a 4♥ között)", nyers: "3nt | To play; 5332"}
+      - {minta: 1NT-2H-2S-3NT, pont: 10-15, hossz: {S: 5}, elosztas: ["5332"], prioritas: 50,
+         magyarazat: "Leállás, 5332"}
+      - {minta: 1NT-2D-2H-4H, pont: 14-16, hossz: {H: 6+}, prioritas: 53,
+         magyarazat: "Szleminvit (erősebb, mint a Texas)", nyers: "4M | Szleminvit, erősebb, mintha egyből Texas-tf mondott volna"}
+      - {minta: 1NT-2H-2S-4S, pont: 14-16, hossz: {S: 6+}, prioritas: 53,
+         magyarazat: "Szleminvit (erősebb, mint a Texas)"}
+      - {minta: 1NT-2D-2H-3C, pont: 10+, hossz: {H: 5+, C: 4+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz, 5-4+", nyers: "Új szín | NAT; GF; 5-4 +"}
+      - {minta: 1NT-2D-2H-3D, pont: 10+, hossz: {H: 5+, D: 4+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz, 5-4+"}
+      - {minta: 1NT-2D-2H-2S, pont: 10+, hossz: {H: 5+, S: 4+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Természetes, gémforsz, 5-4+"}
+      - {minta: 1NT-2H-2S-3C, pont: 10+, hossz: {S: 5+, C: 4+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz, 5-4+"}
+      - {minta: 1NT-2H-2S-3D, pont: 10+, hossz: {S: 5+, D: 4+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 51,
+         magyarazat: "Természetes, gémforsz, 5-4+"}
+      - {minta: 1NT-2H-2S-3H, pont: 10+, hossz: {S: 5+, H: 4+}, forsz: GEMFORSZ, prioritas: 52,
+         magyarazat: "Természetes, gémforsz, 5-4+"}
+
+  - fejezet: Transzfer a 2NT-re
+    szabalyok:
+      - {minta: 2NT-3D, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, prioritas: 57,
+         alert: "Jacoby-transzfer: 5+ kőr", nyers: "3♦! | Jacoby-transzfer"}
+      - {minta: 2NT-3H, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, prioritas: 57,
+         alert: "Jacoby-transzfer: 5+ pikk", nyers: "3♥! | Jacoby-transzfer"}
+      - {minta: 2NT-3D-3H, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2NT-3H-3S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2NT-3D-3H-3NT, pont: 4-10, hossz: {H: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♥ között"}
+      - {minta: 2NT-3H-3S-3NT, pont: 4-10, hossz: {S: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♠ között"}
+      - {minta: 2NT-3D-3H-4H, pont: 4-10, hossz: {H: 6+}, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2NT-3H-3S-4S, pont: 4-10, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás"}

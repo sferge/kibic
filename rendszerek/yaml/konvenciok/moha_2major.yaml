@@ -1,0 +1,92 @@
+# MOHA_2MAJOR — a gyenge kettes nemes nyitás a Moha-kör szerint
+# (a szerkesztő megjegyzése alapján, 2026-09-29).
+#
+# Az alaprendszer (KIBICEGY_STAND) 2♥/2♠ nyitását cseréli le, ha a kártyán
+# ELŐTTE áll. Az eltérés:
+#   * a pontminimum zónától függően 0 / 5 / 8 / 10 (az alapban 4 / 5 / 6 / 8);
+#   * a figurapontok legalább FELE a nyitott színben van;
+#   * beliben (rossz) nyitóerővel is: az 1M-et az ellenfél úgyis kinyitja,
+#     és akkor is 2M-et mondanánk (főleg 3./4. kézben).
+# A lapszám az alaprendszeré.
+#
+#   zóna                      pont       szín
+#   O  csak ők beliben         0-8        5-7
+#   A  senki                   5-10(11)   5-7    (11): nem jó lappal (2026-10-05)
+#   M  mindkét vonal beliben   8-10(11)   6-7    (11): nem jó lappal
+#   S  csak mi beliben         10-11(12)  6-7    (12): nem jó lappal
+rendszer:
+  kod: MOHA_2MAJOR
+  nev: Gyenge kettes nemes (Moha)
+  nev_en: Weak two in a major (Moha)
+  fajta: KONVENCIO
+  tema: "Gyenge kettes nemes nyitás"
+  leiras: "Gyenge 2♥/2♠: zónától függően 0/5/8/10 ponttól, a figurapont legalább fele a nyitott színben."
+  jegyzet: >-
+    A Moha-kör gyenge kettese. Mans-bell (csak ők beliben) akár 0 ponttal
+    is; a feltétel, hogy a figurapontok legalább fele a nyitott színben
+    legyen — így a partner tudja, hogy a pontok a színben vannak, nem
+    elszórva. Beliben a zárójeles pont (mindkét vonal beliben 11, csak mi
+    beliben 12) nem jó lappal (LAPMINOSEG < 2) nyitóerővel is 2M; jó lappal 1M: az 1M-et az
+    ellenfél úgyis kinyitja, és akkor is 2M-et mondanánk — főleg 3./4.
+    kézben. (Eldöntve: 2026-09-29.)
+fejezetek:
+  - fejezet: Gyenge kettes nemes nyitás
+    szabalyok:
+      - minta: 2H
+        hossz: {S: 0-3}
+        fele_a_szinben: H
+        vagy:
+          - {szkor: O, pont: 0-8,  hossz: {H: 5-7}}
+          - {szkor: A, pont: 5-10, hossz: {H: 5-7}}
+          - {szkor: M, pont: 8-10, hossz: {H: 6-7}}
+          - {szkor: S, pont: 10-11, hossz: {H: 6-7}}
+        forsz: KIZARO
+        prioritas: 70
+        alert: "Gyenge kettes: zónától függően 0/5/8/10 ponttól; a pontok legalább fele a kőrben"
+      - minta: 2H
+        kulcs: 2H~ROSSZ
+        hossz: {S: 0-3, H: 6-7}
+        fele_a_szinben: H
+        # a JÓ 11/12 1M-et nyit; nem jó: lapminőség < 2, vagy üres figura, amit
+        # a hossz sem pótol (korrigált pont < 13 — mint a FELMENTÉS-elvben)
+        vagy:
+          - {szkor: A, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}   # mans-mans: 5-10(11) (2026-10-05)
+          - {szkor: M, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+          - {szkor: S, pont: "12", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+        forsz: KIZARO
+        prioritas: 70
+        alert: "Gyenge kettes, beliben rossz nyitóerővel is (11, ill. mi beliben 12)"
+        jegyzet: >-
+          LEHETŐSÉG-SOR: a zárójeles pont (8-10(11), 10-11(12)) nem jó lappal
+          (a „fele a színben” miatt a valóban rossz lap itt ritka).
+          Az 1M-et az ellenfél úgyis kinyitja, és akkor is 2M-et mondanánk —
+          főleg 3./4. kézben.
+      - minta: 2S
+        hossz: {H: 0-3}
+        fele_a_szinben: S
+        vagy:
+          - {szkor: O, pont: 0-8,  hossz: {S: 5-7}}
+          - {szkor: A, pont: 5-10, hossz: {S: 5-7}}
+          - {szkor: M, pont: 8-10, hossz: {S: 6-7}}
+          - {szkor: S, pont: 10-11, hossz: {S: 6-7}}
+        forsz: KIZARO
+        prioritas: 70
+        alert: "Gyenge kettes: zónától függően 0/5/8/10 ponttól; a pontok legalább fele a pikkben"
+      - minta: 2S
+        kulcs: 2S~ROSSZ
+        hossz: {H: 0-3, S: 6-7}
+        fele_a_szinben: S
+        # a JÓ 11/12 1M-et nyit; nem jó: lapminőség < 2, vagy üres figura, amit
+        # a hossz sem pótol (korrigált pont < 13 — mint a FELMENTÉS-elvben)
+        vagy:
+          - {szkor: A, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}   # mans-mans: 5-10(11) (2026-10-05)
+          - {szkor: M, pont: "11", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+          - {szkor: S, pont: "12", vagy: [{minoseg: nem_jo}, {ures_figura: 1+, korr_pont: "-12.9"}]}
+        forsz: KIZARO
+        prioritas: 70
+        alert: "Gyenge kettes, beliben rossz nyitóerővel is (11, ill. mi beliben 12)"
+        jegyzet: >-
+          LEHETŐSÉG-SOR: a zárójeles pont (8-10(11), 10-11(12)) nem jó lappal
+          (a „fele a színben” miatt a valóban rossz lap itt ritka).
+          Az 1M-et az ellenfél úgyis kinyitja, és akkor is 2M-et mondanánk —
+          főleg 3./4. kézben.

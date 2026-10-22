@@ -1,0 +1,32 @@
+RKC.hly
+  RKC helyzetek
+  Els‹ sor az adusz¡n.
+  Ha k‚t sz¡n is van, akkor RKC1/2 helyzet.
+  R betû jelzi, hogy nincs opcionalit s a magass g ellen‚re se.
+  P jelzi a spir lt, a k”vetkez‹ betû, hogy hol tart(T=adu d ma).
+  M sodik sor a sz¡nsorrendet meghat roz¢ eloszt s.
+  (RKC1/2 eset‚n van egy plussz sor a lehets‚ges le ll¢ szineknek)
+  K”vetkez‹ sorban(opcion lis)van az, hogy milyen sz¡nben lehet
+  n‚gyes magass gon le llni, illetve X, ha minden sz¡n ilyen.
+
+STR.hly
+  A spir lnak alapul szolg l¢ sz¡nhosszakat kell be¡rni.
+  Ez el‹tti M jelzi a magassrukt£r t(1C-2N).
+  A m sodik sorba ¡rjuk azt a sz¡nt, ami m r nem lehet adu.
+
+RELEK.hly
+  Egy adott licithelyzetben mit mekkora es‚llyel licit l a g‚p.
+  Az is be¡rhat¢ a sz zal‚k‚rt‚k el‚, hogy ez a licit mit jelent:
+  R RKC, O ORKC, M RORKC ut na a sz¡n.
+  M”g‚ exyzw form ban meg lehet adni a sz¡nhosszakat a spir lhoz.
+
+R1R2.hly
+  Els‹ sorban van, hogy mi a k‚t sz¡n, ill. melyikb‹l mennyit ¡g‚rtnk.
+  M”g”tte C betûvel jel”lhetjk, hogy CYS1/CYS2-r‹l van sz¢. Ilyenkor
+  meg kell adni a r”v¡d sz¡nt is. A legv‚g‚n F betûvel jelezzk, hogy
+  a 3 szan nem j tszhat¢.
+  A m sodik sorban vannak a spir lnak alapul szolg l¢ sz¡nhosszak.
+  A harmadikban a j tszhat¢ '4 nemes' szine van.
+  Ebben a sorban van az ¡g‚rt ”t”s sz¡n is 5 el‹jelz‚ssel.
+  (Itt mutatjuk be a szingli figur t)
+

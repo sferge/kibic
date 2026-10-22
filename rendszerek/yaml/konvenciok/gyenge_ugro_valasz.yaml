@@ -1,0 +1,109 @@
+# GYENGE UGRÓ VÁLASZ (weak jump shift) — 2026-10-02, a feltöltött
+# Weak_Jump_Shifts.pdf alapján.
+#
+# MAGA A GYENGE UGRÁS ELV (GYENGE_UGRAS_ELV, 2026-10-02 este): kényszer
+# nélkül az ugró új szín bárhol gyenge. Itt csak a KONKRÉT folytatások
+# vannak a minor nyitás utáni 2-es szintű ugrásra (a KIBICEGY_STAND sorai:
+# 1♣-2♦, 1m-2♥, 1m-2♠). Nemes nyitás után a 3♣/3♦ Bergen-emelés (konkrét
+# szabály, az előbb jár, mint az elv).
+#
+# A nyitó folytatása:
+#   passz                 — akár erős lappal is, misfit esetén
+#   a saját szín          — legalább 7 lap, nem kényszerít
+#   a partner színének emelése (egyszeres, dupla) — természetes, nem kényszerít
+#   új szín               — természetes, többleterő, 5+ lap; a válaszoló
+#                           passzolhat, emelhet, vagy visszatérhet a nyitó
+#                           színére (a sajátját NEM ismétli)
+#   2NT                   — kényszerítő géminvit (legalább dubló támogatás):
+#                           a válaszoló minimummal a színét ismétli, maximummal
+#                           (ász/király) mellékszínt mond
+# Kieg. (átnézendő): a pontsávok (a nyitóé 16+ az új színhez, 17+ a 2NT-hez).
+rendszer:
+  kod: GYENGE_UGRO_VALASZ
+  nev: Gyenge ugró válasz
+  nev_en: Weak jump shifts
+  fajta: KONVENCIO
+  tema: "Ugró válasz új színben"
+  leiras: "A minor nyitásra adott gyenge ugró válasz folytatásai; a nyitó 2NT-je kényszerítő géminvit, a válaszoló minimummal a színét, maximummal mellékszínt mond."
+fejezetek:
+  - fejezet: "A nyitó a gyenge ugró válasz után"
+    szabalyok:
+      - {minta: 1C-2D-+C, pont: 11-17, hossz: {C: 7+}, prioritas: 50, magyarazat: "A saját szín: 7+ lap, nem kényszerít"}
+      - {minta: 1C-2D-3D, pont: 15-16, hossz: {D: 3+}, prioritas: 51, magyarazat: "Emelés: természetes, nem kényszerít"}
+      - {minta: 1C-2D-2NT, pont: 17+, hossz: {D: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         alert: "Kényszerítő géminvit (legalább dubló támogatás): minimummal a színed, maximummal mellékszín"}
+      - {minta: 1C-2D-+H, pont: 16+, hossz: {H: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2D-+S, pont: 16+, hossz: {S: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2D-2NT-3D, pont: 2-4, prioritas: 50, magyarazat: "Minimum: leállás"}
+      - {minta: 1C-2D-2NT-+H, pont: 5-7, vagy: [{lapok: [HA]}, {lapok: [HK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2D-2NT-+S, pont: 5-7, vagy: [{lapok: [SA]}, {lapok: [SK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2D-+H-P, hossz: {H: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2D-+S-P, hossz: {S: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2D-+H-+C, hossz: {H: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1C-2D-+S-+C, hossz: {S: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1C-2H-+C, pont: 11-17, hossz: {C: 7+}, prioritas: 50, magyarazat: "A saját szín: 7+ lap, nem kényszerít"}
+      - {minta: 1C-2H-3H, pont: 15-16, hossz: {H: 3+}, prioritas: 51, magyarazat: "Emelés: természetes, nem kényszerít"}
+      - {minta: 1C-2H-4H, pont: 18+, hossz: {H: 3+}, prioritas: 52, magyarazat: "Gém: nagyon erős, támogató lap"}
+      - {minta: 1C-2H-2NT, pont: 17+, hossz: {H: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         alert: "Kényszerítő géminvit (legalább dubló támogatás): minimummal a színed, maximummal mellékszín"}
+      - {minta: 1C-2H-+D, pont: 16+, hossz: {D: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2H-+S, pont: 16+, hossz: {S: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2H-2NT-3H, pont: 2-4, prioritas: 50, magyarazat: "Minimum: leállás"}
+      - {minta: 1C-2H-2NT-+D, pont: 5-7, vagy: [{lapok: [DA]}, {lapok: [DK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2H-2NT-+S, pont: 5-7, vagy: [{lapok: [SA]}, {lapok: [SK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2H-+D-P, hossz: {D: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2H-+S-P, hossz: {S: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2H-+D-+C, hossz: {D: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1C-2H-+S-+C, hossz: {S: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1C-2S-+C, pont: 11-17, hossz: {C: 7+}, prioritas: 50, magyarazat: "A saját szín: 7+ lap, nem kényszerít"}
+      - {minta: 1C-2S-3S, pont: 15-16, hossz: {S: 3+}, prioritas: 51, magyarazat: "Emelés: természetes, nem kényszerít"}
+      - {minta: 1C-2S-4S, pont: 18+, hossz: {S: 3+}, prioritas: 52, magyarazat: "Gém: nagyon erős, támogató lap"}
+      - {minta: 1C-2S-2NT, pont: 17+, hossz: {S: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         alert: "Kényszerítő géminvit (legalább dubló támogatás): minimummal a színed, maximummal mellékszín"}
+      - {minta: 1C-2S-+D, pont: 16+, hossz: {D: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2S-+H, pont: 16+, hossz: {H: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1C-2S-2NT-3S, pont: 2-4, prioritas: 50, magyarazat: "Minimum: leállás"}
+      - {minta: 1C-2S-2NT-+D, pont: 5-7, vagy: [{lapok: [DA]}, {lapok: [DK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2S-2NT-+H, pont: 5-7, vagy: [{lapok: [HA]}, {lapok: [HK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1C-2S-+D-P, hossz: {D: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2S-+H-P, hossz: {H: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1C-2S-+D-+C, hossz: {D: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1C-2S-+H-+C, hossz: {H: 0-1, C: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1D-2H-+D, pont: 11-17, hossz: {D: 7+}, prioritas: 50, magyarazat: "A saját szín: 7+ lap, nem kényszerít"}
+      - {minta: 1D-2H-3H, pont: 15-16, hossz: {H: 3+}, prioritas: 51, magyarazat: "Emelés: természetes, nem kényszerít"}
+      - {minta: 1D-2H-4H, pont: 18+, hossz: {H: 3+}, prioritas: 52, magyarazat: "Gém: nagyon erős, támogató lap"}
+      - {minta: 1D-2H-2NT, pont: 17+, hossz: {H: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         alert: "Kényszerítő géminvit (legalább dubló támogatás): minimummal a színed, maximummal mellékszín"}
+      - {minta: 1D-2H-+C, pont: 16+, hossz: {C: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1D-2H-+S, pont: 16+, hossz: {S: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1D-2H-2NT-3H, pont: 2-4, prioritas: 50, magyarazat: "Minimum: leállás"}
+      - {minta: 1D-2H-2NT-+C, pont: 5-7, vagy: [{lapok: [CA]}, {lapok: [CK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1D-2H-2NT-+S, pont: 5-7, vagy: [{lapok: [SA]}, {lapok: [SK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1D-2H-+C-P, hossz: {C: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1D-2H-+S-P, hossz: {S: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1D-2H-+C-+D, hossz: {C: 0-1, D: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1D-2H-+S-+D, hossz: {S: 0-1, D: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1D-2S-+D, pont: 11-17, hossz: {D: 7+}, prioritas: 50, magyarazat: "A saját szín: 7+ lap, nem kényszerít"}
+      - {minta: 1D-2S-3S, pont: 15-16, hossz: {S: 3+}, prioritas: 51, magyarazat: "Emelés: természetes, nem kényszerít"}
+      - {minta: 1D-2S-4S, pont: 18+, hossz: {S: 3+}, prioritas: 52, magyarazat: "Gém: nagyon erős, támogató lap"}
+      - {minta: 1D-2S-2NT, pont: 17+, hossz: {S: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 51,
+         alert: "Kényszerítő géminvit (legalább dubló támogatás): minimummal a színed, maximummal mellékszín"}
+      - {minta: 1D-2S-+C, pont: 16+, hossz: {C: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1D-2S-+H, pont: 16+, hossz: {H: 5+}, prioritas: 49, magyarazat: "Új szín: természetes, többleterő, 5+ lap"}
+      - {minta: 1D-2S-2NT-3S, pont: 2-4, prioritas: 50, magyarazat: "Minimum: leállás"}
+      - {minta: 1D-2S-2NT-+C, pont: 5-7, vagy: [{lapok: [CA]}, {lapok: [CK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1D-2S-2NT-+H, pont: 5-7, vagy: [{lapok: [HA]}, {lapok: [HK]}], alulrol: true, prioritas: 51,
+         magyarazat: "Maximum, ász vagy király ebben a színben"}
+      - {minta: 1D-2S-+C-P, hossz: {C: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1D-2S-+H-P, hossz: {H: 2+}, prioritas: 49, magyarazat: "Passz (a saját színét nem ismétli)"}
+      - {minta: 1D-2S-+C-+D, hossz: {C: 0-1, D: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}
+      - {minta: 1D-2S-+H-+D, hossz: {H: 0-1, D: 2+}, prioritas: 50, magyarazat: "Vissza a nyitó első színére"}

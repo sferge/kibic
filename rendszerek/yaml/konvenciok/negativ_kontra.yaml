@@ -1,0 +1,298 @@
+# Generálva a klubdokumentum szabályaiból (M-centrikus; minor után 4♠-ig,
+# nemes után 3♠-ig). A pontsávok: 1-es szint 7+, 2-es 8+, 3-as 10+ (kieg.).
+# 1m-(1♥)-X = pontosan 4 pikk, mert 1m-(1♥)-1♠ = 5+ pikk.
+rendszer:
+  kod: NEGATIV_KONTRA
+  nev: "Negatív kontra"
+  nev_en: "Negative Double"
+  fajta: KONVENCIO
+  tema: "Nyitásunk után: a színközbeszólás kontrája"
+  leiras: "Nyitásunk után a színközbeszólás kontrája: nemes-centrikus, 1-es szinten 7+ FP, szintenként 1,5-2 FP-tal több. Forrás: KÜZDELMI & VÉDEKEZŐ licitek.doc"
+fejezetek:
+  - fejezet: "Negatív kontra"
+    szabalyok:
+      - {minta: "1C (1D) X", pont: 7+, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, nemes szín(ek)", vagy: [{"hossz": {"H": "4+", "S": "4+"}}]}
+      - {minta: "1C (2D) X", pont: 8+, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, nemes szín(ek)", vagy: [{"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}]}
+      - {minta: "1C (3D) X", pont: 10+, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, nemes szín(ek)", vagy: [{"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}]}
+      - {minta: "1C (1H) X", pont: 7+, hossz: {"S": "4"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, 4 pikk"}
+      - {minta: "1C (2H) X", pont: 8+, hossz: {"S": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ pikk"}
+      - {minta: "1C (3H) X", pont: 10+, hossz: {"S": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ pikk"}
+      - {minta: "1C (1S) X", pont: 7+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, 4+ kőr"}
+      - {minta: "1C (2S) X", pont: 8+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ kőr"}
+      - {minta: "1C (3S) X", pont: 10+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ kőr"}
+      - {minta: "1D (2C) X", pont: 8+, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, nemes szín(ek)", vagy: [{"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}]}
+      - {minta: "1D (3C) X", pont: 10+, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, nemes szín(ek)", vagy: [{"hossz": {"H": "4+"}}, {"hossz": {"S": "4+"}}]}
+      - {minta: "1D (1H) X", pont: 7+, hossz: {"S": "4"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, 4 pikk"}
+      - {minta: "1D (2H) X", pont: 8+, hossz: {"S": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ pikk"}
+      - {minta: "1D (3H) X", pont: 10+, hossz: {"S": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ pikk"}
+      - {minta: "1D (1S) X", pont: 7+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, 4+ kőr"}
+      - {minta: "1D (2S) X", pont: 8+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ kőr"}
+      - {minta: "1D (3S) X", pont: 10+, hossz: {"H": "4+"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ kőr"}
+      - {minta: "1H (2C) X", pont: 8+, hossz: {"S": "4+", "H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ pikk"}
+      - {minta: "1H (3C) X", pont: 10+, hossz: {"S": "4+", "H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ pikk"}
+      - {minta: "1H (2D) X", pont: 8+, hossz: {"S": "4+", "H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ pikk"}
+      - {minta: "1H (3D) X", pont: 10+, hossz: {"S": "4+", "H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ pikk"}
+      - {minta: "1H (1S) X", pont: 7+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 7+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
+      - {minta: "1H (1S) X", kulcs: "1H (1S) X ~EROS", pont: 15+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
+      - {minta: "1H (2S) X", pont: 8+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
+      - {minta: "1H (2S) X", kulcs: "1H (2S) X ~EROS", pont: 15+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
+      - {minta: "1H (3S) X", pont: 10+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
+      - {minta: "1H (3S) X", kulcs: "1H (3S) X ~EROS", pont: 15+, hossz: {"H": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
+      - {minta: "1S (2C) X", pont: 8+, hossz: {"H": "4+", "S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ kőr"}
+      - {minta: "1S (3C) X", pont: 10+, hossz: {"H": "4+", "S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ kőr"}
+      - {minta: "1S (2D) X", pont: 8+, hossz: {"H": "4+", "S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, 4+ kőr"}
+      - {minta: "1S (3D) X", pont: 10+, hossz: {"H": "4+", "S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, 4+ kőr"}
+      - {minta: "1S (2H) X", pont: 8+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 8+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
+      - {minta: "1S (2H) X", kulcs: "1S (2H) X ~EROS", pont: 15+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
+      - {minta: "1S (3H) X", pont: 10+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
+      - {minta: "1S (3H) X", kulcs: "1S (3H) X ~EROS", pont: 15+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
+
+  - fejezet: "Negatív kontra — minden más"
+    jegyzet: >-
+      2026-10-02, Moha: a negatív kontra a válaszoló „minden más” licitje.
+      4-es nem mondott nemessel a legkevesebb pont is elég (fent). Minél
+      kevesebb lap van a nem mondott nemesben, ÉS nincs fogás az ellenfél
+      színében (akkor szan volna), ÉS minél kevésbé rövid az ellenfél
+      színe, annál több pont kell. Invit erővel (10+) viszont NEM
+      PASSZOLUNK: ha más nem illik, kontra. A pozitív szabad licit (5+
+      szín, SZABAD_LICIT_MIN+) és az emelések előbb jönnek (prioritás).
+      A határok kieg., átnézendők.
+    szabalyok:
+      - {minta: "1C (1D) X", pont: 8+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1C (1D) X", pont: 9+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1C (1D) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (2D) X", pont: 9+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1C (2D) X", pont: 10+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1C (2D) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (3D) X", pont: 11+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1C (3D) X", pont: 12+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1C (3D) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (1H) X", pont: 8+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1C (1H) X", pont: 9+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1C (1H) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (2H) X", pont: 9+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1C (2H) X", pont: 10+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1C (2H) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (3H) X", pont: 11+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1C (3H) X", pont: 12+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1C (3H) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (1S) X", pont: 8+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1C (1S) X", pont: 9+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1C (1S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (2S) X", pont: 9+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1C (2S) X", pont: 10+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1C (2S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1C (3S) X", pont: 11+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1C (3S) X", pont: 12+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1C (3S) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (2C) X", pont: 9+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1D (2C) X", pont: 10+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1D (2C) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (3C) X", pont: 11+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1D (3C) X", pont: 12+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1D (3C) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (1H) X", pont: 8+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1D (1H) X", pont: 9+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1D (1H) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (2H) X", pont: 9+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1D (2H) X", pont: 10+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1D (2H) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (3H) X", pont: 11+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1D (3H) X", pont: 12+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1D (3H) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (1S) X", pont: 8+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1D (1S) X", pont: 9+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1D (1S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (2S) X", pont: 9+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1D (2S) X", pont: 10+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1D (2S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1D (3S) X", pont: 11+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1D (3S) X", pont: 12+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1D (3S) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (2C) X", pont: 9+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1H (2C) X", pont: 10+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1H (2C) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (3C) X", pont: 11+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1H (3C) X", pont: 12+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1H (3C) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (2D) X", pont: 9+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1H (2D) X", pont: 10+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1H (2D) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (3D) X", pont: 11+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1H (3D) X", pont: 12+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1H (3D) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (1S) X", pont: 8+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 8+ FP"}
+      - {minta: "1H (1S) X", pont: 9+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 9+ FP, nincs fogás"}
+      - {minta: "1H (1S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (2S) X", pont: 9+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1H (2S) X", pont: 10+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1H (2S) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1H (3S) X", pont: 11+, hossz: {S: 0-1}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1H (3S) X", pont: 12+, hossz: {S: 2}, nincs_fogas: [S], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1H (3S) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (2C) X", pont: 9+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1S (2C) X", pont: 10+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1S (2C) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (3C) X", pont: 11+, hossz: {C: 0-1}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1S (3C) X", pont: 12+, hossz: {C: 2}, nincs_fogas: [C], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1S (3C) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (2D) X", pont: 9+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1S (2D) X", pont: 10+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1S (2D) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (3D) X", pont: 11+, hossz: {D: 0-1}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1S (3D) X", pont: 12+, hossz: {D: 2}, nincs_fogas: [D], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1S (3D) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (2H) X", pont: 9+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 9+ FP"}
+      - {minta: "1S (2H) X", pont: 10+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 10+ FP, nincs fogás"}
+      - {minta: "1S (2H) X", pont: 10+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+      - {minta: "1S (3H) X", pont: 11+, hossz: {H: 0-1}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 50,
+         alert: "Negatív kontra: rövid ellenfél-szín, 11+ FP"}
+      - {minta: "1S (3H) X", pont: 12+, hossz: {H: 2}, nincs_fogas: [H], forsz: EGY_MENET, prioritas: 49,
+         alert: "Negatív kontra: 12+ FP, nincs fogás"}
+      - {minta: "1S (3H) X", pont: 12+, forsz: EGY_MENET, prioritas: 40,
+         alert: "Negatív kontra: invit erő, nincs jobb licit (nem passzolunk)"}
+
+  - fejezet: "A nyitó a negatív kontra után"
+    jegyzet: >-
+      2026-10-02, Moha. A partner kontrája NEM büntető (negatív: a kontrázott
+      színben rövidséget ígér) — ha a nyitó passzol, BÜNTETŐVÉ alakítja.
+      Ez csak akkor jó, ha (1) erős, biztos aduink vannak, (2) nincs erőnk a
+      3NT-hez, és (3) a 2NT kevesebbet érne a kontrázott bukásnál — ezért a
+      büntető passz MÉRLEGELŐ: a szimuláció dönti el; szimuláció nélkül nem
+      passzolunk. Egyébként licitálunk:
+        * a partner (ígért) 4-es színe — plusz erővel ugorva;
+        * a saját színünk ismétlése — plusz hosszal (plusz erővel ugorva);
+        * szan — fogással, de 3NT-hez kevés erővel (elég erővel 3NT);
+        * új szín — kétszínű lappal (plusz erővel ugorva);
+        * felüllicit — erős lap, nincs adu, nincs BIZTOS fogás (félfogás:
+          dubló dáma, üres király): fogást keres a partnernél, cél a 3NT;
+        * „kínunkban” — ha semmi sem illik, akkor sem passz: a várhatóan
+          legolcsóbb bukás (a partner hármas színe, a saját eredeti szín).
+      A pontsávok (12-14 / 15-17 / 18+) kieg., átnézendők.
+    szabalyok:
+      - {minta: "1A (nB) X (P) P", kulcs: NEG-X-BUNTETO-PASSZ, prioritas: 60, dontesi_mod: MERLEGELO,
+         pont: 12-17, hossz: {B: 4+}, fohonor: {B: 2+},
+         magyarazat: "Büntető passz: a negatív kontrát büntetővé alakítja (erős, biztos aduk)"}
+      # a partner 4-es (nemes) színe
+      - {minta: "1A (nB) X (P) +M", kulcs: NEG-X-PARTNER, prioritas: 56, kulonbozo: [A, B, M],
+         pont: 12-14, hossz: {M: 4+}, magyarazat: "A partner (ígért) színe, 4 lappal"}
+      - {minta: "1A (nB) X (P) 2M", kulcs: NEG-X-PARTNER-UGRO2, prioritas: 57, kulonbozo: [A, B, M],
+         ha: {ugras: true}, pont: 15-17, hossz: {M: 4+}, magyarazat: "A partner színe ugrással: 4 lap, plusz erő"}
+      - {minta: "1A (nB) X (P) 3M", kulcs: NEG-X-PARTNER-UGRO3, prioritas: 57, kulonbozo: [A, B, M],
+         ha: {ugras: true}, pont: 15-17, hossz: {M: 4+}, magyarazat: "A partner színe ugrással: 4 lap, plusz erő"}
+      - {minta: "1A (nB) X (P) 4M", kulcs: NEG-X-PARTNER-GEM, prioritas: 57, kulonbozo: [A, B, M],
+         pont: 18+, hossz: {M: 4+}, magyarazat: "Gém a partner színében"}
+      # a saját szín ismétlése
+      - {minta: "1A (nB) X (P) +A", kulcs: NEG-X-SAJAT, prioritas: 54,
+         pont: 12-14, hossz: {A: 6+}, magyarazat: "A saját szín ismétlése: plusz hossz"}
+      - {minta: "1A (nB) X (P) 3A", kulcs: NEG-X-SAJAT-UGRO, prioritas: 55,
+         ha: {ugras: true}, pont: 15-17, hossz: {A: 6+}, magyarazat: "A saját szín ugrással: plusz hossz, plusz erő"}
+      # szan
+      - {minta: "1A (nB) X (P) +NT", kulcs: NEG-X-SZAN, prioritas: 53,
+         pont: 12-14, fogas: [B], magyarazat: "Szan: fogás az ellenfél színében, 3NT-hez kevés erő"}
+      - {minta: "1A (nB) X (P) 3NT", kulcs: NEG-X-3SZAN, prioritas: 55,
+         pont: 15+, fogas: [B], magyarazat: "3NT: fogás az ellenfél színében, elég erővel"}
+      # új szín (kétszínű)
+      - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-UJ, prioritas: 52, kulonbozo: [A, B, E],
+         pont: 12-17, hossz: {A: 5+, E: 4+}, magyarazat: "Új szín: kétszínű lap"}
+      - {minta: "1A (nB) X (P) 3E", kulcs: NEG-X-UJ-UGRO, prioritas: 53, kulonbozo: [A, B, E],
+         ha: {ugras: true}, pont: 18+, hossz: {A: 5+, E: 4+}, forsz: GEMFORSZ,
+         magyarazat: "Új szín ugrással: kétszínű lap, plusz erő"}
+      # felüllicit: erős lap, félfogás
+      - {minta: "1A (nB) X (P) +B", kulcs: NEG-X-FELUL, prioritas: 51,
+         pont: 15+, nincs_fogas: [B], vagy: [{lapok: [BK]}, {lapok: [BQ]}], forsz: GEMFORSZ,
+         alert: "Felüllicit: erős lap, nincs biztos fogás (félfogás) — fogást keres, cél a 3NT"}
+      # „kínunkban”: a büntető passz helyett a legolcsóbb bukás
+      - {minta: "1A (nB) X (P) +M", kulcs: NEG-X-KIN-PARTNER, prioritas: 41, kulonbozo: [A, B, M],
+         hossz: {M: 3+}, magyarazat: "Kényszerből: a partner színe 3 lappal (a passz büntető volna)"}
+      - {minta: "1A (nB) X (P) +A", kulcs: NEG-X-KIN-SAJAT, prioritas: 40,
+         hossz: {A: 3+}, magyarazat: "Kényszerből: a saját színem (a passz büntető volna)"}
+      - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-KIN-UJ, prioritas: 39, kulonbozo: [A, B, E],
+         hossz: {E: 3+}, magyarazat: "Kényszerből: a legolcsóbb hármas szín (a passz büntető volna)"}
