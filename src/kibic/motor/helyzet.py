@@ -731,6 +731,13 @@ def kiertekel(csp: dict, allas: Allas,
         sz = _szin(csp, kotesek)
         return None if sz is None else allas.mondta(sz, csp.get("ki", "ok"))
 
+    if t == "ELLENFEL_KONTRAZOTT":
+        # az ellenfél kontrázott-e a licitmenetben (a kontra nem teremt
+        # fésű-helyzetet: nem feltétlenül ígéri a két színt — a szerkesztő)
+        from ..domain import vonal as _vn
+        return any(_vn(e.get("ules")) != _vn(allas.ules)
+                   and str(e.get("licit", "")).upper() == "X" for e in allas.licitek)
+
     if t == "LEGOLCSOBB_SZINT":
         # a szín legolcsóbb (most mondható) licitje legfeljebb `max` szintű-e —
         # a fésű határa (a szerkesztő, 2026-10-22: mindkét színüket legfeljebb
@@ -902,8 +909,15 @@ def kiertekel(csp: dict, allas: Allas,
             return False
         if not (allas.kenyszertar and allas.kenyszertar[allas.ules].nyilatkozott):
             return False                       # első megszólalás: az a gyenge ugrás
-        if allas.kenyszertar[allas.ules].pont_max < 15:
-            return False                       # már limitáltam a lapom (pl. 1NT válasz)
+        en = allas.kenyszertar[allas.ules]
+        if en.pont_max < 15 or en.pont_max - en.pont_min <= 4:
+            return False                       # már limitáltam a lapom (pl. 1NT nyitás / válasz)
+        # a partner még nem licitált (pl. 1NT-(X)-P-(P)): nincs mire „erőt” mutatni
+        pt = allas.kenyszertar.get(allas.partner)
+        if pt is None or not any(e.get("ules") == allas.partner and
+                                 str(e.get("licit", "")).upper() not in ("P", "PASS")
+                                 for e in allas.licitek):
+            return False
         kov = allas.kovetkezo_licit(b)
         if kov is None or szint - kov[0] != 1:
             return False
@@ -1303,6 +1317,8 @@ def leiras(csp: dict) -> str:
         return " vagy ".join(nevek.get(x, x) for x in lista)
     if t == "GEM_ALATT":
         return f"{_szinnev(csp)} még gém alatt mondható"
+    if t == "ELLENFEL_KONTRAZOTT":
+        return "az ellenfél kontrázott"
     if t == "LEGOLCSOBB_SZINT":
         return f"{_szinnev(csp)} legolcsóbb licitje legfeljebb {csp.get('max', 3)}-as szintű"
     if t == "ELLENFEL_SZINE":

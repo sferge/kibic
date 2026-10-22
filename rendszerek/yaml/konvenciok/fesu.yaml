@@ -14,6 +14,7 @@
 # HATÁR (a szerkesztő, 2026-10-22): a fésű addig él, amíg mindkét színüket
 # legfeljebb a 3-as szinten tudjuk mondani. Két külön ellenfél egy-egy
 # színe után is él (pl. a mi mesterséges szanunk a maradék két színt ígéri).
+# A KONTRA nem teremt fésű-helyzetet (nem feltétlenül ígéri a két színt).
 rendszer:
   kod: FESU
   nev: Fésű
@@ -58,6 +59,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
@@ -143,6 +147,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
@@ -229,6 +236,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
@@ -314,6 +324,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
@@ -390,6 +403,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
@@ -446,6 +462,9 @@ fejezetek:
         - t: LEGOLCSOBB_SZINT
           szin: '@I2'
           max: 3
+        - t: NEM
+          gy:
+          - t: ELLENFEL_KONTRAZOTT
     feltetel:
       t: ES
       gy:
