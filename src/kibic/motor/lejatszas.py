@@ -385,6 +385,8 @@ class Kovetkeztetes:
     suly: dict[str, float] = field(default_factory=dict)        # kód -> súly
     tures: int = 0                                              # LICIT_PONTHATAR
     jelzesek: object = None
+    valoszinu: dict = field(default_factory=dict)               # LICIT_KIZARAS: {ülés: Igeret}
+    nem_kovetett: set = field(default_factory=set)              # akik a lap-megállapodást nem követik
 
     def van(self, ules: str, kod: str) -> bool:
         return kod in self.kodok.get(ules, ())
@@ -393,14 +395,29 @@ class Kovetkeztetes:
         return any(self.kodok.values())
 
 
-def kovetkeztetes_beallitas(allas: JatekAllas, jelzesek, rejtett: list[str]) -> Kovetkeztetes:
+def kovetkeztetes_beallitas(allas: JatekAllas, jelzesek, rejtett: list[str],
+                            valoszinu: dict | None = None) -> Kovetkeztetes:
+    """`valoszinu`: a licit KIZÁRÁSOS következtetése ülésenként ({ülés: Igeret},
+    a licit-szál kovetkeztetes.py-ja) — a LICIT_KIZARAS sor használja."""
     from .jelzes import KOVETKEZTETES_SULY
-    kov = Kovetkeztetes(kodok=kovetkeztetes_szabalyai(allas, jelzesek, rejtett), jelzesek=jelzesek)
+    kov = Kovetkeztetes(kodok=kovetkeztetes_szabalyai(allas, jelzesek, rejtett), jelzesek=jelzesek,
+                        valoszinu=dict(valoszinu or {}))
     for sor in (getattr(jelzesek, "kovetkeztetes_sorok", None) or []):
         kod = sor["kovetkeztetes"]
         kov.suly[kod] = float(sor.get("suly", KOVETKEZTETES_SULY.get(kod, 0.0)))
         if kod == "LICIT_PONTHATAR":
             kov.tures = int(sor.get("tures", 2))
+    # aki a lapjaival MÁR megmutatta, hogy nem így játszik (pl. QJT-ből a D-vel
+    # ütött, és a B-t később le is tette), arra a lapból levont következtetés
+    # nem él — különben minden elosztást kizárna, és vele a többi
+    # következtetést is el kellene engedni
+    ismert = {u: (allas.eredeti(u) if u in allas.lathato else set(allas.jatszott(u)))
+              for u in ULESEK}
+    for u in list(kov.kodok):
+        lapkod = kov.kodok[u] & set(LAP_KODOK)
+        if lapkod and kovetkezetlen(allas, ismert, {u: lapkod}):
+            kov.kodok[u] -= lapkod
+            kov.nem_kovetett.add(u)
     return kov
 
 
@@ -573,6 +590,18 @@ def _jatek_suly(allas: JatekAllas, eredeti: dict[str, set[Lap]], kov: Kovetkezte
     if not kov:
         return 1.0, set()
     w, okok = _jelzes_suly(allas, eredeti, kov, cache)
+    # LICIT_KIZARAS: amit a licitjével kizárt (a licit-szál kizárásos
+    # következtetése: pl. a passz 1♥-re „0-5 pont”). 1 pont eltérés félig,
+    # több vagy a hossz ellentmondása `suly`-lyal.
+    for u, ig in kov.valoszinu.items():
+        if u in eredeti and kov.van(u, "LICIT_KIZARAS"):
+            tav = _pont_tav(eredeti[u], ig)
+            if tav is None or tav > 1:
+                w *= kov.suly.get("LICIT_KIZARAS", 0.2)
+                okok.add("LICIT_KIZARAS")
+            elif tav > 0:
+                w *= (1 + kov.suly.get("LICIT_KIZARAS", 0.2)) / 2
+                okok.add("LICIT_KIZARAS")
     lap = {u: k & set(LAP_KODOK) for u, k in kov.kodok.items() if k & set(LAP_KODOK)}
     if lap and kovetkezetlen(allas, eredeti, lap):
         w *= min(kov.suly.get(k, 0.0) for kk in lap.values() for k in kk)
@@ -1568,7 +1597,7 @@ class Eredmeny:
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
                  dd_fv=None, ido_keret_s: float = 6.0, db: int = 40,
-                 mag: int | None = None) -> Eredmeny:
+                 mag: int | None = None, valoszinu: dict | None = None) -> Eredmeny:
     """A négy lépés egyben. Ha egyetlen szabályos lap van, nincs mit számolni."""
     start = time.time()
     if len(allas.legalis) == 1:
@@ -1583,7 +1612,8 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     try:
         if dd_fv is None:
             from ..solver.dds import lap_elemzes as dd_fv
-        kov = kovetkeztetes_beallitas(allas, jelzesek, [u for u in ULESEK if u not in allas.lathato])
+        kov = kovetkeztetes_beallitas(allas, jelzesek, [u for u in ULESEK if u not in allas.lathato],
+                                      valoszinu)
         jatszott = [str(l) for _, l in allas.lejatszott]
         gy = DDGyujto(allas, allas.pontozas)
         # 1. köteg; ha kimerítő, ez az összes elosztás

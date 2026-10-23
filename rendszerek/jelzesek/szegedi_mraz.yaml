@@ -145,3 +145,18 @@ fejezetek:
       - {licit: KONTRA_SZLEM, szoveg: "Szlem kontrája: lopni szeretnék."}
       - {licit: KONTRA_SPLINTER, szoveg: "Splinter kontrája: indulj az alacsonyabb rangú fragmenttel."}
       - {licit: LENGYEL_KONTRA, szoveg: "Lengyel kontra (az ellenfél mesterséges felüllicitjére, ha már 4-es színt ígért valamelyikünk): indulj mással; 1 minor indulás után valódi szín."}
+
+  - fejezet: "Következtetés a licitből"
+    jegyzet: >-
+      A lejátszás mintavétele nem csak azt veszi figyelembe, amit a licitek
+      ÍGÉRTEK, hanem azt is, amit KIZÁRTAK (2026-10-23).
+    sorok:
+      - kovetkeztetes: LICIT_KIZARAS
+        kitol: [ELLENJATEKOSOK, FELVEVO]
+        suly: 0.2
+        szoveg: >-
+          Amit egy játékos a licitjével kizárt, az a lejátszásban is számít: ha
+          az 1♥ nyitásra passzolt, nem volt válaszereje (pl. 0-5 pont) — ha már
+          megmutatott egy ászt, a hiányzó királyt sem ő tartja. A rendszer
+          szimulálja, milyen lappal licitált volna így; az ennek ellentmondó
+          elosztás 1 pont eltérésnél fél, nagyobbnál 0,2 súllyal marad.

@@ -472,7 +472,7 @@ def test_kovetkeztetes_csak_az_ellenjatekostol():
     szab = lj.kovetkeztetes_szabalyai(a, moha_, ["S", "W"])
     assert {"LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO"} <= szab["W"]
     assert not szab.get("S", set()) & set(lj.LAP_KODOK)          # a felvevő lapjából soha
-    assert szab["S"] == {"LICIT_PONTHATAR"}                       # a licitjéből igen (puha pont)
+    assert szab["S"] == {"LICIT_PONTHATAR", "LICIT_KIZARAS"}      # a licitjéből igen
     assert lj.kovetkeztetes_szabalyai(a, None, ["S", "W"]) == {}   # sor nélkül semmi
     base = {"N": {L("C", "2")}, "E": {L("C", "3")}, "S": {L("C", "K"), L("C", "J")}}
     # W az Á-val ütött; ha nála lett volna az egyenértékű... nincs: az Á és a K között semmi
@@ -553,10 +553,12 @@ def test_kovetkeztetes_sor_nelkul_nincs(moha):
     """A következtetés a jelzésrendszer sora — nélküle a kibic nem következtet."""
     from kibic.motor.jelzes import rendszerek_betolt as rb, jelzesek as jz
     szm = jz("SZEGEDI_MRAZ", rb([JELZESEK]), "ELES")
-    assert not szm.kovetkeztetes_sorok and not szm.merlegeles_sorok
+    # az alaprendszerben csak a licit kizárásos következtetése (2026-10-23)
+    assert [k["kovetkeztetes"] for k in szm.kovetkeztetes_sorok] == ["LICIT_KIZARAS"]
+    assert not szm.merlegeles_sorok
     assert {k["kovetkeztetes"] for k in moha.kovetkeztetes_sorok} == {
         "LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "PARTNER_INDITASA", "PARTNER_DOBASA",
-        "LICIT_PONTHATAR"}
+        "LICIT_PONTHATAR", "LICIT_KIZARAS"}
     assert {m["merlegeles"] for m in moha.merlegeles_sorok} == {"ATVETEL", "PARTNER_KERESE"}
 
 
@@ -894,3 +896,54 @@ def test_szabalyon_beluli_vagy_megmarad(betolto):
     pk = _kezbol("SA SK SQ S5 S4 H3 H2 DA DK DQ D5 D4 C2")
     ph = _kezbol("SA SK SQ S5 S4 HA HK HQ H5 H4 D2 C3 C2")
     assert lj._igeret_suly(pk, e) == 1.0 and lj._igeret_suly(ph, e) == 0.0
+
+
+# --- 2026-10-23: a licit kizárásos következtetése a lejátszásban (LICIT_KIZARAS) ----
+
+def test_licit_tudas_a_passz_kizar(betolto):
+    """1♥ – passz – passz: Észak passza a licitmotor szimulációja szerint 0-5 pont."""
+    from kibic.szolgaltatas.atjaro import licit_tudas
+    auc = [{"seat": "S", "call": "1H"}, {"seat": "W", "call": "P"}, {"seat": "N", "call": "P"}]
+    tar, v = licit_tudas({"seat": "E", "dealer": "S", "vulnerability": "none",
+                          "auction": auc, "system": "KIBIC_STAND"}, betolto, 20000)
+    assert tar["S"].pont_min >= 11 and v["N"].pont_max <= 6
+    tar0, v0 = licit_tudas({"seat": "E", "dealer": "S", "vulnerability": "none",
+                            "auction": auc, "system": "KIBIC_STAND"}, betolto, 0)
+    assert v0 == {} and tar0["S"].pont_min == tar["S"].pont_min
+
+
+def test_licit_kizaras_sulya(moha):
+    a = _parti([("N", "S5"), ("E", "ST")])
+    kesz = Igeret(pont_min=0, pont_max=5)
+    kov = lj.kovetkeztetes_beallitas(a, moha, ["N", "W"], {"N": kesz})
+    assert kov.van("N", "LICIT_KIZARAS") and kov.suly["LICIT_KIZARAS"] == 0.2
+    gyenge = _kezbol("S9 S5 S2 S3 H8 H7 H4 H2 C8 C7 C5 C3 C2")        # 0 pont
+    hat = _kezbol("SK S5 S2 S3 H8 H7 H4 H2 CJ C7 C5 C3 C2")           # 4 pont (K+B)
+    eros = _kezbol("SK S5 S2 S3 HA H7 H4 H2 C8 C7 C5 C3 C2")          # 7 pont
+    kov.kodok = {"N": {"LICIT_KIZARAS"}}                             # csak ez a sor
+    assert lj._jatek_suly(a, {"N": gyenge}, kov, {})[0] == 1.0
+    assert lj._jatek_suly(a, {"N": hat}, kov, {})[0] == 1.0
+    w, okok = lj._jatek_suly(a, {"N": eros}, kov, {})
+    assert w == pytest.approx(0.2) and okok == {"LICIT_KIZARAS"}
+    egy = _kezbol("SK S5 S2 S3 HQ H7 H4 H2 CJ C7 C5 C3 C2")           # 6 pont: 1 ponttal kívül
+    assert lj._jatek_suly(a, {"N": egy}, kov, {})[0] == pytest.approx(0.6)
+
+
+def test_aki_mar_megszegte_a_lapmegallapodast():
+    """A védő QJT-ből a D-vel ütött, a B-t később letette: rá a lapból nem következtetünk."""
+    from kibic.domain import Lap as L
+    k = {"request_id": "r", "actor": {"seat": "E", "acting_for_seat": "E"},
+         "state": {"dealer": "N", "contract": {"level": 4, "strain": "S"}, "declarer": "E",
+                   "dummy": "W", "visible_hands": {"E": ["SA", "S2"], "W": ["S3", "S4"]}},
+         "history": {"play": [{"seat": "S", "card": "HK"}, {"seat": "W", "card": "H2"},
+                              {"seat": "N", "card": "HA"}, {"seat": "E", "card": "H3"},
+                              {"seat": "N", "card": "H5"}, {"seat": "E", "card": "H6"},
+                              {"seat": "S", "card": "HQ"}, {"seat": "W", "card": "H7"},
+                              {"seat": "S", "card": "HJ"}, {"seat": "W", "card": "H9"},
+                              {"seat": "N", "card": "C2"}, {"seat": "E", "card": "H8"}]},
+         "legal_actions": {"cards": ["SA", "S2"]}}
+    a = lj.allas_keresbol(k)
+    szab = jelzesek("MOHA_STAND", rendszerek_betolt([JELZESEK]), "ELES")
+    kov = lj.kovetkeztetes_beallitas(a, szab, ["N", "S"])
+    assert "S" in kov.nem_kovetett and not (kov.kodok["S"] & set(lj.LAP_KODOK))
+    assert kov.kodok["N"] & set(lj.LAP_KODOK)                         # Észak nem szegte meg

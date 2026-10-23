@@ -564,6 +564,37 @@ LEJATSZAS_ARANY = 0.4
 # végéig gondolkodik. A végjátékban — ha kevés a lehetséges elosztás — MINDET
 # megnézi (kimerítő elemzés). Legalább: KIBIC_LEJATSZAS_MIN_MINTA (60).
 LEJATSZAS_MINTA = int(os.getenv("KIBIC_LEJATSZAS_MINTA", "3000"))
+# a licit kizárásos következtetésének időkerete a lejátszásban (a határidő 30%-áig);
+# leosztásonként egyszer fizetjük meg, utána gyorsítótárból jön
+LEJATSZAS_KOVETKEZTETES_MS = int(os.getenv("KIBIC_LEJATSZAS_KOVETKEZTETES_MS", "15000"))
+
+
+def licit_tudas(k: dict, betolto, kovetkeztetes_ms: int = 0) -> tuple[dict, dict]:
+    """
+    A licitmenetből a lejátszásnak: (kényszertár, kizárásos következtetés).
+    A kényszertár: amit a licitek KIMONDTAK (mint a licit.kenyszertar_menetbol);
+    a következtetés: amit KIZÁRTAK (a licit-szál kovetkeztetes.py-ja: a
+    licitmotor szimulálja a licitálót — pl. a passz 1♥-re „0-5 pont”).
+    Az ellenfél licitjeit az ő rendszerük szerint, ha ismeretlen: a miénk szerint.
+    `k`: seat, dealer, vulnerability, auction, system, pair, opponent_system,
+    families, test_mode.
+    """
+    L = _licit_mod
+    oszto = L._ules(k.get("dealer", k.get("seat")), "dealer")
+    ules = L._ules(k.get("seat"), "seat")
+    beli = L.BELI_TERKEP.get(str(k.get("vulnerability", "none")).upper(), "NONE")
+    licitek = L._menet(k.get("auction"), oszto)
+    teszt = k.get("test_mode")
+    sorok, paramtar = (betolto(k["system"], k.get("pair")) if teszt is None
+                       else betolto(k["system"], k.get("pair"), bool(teszt)))
+    prop = L.vonalas_propagalo(sorok, paramtar, betolto, ules,
+                               k.get("opponent_system") or k["system"],
+                               k.get("families") or {}, teszt)
+    er = prop.kenyszertar(licitek, oszto=oszto, beliallas=beli,
+                          kovetkeztet_ulesek={u for u in "NESW" if u != ules}
+                          if kovetkeztetes_ms > 0 else None,
+                          kovetkeztetes_ms=max(0, int(kovetkeztetes_ms)))
+    return er.kenyszertar, dict(getattr(er, "kovetkeztetett", None) or {})
 
 
 def _tartalek_play(keres: dict, lapok: list[str], ok: str, start: float) -> dict:
@@ -623,17 +654,21 @@ def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
         except Exception as e:                   # noqa: BLE001
             figyelem.append(f"jelzésrendszer: {type(e).__name__}")
 
-    tar = None
+    tar, valoszinu = None, {}
+    hatarido = int(keres.get("deadline_ms") or 20000)
     if betolto and rendszer:
         try:
             st = keres.get("state") or {}
-            tar = _licit_mod.kenyszertar_menetbol({
+            # a kizárásos következtetés a parti ELSŐ döntésénél drága (a licitmotor
+            # szimulálja a licitálót), utána gyorsítótárból jön
+            kov_ms = min(LEJATSZAS_KOVETKEZTETES_MS, int(hatarido * 0.3))
+            tar, valoszinu = licit_tudas({
                 "seat": ules, "dealer": st.get("dealer") or ules,
                 "vulnerability": (keres.get("game") or {}).get("vulnerability") or "none",
                 "auction": (keres.get("history") or {}).get("auction") or [],
                 "system": rendszer, "pair": par,
                 "opponent_system": vf.get("opponents_system"),
-                "families": vf.get("families")}, betolto)
+                "families": vf.get("families")}, betolto, kov_ms)
         except Exception as e:                   # noqa: BLE001
             figyelem.append(f"kényszertár: {type(e).__name__}")
 
@@ -644,10 +679,11 @@ def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
         with dd_zar:
             return lap_elemzes(lo, jatszott, k)
 
-    hatarido = int(keres.get("deadline_ms") or 20000)
     keret_s = min(LEJATSZAS_MS, max(1000, int(hatarido * LEJATSZAS_ARANY))) / 1000
+    keret_s = max(1.0, keret_s - (time.time() - start))     # a következtetés ideje levonva
     try:
-        e = lj.jatek_dontes(allas, jelz, tar, dd_fv, ido_keret_s=keret_s, db=LEJATSZAS_MINTA)
+        e = lj.jatek_dontes(allas, jelz, tar, dd_fv, ido_keret_s=keret_s, db=LEJATSZAS_MINTA,
+                            valoszinu=valoszinu)
     except Exception as ex:                      # noqa: BLE001 — a parti nem állhat meg
         valasz = _tartalek_play(keres, lapok, f"belső hiba: {type(ex).__name__}", start)
         naploz(keres, None, valasz)
