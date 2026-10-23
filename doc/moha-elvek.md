@@ -662,7 +662,9 @@ Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani,
 ## Ki kérdezhet a 3NT után, a nyitó második licitje, a negyedik színre adott szan — 2026-10-23
 
 - **A hézag-elv** (a tartalék döntés, amikor egyik szabály sem illik a lapra) nem választ mesterséges (alertos) licitet. Ilyet csak a szabály adhat, a teljes feltételével, mert a partner a megállapodás szerint érti (#48: a 4♦ ORKC volt, #138: a 4♣ splinter).
-- **3NT után 4m (ORKC):** az kérdezhet, akinek a saját pontjaival a partner ígért *alsó* határával számolva sem kockázatos az 5m (27+), a *felső* határával számolva pedig szlemerő jön ki (31+).
+- **3NT után 4m (ORKC):** az kérdezhet, akinek a saját pontjaival a partner ígért *alsó* határával számolva sem kockázatos az 5m (27+), a *felső* határával számolva pedig szlemerő jön ki (31+); VAGY a vesztői szerint: legfeljebb 4,5 vesztő, misfitnél (0–1 lap a partner tudottan 5+ lapos színében) legfeljebb 4.
+- **A negyedik szín kvázi gémforsz** (4 minorig kényszerít; eddig F1 volt).
+- **Lassan szlemeséllyel:** gémforszban, ha a partner felső határával szlem lehet (30+), a hézag-elv nem ugrik gémbe, hanem a legolcsóbb természetes licitet mondja (a saját 6+ lapos szín vagy a partner 5+ lapos színének támogatása).
 - **A nyitó egyszerű új színe** (nem riverz) 1-re 1 vagy 1NT válasz után: 12–16 pont (rossz 17). (A saját szín egyszerű ismétlésének sávja nem változott: NYITOTT.)
 - **A nyitó ugró új színe** (nem riverz), ahol az egyszerű új szín nem kényszerítene: 17–19 pont, limitált. 5-5-tel jó 16 is, ha legfeljebb 5 vesztő van.
 - **A nyitó ugrása a saját színében** (második licitként): 17–19 pont, limitált, jó 6+ színnel (szinglivel is játszható: legfeljebb 1 vesztő a színben).

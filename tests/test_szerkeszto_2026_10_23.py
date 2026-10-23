@@ -19,7 +19,7 @@ def _h(f, kez, menet, oszto="N"):
 
 
 @pytest.mark.parametrize("kez, menet, oszto, vart", [
-    ("7.AKQ984.AJ5.K65", "P 1D P 1H P 1S P 2C P 2NT P", "N", "4H"),   # #48: nem a 4♦ ORKC
+    ("7.AKQ984.AJ5.K65", "P 1D P 1H P 1S P 2C P 2NT P", "N", "3H"),   # #48: nem a 4♦ ORKC; lassan
     ("KJT.QT7.AQJ952.8", "P P 1D P 1S P 2D P 2NT P", "S", "3NT"),     # #138: nem splinter
     ("7.AQ9653.AT4.AJ2", "P 1H P 1NT P", "N", "P"),                    # #254: 3 lappal nem új szín
 ])
@@ -34,6 +34,8 @@ def test_hezag_nem_valaszt_alertos_licitet(kibic_stand, kez, menet, oszto, vart)
     ("7.QJ6.J962.AK876", "1S P 2C P 2S P 3D P 3NT P", "N", "P"),      # #11058
     ("A6.9.KQ862.KJ972", "1S P 2D P 2S P 3C P 3NT P", "N", "P"),      # #13383
     ("AT.Q54.AKJ8.Q972", "1H P 2C P 2H P 2NT P 3NT P", "N", "4C"),    # #7693
+    (".32.AQ72.AQ87532", "1S P 2C P 2S P 3D P 3NT P", "N", "4C"),     # #14835: 4 vesztő (misfittel is)
+    ("76..AK93.AT98642", "1H P 2C P 2H P 3D P 3NT P", "N", "P"),      # #17858: 5 vesztő
 ])
 def test_3nt_utan_4m_ki_kerdezhet(kibic_stand, kez, menet, oszto, vart):
     assert _h(kibic_stand, kez, menet, oszto) == vart
@@ -65,4 +67,12 @@ def test_nyito_masodik_licitje(kibic_stand, kez, menet, vart):
     ("K2.KQJT7.Q32.KJ2", "1H P 1S P 2C P 2D P", "2NT"),
 ])
 def test_negyedik_szinre_szan(kibic_stand, kez, menet, vart):
+    assert _h(kibic_stand, kez, menet) == vart
+
+
+@pytest.mark.parametrize("kez, menet, vart", [
+    # a negyedik szín kvázi gémforsz (4m-ig): a minimum 3NT-vel (gyors) válaszol
+    ("A983.73.KT964.AJ", "P 1D P 1H P 1S P 2C P", "3NT"),
+])
+def test_negyedik_szin_kvazi_gemforsz(kibic_stand, kez, menet, vart):
     assert _h(kibic_stand, kez, menet) == vart

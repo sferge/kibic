@@ -33,7 +33,9 @@
 #
 # KI KÉRDEZHET (a szerkesztő, 2026-10-23): az, akinek a saját pontjaival
 # a partner ígért ALSÓ határával számolva sem kockázatos az 5m (27+), a
-# FELSŐ határával számolva pedig szlemerő jön ki (31+).
+# FELSŐ határával számolva pedig szlemerő jön ki (31+). VAGY a vesztői
+# szerint: legfeljebb 4,5 vesztő; misfitnél (0-1 lap a partner tudottan
+# 5+ lapos színében) legfeljebb 4.
 #
 # Megállapodott NEMES adu mellett nem él (ott a 4m kulcslicit / RKC).
 # A kártyán az RKC ELŐTT áll.
@@ -51,9 +53,9 @@ rendszer:
 fejezetek:
   - fejezet: "A kérdés (a partner 3NT-je után)"
     szabalyok:
-      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, minor_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 3+}, osszesen: {pont: 31+, pont_biztos: 27+}, forsz: GEMFORSZ, prioritas: 6, alert: "ORKC treff aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
-      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-KETIRANYU, fajta: ELV, ha: {en_nyilatkoztam: true, minor_nem_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 5+}, jelentes: {hossz: {}}, osszesen: {pont: 31+, pont_biztos: 27+}, forsz: GEMFORSZ, prioritas: 6, alert: "Gémforsz, szleminvit (a treff nem volt ígérve): 4♦ treff tetszik, 4♥ káró tetszik, 4♠-tól kulcslap treff aduval"}
-      - {minta: ".. 3NT 4D", kulcs: MOHA-3NT-4D-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {D: 3+}, osszesen: {pont: 31+, pont_biztos: 27+}, forsz: GEMFORSZ, prioritas: 6, alert: "ORKC káró aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
+      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, minor_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 3+}, vagy: [{osszesen: {pont: 31+, pont_biztos: 27+}}, {vesztok: 0-4.5, misfit: false}, {vesztok: 0-4}], forsz: GEMFORSZ, prioritas: 6, alert: "ORKC treff aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
+      - {minta: ".. 3NT 4C", kulcs: MOHA-3NT-4C-KETIRANYU, fajta: ELV, ha: {en_nyilatkoztam: true, minor_nem_igerve: C, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {C: 5+}, jelentes: {hossz: {}}, vagy: [{osszesen: {pont: 31+, pont_biztos: 27+}}, {vesztok: 0-4.5, misfit: false}, {vesztok: 0-4}], forsz: GEMFORSZ, prioritas: 6, alert: "Gémforsz, szleminvit (a treff nem volt ígérve): 4♦ treff tetszik, 4♥ káró tetszik, 4♠-tól kulcslap treff aduval"}
+      - {minta: ".. 3NT 4D", kulcs: MOHA-3NT-4D-ORKC, fajta: ELV, ha: {en_nyilatkoztam: true, nyers: {t: NEM, gy: [{t: ADU, fajta: nemes}]}}, hossz: {D: 3+}, vagy: [{osszesen: {pont: 31+, pont_biztos: 27+}}, {vesztok: 0-4.5, misfit: false}, {vesztok: 0-4}], forsz: GEMFORSZ, prioritas: 6, alert: "ORKC káró aduval (gémforsz, szleminvit): 1. lépcső tetszik, majd 0/3, 1/4, 2, 2+D"}
   - fejezet: "Válasz a 4♣-ra (treff ígérve: ORKC treffben)"
     szabalyok:
       - {minta: ".. 3NT 4C 4D", kulcs: MOHA-3NT-4C-A-TETSZIK, fajta: ELV, ha: {minor_igerve: C}, hossz: {C: 3+}, vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12, alert: "Tetszik (elfogadja a szleminvitet); a kulcslapokat a 4♥ kérdezi"}
