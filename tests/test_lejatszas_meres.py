@@ -175,3 +175,16 @@ def test_pbn_ures_felvevo(tmp_path):
                   f'Pass Pass\n[Play "W"]\n' + "\n".join(sorok) + "\n*\n", encoding="utf-8")
     p = list(partik_fajlbol([str(ut)], "IMP"))
     assert len(p) == 1 and p[0].kontraktus.felvevo == "S" and str(p[0].kontraktus) == "3NT"
+
+
+def test_mappa_forras(tmp_path):
+    """Mappa is megadható: a benne (és almappáiban) lévő .pbn/.lin fájlok, útvonal szerint."""
+    from kibic.cli.jatekmeres import fajlok_kibontasa
+    (tmp_path / "b.pbn").write_text("", encoding="utf-8")
+    (tmp_path / "a.PBN").write_text("", encoding="utf-8")
+    (tmp_path / "x.lin").write_text("", encoding="utf-8")
+    (tmp_path / "al").mkdir()
+    (tmp_path / "al" / "c.pbn").write_text("", encoding="utf-8")
+    ki = fajlok_kibontasa([str(tmp_path)], ".pbn")
+    assert [p.split("/")[-1] for p in ki] == ["a.PBN", "c.pbn", "b.pbn"]   # útvonal szerint: a.PBN, al/c.pbn, b.pbn
+    assert fajlok_kibontasa([str(tmp_path), "egy.lin"], ".lin") == [str(tmp_path / "x.lin"), "egy.lin"]

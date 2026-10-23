@@ -290,7 +290,7 @@ képest a valódi lapokkal (double dummy), és hogy elrontotta-e az eredményt
   visszaállítható; ha a napló a parti vége előtt ér véget, a hiányzó lapokat
   a renonszok szerint minden lehetséges módon kiegészíti, és csak azt
   számolja, ami mindegyikben ugyanaz (a többi „bizonytalan”, tól–ig).
-- **Mérőpad valódi partikon**: `--lin fájlok…`, `--pbn fájlok…` vagy `--db`
+- **Mérőpad valódi partikon**: `--lin fájlok/mappák…`, `--pbn fájlok/mappák…` (mappánál a benne és almappáiban lévő összes `.lin`/`.pbn`) vagy `--db`
   (a `jatszma` tábla). A lejátszás minden pontján a kibic ugyanazt látja, mint az ember
   (ugyanaz az előzmény, a saját keze és az asztal), és a két lapot DD-ben
   összevetjük: kibic–ember döntésenként. Szűrők: `--jatekos gal` (csak az
