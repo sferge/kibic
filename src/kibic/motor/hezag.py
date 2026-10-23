@@ -582,6 +582,11 @@ class Hezag:
                 # leíró licit a kibic számára (2026-10-21)
                 if (getattr(_sor, "jelentes", None) or {}).get("csak_megertes"):
                     continue
+                # mesterséges (alertos) licitet — ORKC, splinter — a hézag-elv
+                # nem választ: azt csak a szabály adhatja, a teljes
+                # feltételével (2026-10-23); a sor jelentése a partnernél él
+                if getattr(_sor, "alert", False):
+                    break
                 if not (ig.pont_min - 1 <= sajat <= ig.pont_max + 1):
                     continue
                 if any(self.kez.hossz(sz) < ig.hossz(sz)[0] - 1 or
