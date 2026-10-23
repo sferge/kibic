@@ -675,11 +675,13 @@ Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani,
 
 Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 - **Fedőkereső megfelelő mellékszín nélkül:** ha nincs 3+ lapos, 2,5–3 vesztős mellékszín, a fedőt a legolcsóbb 2 vesztős dublóban keressük (1M-2M és 1m-1M-2M után is).
-- **Passz az 1NT-re:** 0–7 ponttal és rossz 8-cal. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es/9-es), vagy nincs 4-es nemes. Kivétel: Junk Stayman, transzfer és leállás.
+- **Passz az 1NT-re:** 0–7 ponttal és rossz 8-cal. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es/9-es), vagy egyenletes lap 4-es nemes nélkül. Kivétel: Junk Stayman, transzfer és leállás; 6+ lapos minorral marad a 3m invit (DD: mansban +0,8, bellben +1,8 IMP a passzhoz képest).
+- **A 4-4 fit jobb az 5-3-nál** (a hosszú színre dobni lehet): a saját 4+ lapos nemesünket akkor is megmutatjuk, ha a partner nemesét 3 lappal támogathatnánk. Pl. (1♣) 1♥ (P): 4–5 pikkel és 3 kőrrel 1♠, nem felüllicit; a felüllicites emelés 4 lapos támogatással vagy pikk nélkül jön. A nyitó 1♠-2m után gyenge lappal is mondja a 4-es kőrt (1♠-2m-2♥, már megvolt).
+- **A misfit-határ** (3NT utáni 4m vesztős ága): 4 vesztő, egyelőre.
 - **Walsh:** az 1♣-1NT (8–10, rossz 11) kiváltja az alaprendszer 1m-1NT-jét (6–9); az 1♦-1NT marad 6–9.
 
 ### DD-mérés (2026-10-23, véletlen leosztások, a nyitó 1NT 15–17 egyenletes)
 
 - **Gyenge lap (0–7) AK-s 5 lapos színnel, 3NT a passz helyett:** a 3NT 24%-ban teljesül; a passzhoz képest mansban −2,0, bellben −2,2 IMP leosztásonként. Nemes színnel a transzfer és passz (2M) 2,2 IMP-vel jobb a 3NT-nél. A DD tehát nem támasztja alá; ez tapasztalati („C módú”) döntés maradna.
 - **5332, gyenge 5 lapos nemes (A és K nélkül), 10–14 pont, a nyitónál 3+ lap:** a 3NT 83%-ban, a 4M 82%-ban teljesül; a 3NT a 4M-hez képest −0,36 IMP. Szinte azonos; a DD nem méri a lap „eltitkolását”.
-- **11–12 pontos egyenletes lapok vesztői:** 7 vesztő 22%, 8 vesztő 60%, 9 vesztő 18%. A 7 vesztőhöz 5 fedő figura kell az első 3 lapban, ami 11–12 ponttal csak sok dámával jön ki.
+- **11–12 pontos egyenletes lapok vesztői:** 7 vesztő 22%, 8 vesztő 60%, 9 vesztő 18%. A 7 vesztőhöz 5 fedő figura kell az első 3 lapban, ami 11–12 ponttal csak sok dámával jön ki. A FELMENTÉS után (11–12 ponttal csak legfeljebb 7 vesztővel nyitunk) a nyitó egyenletes lapjai közül a pontok: 11: 3%, 12: 9%, 13: 48%, 14: 40% (11–14 között). NYITOTT: ezt a következtetést a partner sávjába bevinni.

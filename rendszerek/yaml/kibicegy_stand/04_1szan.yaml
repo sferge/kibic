@@ -6,10 +6,11 @@ fejezetek:
     szabalyok:
       # A passz határa (a szerkesztő, 2026-10-23, #73): 0-7 ponttal és rossz
       # 8-cal passz. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es,
-      # 9-es), vagy nincs 4-es nemes (4-4 nemessel a Stayman jöhet).
+      # 9-es), vagy egyenletes lap 4-es nemes nélkül (4-4 nemessel a Stayman
+      # jöhet). 6+ lapos minorral marad a 3m invit (DD: +0,8/+1,8 IMP, #255).
       # Kivétel (külön konvenció): Junk Stayman, transzfer és leállás.
       - {minta: 1NT-P, prioritas: 47,
-         vagy: [{pont: 0-7}, {pont: 8, vagy: [{minoseg: rossz}, {ures_figura: 1+}, {hossz: {S: 0-3, H: 0-3}}]}],
+         vagy: [{pont: 0-7}, {pont: 8, vagy: [{minoseg: rossz}, {ures_figura: 1+}, {hossz: {S: 0-3, H: 0-3}, elosztas: BAL}]}],
          magyarazat: "Passz: 0-7 pont, vagy rossz 8"}
       - {minta: 1NT-2S, pont: 0-7, vagy: [{hossz: {C: 6+}}, {hossz: {D: 6+}}],
          hossz: {S: 0-3, H: 0-3}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,

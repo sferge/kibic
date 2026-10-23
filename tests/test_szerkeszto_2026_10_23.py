@@ -101,3 +101,17 @@ def test_fedokereso_dubloban(moha_stand):
     # #142: 6 vesztő, nincs 3+ lapos 2,5-3 vesztős mellékszín: a fedőt a
     # legolcsóbb 2 vesztős dublóban keresi
     assert _h(moha_stand, "62.AKQJ4.92.AJ93", "P 1H P 2H P") == "2S"
+
+
+def test_1nt_6_lapos_minorral_invit(kibic_stand):
+    # #255: 8 pont, 6 treff, nemes nélkül — a 3♣ invit marad (DD: jobb a passznál)
+    assert _h(kibic_stand, "86.A3.654.A97632", "1NT P") == "3C"
+
+
+@pytest.mark.parametrize("kez, vart", [
+    ("AQ732.952.K5.AQ6", "1S"),      # #200: 5 pikk, 3 kőr — előbb a pikk
+    ("AQ73.952.K52.AQ6", "1S"),      # 4 pikk, 3 kőr — a 4-4 fit jobb az 5-3-nál
+    ("AQ7.9532.K52.AQ6", "2C"),      # 4 kőr: felüllicites emelés
+])
+def test_kozbeszolasra_elobb_a_nemes(kibic_stand, kez, vart):
+    assert _h(kibic_stand, kez, "1C 1H P", oszto="N") == vart

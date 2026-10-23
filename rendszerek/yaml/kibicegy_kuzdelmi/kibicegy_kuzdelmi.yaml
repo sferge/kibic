@@ -185,12 +185,12 @@ fejezetek:
       - {minta: "(1C) 1D (P) 1H", pont: "8+", hossz: {"H": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
       - {minta: "(1C) 1D (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
       - {minta: "(1C) 1H (P) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
-      - {minta: "(1C) 1H (P) 2C", pont: "10+", hossz: {"H": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1C) 1H (P) 2C", pont: "10+", hossz: {"H": "3+"}, vagy: [{hossz: {H: 4+}}, {hossz: {S: 0-3}}], forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
       - {minta: "(1C) 1H (P) 3C", pont: "7-9", hossz: {"H": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"S": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
       - {minta: "(1C) 1H (P) 1NT", pont: "8-11", fogas: ["C"], hossz: {"H": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
       - {minta: "(1C) 1H (P) 2NT", pont: "11-13", fogas: ["C"], hossz: {"H": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
       - {minta: "(1C) 1H (P) 2D", pont: "8-12", hossz: {"D": "6+"}, prioritas: 51, magyarazat: "Új szín a kettesen: nem kényszerít"}
-      - {minta: "(1C) 1H (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1C) 1H (P) 1S", pont: "8+", hossz: {"S": "4+"}, vagy: [{hossz: {S: 5+}}, {hossz: {S: 4, H: 0-3}}], forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1 (4 pikkel is, ha a kőrt csak 3 lappal támogatnánk: a 4-4 fit jobb az 5-3-nál)"}
       - {minta: "(1C) 1S (P) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
       - {minta: "(1C) 1S (P) 2C", pont: "10+", hossz: {"S": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
       - {minta: "(1C) 1S (P) 3C", pont: "7-9", hossz: {"S": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"H": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
@@ -199,12 +199,12 @@ fejezetek:
       - {minta: "(1C) 1S (P) 2D", pont: "8-12", hossz: {"D": "6+"}, prioritas: 51, magyarazat: "Új szín a kettesen: nem kényszerít"}
       - {minta: "(1C) 1S (P) 2H", pont: "8-12", hossz: {"H": "6+"}, prioritas: 52, magyarazat: "Új szín a kettesen: nem kényszerít"}
       - {minta: "(1D) 1H (P) 2H", pont: "6-9", hossz: {"H": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
-      - {minta: "(1D) 1H (P) 2D", pont: "10+", hossz: {"H": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
+      - {minta: "(1D) 1H (P) 2D", pont: "10+", hossz: {"H": "3+"}, vagy: [{hossz: {H: 4+}}, {hossz: {S: 0-3}}], forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
       - {minta: "(1D) 1H (P) 3D", pont: "7-9", hossz: {"H": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"S": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
       - {minta: "(1D) 1H (P) 1NT", pont: "8-11", fogas: ["D"], hossz: {"H": "0-2"}, prioritas: 49, magyarazat: "8-11 FP, fogással"}
       - {minta: "(1D) 1H (P) 2NT", pont: "11-13", fogas: ["D"], hossz: {"H": "0-2"}, prioritas: 54, magyarazat: "11-13 FP, fogással"}
       - {minta: "(1D) 1H (P) 2C", pont: "8-12", hossz: {"C": "6+"}, prioritas: 50, magyarazat: "Új szín a kettesen: nem kényszerít"}
-      - {minta: "(1D) 1H (P) 1S", pont: "8+", hossz: {"S": "5+"}, forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1"}
+      - {minta: "(1D) 1H (P) 1S", pont: "8+", hossz: {"S": "4+"}, vagy: [{hossz: {S: 5+}}, {hossz: {S: 4, H: 0-3}}], forsz: "EGY_MENET", prioritas: 53, magyarazat: "Új szín: természetes, F1 (4 pikkel is, ha a kőrt csak 3 lappal támogatnánk: a 4-4 fit jobb az 5-3-nál)"}
       - {minta: "(1D) 1S (P) 2S", pont: "6-9", hossz: {"S": "3+"}, prioritas: 54, magyarazat: "Emelés, nem kényszerít"}
       - {minta: "(1D) 1S (P) 2D", pont: "10+", hossz: {"S": "3+"}, forsz: "EGY_MENET", prioritas: 55, alert: "Felüllicit: legalább invit emelés"}
       - {minta: "(1D) 1S (P) 3D", pont: "7-9", hossz: {"S": "4+"}, vagy: [{"hossz": {"C": "0-1"}}, {"hossz": {"D": "0-1"}}, {"hossz": {"H": "0-1"}}], prioritas: 56, alert: "Ugró felüllicit: mixed raise, 7-9 FP szinglivel"}
