@@ -187,10 +187,11 @@ def _sor(nev: str, b: dict) -> str:
     if not b["db"]:
         return f"{nev:<10}{0:>6}"
     s = (f"{nev:<10}{b['db']:>6}{b['veszt_ossz'] / b['db']:>9.3f}"
-         f"{b['hibas_lap'] / b['db']:>9.0%}{b['eredmeny_veszt']:>8}")
+         f"{b['hibas_lap'] / b['db']:>9.0%}{b['eredmeny_veszt']:>8}{b['imp_ossz']:>7}")
     if "ember_veszt_ossz" in b:
         s += (f" │{b['ember_veszt_ossz'] / b['db']:>9.3f}{b['ember_hibas_lap'] / b['db']:>9.0%}"
-              f"{b['ember_eredmeny_veszt']:>8} │{b['kibic_jobb']:>7}{b['ember_jobb']:>7}")
+              f"{b['ember_eredmeny_veszt']:>8}{b['ember_imp_ossz']:>7}"
+              f" │{b['kibic_jobb']:>7}{b['ember_jobb']:>7}")
     return s
 
 
@@ -201,10 +202,10 @@ def jelentes(meresek, stat: dict | None = None, reszletes: bool = False) -> str:
     ki = []
     if stat:
         ki.append(" · ".join(f"{k}: {v}" for k, v in stat.items()))
-    fej = f"{'':<10}{'döntés':>6}{'veszt/lap':>9}{'hibás':>9}{'eredm.':>8}"
+    fej = f"{'':<10}{'döntés':>6}{'veszt/lap':>9}{'hibás':>9}{'eredm.':>8}{'IMP':>7}"
     if emberrel:
-        fej += f" │{'EMBER v/l':>9}{'hibás':>9}{'eredm.':>8} │{'kibic+':>7}{'ember+':>7}"
-    ki += ["", "KIBIC" + (" " * 40 + "EMBER (ugyanott)" if emberrel else ""), fej]
+        fej += f" │{'EMBER v/l':>9}{'hibás':>9}{'eredm.':>8}{'IMP':>7} │{'kibic+':>7}{'ember+':>7}"
+    ki += ["", "KIBIC" + (" " * 47 + "EMBER (ugyanott)" if emberrel else ""), fej]
     ki.append(_sor("összesen", o["osszes"]))
     idore = sum(1 for m in meresek if m.megallt == "IDO")
     ki.append(_sor("felvevő", o["felvevo"]))
@@ -213,9 +214,11 @@ def jelentes(meresek, stat: dict | None = None, reszletes: bool = False) -> str:
     for h, b in o["helyzetenkent"].items():
         ki.append(_sor(h, b))
     ki += ["", "veszt/lap: átlagos DD-ütésveszteség lapanként; hibás: a lapok hány %-a adott el "
-               "ütést; eredm.: ennyi lap rontotta el a teljesítést / buktatást (IMP-ben ez fáj)."]
+               "ütést; eredm.: ennyi lap rontotta el a teljesítést / buktatást; IMP: az összes "
+               "IMP-veszteség a DD legjobb lapjához képest (beliállással, kontrával)."]
     if emberrel:
-        ki.append("kibic+ / ember+: ennyi helyzetben vesztett kevesebbet a kibic / az ember.")
+        ki.append("kibic+ / ember+: ennyi helyzetben vesztett kevesebbet a kibic / az ember "
+                  "(IMP-ben, egyenlőségnél ütésben).")
     if idore:
         ki.append(f"{idore} döntés az időkorlátnál állt meg: ezek a gép terhelésétől függnek, "
                   "két futás itt eltérhet.")

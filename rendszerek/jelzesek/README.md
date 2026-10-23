@@ -325,7 +325,11 @@ képest a valódi lapokkal (double dummy), és hogy elrontotta-e az eredményt
   `minta` mutatja, mi állította meg a mintavételt.
 - Kimenet: összesen / felvevő / védő / helyzetenként (INDITAS, HIVAS,
   SZINADAS, DOBAS, FELVEVO); `--reszletes`: a legrosszabb döntések;
-  `--json`: minden mérés soronként.
+  `--json`: minden mérés soronként. Az `IMP` oszlop (2026-10-23): az összes
+  IMP-veszteség a DD legjobb lapjához képest, beliállással és kontrával — a
+  kibic IMP-ben játszik (a teljesítés sokat, a felülütés alig ér), ezért
+  ütésben mérve a biztonsági játéka „hibának” látszhat; a `kibic+ / ember+`
+  is IMP-ben számol (egyenlőségnél ütésben).
 
 A DD-veszteség FELSŐ korlát (nyílt lapokkal a találgatás is „hiba”), ezért a
 kibic és az ember EGYMÁSHOZ mért eredménye a beszédes.

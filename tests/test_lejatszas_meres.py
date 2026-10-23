@@ -211,3 +211,18 @@ def test_mag_mellett_nem_az_ido_dont(monkeypatch):
     monkeypatch.setattr(lm, "_dd_szotar", eredeti_dd)
     m = lm.parti_meres(PARTI, jm._MUNKAS["fv"], _hamis_dd(), max_dontes=1)
     assert m[0].megallt == "BIZTOS" and m[0].minta == 80
+
+
+def test_imp_ertekeles():
+    """IMP-ben a teljesítés sokat, a felülütés alig számít."""
+    dd = {"SA": LapErtekeles("SA", 10, 10, True, 0), "S2": LapErtekeles("S2", 9, 9, False, 1),
+          "H2": LapErtekeles("H2", 8, 8, False, 2)}
+    assert lm.imp_ertekeles(dd, "SA", True, K3NT, "NONE") == 0
+    assert lm.imp_ertekeles(dd, "S2", True, K3NT, "NONE") == 1          # 430 vs 400
+    assert lm.imp_ertekeles(dd, "H2", True, K3NT, "NONE") == 10         # 430 vs -50
+    assert lm.imp_ertekeles(dd, "H2", True, K3NT, "NS") == 12           # beliben: 630 vs -100
+    # a védő szemszögéből: a felvevő ütései a rosszak
+    assert lm.imp_ertekeles(dd, "SA", False, K3NT, "NONE") == 10
+    m = lm.parti_meres(PARTI, lambda k: (k["legal_actions"]["cards"][0], {}), _hamis_dd(), max_dontes=2)
+    assert all(x.imp_veszt is not None and x.emberi_imp_veszt is not None for x in m)
+    assert "imp_ossz" in lm.osszesit(m)["osszes"]
