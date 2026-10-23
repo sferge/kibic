@@ -208,9 +208,10 @@ def test_spiral_kerdezo_dont(kibic_stand, valasz, vart):
 
 
 def test_spiral_ket_kulcslap_hianyzik(kibic_stand):
-    # a partner 4♠ = 1/4 (az A-ágon), nekem 2 → 3 kulcslap: leállás 5♣
+    # a partner 4♠ = 1/4 (az A-ágon), nekem 2 → 3 kulcslap: leállás; a
+    # vonal 3NT-t mondott, a fit legfeljebb 8 lapos → 4NT (2026-10-23)
     v = _licit(kibic_stand.sorok, _pbn("32.KQ2.KQ2.AKQ93"), T7 + ["4C", "P", "4S", "P"])
-    assert v["call"] == "5C" and v["source"] == "SPIRAL"
+    assert v["call"] == "4NT" and v["source"] == "SPIRAL"
 
 
 def test_spiral_leallas_utan_passz(kibic_stand):
@@ -470,9 +471,10 @@ def test_scoring_ertekek(ertek, paros):
 # --- kétértelmű kulcslap-válasz: a kérdező a rosszabbat tételezi fel -------
 
 def test_kerdezo_a_rosszabb_esetet_tetelezi_fel(kibic_stand):
-    # 4♥ = 0/3 (A-ág); a kérdezőnek 2 kulcslapja van: 0 esetén 3 hiányzik → 5♣
+    # 4♥ = 0/3 (A-ág); a kérdezőnek 2 kulcslapja van: 0 esetén 3 hiányzik →
+    # leállás (a 3NT után 4NT, 2026-10-23)
     v = _licit(kibic_stand.sorok, _pbn("32.KQ2.KQ2.AKQ93"), T7 + ["4C", "P", "4H", "P"])
-    assert v["call"] == "5C" and v["source"] == "SPIRAL"
+    assert v["call"] == "4NT" and v["source"] == "SPIRAL"
 
 
 def test_valaszolo_a_jobbik_esettel_szlemet_mond(kibic_stand):

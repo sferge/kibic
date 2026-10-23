@@ -29,6 +29,10 @@ A kérdező döntése (a gép mostani elve):
     válaszolónál a jobbik van, és a kérdező a szlem alatt állt le, a
     válaszoló mondja a szlemet (a szerkesztő, 2026-10-05);
   * 2+ hiányzó kulcslap: leállás 5m-ben (ha a válasz épp az: passz);
+    minor adunál 4NT-ben, ha a tudott fit legfeljebb 8 lapos, a vonal
+    már licitált szant, és a kérdezőnek nincs renonsza, az adu nála
+    legfeljebb 5 lapos (2026-10-23); a 4NT-re a válaszoló többlethosszal
+    és nem szan jellegű lappal 5m-re javít;
   * 1 hiányzó kulcslap: kis szlem, ha az adu dáma megvan (vagy 10+ adu);
     ha a dáma ismeretlen, a spirál első tételével megkérdezi (ha a
     tagadó válasz még nem megy az 5m fölé); ha nincs meg: 5m;
@@ -247,6 +251,19 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
                                     f"Spirál: a partner {leallas}-sal leállt a rosszabb esetet "
                                     f"feltételezve ({min(ertekek)} kulcslap), de nálam a jobbik "
                                     f"van ({sajat_kl_}): szlem")
+            # A 4NT-leállásra (minor adu, a szerkesztő, 2026-10-23): ha van még
+            # nem mondott többlethosszam az aduban, és a lapom nem szan jellegű
+            # (van 0-1 lapos színem), az 5m reálisabb: javítok.
+            if leallas == "4NT" and adu in ("C", "D"):
+                sajat_ig = tar.get(en)
+                igert = sajat_ig.hossz(adu)[0] if sajat_ig is not None else 0
+                rovid = any(kez.hossz(sz) <= 1 for sz in _KULSO_RENDBEN)
+                ot_ = f"5{adu}"
+                if kez.hossz(adu) > igert and rovid and van_e(ot_):
+                    return SpiralDontes(ot_, "valaszolo",
+                                        f"Spirál: a partner 4NT-vel leállt; többlethosszam van "
+                                        f"az aduban ({kez.hossz(adu)} lap), és a lapom nem szan "
+                                        f"jellegű: javítás {ot_}-ra")
             return SpiralDontes("P", "valaszolo",
                                 f"Spirál: a partner {leallas} licitje leállás — passz")
         sajat_siken = {sz for sz in _KULSO_RENDBEN
@@ -300,7 +317,21 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
 
     r_last = _rang(utolso)
 
+    # Leállás 4NT-ben 5m helyett (a szerkesztő, 2026-10-23): minor adu,
+    # legfeljebb 8 lapos tudott fit, és a vonalunk már licitált szant
+    # (a 4NT reális alternatíva).
+    mi_szan = any(e.get("ules") in mieink and str(e.get("licit", "")).upper() in
+                  ("1NT", "2NT", "3NT") for e in licitek[:i_v])
+    # A saját lapom se zárja ki a szant: nincs renonszom, és az adu
+    # legfeljebb 5 lapos nálam (hosszú minorral / renonsszal az 5m a reális).
+    szan_jellegu = all(kez.hossz(sz) >= 1 for sz in _KULSO_RENDBEN) and kez.hossz(adu) <= 5
+    szan_leallas = adu in ("C", "D") and adu_hossz <= 8 and mi_szan and szan_jellegu
+
     def cel(szint: int, indok: str) -> SpiralDontes:
+        if szint == 5 and szan_leallas and _rang("4NT") > r_last and van_e("4NT"):
+            return SpiralDontes("4NT", "kerdezo",
+                                indok + f" — leállás 4NT-ben (legfeljebb {adu_hossz} lapos "
+                                "minor fit, a szan reális)")
         lic = f"{szint}{adu}"
         r = _rang(lic)
         if r > r_last and van_e(lic):

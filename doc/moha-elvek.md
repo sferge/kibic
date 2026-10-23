@@ -641,3 +641,20 @@ A szerkesztővel közösen, a 13:25–17:44 közötti leosztások alapján.
   és az 5m sem jobb (8 lapos minor fit 27+ ponttal).
 - Leaping Michaels a minor blokkra is: (2♦)/(3♦) után 4♦, (3♣) után 4♣ =
   mindkét nemes 5-5 (a vesztő-határral); a partner a jobb nemesét mondja.
+
+## Minor ORKC: leállás 4NT-ben — 2026-10-23
+
+A 3NT utáni 4m definíció szerint ORKC marad (nem kap pont- vagy fitfeltételt).
+
+A negatív kulcslap-válasz után:
+
+- **A kérdező:** ha a minorban legfeljebb 8 lapos fitről tud (a saját lapjai és a partner ígért minimuma együtt), és a vonal már licitált szant (a 4NT reális alternatíva), akkor 4NT-vel áll le, különben 5m-mel.
+- **A válaszoló a 4NT-re:**
+  - ha van még nem mondott többlethossza a minorban, és a lapja nem szan jellegű (van 0-1 lapos színe), 5m-re javít;
+  - ha a kétértelmű válaszának (0/3, 1/4) a jobbik esete igaz, szlemet mond (ez a 2026-10-05-i szabály).
+
+Gépben: `motor/spiral.py`, teszt: `tests/test_spiral_4nt.py`.
+
+### NYITOTT ötlet: kérdezés minorban, szlem nemesben
+
+Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani, például ha a kérdező lapjánál a ♣K vagy a ♦K különösen fontos. Ehhez a kulcslap-kérdés után a végső színt külön lépésnek kellene választania: a legjobb ismert fitet (8+ lapos nemes fit esetén a nemest), nem automatikusan a kérdezett minort. A szerkesztő példákat keres rá.
