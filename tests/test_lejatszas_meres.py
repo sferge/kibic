@@ -140,3 +140,23 @@ def test_cli_naplo(tmp_path, capsys):
     ki = capsys.readouterr().out
     assert "visszaallitva: 1" in ki and "védő" in ki
     assert (tmp_path / "m.jsonl").read_text(encoding="utf-8").count("\n") == len(_naplo())
+
+
+def test_pbn_forras(tmp_path):
+    """A mérőpad PBN-ből is olvas (a [Play] ülés-rotációban, nem időrendben)."""
+    from kibic.cli.jatekmeres import partik_fajlbol
+    lapok = [Lap.parse(x) for x in LAPOK]
+    ul = lm.ulesek_sorrendben(lapok, "W", None)
+    rot = ["W", "N", "E", "S"]
+    sorok = []
+    for t in range(0, 52, 4):
+        d = {u: str(l) for u, l in zip(ul[t:t + 4], lapok[t:t + 4])}
+        sorok.append(" ".join(d[u] for u in rot))
+    ut = tmp_path / "proba.pbn"
+    ut.write_text(f'[Event "p"]\n[Board "1"]\n[West "w"]\n[North "n"]\n[East "e"]\n[South "s"]\n'
+                  f'[Dealer "S"]\n[Vulnerable "None"]\n[Deal "{LO.pbn("N")}"]\n'
+                  f'[Declarer "S"]\n[Contract "3NT"]\n[Auction "S"]\n3NT Pass Pass Pass\n'
+                  f'[Play "W"]\n' + "\n".join(sorok) + "\n*\n", encoding="utf-8")
+    p = list(partik_fajlbol([str(ut)], "IMP"))
+    assert len(p) == 1 and p[0].lapok == LAPOK and p[0].kontraktus.felvevo == "S"
+    assert p[0].licit[0] == {**p[0].licit[0], "ules": "S"} and p[0].jatekosok["W"] == "w"

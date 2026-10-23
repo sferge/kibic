@@ -6,6 +6,7 @@ A lejátszás mérése: lapankénti DD-veszteség (motor/lejatszas_meres.py).
 
     # mérőpad valódi partikon: a kibic lapja vs. az emberé, pozícióról pozícióra
     python -m kibic.cli.jatekmeres --lin partik/*.lin --jatekos gal --oldal vedo
+    python -m kibic.cli.jatekmeres --pbn verseny.pbn --oldal felvevo
     python -m kibic.cli.jatekmeres --db --jatekos korszurku --limit 50 --minta 100
 
     közös: --json ki.jsonl (minden mérés soronként), --reszletes (a legrosszabbak)
@@ -74,12 +75,25 @@ def _munkas_parti(feladat):
 
 # --- források ---------------------------------------------------------------------
 
-def partik_linbol(utak: list[str], pontozas: str):
+def _pbn_olvas(ut: str):
+    from ..impex.pbn import olvas
+    nyers = open(ut, "rb").read()
+    for kod in ("utf-8-sig", "utf-8", "cp1250", "iso-8859-2"):
+        try:
+            return olvas(nyers.decode(kod))
+        except UnicodeDecodeError:
+            continue
+    return olvas(nyers.decode("utf-8", errors="replace"))
+
+
+def partik_fajlbol(utak: list[str], pontozas: str):
+    """LIN- és PBN-fájlok (a kiterjesztés dönt) -> Parti."""
     from ..domain import kovetkezo_ules
     from ..impex.lin import olvas_fajl
     from ..motor.lejatszas_meres import Parti
     for ut in utak:
-        for n, j in enumerate(olvas_fajl(ut), 1):
+        jatszmak = _pbn_olvas(ut) if ut.lower().endswith(".pbn") else olvas_fajl(ut)
+        for n, j in enumerate(jatszmak, 1):
             if not j.leosztas or not j.kontraktus or not j.felvevo or len(j.lapok) < 2:
                 continue
             k = replace(j.kontraktus, felvevo=j.felvevo)
@@ -89,6 +103,9 @@ def partik_linbol(utak: list[str], pontozas: str):
                 ules = kovetkezo_ules(ules)
             yield Parti(f"{Path(ut).name}#{n}", j.leosztas, k, licit, list(j.lapok),
                         pontozas, j.jatekosok())
+
+
+partik_linbol = partik_fajlbol
 
 
 def partik_dbbol(a, pontozas: str):
@@ -191,6 +208,7 @@ def main(argv=None) -> int:
     forras = ap.add_mutually_exclusive_group(required=True)
     forras.add_argument("--naplo", help="a KIBIC_ATJARO_NAPLO fájl (kérésekkel)")
     forras.add_argument("--lin", nargs="+", help="LIN-fájlok (valódi partik)")
+    forras.add_argument("--pbn", nargs="+", help="PBN-fájlok (valódi partik, lejátszással)")
     forras.add_argument("--db", action="store_true", help="a jatszma tábla")
     ap.add_argument("--jatekos", help="csak ennek a játékosnak a lapjait méri (valódi parti)")
     ap.add_argument("--oldal", choices=["mind", "felvevo", "vedo"], default="mind")
@@ -226,7 +244,8 @@ def main(argv=None) -> int:
                   file=sys.stderr)
     else:
         from ..domain import kovetkezo_ules
-        partik = partik_linbol(a.lin, a.pontozas) if a.lin else partik_dbbol(a, a.pontozas)
+        partik = (partik_fajlbol(a.lin or a.pbn, a.pontozas) if (a.lin or a.pbn)
+                  else partik_dbbol(a, a.pontozas))
         oldal = {"mind": None, "felvevo": True, "vedo": False}[a.oldal]
         feladatok = []
         for p in partik:
