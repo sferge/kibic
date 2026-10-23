@@ -81,7 +81,7 @@ def test_negyedik_szin_kvazi_gemforsz(kibic_stand, kez, menet, vart):
 @pytest.mark.parametrize("kez, vart", [
     ("KT8.J3.QT2.J9873", "P"),       # #73: 7 pont — passz
     ("KT8.Q32.QT2.J987", "P"),       # rossz 8 (üres dáma) — passz
-    ("K98.A32.T92.Q987", "2NT"),     # 9, egyenletes — invit
+    ("K98.A32.T92.Q987", "2C"),      # 9, egyenletes — invit a Staymanen (MOHA_1NT, 2026-10-24)
     ("J8.QT872.T32.987", "2D"),      # gyenge 5 kőr: transzfer
 ])
 def test_1nt_passz_hatara(kibic_stand, kez, vart):
@@ -104,8 +104,9 @@ def test_fedokereso_dubloban(moha_stand):
 
 
 def test_1nt_6_lapos_minorral_invit(kibic_stand):
-    # #255: 8 pont, 6 treff, nemes nélkül — a 3♣ invit marad (DD: jobb a passznál)
-    assert _h(kibic_stand, "86.A3.654.A97632", "1NT P") == "3C"
+    # #255: 8 pont, 6 treff, nemes nélkül — nem passz (DD), hanem treff-
+    # transzfer (MOHA_1NT, 2026-10-24)
+    assert _h(kibic_stand, "86.A3.654.A97632", "1NT P") == "2S"
 
 
 @pytest.mark.parametrize("kez, vart", [

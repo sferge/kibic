@@ -685,3 +685,15 @@ Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 - **Gyenge lap (0–7) AK-s 5 lapos színnel, 3NT a passz helyett:** a 3NT 24%-ban teljesül; a passzhoz képest mansban −2,0, bellben −2,2 IMP leosztásonként. Nemes színnel a transzfer és passz (2M) 2,2 IMP-vel jobb a 3NT-nél. A DD tehát nem támasztja alá; ez tapasztalati („C módú”) döntés maradna.
 - **5332, gyenge 5 lapos nemes (A és K nélkül), 10–14 pont, a nyitónál 3+ lap:** a 3NT 83%-ban, a 4M 82%-ban teljesül; a 3NT a 4M-hez képest −0,36 IMP. Szinte azonos; a DD nem méri a lap „eltitkolását”.
 - **11–12 pontos egyenletes lapok vesztői:** 7 vesztő 22%, 8 vesztő 60%, 9 vesztő 18%. A 7 vesztőhöz 5 fedő figura kell az első 3 lapban, ami 11–12 ponttal csak sok dámával jön ki. A FELMENTÉS után (11–12 ponttal csak legfeljebb 7 vesztővel nyitunk) a nyitó egyenletes lapjai közül a pontok: 11: 3%, 12: 9%, 13: 48%, 14: 40% (11–14 között). NYITOTT: ezt a következtetést a partner sávjába bevinni.
+
+## MOHA_1NT — az 1NT-válaszok — 2026-10-24
+
+`konvenciok/moha_1nt.yaml`, a kártyán az alaprendszer előtt; kiváltja a kártya 1NT-2♠, 1NT-2NT, 1NT-3♣/3♦ és 1NT-3♥/3♠ sorát.
+
+- **Minor-transzfer:** 2♠ = treff, 2NT = káró. Jellemzően 6+ lap; invit vagy gémerővel 5+ is (nem egyenletes lappal). 5-5 minorral invit+ erővel előbb 2♠, majd 3♦ (gémforsz).
+  - Az induló: 2♠ után 2NT = maximális (16–17, és a treffhez jó: 3+ lap vagy dubló magasfigura), 3♣ = nem maximális; 2NT után 3♣ = maximális, 3♦ = nem.
+  - A válaszoló: gyengén a „nem max”-ra passz, a „max” után 3m; invittel a „nem max”-ra passz, a „max” után egyenletes lappal 3NT, 3M = szingli; gémerővel a „nem max” után ugyanígy (3NT / 3M szingli).
+- **1NT-3♣:** 5-5 minor, 0–7 (8) pont, leállás; az induló passzol vagy 3♦-ra javít.
+- **4441, 9+ (gémforsz):** 3♦ = minor szingli (3♥ relé: 3♠ = káró, 3NT = treff szingli), 3♥ = kőr szingli, 3♠ = pikk szingli. Az induló: 3NT passzkérő (16+ ponttal 4NT), 4M passzkérő.
+- **Az egyenletes invit 4-es nemes nélkül a Staymanen** megy (1NT-2♣, bármi a válasz, 2NT). 8 ponttal 4-es nemes nélkül passz (rossz 8), így ez 9 pont.
+- **NYITOTT:** ugyanez a közbeszóló 1NT-je (16–19) után, a határok egy ponttal lejjebb (invit 8+ helyett 7+, gémforsz 15+); ehhez a minta-nyelvbe a „rendszer él” kell. A rövidség után a 4m ORKC és az 5m passzkérő még nincs a gépben.
