@@ -947,3 +947,49 @@ def test_aki_mar_megszegte_a_lapmegallapodast():
     kov = lj.kovetkeztetes_beallitas(a, szab, ["N", "S"])
     assert "S" in kov.nem_kovetett and not (kov.kodok["S"] & set(lj.LAP_KODOK))
     assert kov.kodok["N"] & set(lj.LAP_KODOK)                         # Észak nem szegte meg
+
+
+# --- 2026-10-23: a fred-mérés tanulságai -----------------------------------------
+
+def test_tar_igazitas_csak_az_ellentmondo_reszt():
+    """A licit ígérete ellentmond a letett lapoknak: csak azt a részt igazítjuk,
+    a pontsáv és a többértelmű licit lehetséges változatai maradnak."""
+    sz = lambda s: [Lap.parse(x) for x in s.split()]
+    fix = {"N": set(), "W": set(sz("H6 HA H5"))}
+    szabad = sz("HT SK SQ S2 DA D6 C7 C8")              # egyetlen kőr van még kint
+    ig = Igeret()
+    ig.pont_min, ig.pont_max = 8, 15
+    ig.hossz_min, ig.hossz_max = {"H": 5}, {"H": 5}
+    v1, v2 = Igeret(), Igeret()
+    v1.hossz_min = {"S": 6}                               # lehetetlen: csak 3 pikk van kint
+    v2.hossz_min = {"S": 2}
+    ig.alternativak = [[v1, v2]]
+    tar, igaz = lj.tar_igazitas({"W": ig, "N": None}, ["N", "W"], fix, szabad, {"N": {"H"}})
+    assert igaz == ["W"] and tar["W"] is not ig
+    assert tar["W"].hossz("H") == (4, 5) and (tar["W"].pont_min, tar["W"].pont_max) == (8, 15)
+    assert tar["W"].alternativak == [[v2]]
+    assert ig.hossz("H") == (5, 5)                        # az eredeti nem változik
+    # ami összefér, ahhoz nem nyúl
+    tar2, igaz2 = lj.tar_igazitas({"W": v2}, ["N", "W"], fix, szabad, {})
+    assert igaz2 == [] and tar2["W"] is v2
+
+
+def test_ellentmondo_hossz_mellett_a_pontsav_megmarad():
+    a = lj.allas_keresbol(_keres("W"))
+    ig = Igeret()
+    ig.pont_min = 12
+    ig.hossz_min = {"H": 13}                              # lehetetlen ígéret
+    m = lj.mintavetel(a, {"E": ig}, db=10, mag=1)
+    assert not m.lazitott and m.igazitott == ["E"] and len(m.leosztasok) == 10
+    assert all(lj._hcp(lo.kezek["E"].lapok) >= 12 for lo in m.leosztasok)
+
+
+def test_partner_kerese_turese_a_pontozas_egysegeben():
+    """0,16 ütéssel „alig rosszabb”, de IMP-ben 0,8-del: nem vállaljuk."""
+    A, C5 = Lap.parse("CA"), Lap.parse("C5")
+    stat = {A: lj.LapStat(A, n=66, utes=1.64, ertek=-0.054, osztaly="JO"),
+            C5: lj.LapStat(C5, n=66, utes=1.48, ertek=-0.844, osztaly="TALAN")}
+    sor = {"merlegeles": "PARTNER_KERESE", "tures": 0.25}
+    assert lj._partnersegben(stat, [A, C5], [A], sor) == [A]
+    stat[C5].ertek = -0.2                                 # 0,15 IMP: belefér
+    assert lj._partnersegben(stat, [A, C5], [A], sor) == [A, C5]

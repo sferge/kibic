@@ -129,7 +129,8 @@ fejezetek:
           A partnerség kedvéért: a partner első dobással kért színét hívjuk
           menet közben, és ütést is veszünk érte (lopunk, átvesszük az
           ütését), hogy mi hívhassuk — akkor is, ha az elemzés szerint ez
-          legfeljebb negyed ütéssel rosszabb (átlagosan). A partner a saját
+          legfeljebb a tűréssel rosszabb (átlagosan; IMP-ben negyed IMP-vel,
+          MP-ben negyed ütéssel). A partner a saját
           lapját ismeri; a kérése többet tud, mint a mi becslésünk.
       # a partner JELZÉSEI és a licit: nem kizárnak, hanem SÚLYOZNAK — ami
       # ellentmond nekik, az az elosztás `suly`-nyit ér (0 = kizárjuk)
