@@ -29,11 +29,12 @@ GYOKER = Path(__file__).resolve().parents[3]
 
 # --- a kibic döntése a YAML-ból (mint a jatekelemzes) ---------------------------------
 
-def yaml_dontes(rendszer: str, ido_s: float, minta: int):
+def yaml_dontes(rendszer: str, ido_s: float, minta: int, kovetkeztetes_ms: int = 15000,
+                mag: int | None = None):
     from ..motor import lejatszas as lj
     from ..motor.kartya import jelzesek_rendszerhez_yaml
     from .aranykeszlet import yaml_betolto
-    from ..szolgaltatas.licit import kenyszertar_menetbol
+    from ..szolgaltatas.atjaro import licit_tudas
     jelz = jelzesek_rendszerhez_yaml(rendszer)
     betolto = yaml_betolto([str(GYOKER / "rendszerek" / "yaml")])
     tar_cache: dict = {}
@@ -45,15 +46,17 @@ def yaml_dontes(rendszer: str, ido_s: float, minta: int):
         kulcs = (allas.ules, st.get("dealer"), json.dumps(auction))
         if kulcs not in tar_cache:
             try:
-                tar_cache[kulcs] = kenyszertar_menetbol({
+                tar_cache[kulcs] = licit_tudas({
                     "seat": allas.ules, "dealer": st.get("dealer") or allas.ules,
                     "vulnerability": (keres.get("game") or {}).get("vulnerability") or "none",
-                    "auction": auction, "system": rendszer}, betolto)
+                    "auction": auction, "system": rendszer}, betolto, kovetkeztetes_ms)
             except Exception:                    # noqa: BLE001 — licit nélkül is mérünk
-                tar_cache[kulcs] = None
+                tar_cache[kulcs] = (None, {})
         if len(allas.legalis) == 1:
             return next(iter(allas.legalis.values())), {"kibic": {"situation": "KENYSZER"}}
-        e = lj.jatek_dontes(allas, jelz, tar_cache[kulcs], ido_keret_s=ido_s, db=minta)
+        tar, valoszinu = tar_cache[kulcs]
+        e = lj.jatek_dontes(allas, jelz, tar, ido_keret_s=ido_s, db=minta, mag=mag,
+                            valoszinu=valoszinu)
         return allas.legalis[e.dontes.lap], {"kibic": lj.meta(e)}
     return fv
 
@@ -62,8 +65,9 @@ def yaml_dontes(rendszer: str, ido_s: float, minta: int):
 _MUNKAS: dict = {}
 
 
-def _munkas_init(rendszer: str, ido_s: float, minta: int) -> None:
-    _MUNKAS["fv"] = yaml_dontes(rendszer, ido_s, minta)
+def _munkas_init(rendszer: str, ido_s: float, minta: int, kov_ms: int = 15000,
+                 mag: int | None = None) -> None:
+    _MUNKAS["fv"] = yaml_dontes(rendszer, ido_s, minta, kov_ms, mag)
 
 
 def _munkas_parti(feladat):
@@ -227,6 +231,9 @@ def main(argv=None) -> int:
     ap.add_argument("--pontozas", choices=["IMP", "MP"], default="IMP")
     ap.add_argument("--minta", type=int, default=200, help="minta döntésenként (alap 200)")
     ap.add_argument("--ido", type=float, default=4.0, help="időkeret döntésenként, mp")
+    ap.add_argument("--kovetkeztetes-ms", type=int, default=15000,
+                    help="a licit kizárásos következtetésének ideje leosztásonként (alap 15000; 0: ki)")
+    ap.add_argument("--mag", type=int, help="véletlen mag: ugyanaz a futás ugyanazt adja")
     ap.add_argument("--max-parti", type=int)
     ap.add_argument("--max-dontes", type=int, help="partinként legfeljebb ennyi döntés")
     ap.add_argument("--parhuzamos", type=int, default=1,
@@ -282,11 +289,12 @@ def main(argv=None) -> int:
         if a.parhuzamos > 1:
             import multiprocessing as mp
             with mp.get_context("spawn").Pool(a.parhuzamos, _munkas_init,
-                                              (a.rendszer, a.ido, a.minta)) as pool:
+                                              (a.rendszer, a.ido, a.minta, a.kovetkeztetes_ms,
+                                               a.mag)) as pool:
                 for m in pool.imap_unordered(_munkas_parti, feladatok):
                     jegyez(m)
         else:
-            _munkas_init(a.rendszer, a.ido, a.minta)
+            _munkas_init(a.rendszer, a.ido, a.minta, a.kovetkeztetes_ms, a.mag)
             for f in feladatok:
                 jegyez(_munkas_parti(f))
         print(file=sys.stderr)

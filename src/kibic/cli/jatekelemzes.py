@@ -46,19 +46,20 @@ def elemez(keres: dict, rendszer: str | None = None, ido_s: float = 20.0,
     if isinstance(kod, dict):
         kod = kod.get("code") or "KIBIC_STAND"
     jelz = jelzesek_rendszerhez_yaml(kod)
-    tar = None
+    tar, valoszinu = None, {}
     try:
         from .aranykeszlet import yaml_betolto
-        from ..szolgaltatas.licit import kenyszertar_menetbol
+        from ..szolgaltatas.atjaro import licit_tudas
         st = keres.get("state") or {}
-        tar = kenyszertar_menetbol({
+        tar, valoszinu = licit_tudas({
             "seat": allas.ules, "dealer": st.get("dealer") or allas.ules,
             "vulnerability": (keres.get("game") or {}).get("vulnerability") or "none",
             "auction": (keres.get("history") or {}).get("auction") or [], "system": kod},
-            yaml_betolto([str(GYOKER / "rendszerek" / "yaml")]))
+            yaml_betolto([str(GYOKER / "rendszerek" / "yaml")]), 15000)
     except Exception as e:                       # noqa: BLE001
         print(f"(kényszertár nélkül: {type(e).__name__}: {e})", file=sys.stderr)
-    e = lj.jatek_dontes(allas, jelz, tar, ido_keret_s=ido_s, db=2000, mag=mag)
+    e = lj.jatek_dontes(allas, jelz, tar, ido_keret_s=ido_s, db=2000, mag=mag,
+                        valoszinu=valoszinu)
     k = allas.kontraktus
     sor = [f"{allas.ules} dönt — {k.szint}{k.szin}{k.kontra} {k.felvevo}, "
            f"{len(allas.lejatszott)} lap lement; látható: "

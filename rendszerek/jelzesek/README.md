@@ -241,7 +241,18 @@ eséllyel marad benne). A jelzésekből és a licitből levontak alapból súlyo
   kitol: [ELLENJATEKOSOK, FELVEVO]  # negyed súllyal él (a hossz marad éles)
   tures: 2
   suly: 0.5
+- kovetkeztetes: LICIT_KIZARAS     # amit a licitjével KIZÁRT (2026-10-23, az alaprendszerben)
+  kitol: [ELLENJATEKOSOK, FELVEVO]  # pl. passz 1♥-re: a licitmotor szimulációja
+  suly: 0.2                         # szerint 0-5 pont; 1 pont eltérés fél súly
 ```
+
+A `LICIT_KIZARAS` a licit-szál kizárásos következtetését (`motor/kovetkeztetes.py`:
+a licitmotor szimulálja, milyen lappal licitált volna így) adja át a
+lejátszásnak; leosztásonként egyszer drága (`KIBIC_LEJATSZAS_KOVETKEZTETES_MS`,
+alap 15 000, legfeljebb a határidő 30%-a), utána gyorsítótárból jön.
+Aki a lapjaival már MEGMUTATTA, hogy nem a lap-megállapodás szerint játszik
+(pl. QJT-ből a D-vel ütött, és a B-t később letette), arra a lapból levont
+következtetés nem él — különben minden elosztást kizárna.
 
 A leértékelt elosztások száma kódonként: `meta.kibic.inference_weighted`.
 Így lesz a következő lépés is ELV: a felvevő lapjaiból levont, súlyozott
