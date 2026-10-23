@@ -7,6 +7,7 @@ A lejátszás mérése: lapankénti DD-veszteség (motor/lejatszas_meres.py).
     # mérőpad valódi partikon: a kibic lapja vs. az emberé, pozícióról pozícióra
     python -m kibic.cli.jatekmeres --lin partik/*.lin --jatekos gal --oldal vedo
     python -m kibic.cli.jatekmeres --pbn verseny.pbn --oldal felvevo
+    python -m kibic.cli.jatekmeres --pbn tanpartik/          # a mappa összes .pbn-je
     python -m kibic.cli.jatekmeres --db --jatekos korszurku --limit 50 --minta 100
 
     közös: --json ki.jsonl (minden mérés soronként), --reszletes (a legrosszabbak)
@@ -88,6 +89,20 @@ def _pbn_olvas(ut: str):
         except UnicodeDecodeError:
             continue
     return olvas(nyers.decode("utf-8", errors="replace"))
+
+
+def fajlok_kibontasa(utak: list[str], kiterj: str) -> list[str]:
+    """A megadott utak közül a mappákat kibontja: a bennük (almappákban is) lévő
+    `kiterj` kiterjesztésű fájlok, útvonal szerint rendezve. A fájlok változatlanul maradnak."""
+    ki = []
+    for ut in utak:
+        p = Path(ut)
+        if p.is_dir():
+            ki += sorted(str(f) for f in p.rglob("*")
+                         if f.is_file() and f.suffix.lower() == kiterj)
+        else:
+            ki.append(ut)
+    return ki
 
 
 def partik_fajlbol(utak: list[str], pontozas: str):
@@ -222,8 +237,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="A lejátszás mérése (lapankénti DD-veszteség)")
     forras = ap.add_mutually_exclusive_group(required=True)
     forras.add_argument("--naplo", help="a KIBIC_ATJARO_NAPLO fájl (kérésekkel)")
-    forras.add_argument("--lin", nargs="+", help="LIN-fájlok (valódi partik)")
-    forras.add_argument("--pbn", nargs="+", help="PBN-fájlok (valódi partik, lejátszással)")
+    forras.add_argument("--lin", nargs="+", help="LIN-fájlok vagy mappák (valódi partik)")
+    forras.add_argument("--pbn", nargs="+", help="PBN-fájlok vagy mappák (valódi partik, lejátszással)")
     forras.add_argument("--db", action="store_true", help="a jatszma tábla")
     ap.add_argument("--jatekos", help="csak ennek a játékosnak a lapjait méri (valódi parti)")
     ap.add_argument("--oldal", choices=["mind", "felvevo", "vedo"], default="mind")
@@ -262,8 +277,14 @@ def main(argv=None) -> int:
                   file=sys.stderr)
     else:
         from ..domain import kovetkezo_ules
-        partik = (partik_fajlbol(a.lin or a.pbn, a.pontozas) if (a.lin or a.pbn)
-                  else partik_dbbol(a, a.pontozas))
+        if a.lin or a.pbn:
+            utak = fajlok_kibontasa(a.lin or a.pbn, ".lin" if a.lin else ".pbn")
+            if not utak:
+                print("Nincs mérhető fájl a megadott helyen.", file=sys.stderr)
+                return 1
+            partik = partik_fajlbol(utak, a.pontozas)
+        else:
+            partik = partik_dbbol(a, a.pontozas)
         oldal = {"mind": None, "felvevo": True, "vedo": False}[a.oldal]
         feladatok = []
         for p in partik:
