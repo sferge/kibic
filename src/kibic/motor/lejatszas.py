@@ -240,6 +240,7 @@ class MintaEredmeny:
     ismeretlen: int = 0         # ennyi lap helye ismeretlen
     kizart_jatek: int = 0       # ennyi elosztást zárt ki a lejátszásból levont következtetés
     sulyok: list[float] = field(default_factory=list)   # elosztásonként (kimerítő mód); üres = mind 1
+    osszevont: bool = False     # a kimerítő elemzés a kis lapokat összevonta (mintázatok)
     leertekelt: dict[str, int] = field(default_factory=dict)  # kód -> ennyi elosztást értékelt le
 
 
@@ -607,6 +608,106 @@ def _felsorol(rejtett: list[str], szabad: list[Lap], kell: dict[str, int],
     return ki
 
 
+# KIS LAPOK ÖSSZEVONÁSA (2026-10-23, a szerkesztő ötlete): a kimerítő elemzésben
+# a rejtett kis lapok (alapból a 8-as és alatta) egyenértékűek, ha nincs
+# köztük látható (még kézben lévő) lap — így nem kell minden elosztásukat
+# külön megnézni: egy „mintázat” (a számító lapok helye + a kis lapok száma
+# kezenként) képviseli mindet, a súlya az általa képviselt elosztások száma.
+# A kimerítő elemzés így sokkal korábban elérhető. Kikapcsolás: "0".
+KIS_LAP = os.getenv("KIBIC_LEJATSZAS_KIS_LAP", "8").strip().upper()
+# ennyi mintázatig a teljes sokaság (véletlen sorrendben, a döntés eldőltével
+# megállhat); ennél több: mintavétel
+MINTAZAT_HATAR = int(os.getenv("KIBIC_LEJATSZAS_MINTAZAT_HATAR", "5000"))
+
+
+def kis_lap_osztalyok(szabad: list[Lap], lathato: list[Lap], hatar: str = KIS_LAP
+                      ) -> list[list[Lap]]:
+    """
+    A rejtett kis lapok egyenértékűségi osztályai: színenként a `hatar`
+    rangú és kisebb rejtett lapok, a látható (még kézben lévő) lapok mentén
+    szétvágva (a dummy 6-osa fölötti 7-es nem egyenértékű az alatta lévő 5-össel).
+    """
+    if not hatar or hatar in ("0", "NEM") or hatar not in LAPOK:
+        return []
+    felso = Lap("S", hatar).rang
+    ki = []
+    for sz in SZINEK:
+        kis = sorted((l for l in szabad if l.szin == sz and l.rang <= felso), key=lambda l: l.rang)
+        hatarok = sorted(l.rang for l in lathato if l.szin == sz)
+        csoport: list[Lap] = []
+        for l in kis:
+            if csoport and any(csoport[-1].rang < h < l.rang for h in hatarok):
+                if len(csoport) > 1:
+                    ki.append(csoport)
+                csoport = []
+            csoport.append(l)
+        if len(csoport) > 1:
+            ki.append(csoport)
+    return ki
+
+
+def _mintazat_felsorol(rejtett: list[str], szabad: list[Lap], kell: dict[str, int],
+                       renonsz: dict[str, set[str]], osztalyok: list[list[Lap]],
+                       hatar: int, rnd: random.Random) -> list[tuple[dict, int]] | None:
+    """
+    Az összes MINTÁZAT (a számító lapok helye lapra pontosan, a kis lapoké
+    osztályonként darabra), egy-egy képviselő elosztással és a súlyával (ennyi
+    valódi elosztás tartozik hozzá). Ha `hatar`-nál több: None.
+    """
+    kis = {l for o in osztalyok for l in o}
+    szamito = [l for l in szabad if l not in kis]
+    ki: list[tuple[dict, int]] = []
+    tul = [False]
+
+    def kicsik(j, marad, hely, szorzo):
+        if tul[0]:
+            return
+        if j == len(osztalyok):
+            if not any(marad.values()):
+                ki.append((hely, szorzo))
+                if len(ki) > hatar:
+                    tul[0] = True
+            return
+        o = osztalyok[j]
+        sz = o[0].szin
+
+        def eloszt(i, maradek, ks):
+            if i == len(rejtett) - 1:
+                u = rejtett[i]
+                if maradek <= marad[u] and not (maradek and sz in renonsz[u]):
+                    yield ks + (maradek,)
+                return
+            u = rejtett[i]
+            felso = 0 if sz in renonsz[u] else min(maradek, marad[u])
+            for k in range(felso + 1):
+                yield from eloszt(i + 1, maradek - k, ks + (k,))
+        for ks in eloszt(0, len(o), ()):
+            lapok = o[:]
+            rnd.shuffle(lapok)
+            uj, uj_marad, x, m, w = dict(hely), dict(marad), 0, len(o), szorzo
+            for u, k in zip(rejtett, ks):
+                uj[u] = hely[u] + lapok[x:x + k]
+                uj_marad[u] -= k
+                w *= comb(m, k)
+                m -= k
+                x += k
+            kicsik(j + 1, uj_marad, uj, w)
+
+    def szamitok(i, marad, hely):
+        if tul[0]:
+            return
+        if i == len(szamito):
+            kicsik(0, marad, hely, 1)
+            return
+        l = szamito[i]
+        for u in rejtett:
+            if marad[u] > 0 and l.szin not in renonsz[u]:
+                szamitok(i + 1, {**marad, u: marad[u] - 1}, {**hely, u: hely[u] + [l]})
+
+    szamitok(0, dict(kell), {u: [] for u in rejtett})
+    return None if tul[0] else ki
+
+
 def _hcp(lapok) -> int:
     return sum({"A": 4, "K": 3, "Q": 2, "J": 1}.get(l.ertek, 0) for l in lapok)
 
@@ -620,6 +721,107 @@ def _megfelel(lapok: set[Lap], ig) -> bool:
         if not lo <= sum(1 for l in lapok if l.szin == sz) <= hi:
             return False
     return ig.pont_min <= _hcp(lapok) <= ig.pont_max
+
+
+class HosszSorsolo:
+    """
+    ÉPÍTŐ SORSOLÁS (2026-10-23): a rejtett kezek színhosszait a licit
+    hosszígéretei (a kényszertár burka), a renonszok és a már letett lapok
+    szerint sorsolja — PONTOSAN olyan arányban, ahány valódi elosztás tartozik
+    az egyes hossz-kombinációkhoz (dinamikus programozás a négy színen) —,
+    utána a lapokat színenként véletlenül. Így a hosszakra nincs eldobás: a
+    régi sorsolás szűk licitnél (pl. 5 kőr + 4 minor, 15-17 egyenletes) a
+    próbák 90–97%-át eldobta, és nem is volt pontosan egyenletes.
+    A pontsávot és a többértelmű licit változatait továbbra is az elfogadás
+    (súly) kezeli.
+    """
+
+    def __init__(self, rejtett: list[str], fix: dict, szabad: list[Lap],
+                 renonsz: dict, tar: dict):
+        self.rejtett = rejtett
+        self.lapok = {sz: [l for l in szabad if l.szin == sz] for sz in SZINEK}
+        self.kell = tuple(13 - len(fix[u]) for u in rejtett)
+        self.sav: dict[tuple[str, str], tuple[int, int]] = {}
+        self.ok = True
+        for u in rejtett:
+            ig = (tar or {}).get(u)
+            for sz in SZINEK:
+                van = sum(1 for l in fix[u] if l.szin == sz)
+                lo_h, hi_h = ig.hossz(sz) if ig is not None else (0, 13)
+                lo = max(0, lo_h - van)
+                hi = min(len(self.lapok[sz]), hi_h - van)
+                if sz in renonsz.get(u, ()):
+                    hi = min(hi, 0)
+                if lo > hi:
+                    self.ok = False
+                self.sav[(u, sz)] = (lo, hi)
+        self._memo: dict = {}
+        if self.ok:
+            self.ok = self._db(0, self.kell) > 0
+
+    def _osztasok(self, sz: str, marad: tuple[int, ...]):
+        """Egy szín lapjainak lehetséges szétosztása a rejtett kezek között."""
+        n = len(self.lapok[sz])
+        savok = [self.sav[(u, sz)] for u in self.rejtett]
+
+        def rek(i, maradek):
+            if i == len(savok) - 1:
+                lo, hi = savok[i]
+                if lo <= maradek <= min(hi, marad[i]):
+                    yield (maradek,)
+                return
+            lo, hi = savok[i]
+            for k in range(lo, min(hi, maradek, marad[i]) + 1):
+                for tobbi in rek(i + 1, maradek - k):
+                    yield (k,) + tobbi
+        yield from rek(0, n)
+
+    @staticmethod
+    def _multinom(n: int, ks: tuple[int, ...]) -> int:
+        w, m = 1, n
+        for k in ks[:-1]:
+            w *= comb(m, k)
+            m -= k
+        return w
+
+    def _db(self, i: int, marad: tuple[int, ...]) -> int:
+        """Ennyi valódi elosztás van a még hátralévő színekre (i-től)."""
+        if i == len(SZINEK):
+            return 1 if not any(marad) else 0
+        kulcs = (i, marad)
+        if kulcs in self._memo:
+            return self._memo[kulcs]
+        sz = SZINEK[i]
+        ossz = 0
+        for ks in self._osztasok(sz, marad):
+            uj = tuple(m - k for m, k in zip(marad, ks))
+            ossz += self._multinom(len(self.lapok[sz]), ks) * self._db(i + 1, uj)
+        self._memo[kulcs] = ossz
+        return ossz
+
+    def sorsol(self, rnd: random.Random) -> dict[str, list[Lap]]:
+        ki = {u: [] for u in self.rejtett}
+        marad = self.kell
+        for i, sz in enumerate(SZINEK):
+            opciok = []
+            for ks in self._osztasok(sz, marad):
+                uj = tuple(m - k for m, k in zip(marad, ks))
+                w = self._multinom(len(self.lapok[sz]), ks) * self._db(i + 1, uj)
+                if w:
+                    opciok.append((w, ks, uj))
+            r = rnd.randrange(sum(w for w, _, _ in opciok))
+            for w, ks, uj in opciok:
+                if r < w:
+                    break
+                r -= w
+            lapok = self.lapok[sz][:]
+            rnd.shuffle(lapok)
+            j = 0
+            for u, k in zip(self.rejtett, ks):
+                ki[u] += lapok[j:j + k]
+                j += k
+            marad = uj
+        return ki
 
 
 def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
@@ -661,6 +863,17 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
 
     # KIMERÍTŐ: ha kevés a lehetséges elosztás, mindet (a végjátékban pontos)
     osszes = _felsorol(rejtett, szabad, kell, renonsz, KIMERITO_HATAR)
+    szorzok: list[int] | None = None
+    if osszes is None:
+        lathato = [l for v in allas.lathato.values() for l in v]
+        osztalyok = kis_lap_osztalyok(szabad, lathato)
+        if osztalyok:
+            mintazat = _mintazat_felsorol(rejtett, szabad, kell, renonsz, osztalyok,
+                                          MINTAZAT_HATAR, rnd)
+            if mintazat is not None:
+                osszes = [h for h, _ in mintazat]
+                szorzok = [w for _, w in mintazat]
+                ki.osszevont = True
     if osszes is not None:
         ki.kimerito = True
         kezek = [{u: set(fix[u]) | set(h[u]) for u in rejtett} for h in osszes]
@@ -681,7 +894,12 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
                 if a:
                     jegyez(o)
         jegyez(["LICIT_PONTHATAR"] * sum(1 for a, b in zip(wl, w) if b and a < 1))
+        if szorzok:                           # egy mintázat ennyi valódi elosztást képvisel
+            w = [a * sz for a, sz in zip(w, szorzok)]
         jok = [(h, a) for h, a in zip(osszes, w) if a > 0]
+        # véletlen sorrend: ha az időkeret a végére nem ér el, a megnézett rész
+        # ne a felsorolás sorrendje szerint torzuljon
+        rnd.shuffle(jok)
         # a TÉNYLEGESEN bizonytalan lapok: amelyiknek a helye elosztásonként más
         # (a renonszok és a licit után sokszor jóval kevesebb, mint a ki nem
         # játszott lapok száma — akár 0: akkor minden lap tudható)
@@ -701,27 +919,21 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         return ki
     lazit_utan = max_proba // 2
     elengedve = False
+    epito = HosszSorsolo(rejtett, fix, szabad, renonsz, tar)
+    szabad_epito = HosszSorsolo(rejtett, fix, szabad, renonsz, {})   # licit nélkül
     while len(ki.leosztasok) < db and ki.probak < max_proba:
         ki.probak += 1
         if ki.probak == lazit_utan + 1 and tar and len(ki.leosztasok) < LAZIT_MIN:
             elengedve = True                  # túl szűk / ellentmondásos: a második félidőben nélküle
-        hely = {u: list(fix[u]) for u in rejtett}
-        marad = dict(kell)
-        lapok = szabad[:]
-        rnd.shuffle(lapok)
-        # a kevés helyre mehető lapok előre (a renonsz miatt csak egy helyre mehetnek)
-        lapok.sort(key=lambda l: sum(1 for u in rejtett if l.szin not in renonsz[u]))
-        ok = True
-        for l in lapok:
-            jelolt = [u for u in rejtett if marad[u] > 0 and l.szin not in renonsz[u]]
-            if not jelolt:
-                ok = False
-                break
-            u = rnd.choice(jelolt) if len(jelolt) > 1 else jelolt[0]
-            hely[u].append(l)
-            marad[u] -= 1
-        if not ok:
-            continue
+        # a hosszak a licit szerint (ha a licit hosszai teljesíthetők; elengedve
+        # vagy ellentmondásnál csak a renonszok szerint)
+        sorsolo = epito if (epito.ok and not elengedve) else szabad_epito
+        if not sorsolo.ok:
+            raise LejatszasHiba("A renonszok és a lapszámok nem adnak ki egy leosztást")
+        hely = {u: list(fix[u]) + v for u, v in sorsolo.sorsol(rnd).items()}
+        if not epito.ok and ki.probak == 1 and tar:
+            elengedve = True                  # a licit hosszai nem teljesíthetők: nélküle
+
         kezek = {u: set(v) for u, v in hely.items()}
         okok: set[str] = set()
         szigoru = not elengedve
@@ -1351,6 +1563,7 @@ class Eredmeny:
     leertekelt: dict = field(default_factory=dict)
     pontozas: str = "IMP"
     megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT
+    osszevont: bool = False         # kimerítő elemzés a kis lapok összevonásával
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -1366,6 +1579,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     if not allas.partner_szinek:
         allas.partner_szinek = partner_szinei(allas, kenyszertar)
     megallt = ""
+    osszevont = False
     try:
         if dd_fv is None:
             from ..solver.dds import lap_elemzes as dd_fv
@@ -1381,6 +1595,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                            max_proba=max(4000, 30 * koteg), kovetkeztetes=kov)
             if k == 0:
                 kimerito, ismeretlen = m.kimerito, m.ismeretlen
+                osszevont = m.osszevont
                 # a tűrés a bizonytalansággal arányos; kimerítő elemzésnél nincs minta-zaj
                 tures = 0.0 if kimerito else JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
             lazitott = lazitott or m.lazitott
@@ -1392,14 +1607,24 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                 break
             sulyok = m.sulyok or [1.0] * len(m.leosztasok)
             ido_le = False
+            # sok mintázatnál (kis lapok összevonva) a véletlen sorrendű teljes
+            # sokaságon is megállhat, ha a döntés eldőlt
+            menet_kozben = kimerito and len(m.leosztasok) > KIMERITO_HATAR
             for lo, w in zip(m.leosztasok, sulyok):
                 if gy.n >= 6 and time.time() - start > ido_keret_s:
                     ido_le = True
                     break
                 gy.hozzaad(dd_fv(lo, jatszott, allas.kontraktus), w)
+                if menet_kozben and gy.n >= MIN_MINTA and gy.n % KOTEG == 0 and gy.biztos():
+                    megallt = "BIZTOS"
+                    break
             k += 1
             if kimerito:
-                megallt = "KIMERITO"
+                if gy.n < len(m.leosztasok):        # nem nézte meg mindet: van minta-zaj
+                    tures = JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
+                    megallt = megallt or "IDO"
+                else:
+                    megallt = "KIMERITO"
                 break
             if ido_le:
                 megallt = "IDO"
@@ -1424,7 +1649,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     d = dontes(allas, jelzesek, stat)
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
                     kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
-                    allas.pontozas, megallt)
+                    allas.pontozas, megallt, osszevont)
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -1447,6 +1672,7 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "inference_weighted": dict(e.leertekelt),
           "tolerance": round(e.tures, 3),
           "scoring": e.pontozas, "stopped": e.megallt,
+          "small_cards_merged": e.osszevont,
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
     if e.stat:
         db = {"JO": 0, "TALAN": 0, "BIZTOSAN_ROSSZ": 0}

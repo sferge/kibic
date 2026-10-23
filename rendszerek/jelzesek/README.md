@@ -143,14 +143,26 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    alig különbözik tőle (0,05 alatt) — legalább 60 (`KIBIC_LEJATSZAS_MIN_MINTA`),
    legfeljebb `KIBIC_LEJATSZAS_MINTA` (alap 3000), az időkereten belül.
    Egyértelmű helyzetben 60–200 minta, szorosban az időkeret végéig
-   (`meta.kibic.stopped`: BIZTOS / IDO / MAX / KIMERITO). Ha a lehetséges
-   elosztások száma legfeljebb 600, MINDET megnézi
+   (`meta.kibic.stopped`: BIZTOS / IDO / MAX / KIMERITO). A sorsolás ÉPÍTŐ
+   (2026-10-23): a rejtett kezek színhosszait a licit hosszígéretei, a
+   renonszok és a letett lapok szerint, pontosan az elosztások számának
+   arányában sorsolja, utána a lapokat — a hosszakra nincs eldobás (a pontsávot
+   és a többértelmű licit változatait az elfogadás kezeli). A KIS LAPOK (a
+   8-as és alatta, ha nincs köztük látható lap; `KIBIC_LEJATSZAS_KIS_LAP`)
+   a kimerítő elemzésben egyenértékűek: egy „mintázat” (a számító lapok helye
+   + a kis lapok száma kezenként) képviseli mindet, a súlya az általa
+   képviselt elosztások száma; legfeljebb 5000 mintázatig
+   (`KIBIC_LEJATSZAS_MINTAZAT_HATAR`) a teljes sokaságot nézi, véletlen
+   sorrendben (ha a döntés eldől, megállhat) — így a kimerítő elemzés a
+   parti közepén is elérhető (`meta.kibic.small_cards_merged`). Ha a
+   lehetséges elosztások száma legfeljebb 600, MINDET megnézi
    (kimerítő elemzés: a végjátékban pontos). Ha a kényszertár túl szűk (a
    próbák első felében 30-nál kevesebb illeszkedő minta), a második félidőben
    elengedi (`meta.kibic.relaxed`); ha van elég, inkább kevesebb mintával
    dolgozik, de a licitnek megfelelőkkel. A TÖBBÉRTELMŰ licitnél (pl. információs
-   kontra: rövid káró + 3+ a többiben 12+-szal, VAGY 20+ bármi) a kéznek
-   legalább egy változatot ki kell elégítenie — nem csak az uniót („12+”).
+   kontra: rövid káró + 3+ a többiben 12+-szal, VAGY 18+ bármi) a kéznek
+   legalább egy változatot ki kell elégítenie — nem csak az uniót („12+”);
+   a szabályon BELÜLI `vagy:` ágai is (Michaels: pikk és treff VAGY káró).
    Az elosztások SÚLYT kapnak a következtetésekből (lent): ami a partner
    jelzésének vagy a licit pontsávjának kicsit ellentmond, az kevesebbet ér.
 2. **DD-szűrő.** Mintánként double dummy kiértékeli a szabályos lapokat, a
