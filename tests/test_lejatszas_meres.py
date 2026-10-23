@@ -160,3 +160,18 @@ def test_pbn_forras(tmp_path):
     p = list(partik_fajlbol([str(ut)], "IMP"))
     assert len(p) == 1 and p[0].lapok == LAPOK and p[0].kontraktus.felvevo == "S"
     assert p[0].licit[0] == {**p[0].licit[0], "ules": "S"} and p[0].jatekosok["W"] == "w"
+
+
+def test_pbn_ures_felvevo(tmp_path):
+    """Üres [Declarer]: a felvevő a licitmenetből (a tanpartik gyakran ilyenek)."""
+    from kibic.cli.jatekmeres import partik_fajlbol
+    lapok = [Lap.parse(x) for x in LAPOK]
+    ul = lm.ulesek_sorrendben(lapok, "W", None)
+    sorok = [" ".join({u: str(l) for u, l in zip(ul[t:t + 4], lapok[t:t + 4])}[u]
+                      for u in ["W", "N", "E", "S"]) for t in range(0, 52, 4)]
+    ut = tmp_path / "ures.pbn"
+    ut.write_text(f'[Board "1"]\n[Dealer "N"]\n[Vulnerable "None"]\n[Deal "{LO.pbn("N")}"]\n'
+                  f'[Declarer ""]\n[Contract "3NT"]\n[Auction "N"]\nPass Pass 3NT Pass\n'
+                  f'Pass Pass\n[Play "W"]\n' + "\n".join(sorok) + "\n*\n", encoding="utf-8")
+    p = list(partik_fajlbol([str(ut)], "IMP"))
+    assert len(p) == 1 and p[0].kontraktus.felvevo == "S" and str(p[0].kontraktus) == "3NT"
