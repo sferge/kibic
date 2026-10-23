@@ -674,3 +674,12 @@ Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani,
   - Színnel az ugrás a minimum (szlemérdek nélkül), de csak tudott 8+ lapos fittel (minorban 9+); különben a legolcsóbb színlicit jön.
 
 Teszt: `tests/test_szerkeszto_2026_10_23.py`.
+- **Fedőkereső megfelelő mellékszín nélkül:** ha nincs 3+ lapos, 2,5–3 vesztős mellékszín, a fedőt a legolcsóbb 2 vesztős dublóban keressük (1M-2M és 1m-1M-2M után is).
+- **Passz az 1NT-re:** 0–7 ponttal és rossz 8-cal. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es/9-es), vagy nincs 4-es nemes. Kivétel: Junk Stayman, transzfer és leállás.
+- **Walsh:** az 1♣-1NT (8–10, rossz 11) kiváltja az alaprendszer 1m-1NT-jét (6–9); az 1♦-1NT marad 6–9.
+
+### DD-mérés (2026-10-23, véletlen leosztások, a nyitó 1NT 15–17 egyenletes)
+
+- **Gyenge lap (0–7) AK-s 5 lapos színnel, 3NT a passz helyett:** a 3NT 24%-ban teljesül; a passzhoz képest mansban −2,0, bellben −2,2 IMP leosztásonként. Nemes színnel a transzfer és passz (2M) 2,2 IMP-vel jobb a 3NT-nél. A DD tehát nem támasztja alá; ez tapasztalati („C módú”) döntés maradna.
+- **5332, gyenge 5 lapos nemes (A és K nélkül), 10–14 pont, a nyitónál 3+ lap:** a 3NT 83%-ban, a 4M 82%-ban teljesül; a 3NT a 4M-hez képest −0,36 IMP. Szinte azonos; a DD nem méri a lap „eltitkolását”.
+- **11–12 pontos egyenletes lapok vesztői:** 7 vesztő 22%, 8 vesztő 60%, 9 vesztő 18%. A 7 vesztőhöz 5 fedő figura kell az első 3 lapban, ami 11–12 ponttal csak sok dámával jön ki.

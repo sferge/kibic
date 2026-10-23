@@ -76,3 +76,28 @@ def test_negyedik_szinre_szan(kibic_stand, kez, menet, vart):
 ])
 def test_negyedik_szin_kvazi_gemforsz(kibic_stand, kez, menet, vart):
     assert _h(kibic_stand, kez, menet) == vart
+
+
+@pytest.mark.parametrize("kez, vart", [
+    ("KT8.J3.QT2.J9873", "P"),       # #73: 7 pont — passz
+    ("KT8.Q32.QT2.J987", "P"),       # rossz 8 (üres dáma) — passz
+    ("K98.A32.T92.Q987", "2NT"),     # 9, egyenletes — invit
+    ("J8.QT872.T32.987", "2D"),      # gyenge 5 kőr: transzfer
+])
+def test_1nt_passz_hatara(kibic_stand, kez, vart):
+    assert _h(kibic_stand, kez, "1NT P") == vart
+
+
+@pytest.fixture(scope="module")
+def moha_stand():
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    return feloldas_forrasokbol(g, "MOHA_STAND")[0]
+
+
+def test_fedokereso_dubloban(moha_stand):
+    # #142: 6 vesztő, nincs 3+ lapos 2,5-3 vesztős mellékszín: a fedőt a
+    # legolcsóbb 2 vesztős dublóban keresi
+    assert _h(moha_stand, "62.AKQJ4.92.AJ93", "P 1H P 2H P") == "2S"

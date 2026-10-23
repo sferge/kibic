@@ -59,6 +59,12 @@ fejezetek:
         jegyzet: >-
           Gyenge káróval (A, K, D közül legfeljebb egy), 4-es nemes és 4-es
           treff nélkül nem ez, hanem azonnal 2NT: jobb, mint 5 káró felé menni.
+      # az alaprendszer 1m-1NT (6-9) sorát 1♣ után ez váltja ki: Walshban a
+      # 8 pont alatti, 4-es nemes nélküli lap 1♦-t mond 3 káróval is
+      # (a szerkesztő, 2026-10-23, #283)
+      - {minta: 1m-1NT, kivalt: true}
+      - {minta: 1D-1NT, pont: 6-9, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
+         magyarazat: "6-9 FP, egyenletes, nincs 4-es nemes"}   # az alap 1m-1NT-je 1♦ után változatlan
       - minta: 1C-1NT
         pont: "8-10(11)"
         hossz: {H: 0-3, S: 0-3}

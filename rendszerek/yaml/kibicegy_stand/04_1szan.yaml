@@ -4,6 +4,13 @@ rendszer: {kod: KIBICEGY_STAND}
 fejezetek:
   - fejezet: Az 1NT indulás
     szabalyok:
+      # A passz határa (a szerkesztő, 2026-10-23, #73): 0-7 ponttal és rossz
+      # 8-cal passz. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es,
+      # 9-es), vagy nincs 4-es nemes (4-4 nemessel a Stayman jöhet).
+      # Kivétel (külön konvenció): Junk Stayman, transzfer és leállás.
+      - {minta: 1NT-P, prioritas: 47,
+         vagy: [{pont: 0-7}, {pont: 8, vagy: [{minoseg: rossz}, {ures_figura: 1+}, {hossz: {S: 0-3, H: 0-3}}]}],
+         magyarazat: "Passz: 0-7 pont, vagy rossz 8"}
       - {minta: 1NT-2S, pont: 0-7, vagy: [{hossz: {C: 6+}}, {hossz: {D: 6+}}],
          hossz: {S: 0-3, H: 0-3}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
          alert: "Leállás egyszínű minorban: 3♣-t kér",
