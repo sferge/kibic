@@ -56,6 +56,10 @@ class DontesMeres:
     bizonytalan: bool = False
     veszt_max: int | None = None
     megallt: str | None = None      # a mintavétel miért állt meg (BIZTOS / IDO / MAX / KIMERITO …)
+    # IMP-veszteség (2026-10-23): a legjobb lap pontszámához képest, a beliállás
+    # és a kontra szerint — IMP-ben a felülütés alig számít, a teljesítés sokat
+    imp_veszt: int | None = None
+    emberi_imp_veszt: int | None = None
     minta: int | None = None        # ennyi mintán döntött
 
     def szotar(self) -> dict:
@@ -111,6 +115,18 @@ def eredmeny_ertekeles(dd: dict[str, object], lap: str, felvevo_oldal: bool, cel
         return x.felvevo_osszesen >= cel if felvevo_oldal else x.felvevo_osszesen < cel
     jo_eredmeny = any(cel_ok(x) for x in dd.values())
     return legtobb - e.utesek, bool(jo_eredmeny and not cel_ok(e)), legjobb
+
+
+def imp_ertekeles(dd: dict[str, object], lap: str, felvevo_oldal: bool, kontraktus,
+                  beliallas: str) -> int:
+    """IMP-veszteség a DD szerinti legjobb lap pontszámához képest (a lapot
+    tevő oldal szemszögéből)."""
+    from ..domain.pontozas import imp, pontszam
+
+    def ertek(x) -> int:
+        p = pontszam(kontraktus, x.felvevo_osszesen, beliallas or "NONE")
+        return p if felvevo_oldal else -p
+    return imp(max(ertek(x) for x in dd.values()) - ertek(dd[lap]))
 
 
 def _dd_szotar(dd_fv, leosztas: Leosztas, jatszott: list[str], kontraktus) -> dict:
@@ -241,13 +257,13 @@ def naplo_meres(sorok: list[dict], dd_fv=None) -> tuple[list[DontesMeres], dict]
                 if lap not in dd:
                     break
                 v, e_, legjobb = eredmeny_ertekeles(dd, lap, fo, _cel(a.kontraktus))
-                ertekek.add((v, e_))
+                ertekek.add((v, e_, imp_ertekeles(dd, lap, fo, a.kontraktus, a.beliallas)))
             if not ertekek:
                 continue
             bizonytalan = len(ertekek) > 1
             stat["bizonytalan_dontes"] += int(bizonytalan)
-            veszt = min(v for v, _ in ertekek)
-            ered = all(e_ for _, e_ in ertekek)
+            veszt = min(v for v, _, _ in ertekek)
+            ered = all(e_ for _, e_, _ in ertekek)
             mk = ((d.get("meta") or {}).get("kibic") or {})
             helyzet = mk.get("situation") or ("KENYSZER" if len(a.legalis) == 1 else "?")
             ki.append(DontesMeres(tabla=kulcs, ules=a.ules, utes=len(jatszott) // 4 + 1,
@@ -255,8 +271,9 @@ def naplo_meres(sorok: list[dict], dd_fv=None) -> tuple[list[DontesMeres], dict]
                                   legjobb=[] if bizonytalan else legjobb, szabaly=mk.get("rule"),
                                   felvevo_oldal=fo, ido_ms=(d.get("meta") or {}).get("elapsed_ms"),
                                   bizonytalan=bizonytalan,
-                                  veszt_max=max(v for v, _ in ertekek) if bizonytalan else None,
-                                  megallt=mk.get("stopped"), minta=mk.get("samples")))
+                                  veszt_max=max(v for v, _, _ in ertekek) if bizonytalan else None,
+                                  megallt=mk.get("stopped"), minta=mk.get("samples"),
+                                  imp_veszt=min(i for _, _, i in ertekek)))
     return ki, stat
 
 
@@ -372,6 +389,7 @@ def parti_meres(p: Parti, dontes_fv, dd_fv=None, ulesek: set[str] | None = None,
         cel = _cel(k)
         veszt, ered, legjobb = eredmeny_ertekeles(dd, lap, fo, cel)
         e_veszt, e_ered, _ = eredmeny_ertekeles(dd, emberi, fo, cel)
+        beli = p.leosztas.beliallas
         mk = (meta or {}).get("kibic") or {}
         ki.append(DontesMeres(
             tabla=p.azonosito, ules=u, utes=i // 4 + 1,
@@ -379,7 +397,8 @@ def parti_meres(p: Parti, dontes_fv, dd_fv=None, ulesek: set[str] | None = None,
             legjobb=legjobb, szabaly=mk.get("rule"), felvevo_oldal=fo,
             emberi_lap=emberi, emberi_veszt=e_veszt, emberi_eredmeny_veszt=e_ered,
             ido_ms=int((time.time() - t0) * 1000), megallt=mk.get("stopped"),
-            minta=mk.get("samples")))
+            minta=mk.get("samples"), imp_veszt=imp_ertekeles(dd, lap, fo, k, beli),
+            emberi_imp_veszt=imp_ertekeles(dd, emberi, fo, k, beli)))
     return ki
 
 
@@ -392,14 +411,20 @@ def osszesit(meresek: list[DontesMeres]) -> dict:
     def blokk(xs: list[DontesMeres]) -> dict:
         b = {"db": len(xs), "veszt_ossz": sum(x.veszt for x in xs),
              "hibas_lap": sum(1 for x in xs if x.veszt > 0),
-             "eredmeny_veszt": sum(1 for x in xs if x.eredmeny_veszt)}
+             "eredmeny_veszt": sum(1 for x in xs if x.eredmeny_veszt),
+             "imp_ossz": sum(x.imp_veszt or 0 for x in xs)}
         emb = [x for x in xs if x.emberi_veszt is not None]
         if emb:
+            # ki volt a jobb: IMP-ben (ha van), egyenlőségnél ütésben
+            def kulcs(x, ember):
+                return ((x.emberi_imp_veszt if ember else x.imp_veszt) or 0,
+                        x.emberi_veszt if ember else x.veszt)
             b.update({"ember_veszt_ossz": sum(x.emberi_veszt for x in emb),
                       "ember_hibas_lap": sum(1 for x in emb if x.emberi_veszt > 0),
                       "ember_eredmeny_veszt": sum(1 for x in emb if x.emberi_eredmeny_veszt),
-                      "kibic_jobb": sum(1 for x in emb if x.veszt < x.emberi_veszt),
-                      "ember_jobb": sum(1 for x in emb if x.veszt > x.emberi_veszt)})
+                      "ember_imp_ossz": sum(x.emberi_imp_veszt or 0 for x in emb),
+                      "kibic_jobb": sum(1 for x in emb if kulcs(x, False) < kulcs(x, True)),
+                      "ember_jobb": sum(1 for x in emb if kulcs(x, False) > kulcs(x, True))})
         return b
     helyzetek = sorted({x.helyzet for x in meresek})
     return {"osszes": blokk(meresek),
