@@ -94,6 +94,17 @@ def partik_fajlbol(utak: list[str], pontozas: str):
     for ut in utak:
         jatszmak = _pbn_olvas(ut) if ut.lower().endswith(".pbn") else olvas_fajl(ut)
         for n, j in enumerate(jatszmak, 1):
+            if j.leosztas and j.licit and (not j.felvevo or not j.kontraktus):
+                # üres [Declarer]: a felvevő (és a kontraktus) a licitmenetből
+                from ..motor.visszajatszo import licit_ellenoriz
+                try:
+                    k_, f_, _, _ = licit_ellenoriz(j.licit, j.leosztas.oszto)
+                except Exception:                # noqa: BLE001
+                    k_, f_ = None, None
+                if f_ and k_:
+                    j.felvevo = f_
+                    if not j.kontraktus:
+                        j.kontraktus = k_
             if not j.leosztas or not j.kontraktus or not j.felvevo or len(j.lapok) < 2:
                 continue
             k = replace(j.kontraktus, felvevo=j.felvevo)
