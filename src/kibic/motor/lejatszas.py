@@ -33,6 +33,7 @@ jelzésrendszert és a DD-függvényt kívülről kapja (szolgaltatas/atjaro.py)
 """
 from __future__ import annotations
 
+import os
 import random
 import time
 from dataclasses import dataclass, field
@@ -102,6 +103,7 @@ class JatekAllas:
     oszto: str = "N"
     beliallas: str = "NONE"
     partner_szinek: list[str] = field(default_factory=list)   # amit a partner licitált (4+)
+    pontozas: str = "IMP"                   # IMP / MP (a kérés game.scoring-ja)
 
     @property
     def felvevo(self) -> str:
@@ -190,10 +192,20 @@ def allas_keresbol(keres: dict) -> JatekAllas:
         raise LejatszasHiba("A 'legal_actions.cards' üres")
     beli = str((keres.get("game") or {}).get("vulnerability") or "none").upper()
     beli = {"NONE": "NONE", "NS": "NS", "EW": "EW", "BOTH": "ALL", "ALL": "ALL"}.get(beli, "NONE")
+    g = keres.get("game") or {}
     return JatekAllas(ules=ules, kontraktus=k, asztal=asztal, lathato=lathato,
                       lejatszott=lejatszott, legalis=legalis,
                       licitek=list((keres.get("history") or {}).get("auction") or []),
-                      oszto=str(st.get("dealer") or "N").upper()[:1], beliallas=beli)
+                      oszto=str(st.get("dealer") or "N").upper()[:1], beliallas=beli,
+                      pontozas=pontozas_neve(g.get("scoring") or g.get("scoring_type")))
+
+
+def pontozas_neve(x) -> str:
+    """A kérés pontozása -> IMP / MP. Párosverseny (MP, BAM): MP; minden más
+    (IMP, csapat, összpont, ismeretlen): IMP — ott a teljesítés a fő kérdés."""
+    s = str(x or "").upper().replace("-", "_")
+    return "MP" if s in ("MP", "MATCHPOINTS", "MATCHPOINT", "PAIRS", "PAIRS_MP", "BAM",
+                         "TOP", "PAROS") else "IMP"
 
 
 def partner_szinei(allas: JatekAllas, kenyszertar: dict | None = None) -> list[str]:
@@ -747,73 +759,157 @@ class LapStat:
     rossz: float = 0.0          # a minták hányadában veszít legalább egy ütést
     legjobb: float = 0.0        # a minták hányadában (az egyik) legjobb
     osztaly: str = "TALAN"      # JO / TALAN / BIZTOSAN_ROSSZ
+    # a pontozás szerinti várható érték (nagyobb a jobb): IMP-ben a mintán
+    # elérhető legjobbhoz mért IMP-veszteség negatívja, MP-ben (és ha nincs
+    # eredményadat) az átlagos ütés. A `veszt` is ebben az egységben van.
+    ertek: float = 0.0
+
+
+# A minta nagyságát a döntés biztossága szabja meg (2026-10-23): legalább
+# MIN_MINTA, legfeljebb a hívó `db`-je, és közben az időkeret. Megáll, ha a
+# legjobb lap minden más laptól vagy biztosan jobb (a különbség három standard
+# hibán túl), vagy biztosan alig különbözik tőle (BIZTOS_ALIG alatt).
+MIN_MINTA = int(os.getenv("KIBIC_LEJATSZAS_MIN_MINTA", "60"))
+KOTEG = 40
+BIZTOS_ALIG = 0.05
+
+
+class DDGyujto:
+    """
+    A mintánkénti DD-eredmények gyűjtője. Mintánként laponként két szám:
+    az ütés (a mi oldalunké a folytatásban) és a pontozás szerinti érték —
+    IMP-ben: a lapra jutó pontszám IMP-ben mérve az ezen a mintán elérhető
+    legjobbhoz (≤ 0); MP-ben (vagy ha a DD nem ad eredményt): az ütés.
+    """
+
+    def __init__(self, allas: JatekAllas, pontozas: str | None = None):
+        self.allas = allas
+        self.pontozas = pontozas or "UTES"
+        self.lapok = list(allas.legalis)
+        self.mintak: list[tuple[float, dict[Lap, float], dict[Lap, int]]] = []
+        self.fo = vonal(allas.ules) == vonal(allas.felvevo)
+
+    @property
+    def n(self) -> int:
+        return len(self.mintak)
+
+    def hozzaad(self, eredmenyek, w: float = 1.0) -> bool:
+        utes = {lap_drotrol(e.lap): e.utesek for e in eredmenyek}
+        if not utes:
+            return False
+        ertek: dict[Lap, float] = dict(utes)
+        if self.pontozas == "IMP":
+            fo_ut = {lap_drotrol(e.lap): getattr(e, "felvevo_osszesen", None) for e in eredmenyek}
+            if all(v is not None for v in fo_ut.values()):
+                from ..domain.pontozas import imp, pontszam
+                pont = {l: pontszam(self.allas.kontraktus, v, self.allas.beliallas)
+                        for l, v in fo_ut.items()}
+                if not self.fo:
+                    pont = {l: -p for l, p in pont.items()}
+                csucs = max(pont.values())
+                ertek = {l: -imp(csucs - p) for l, p in pont.items()}
+        self.mintak.append((w, ertek, utes))
+        return True
+
+    def _kulonbseg(self, a: Lap, b: Lap) -> tuple[float, float, bool]:
+        """(a−b átlaga, standard hibája, mindig 0-e) a pontozás egységében."""
+        d = [(w, e[a] - e[b]) for w, e, _ in self.mintak if a in e and b in e and w > 0]
+        W = sum(w for w, _ in d)
+        if not d or W <= 0:
+            return 0.0, 0.0, True
+        m = sum(w * x for w, x in d) / W
+        var = sum(w * (x - m) ** 2 for w, x in d) / W
+        n_eff = W * W / sum(w * w for w, _ in d)
+        se = (var / n_eff) ** 0.5 if n_eff > 1 else 0.0
+        return m, se, all(x == 0 for _, x in d)
+
+    def _legjobb(self) -> Lap | None:
+        atlag = {}
+        for l in self.lapok:
+            xs = [(w, e[l]) for w, e, _ in self.mintak if l in e]
+            W = sum(w for w, _ in xs)
+            if W > 0:
+                atlag[l] = sum(w * x for w, x in xs) / W
+        return max(atlag, key=atlag.get) if atlag else None
+
+    def biztos(self) -> bool:
+        """El dőlt-e a döntés: a legjobb mindenkitől biztosan jobb vagy alig különbözik."""
+        a = self._legjobb()
+        if a is None:
+            return False
+        for b in self.lapok:
+            if b == a:
+                continue
+            m, se, nulla = self._kulonbseg(a, b)
+            if nulla or m - 3 * se > 0 or m + 3 * se < BIZTOS_ALIG:
+                continue
+            return False
+        return True
+
+    def stat(self, tures: float = JO_TURES, paros: bool = False) -> dict[Lap, LapStat]:
+        stat = {l: LapStat(l) for l in self.lapok}
+        osszsuly = {l: 0.0 for l in stat}
+        for w, ertek, utes in self.mintak:
+            csucs = max(ertek.values())
+            for l, s in stat.items():
+                if l not in ertek:
+                    continue
+                s.n += 1
+                osszsuly[l] += w
+                s.utes += w * utes[l]
+                s.ertek += w * ertek[l]
+                s.veszt += w * (csucs - ertek[l])
+                s.rossz += w if ertek[l] < csucs else 0
+                s.legjobb += w if ertek[l] == csucs else 0
+        for l, s in stat.items():
+            if s.n and osszsuly[l] > 0:
+                for mezo in ("utes", "ertek", "veszt", "rossz", "legjobb"):
+                    setattr(s, mezo, getattr(s, mezo) / osszsuly[l])
+            elif s.n:
+                s.n = 0
+        if self.mintak:
+            legkisebb = min(s.veszt for s in stat.values() if s.n)
+            elso = min((s for s in stat.values() if s.n), key=lambda s: s.veszt).lap
+            for s in stat.values():
+                hatar = tures
+                if paros and s.n and s.lap != elso:
+                    hatar = max(PAROS_MIN, min(tures, 2 * self._kulonbseg(elso, s.lap)[1]))
+                if not s.n:
+                    s.osztaly = "TALAN"
+                elif s.veszt <= legkisebb + hatar + 1e-9:
+                    s.osztaly = "JO"
+                elif s.rossz >= ROSSZ_ARANY:
+                    s.osztaly = "BIZTOSAN_ROSSZ"
+                else:
+                    s.osztaly = "TALAN"
+        return stat
 
 
 def dd_szuro(allas: JatekAllas, leosztasok: list[Leosztas], dd_fv=None,
              ido_keret_s: float = 6.0, min_minta: int = 6,
              tures: float = JO_TURES,
              sulyok: list[float] | None = None,
-             paros: bool = False) -> tuple[dict[Lap, LapStat], int]:
+             paros: bool = False, pontozas: str | None = None
+             ) -> tuple[dict[Lap, LapStat], int]:
     """
     Laponként összesített DD-eredmény a mintákon. `dd_fv(leosztas, lapok,
     kontraktus)` a solver.dds.lap_elemzes (vagy egy teszt-helyettes).
     Az időkeret lejártával megáll (de legalább `min_minta` mintát megnéz).
     `sulyok`: elosztásonként (a kimerítő mód következtetései); az átlagok
-    ezzel súlyozottak.
+    ezzel súlyozottak. `pontozas`: IMP / MP / None (ütés).
     Visszaadja: ({lap: stat}, a ténylegesen kiértékelt minták száma).
     """
     if dd_fv is None:
         from ..solver.dds import lap_elemzes as dd_fv
     jatszott = [str(l) for _, l in allas.lejatszott]
-    stat = {l: LapStat(l) for l in allas.legalis}
+    gy = DDGyujto(allas, pontozas)
     start = time.time()
-    n = 0
-    osszsuly = {l: 0.0 for l in stat}
-    ertekek: list[tuple[float, dict[Lap, int]]] = []
     for i, lo in enumerate(leosztasok):
         w = sulyok[i] if sulyok and i < len(sulyok) else 1.0
-        if n >= min_minta and time.time() - start > ido_keret_s:
+        if gy.n >= min_minta and time.time() - start > ido_keret_s:
             break
-        ertek = {lap_drotrol(e.lap): e.utesek for e in dd_fv(lo, jatszott, allas.kontraktus)}
-        if not ertek:
-            continue
-        legjobb = max(ertek.values())
-        n += 1
-        ertekek.append((w, ertek))
-        for l, s in stat.items():
-            u = ertek.get(l)
-            if u is None:            # elvileg nem fordul elő: minden szabályos lapot ad
-                continue
-            s.n += 1
-            osszsuly[l] += w
-            s.utes += w * u
-            s.veszt += w * (legjobb - u)
-            s.rossz += w if u < legjobb else 0
-            s.legjobb += w if u == legjobb else 0
-    for l, s in stat.items():
-        if s.n and osszsuly[l] > 0:
-            s.utes /= osszsuly[l]
-            s.veszt /= osszsuly[l]
-            s.rossz /= osszsuly[l]
-            s.legjobb /= osszsuly[l]
-        elif s.n:
-            s.n = 0
-    if n:
-        legkisebb = min(s.veszt for s in stat.values() if s.n)
-        elso = min((s for s in stat.values() if s.n), key=lambda s: s.veszt).lap
-        for s in stat.values():
-            hatar = tures
-            if paros and s.n and s.lap != elso:
-                hatar = max(PAROS_MIN, min(tures, 2 * _paros_hiba(ertekek, elso, s.lap)))
-            if not s.n:
-                s.osztaly = "TALAN"
-            elif s.veszt <= legkisebb + hatar + 1e-9:
-                s.osztaly = "JO"
-            elif s.rossz >= ROSSZ_ARANY:
-                s.osztaly = "BIZTOSAN_ROSSZ"
-            else:
-                s.osztaly = "TALAN"
-    return stat, n
+        gy.hozzaad(dd_fv(lo, jatszott, allas.kontraktus), w)
+    return gy.stat(tures, paros), gy.n
 
 
 def _paros_hiba(ertekek: list[tuple[float, dict]], a: Lap, b: Lap) -> float:
@@ -941,7 +1037,7 @@ def _szin_elsobbseg(allas: JatekAllas, jelzesek, kez: list[Lap], stat) -> Dontes
         return l is not None and (not stat or l not in stat or stat[l].osztaly != "BIZTOSAN_ROSSZ")
 
     def legjobb(lapok):
-        return max(lapok, key=lambda l: (stat[l].utes if stat and l in stat else 0.0,
+        return max(lapok, key=lambda l: (stat[l].ertek if stat and l in stat else 0.0,
                                          len(szinben(l.szin))))
 
     # a kivételek: saját erős szín (szan), saját lopás (szín, rövid aduval)
@@ -1020,8 +1116,8 @@ def dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = N
     legalis = list(allas.legalis)
     jo = _jok(stat, legalis)
 
-    def utes_kulcs(l):                      # a DD-átlag szerint (DD nélkül egyenlők)
-        return stat[l].utes if stat and l in stat else 0.0
+    def utes_kulcs(l):                      # a pontozás szerinti várható érték (DD nélkül egyenlők)
+        return stat[l].ertek if stat and l in stat else 0.0
 
     # FELVEVŐ (vagy az asztal): a DD legjobbja, azonos értékből a legkisebb
     if not allas.vedo:
@@ -1253,6 +1349,8 @@ class Eredmeny:
     tures: float = JO_TURES
     kizart_jatek: int = 0
     leertekelt: dict = field(default_factory=dict)
+    pontozas: str = "IMP"
+    megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -1267,20 +1365,55 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     kimerito, ismeretlen, tures, kizart_jatek, leertekelt = False, 0, JO_TURES, 0, {}
     if not allas.partner_szinek:
         allas.partner_szinek = partner_szinei(allas, kenyszertar)
+    megallt = ""
     try:
-        m = mintavetel(allas, kenyszertar, db=db, mag=mag, max_proba=max(4000, 30 * db),
-                       kovetkeztetes=kovetkeztetes_beallitas(
-                           allas, jelzesek, [u for u in ULESEK if u not in allas.lathato]))
-        lazitott, kimerito, ismeretlen = m.lazitott, m.kimerito, m.ismeretlen
-        kizart_jatek, leertekelt = m.kizart_jatek, dict(m.leertekelt)
-        # a tűrés a bizonytalansággal arányos; kimerítő elemzésnél nincs minta-zaj
-        tures = 0.0 if kimerito else JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
-        if m.leosztasok:
-            stat, n = dd_szuro(allas, m.leosztasok, dd_fv, ido_keret_s=ido_keret_s,
-                               tures=tures, sulyok=m.sulyok or None,
-                               paros=bool(allas.lejatszott))
-            if not n:
-                stat = None
+        if dd_fv is None:
+            from ..solver.dds import lap_elemzes as dd_fv
+        kov = kovetkeztetes_beallitas(allas, jelzesek, [u for u in ULESEK if u not in allas.lathato])
+        jatszott = [str(l) for _, l in allas.lejatszott]
+        gy = DDGyujto(allas, allas.pontozas)
+        # 1. köteg; ha kimerítő, ez az összes elosztás
+        koteg = min(db, KOTEG) if db > MIN_MINTA else db
+        k = 0
+        while True:
+            m = mintavetel(allas, kenyszertar, db=koteg,
+                           mag=None if mag is None else mag + k,
+                           max_proba=max(4000, 30 * koteg), kovetkeztetes=kov)
+            if k == 0:
+                kimerito, ismeretlen = m.kimerito, m.ismeretlen
+                # a tűrés a bizonytalansággal arányos; kimerítő elemzésnél nincs minta-zaj
+                tures = 0.0 if kimerito else JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
+            lazitott = lazitott or m.lazitott
+            kizart_jatek += m.kizart_jatek
+            for kod, x in m.leertekelt.items():
+                leertekelt[kod] = leertekelt.get(kod, 0) + x
+            if not m.leosztasok:
+                megallt = megallt or "ELFOGYOTT"
+                break
+            sulyok = m.sulyok or [1.0] * len(m.leosztasok)
+            ido_le = False
+            for lo, w in zip(m.leosztasok, sulyok):
+                if gy.n >= 6 and time.time() - start > ido_keret_s:
+                    ido_le = True
+                    break
+                gy.hozzaad(dd_fv(lo, jatszott, allas.kontraktus), w)
+            k += 1
+            if kimerito:
+                megallt = "KIMERITO"
+                break
+            if ido_le:
+                megallt = "IDO"
+                break
+            if gy.n >= db:
+                megallt = "MAX"
+                break
+            if gy.n >= MIN_MINTA and gy.biztos():
+                megallt = "BIZTOS"
+                break
+            koteg = min(KOTEG, db - gy.n)
+        n = gy.n
+        if n:
+            stat = gy.stat(tures, paros=bool(allas.lejatszott))
     except ImportError as e:            # nincs DDS (endplay)
         hiba = str(e)
     except LejatszasHiba:
@@ -1290,7 +1423,8 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
         stat = None
     d = dontes(allas, jelzesek, stat)
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
-                    kimerito, ismeretlen, tures, kizart_jatek, leertekelt)
+                    kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
+                    allas.pontozas, megallt)
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -1312,6 +1446,7 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "play_inference_excluded": e.kizart_jatek,
           "inference_weighted": dict(e.leertekelt),
           "tolerance": round(e.tures, 3),
+          "scoring": e.pontozas, "stopped": e.megallt,
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
     if e.stat:
         db = {"JO": 0, "TALAN": 0, "BIZTOSAN_ROSSZ": 0}
@@ -1320,6 +1455,7 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
         ki["classes"] = db
         if reszletes:       # tanító mód: laponként (a kéz lapjai! — élesben nem megy ki)
             ki["cards"] = {str(l): {"class": s.osztaly, "tricks": round(s.utes, 2),
+                                    "value": round(s.ertek, 3),
                                     "loss": round(s.veszt, 2), "worse_share": round(s.rossz, 2)}
                            for l, s in sorted(e.stat.items(), key=lambda x: -x[1].utes)}
     return ki

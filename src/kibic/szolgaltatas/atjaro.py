@@ -558,10 +558,12 @@ def _legkisebb(lapok: list[str]) -> str:
 # A lejátszó réteg időkerete: a határidő ennyied része, legfeljebb ennyi ms.
 LEJATSZAS_MS = int(os.getenv("KIBIC_LEJATSZAS_MS", "10000"))
 LEJATSZAS_ARANY = 0.4
-# legfeljebb ennyi minta; az időkeret dönti el, mennyit néz meg ténylegesen
-# (az elején egy DD-megoldás drága, a végén olcsó). A végjátékban — ha kevés
-# a lehetséges elosztás — MINDET megnézi (kimerítő elemzés).
-LEJATSZAS_MINTA = int(os.getenv("KIBIC_LEJATSZAS_MINTA", "400"))
+# legfeljebb ennyi minta. Hogy ténylegesen mennyit néz meg, azt a döntés
+# biztossága dönti el (2026-10-23): kötegenként sorsol, és megáll, ha a legjobb
+# lap már biztosan jobb (vagy biztosan alig különbözik) — különben az időkeret
+# végéig gondolkodik. A végjátékban — ha kevés a lehetséges elosztás — MINDET
+# megnézi (kimerítő elemzés). Legalább: KIBIC_LEJATSZAS_MIN_MINTA (60).
+LEJATSZAS_MINTA = int(os.getenv("KIBIC_LEJATSZAS_MINTA", "3000"))
 
 
 def _tartalek_play(keres: dict, lapok: list[str], ok: str, start: float) -> dict:
