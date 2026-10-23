@@ -557,7 +557,7 @@ def test_kovetkeztetes_sor_nelkul_nincs(moha):
     assert [k["kovetkeztetes"] for k in szm.kovetkeztetes_sorok] == ["LICIT_KIZARAS"]
     assert not szm.merlegeles_sorok
     assert {k["kovetkeztetes"] for k in moha.kovetkeztetes_sorok} == {
-        "LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "PARTNER_INDITASA", "PARTNER_DOBASA",
+        "LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT", "PARTNER_INDITASA", "PARTNER_DOBASA",
         "LICIT_PONTHATAR", "LICIT_KIZARAS"}
     assert {m["merlegeles"] for m in moha.merlegeles_sorok} == {"ATVETEL", "PARTNER_KERESE"}
 
@@ -945,7 +945,8 @@ def test_aki_mar_megszegte_a_lapmegallapodast():
     a = lj.allas_keresbol(k)
     szab = jelzesek("MOHA_STAND", rendszerek_betolt([JELZESEK]), "ELES")
     kov = lj.kovetkeztetes_beallitas(a, szab, ["N", "S"])
-    assert "S" in kov.nem_kovetett and not (kov.kodok["S"] & set(lj.LAP_KODOK))
+    # csak a megszegett következtetés esik ki (2026-10-23; a többi lapból levont marad)
+    assert "S" in kov.nem_kovetett and "LEGKISEBB_EGYENERTEKU" not in kov.kodok["S"]
     assert kov.kodok["N"] & set(lj.LAP_KODOK)                         # Észak nem szegte meg
 
 
@@ -993,3 +994,124 @@ def test_partner_kerese_turese_a_pontozas_egysegeben():
     assert lj._partnersegben(stat, [A, C5], [A], sor) == [A]
     stat[C5].ertek = -0.2                                 # 0,15 IMP: belefér
     assert lj._partnersegben(stat, [A, C5], [A], sor) == [A, C5]
+
+
+# --- 2026-10-23 (2.): a szín az elemzésé, Smith, a figura sorozat teteje ----------
+
+_DOBAS3 = [("W", "SK"), ("N", "S6"), ("E", "S8"), ("S", "S3"),
+           ("W", "SQ"), ("N", "S7"), ("E", "ST"), ("S", "S4"),
+           ("W", "SJ"), ("N", "SA"), ("E", "CJ"), ("S", "S9")]       # Kelet a ♣B-t dobja
+
+
+def _hand(s):
+    return {Lap.parse(x) for x in s.split()}
+
+
+def test_figura_sorozat_kovetkeztetes():
+    a = lj.allas_keresbol(_keres("W", _DOBAS3, lathato=["W", "N"]))
+    szab = {"E": {"FIGURA_SOROZAT"}}
+    valodi = {u: set(LO.kezek[u].lapok) for u in "NESW"}
+    assert lj.kovetkezetlen_kodok(a, valodi, szab) == set()          # Keletnél ott a ♣10
+    csere = {**valodi, "E": valodi["E"] - _hand("CT") | _hand("C9"),
+             "W": valodi["W"] - _hand("C9") | _hand("CT")}
+    assert lj.kovetkezetlen_kodok(a, csere, szab) == {"FIGURA_SOROZAT"}
+    szingli = {**valodi, "E": valodi["E"] - _hand("CT C5 C3"), "W": valodi["W"] | _hand("CT C5 C3")}
+    assert lj.kovetkezetlen_kodok(a, szingli, szab) == set()        # szingli figura: rendben
+    # részleges tudás: Kelet kezéből csak a letett lapok — a ♣10 helye nem
+    # tudható, nem ellentmondás; ha látjuk máshol, az
+    reszleges = {"W": valodi["W"], "N": valodi["N"], "E": set(a.jatszott("E")), "S": set(a.jatszott("S"))}
+    assert lj.kovetkezetlen_kodok(a, reszleges, szab) == set()
+    reszleges["N"] = reszleges["N"] | _hand("CT")
+    assert lj.kovetkezetlen_kodok(a, reszleges, szab) == set()      # szingli is lehetett
+    reszleges["E"] = reszleges["E"] | _hand("C5")                   # később még treffet tett
+    assert lj.kovetkezetlen_kodok(a, reszleges, szab) == {"FIGURA_SOROZAT"}
+    # a súly: a jelzésrendszer sora szerint leértékel (nem zár ki)
+    kov = lj.Kovetkeztetes(kodok=szab, suly={"FIGURA_SOROZAT": 0.1})
+    w, okok = lj._jatek_suly(a, csere, kov, {})
+    assert w == pytest.approx(0.1) and okok == {"FIGURA_SOROZAT"}
+
+
+def test_figura_sorozat_sajat_jatekban(moha):
+    """A kibic (Nyugat) az asztal ászára KDB-ből figurát tesz: a sorozat tetejét."""
+    play = [("W", "H3"), ("N", "HK"), ("E", "H2"), ("S", "H4"),
+            ("N", "SA"), ("E", "S8"), ("S", "S3")]
+    a = lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
+    SK, SQ, SJ = Lap.parse("SK"), Lap.parse("SQ"), Lap.parse("SJ")
+    stat = {l: lj.LapStat(l, n=40, utes=4.0, ertek=-1.0, osztaly="BIZTOSAN_ROSSZ") for l in a.legalis}
+    for l in (SK, SQ, SJ):
+        stat[l] = lj.LapStat(l, n=40, utes=5.0, ertek=0.0, osztaly="JO")
+    assert lj._sorozat_teteje(SJ, a, list(a.legalis), stat) == SK
+    assert lj.dontes(a, moha, stat).lap == SK
+    stat[SK].ertek = -0.3                                            # ha a K többe kerül: a D
+    assert lj._sorozat_teteje(SJ, a, list(a.legalis), stat) == SQ
+    nem = lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
+    assert lj._sorozat_teteje(Lap.parse("S5"), nem, list(nem.legalis), stat) == Lap.parse("S5")
+
+
+def _hivas_allas():
+    """Nyugat hív a 3. ütésben; a 2. ütés a felvevő első hívása (♥), Kelet ♥2-t adott."""
+    play = [("W", "S5"), ("N", "S6"), ("E", "S8"), ("S", "S9"),
+            ("S", "H4"), ("W", "H8"), ("N", "H5"), ("E", "H2")]
+    return lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
+
+
+def _ertekek(a, ertekek, alap=-2.0):
+    st = {}
+    for l in a.legalis:
+        e = ertekek.get(str(l), alap)
+        st[l] = lj.LapStat(l, n=40, utes=5 + e, ertek=e, osztaly="JO" if e > alap else "BIZTOSAN_ROSSZ")
+    return st
+
+
+def test_hivas_a_szint_az_elemzes_valasztja(moha):
+    a = _hivas_allas()
+    kez = a.lathato["W"]
+    konv = {}
+    for sz in "SHDC":
+        r, _ = moha.indito_lap(lj._lapsor([l for l in kez if l.szin == sz]), a.felvetel, "HIVAS")
+        konv[sz] = Lap(sz, r)
+    # treffben a legjobb lap NEM a megállapodásé; a káró megállapodás-lapja
+    # is jó lap, de 0,2-del rosszabb: a szín a treff, a lap a legjobb treff
+    nem_konv = next(l for l in kez if l.szin == "C" and l != konv["C"])
+    st = _ertekek(a, {str(nem_konv): -0.1, str(konv["C"]): -0.6, str(konv["D"]): -0.3})
+    st[konv["C"]].osztaly = "TALAN"
+    d = lj.dontes(a, moha, st)
+    assert d.lap == nem_konv and "elemzés választotta" in d.indok
+    # ha a két szín gyakorlatilag egyforma, a megállapodás dönt
+    st = _ertekek(a, {str(nem_konv): -0.28, str(konv["C"]): -0.6, str(konv["D"]): -0.3})
+    st[konv["C"]].osztaly = "TALAN"
+    assert lj.dontes(a, moha, st).lap == konv["D"]
+
+
+def test_smith_olvasasa(moha):
+    a = _hivas_allas()
+    assert lj.smith_utes(a) == (1, Lap.parse("H2"))
+    m = lj.mintavetel(a, db=60, mag=2)
+    assert lj.partner_smith(a, moha, m.leosztasok) == "VALT"            # a ♥2: biztosan a legkisebb
+    play = [("W", "S5"), ("N", "S6"), ("E", "S8"), ("S", "S9"),
+            ("S", "H4"), ("W", "H8"), ("N", "HK"), ("E", "H9")]       # nagy lap (kisebbek kint)
+    b = lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
+    m = lj.mintavetel(b, db=60, mag=2)
+    assert lj.partner_smith(b, moha, m.leosztasok) == "FOLYTAT"
+    assert lj.partner_smith(b, None, m.leosztasok) is None
+
+
+def test_smith_szerint_valt_ha_az_elemzes_nem_mond_ellent(moha):
+    a = _hivas_allas()
+    a.partner_smith = "VALT"
+    st = _ertekek(a, {"SQ": -0.1, "SJ": -0.1, "S2": -0.1, "DK": -0.3, "D6": -0.3})
+    d = lj.dontes(a, moha, st)
+    assert d.lap.szin == "D" and "Smith" in d.indok                 # 0,2-del rosszabb: belefér
+    st = _ertekek(a, {"SQ": -0.1, "SJ": -0.1, "S2": -0.1, "DK": -0.6, "D6": -0.6})
+    assert lj.dontes(a, moha, st).lap.szin == "S"                   # 0,5: az elemzés ellentmond
+    a.partner_smith = "FOLYTAT"
+    st = _ertekek(a, {"SQ": -0.3, "SJ": -0.3, "S2": -0.3, "DK": -0.1, "D6": -0.1})
+    assert lj.dontes(a, moha, st).lap.szin == "S"
+
+
+def test_smith_nem_az_utesre_tett_lap(moha):
+    """Ha a partner a felvevő első hívásában ütni próbált, a lapja nem Smith-jel."""
+    play = [("W", "S5"), ("N", "S6"), ("E", "S8"), ("S", "S9"),
+            ("S", "D2"), ("W", "D6"), ("N", "D3"), ("E", "DT")]       # Kelet a ♦10-zel üt
+    a = lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
+    assert lj.smith_utes(a) is None
