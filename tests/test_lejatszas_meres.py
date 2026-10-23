@@ -1,0 +1,142 @@
+"""A lejátszás mérése: lapankénti DD-veszteség a naplóból és valódi partikon."""
+import importlib.util
+import json
+
+import pytest
+
+from kibic.domain import Kontraktus, Lap, Leosztas, kovetkezo_ules
+from kibic.motor import lejatszas_meres as lm
+from kibic.solver.dds import LapErtekeles
+
+VAN_DDS = importlib.util.find_spec("endplay") is not None
+
+# W: KQJ52.873.K6.974 — 3NT, S a felvevő, N az asztal, W indul
+LO = Leosztas.pbn_bol("N:A76.KQ5.AJ43.K82 T8.T962.T98.JT53 943.AJ4.Q752.AQ6 KQJ52.873.K6.974")
+K3NT = Kontraktus(3, "NT", "", "S")
+
+
+def _lejatszas(lo, felvevo, adu, db=52):
+    """Mindenki a legkisebb szabályos lapját teszi."""
+    kez = {u: set(lo.kezek[u].lapok) for u in "NESW"}
+    hivo, ki, utes = kovetkezo_ules(felvevo), [], []
+    u = hivo
+    for _ in range(db):
+        hivott = utes[0][1].szin if utes else None
+        szinben = [l for l in kez[u] if l.szin == hivott]
+        l = min(szinben or kez[u], key=lambda x: (x.rang, x.szin))
+        kez[u].discard(l)
+        utes.append((u, l))
+        ki.append(str(l))
+        if len(utes) == 4:
+            u = lm._nyertes(utes, adu)
+            utes = []
+        else:
+            u = kovetkezo_ules(u)
+    return ki
+
+
+LAPOK = _lejatszas(LO, "S", None)
+PARTI = lm.Parti("proba#1", LO, K3NT, [{"ules": "S", "licit": "3NT"}, {"ules": "W", "licit": "P"},
+                                      {"ules": "N", "licit": "P"}, {"ules": "E", "licit": "P"}],
+                 LAPOK, "IMP", {"N": "a", "E": "b", "S": "c", "W": "d"})
+
+
+def test_ulesek_sorrendben_es_pozicio():
+    ulesek = lm.ulesek_sorrendben([Lap.parse(x) for x in LAPOK], "W", None)
+    assert ulesek[:4] == ["W", "N", "E", "S"]
+    k0 = lm.pozicio_keres(PARTI, 0)
+    assert k0["actor"]["acting_for_seat"] == "W" and set(k0["state"]["visible_hands"]) == {"W"}
+    k1 = lm.pozicio_keres(PARTI, 1)                     # az asztal lapja: a felvevő teszi
+    assert k1["actor"] == {"seat": "S", "acting_for_seat": "N", "is_declarer": True,
+                           "controls_dummy": True}
+    assert set(k1["state"]["visible_hands"]) == {"S", "N"}
+    hivott = LAPOK[0][0]
+    assert all(c[0] == hivott for c in k1["legal_actions"]["cards"])
+    k2 = lm.pozicio_keres(PARTI, 2)                     # védő: a saját keze + az asztal
+    assert k2["actor"]["acting_for_seat"] == "E" and set(k2["state"]["visible_hands"]) == {"E", "N"}
+    assert len(k2["history"]["play"]) == 2
+    from kibic.motor import lejatszas as lj
+    a = lj.allas_keresbol(k2)                           # a lejátszó réteg megérti
+    assert a.ules == "E" and a.vedo
+
+
+def _naplo(ules="W", db=52):
+    """A kibic (W) naplósorai: minden W-lapnál egy kérés, a valódi lappal."""
+    ulesek = lm.ulesek_sorrendben([Lap.parse(x) for x in LAPOK], "W", None)
+    sorok = []
+    for i in range(db):
+        if ulesek[i] != ules:
+            continue
+        k = lm.pozicio_keres(PARTI, i)
+        k["game"]["board_number"] = 7
+        sorok.append({"decision": "play", "request": k, "action": {"card": LAPOK[i]},
+                      "meta": {"kibic": {"situation": "SZINADAS", "rule": None}}})
+    return sorok
+
+
+def test_osztas_visszaallitasa_a_naplobol():
+    sorok = _naplo()
+    o = lm.osztas_kerelmekbol([s["request"] for s in sorok])
+    assert o is not None and all(o.kezek[u].lapok == LO.kezek[u].lapok for u in "NESW")
+    # ha a napló a parti közepén ér véget: több lehetséges kiegészítés
+    reszben = _naplo(db=40)
+    assert lm.osztas_kerelmekbol([s["request"] for s in reszben]) is None
+    assert len(lm.osztasok_kerelmekbol([s["request"] for s in reszben])) > 1
+
+
+def _hamis_dd(rossz: str | None = None):
+    """Hamis DD: minden lap 8 ütés a felvevőnek (bukik); a `rossz` lap 9 (teljesül)."""
+    def fv(lo, jatszott, k):
+        from kibic.domain import Lap as L
+        n = len(jatszott)
+        ulesek = lm.ulesek_sorrendben([L.parse(x) for x in LAPOK], "W", None)
+        if n >= 52:
+            return []
+        u = ulesek[n]
+        kez = {l for l in lo.kezek[u].lapok if str(l) not in set(jatszott)}
+        hivott = L.parse(jatszott[n - n % 4]).szin if n % 4 else None
+        legalis = [l for l in kez if l.szin == hivott] or list(kez)
+        fo = u in ("N", "S")
+        ki = []
+        for l in legalis:
+            felv = 9 if str(l) == rossz else 8
+            ki.append(LapErtekeles(str(l), felv if fo else 13 - felv, felv, True, 0))
+        return ki
+    return fv
+
+
+def test_naplo_meres_hamis_dd():
+    sorok = _naplo()
+    rossz = sorok[2]["action"]["card"]
+    meresek, stat = lm.naplo_meres(sorok, _hamis_dd(rossz))
+    assert stat["visszaallitva"] == 1 and len(meresek) == len(sorok)
+    m = next(x for x in meresek if x.lap == rossz)
+    assert m.veszt == 1 and m.eredmeny_veszt and not m.felvevo_oldal      # 8 -> 9: teljesül
+    assert sum(x.veszt for x in meresek) == 1
+    o = lm.osszesit(meresek)
+    assert o["vedo"]["hibas_lap"] == 1 and o["helyzetenkent"]["SZINADAS"]["eredmeny_veszt"] == 1
+
+
+def test_parti_meres_kibic_es_ember():
+    rossz = LAPOK[0]                                     # az ember indulása "rossz"
+
+    def dontes(keres):                                   # a kibic a legnagyobb szabályos lapot
+        lap = max(keres["legal_actions"]["cards"], key=lambda c: (Lap.parse(c).rang, c))
+        return lap, {"kibic": {"situation": "PROBA"}}
+    m = lm.parti_meres(PARTI, dontes, _hamis_dd(rossz), felvevo_oldal=False, max_dontes=3)
+    assert len(m) == 3 and all(not x.felvevo_oldal for x in m)
+    assert m[0].emberi_lap == rossz and m[0].emberi_veszt == 1
+    assert m[0].veszt == (1 if m[0].lap == rossz else 0)
+    o = lm.osszesit(m)
+    assert o["osszes"]["ember_hibas_lap"] == 1
+
+
+@pytest.mark.skipif(not VAN_DDS, reason="nincs DDS")
+def test_cli_naplo(tmp_path, capsys):
+    from kibic.cli.jatekmeres import main
+    ut = tmp_path / "naplo.jsonl"
+    ut.write_text("".join(json.dumps(s) + "\n" for s in _naplo()), encoding="utf-8")
+    assert main(["--naplo", str(ut), "--reszletes", "--json", str(tmp_path / "m.jsonl")]) == 0
+    ki = capsys.readouterr().out
+    assert "visszaallitva: 1" in ki and "védő" in ki
+    assert (tmp_path / "m.jsonl").read_text(encoding="utf-8").count("\n") == len(_naplo())

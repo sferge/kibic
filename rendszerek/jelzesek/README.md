@@ -246,6 +246,32 @@ DDS nélkül a 3. lépés a szabályos lapok közül választ (a leghosszabb sz�
 a megállapodás lapja). A válasz magyarázata kéz nélküli; a laponkénti
 osztályok csak teszt módban mennek ki (`meta.kibic.debug`).
 
+## Mérés: lapankénti DD-veszteség (2026-10-23)
+
+`python -m kibic.cli.jatekmeres` (`motor/lejatszas_meres.py`) minden
+kijátszott lapról megmondja, hány ütést adott el a lehető legjobbhoz
+képest a valódi lapokkal (double dummy), és hogy elrontotta-e az eredményt
+(teljesítés / bukás — IMP-ben ez fáj).
+
+- **A kibic saját partijai** (a napló, `KIBIC_ATJARO_NAPLO_KERES=1`-gyel):
+  `--naplo kibic-atjaro.jsonl`. Egy leosztás kéréseiből az osztás
+  visszaállítható; ha a napló a parti vége előtt ér véget, a hiányzó lapokat
+  a renonszok szerint minden lehetséges módon kiegészíti, és csak azt
+  számolja, ami mindegyikben ugyanaz (a többi „bizonytalan”, tól–ig).
+- **Mérőpad valódi partikon**: `--lin fájlok…` vagy `--db` (a `jatszma`
+  tábla). A lejátszás minden pontján a kibic ugyanazt látja, mint az ember
+  (ugyanaz az előzmény, a saját keze és az asztal), és a két lapot DD-ben
+  összevetjük: kibic–ember döntésenként. Szűrők: `--jatekos gal` (csak az
+  ő lapjai, felvevőként az asztaléi is), `--oldal felvevo|vedo`,
+  `--max-parti`, `--max-dontes`; sebesség: `--minta` (alap 200), `--ido`,
+  `--parhuzamos N` (N folyamat).
+- Kimenet: összesen / felvevő / védő / helyzetenként (INDITAS, HIVAS,
+  SZINADAS, DOBAS, FELVEVO); `--reszletes`: a legrosszabb döntések;
+  `--json`: minden mérés soronként.
+
+A DD-veszteség FELSŐ korlát (nyílt lapokkal a találgatás is „hiba”), ezért a
+kibic és az ember EGYMÁSHOZ mért eredménye a beszédes.
+
 ## Munkamenet
 
 ```bash
