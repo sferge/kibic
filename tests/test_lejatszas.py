@@ -813,3 +813,84 @@ def test_a_minta_nagysaga_a_dontes_biztossagatol_fugg():
     e = lj.jatek_dontes(a, None, None, fv, ido_keret_s=30, db=400, mag=1)
     assert e.megallt == "MAX" and e.mintak == 400
     assert lj.meta(e)["stopped"] == "MAX" and lj.meta(e)["scoring"] == "IMP"
+
+
+# --- 2026-10-23: építő sorsolás (a színhosszak a licit szerint, pontos arányban) ----
+
+def _hs(szabad, kell, tar=None, renonsz=None, fix=None):
+    rejtett = list(kell)
+    fix = fix or {u: set() for u in rejtett}
+    # a `kell` a fix lapokkal együtt 13: itt a próbában a fix lapok "kitöltők"
+    for u in rejtett:
+        fix[u] = fix.get(u) or {Lap("C", e) for e in "AKQJT98765432"[:13 - kell[u]]}
+    return lj.HosszSorsolo(rejtett, fix, szabad, renonsz or {}, tar or {})
+
+
+def test_epito_sorsolas_pontos_aranyban():
+    import random
+    from collections import Counter
+    szabad = [Lap("S", e) for e in "AKQJ"] + [Lap("H", e) for e in "AK"]
+    h = _hs(szabad, {"N": 3, "S": 3})
+    assert h.ok
+    r = random.Random(7)
+    db = Counter(sum(1 for l in h.sorsol(r)["N"] if l.szin == "S") for _ in range(6000))
+    # C(4,k)·C(2,3-k)/C(6,3): k=1: 0.2, k=2: 0.6, k=3: 0.2
+    for k, p in ((1, 0.2), (2, 0.6), (3, 0.2)):
+        assert abs(db[k] / 6000 - p) < 0.03, db
+
+
+def test_epito_sorsolas_licit_es_renonsz():
+    import random
+    szabad = [Lap("S", e) for e in "AKQJT9"] + [Lap("H", e) for e in "AKQJT9"]
+    ig = Igeret()
+    ig.hossz_min = {"S": 5}
+    h = _hs(szabad, {"N": 6, "S": 6}, tar={"N": ig})
+    r = random.Random(1)
+    assert all(sum(1 for l in h.sorsol(r)["N"] if l.szin == "S") >= 5 for _ in range(200))
+    # renonsz: S nem tud kőrt adni -> minden kőr É-é (6 kőr, É-nek épp 6 hely)
+    h = _hs(szabad, {"N": 6, "S": 6}, renonsz={"S": {"H"}})
+    assert all(all(l.szin == "H" for l in h.sorsol(r)["N"]) for _ in range(50))
+    # teljesíthetetlen: 7 pikk kellene É-nek, de csak 6 van kint
+    ig7 = Igeret()
+    ig7.hossz_min = {"S": 7}
+    assert not _hs(szabad, {"N": 6, "S": 6}, tar={"N": ig7}).ok
+
+
+# --- 2026-10-23: kis lapok összevonása (mintázatok) a kimerítő elemzésben ---------
+
+def test_kis_lap_osztalyok():
+    szabad = [Lap("S", e) for e in "KQ75432"] + [Lap("H", e) for e in "987"]
+    # a látható pikk 6-os szétvágja: {2,3,4,5} és {7} (egyedül nem osztály); a K, D,
+    # a kőr 9-es számít (a határ fölött), a kőr 8-7 egy osztály
+    o = lj.kis_lap_osztalyok(szabad, [Lap("S", "6")], "8")
+    assert [sorted(l.ertek for l in x) for x in o] == [sorted("2345"), sorted("78")]
+    assert lj.kis_lap_osztalyok(szabad, [], "0") == []
+
+
+def test_mintazat_a_valodi_elosztasokat_kepviseli():
+    import random
+    szabad = [Lap("S", e) for e in "AK5432"] + [Lap("H", e) for e in "Q7632"]
+    kell = {"N": 6, "S": 5}
+    renonsz = {"N": set(), "S": set()}
+    pontos = lj._felsorol(["N", "S"], szabad, kell, renonsz, 10 ** 6)
+    o = lj.kis_lap_osztalyok(szabad, [], "8")
+    m = lj._mintazat_felsorol(["N", "S"], szabad, kell, renonsz, o, 10 ** 6, random.Random(3))
+    assert sum(w for _, w in m) == len(pontos) and len(m) < len(pontos) / 3
+    for h, _ in m:                                       # a képviselő érvényes elosztás
+        assert len(h["N"]) == 6 and len(h["S"]) == 5 and set(h["N"]) | set(h["S"]) == set(szabad)
+
+
+def test_szabalyon_beluli_vagy_megmarad(betolto):
+    """Michaels (1♥)–2♥: pikk ÉS (treff VAGY káró) — az unió csak „5 pikk” volt."""
+    from kibic.szolgaltatas.licit import kenyszertar_menetbol
+    tar = kenyszertar_menetbol({"seat": "S", "dealer": "N", "vulnerability": "none",
+                                "auction": [{"seat": "N", "call": "1H"}, {"seat": "E", "call": "2H"}],
+                                "system": "KIBIC_STAND"}, betolto)
+    e = tar["E"]
+    assert e.hossz("S")[0] >= 5 and e.hossz("C") == (0, 13) and e.hossz("D") == (0, 13)
+    agak = [{sz: v.hossz(sz)[0] for sz in "CD"} for g in e.alternativak for v in g]
+    assert {"C": 5, "D": 0} in agak and {"C": 0, "D": 5} in agak
+    # pikk-káró kéz illik, pikk-kőr nem
+    pk = _kezbol("SA SK SQ S5 S4 H3 H2 DA DK DQ D5 D4 C2")
+    ph = _kezbol("SA SK SQ S5 S4 HA HK HQ H5 H4 D2 C3 C2")
+    assert lj._igeret_suly(pk, e) == 1.0 and lj._igeret_suly(ph, e) == 0.0

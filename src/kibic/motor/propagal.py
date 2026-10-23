@@ -116,6 +116,9 @@ def alkalmaz(ig: Igeret, jelentes: dict,
                 for a in alternativak]
         egyesitett = egyesit(agak)
         egyesitett.nyilatkozott = True
+        # a lejátszás mintavételének (2026-10-23): az ágak MEGMARADNAK — a kéznek
+        # legalább egyet ki kell elégítenie (Michaels: pikk és treff VAGY káró)
+        egyesitett.alternativak = list(ig.alternativak) + [agak]
         maradek = {k: v for k, v in jelentes.items() if k != "vagy"}
         return alkalmaz(egyesitett, maradek, kotesek, paramtar, allas) \
             if maradek else egyesitett
@@ -627,9 +630,10 @@ class Propagalo:
                 er.kenyszertar[partner].gemforsz = True
             _osszefesul(er.kenyszertar[u], uj)
             if len(valtozatok) > 1:
-                er.kenyszertar[u].alternativak.append(
-                    [Igeret(**{k: deepcopy(v) for k, v in vars(x).items() if k != "alternativak"})
-                     for x in valtozatok])
+                # a változatok a saját (szabályon belüli `vagy:`) ágaikkal együtt
+                er.kenyszertar[u].alternativak.append([deepcopy(x) for x in valtozatok])
+            elif valtozatok and valtozatok[0].alternativak:
+                er.kenyszertar[u].alternativak.extend(deepcopy(valtozatok[0].alternativak))
             if er.kenyszertar[u].ellentmondas:
                 er.ellentmondas.append(f"{u}:{licit}")
             elif kovetkeztet:
