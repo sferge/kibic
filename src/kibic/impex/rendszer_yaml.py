@@ -909,6 +909,8 @@ def _ha_fa(ha, hely: str) -> dict | None:
             gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "partner_negyedik":      # a partner utolsó licitje a negyedik szín
             n = {"t": "PARTNER_NEGYEDIK"}
+            if isinstance(v, dict) and "szint" in v:   # {szint: 3}: ezen a szinten
+                n["szint"] = int(v["szint"])
             gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "ugras":                 # a licit ugrás-e (nem a legolcsóbb szinten)
             n = {"t": "UGRAS"}

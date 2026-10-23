@@ -384,7 +384,8 @@ SZLEM_MENET = ["1H", "P", "1S", "P", "3H", "P", "3S", "P", "4D", "P", "4NT", "P"
 
 @pytest.mark.parametrize("kez, vart", [
     ("AKJ32.Q2.K32.AQ2", "6C"),       # 19 + 16 = 35, a felső 36: kulcslicit tovább (♣A)
-    ("AKT32.Q2.K32.AJ2", "6H"),       # 17 + 16 = 33, a nagyszlem nem jön szóba: 6♥
+    ("AKT32.Q2.K32.AJ2", "6C"),       # 17 + 19 = 36 (a 3♥ 17-19, 2026-10-23): kulcslicit tovább
+    ("AKT32.Q2.K32.Q32", "6H"),       # 14 + 19 = 33, a nagyszlem nem jön szóba: 6♥
 ])
 def test_szin_szlem_a_gem_folott(kibic_stand, kez, vart):
     v = _licit(kibic_stand.sorok, _pbn(kez), SZLEM_MENET)
@@ -406,12 +407,12 @@ def test_szin_szlem_parosversenyen_dd_dont():
     er = prop.kenyszertar(lic, oszto="N")
     allas = Allas(ules="S", licitek=lic, oszto="N", kenyszertar=er.kenyszertar)
     kerdes = []
-    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.AJ2"), allas, prop, lic, "S", "N",
+    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.Q32"), allas, prop, lic, "S", "N",
               ["P", "5S", "5NT", "6C", "6D", "6H", "6S", "6NT"],
               vegkontraktus=lambda hiv: (kerdes.append(hiv) or {"best": "6NT", "options": {}}),
               pontozas="MP").dont()
     assert h.licit == "6NT" and kerdes == [["6H", "6NT"]]
-    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.AJ2"), allas, prop, lic, "S", "N",
+    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.Q32"), allas, prop, lic, "S", "N",
               ["P", "5S", "5NT", "6C", "6D", "6H", "6S", "6NT"],
               vegkontraktus=lambda hiv: {"best": "6NT"}, pontozas="IMP").dont()
     assert h.licit == "6H"                  # csapatversenyen a biztosabb adu

@@ -268,6 +268,13 @@ class Hezag:
         konkret = [s for s, _ in lista if getattr(s, "szabaly_fajta", "SZABALY") != "ELV"]
         return bool(fk) and not konkret
 
+    def _vonal_mondta(self, sz: str) -> bool:
+        """A vonalunk mondta-e már a színt (bármikor)."""
+        from ..domain import vonal
+        return any(vonal(e.get("ules")) == vonal(self.ules)
+                   and str(e.get("licit", "")).upper()[1:] == sz
+                   and str(e.get("licit", ""))[:1].isdigit() for e in self.licitek)
+
     def _mondtuk_korabban(self, sz: str) -> bool:
         """A vonalunk a partner utolsó licitje ELŐTT mondta-e már (természetesen) a színt."""
         from ..domain import vonal
@@ -591,6 +598,12 @@ class Hezag:
                     continue
                 if any(self.kez.hossz(sz) < ig.hossz(sz)[0] - 1 or
                        self.kez.hossz(sz) > ig.hossz(sz)[1] + 1 for sz in SZINEK):
+                    continue
+                # az ÚJ szín (a vonalunk még nem mondta) ígért hosszából nincs
+                # tűrés: 3 lappal nem mondunk 4+ lapot ígérő új színt
+                # (2026-10-23, #254); a támogatásra/preferenciára marad a tűrés
+                if h[1:] in SZINEK and self.kez.hossz(h[1:]) < ig.hossz(h[1:])[0] \
+                        and not self._vonal_mondta(h[1:]):
                     continue
                 # a fogás-ígéretnek nincs tűrése: hamis fogást nem mutatunk
                 # (2026-10-05, FOGASMUTATAS: a 3♥ = fogás a kőrben)

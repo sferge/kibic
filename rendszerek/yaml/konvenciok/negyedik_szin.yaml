@@ -43,9 +43,31 @@ fejezetek:
       - {minta: ".. nA +B", kulcs: NEGYEDIK-TAMOGAT-4, fajta: ELV, prioritas: 6,
          ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 4}}, kulonbozo: [A, B], hossz: {B: 4+},
          magyarazat: "Lapleírás: 4 lapos támogatás a partner színéhez"}
+      # A szan-válasz a TELJES laperőt mutatja (a szerkesztő, 2026-10-23):
+      # * ha a legolcsóbb szan 3NT alatt van, és gémforszban vagyunk, a
+      #   szanban is gyors-lassú: a legolcsóbb (2NT) = plusz erő, az ugrás a
+      #   3NT-be = minimum fogással;
+      # * ha a legolcsóbb szan a 3NT: 3NT = az ígért sáv alja (12-15, rossz
+      #   16), 4NT = a teteje (16, rossz 17), limitemelés, nem kényszerít.
       - {minta: ".. nA +NT", kulcs: NEGYEDIK-SZAN, fajta: ELV, prioritas: 5,
          ha: {adu: nincs, partner_negyedik: true}, fogas: [A],
          magyarazat: "Lapleírás: fogás a negyedik színben"}
+      - {minta: ".. nA 2NT", kulcs: NEGYEDIK-SZAN-LASSU, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: true, gemforsz: true}, fogas: [A],
+         igeret: {pont: felso},
+         magyarazat: "Lapleírás: fogás a negyedik színben, plusz erő (lassú)"}
+      - {minta: ".. nA 3NT", kulcs: NEGYEDIK-SZAN-GYORS, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: true, gemforsz: true, ugras: true}, fogas: [A],
+         igeret: {pont: also},
+         magyarazat: "Lapleírás: fogás a negyedik színben, minimum (gyors)"}
+      - {minta: ".. nA 3NT", kulcs: NEGYEDIK-SZAN-3NT, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: true, ugras: false}, fogas: [A],
+         igeret: {pont: also, hatar: 0.75},
+         magyarazat: "Lapleírás: fogás a negyedik színben, az ígért sáv alsó része"}
+      - {minta: ".. nA 4NT", kulcs: NEGYEDIK-SZAN-4NT, fajta: ELV, prioritas: 6,
+         ha: {adu: nincs, partner_negyedik: {szint: 3}, ugras: true},
+         fogas: [A], igeret: {pont: felso, hatar: 0.75},
+         magyarazat: "Lapleírás: fogás a negyedik színben, az ígért sáv teteje — limitemelés, nem kényszerít"}
       - {minta: ".. nA +E", kulcs: NEGYEDIK-SAJAT, fajta: ELV, prioritas: 4,
          ha: {adu: nincs, partner_negyedik: true, en_mondtam: E}, kulonbozo: [A, E], hossz: {E: 6+},
          magyarazat: "Lapleírás: a saját színem 6+ lapos"}

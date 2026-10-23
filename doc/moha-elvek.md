@@ -658,3 +658,17 @@ Gépben: `motor/spiral.py`, teszt: `tests/test_spiral_4nt.py`.
 ### NYITOTT ötlet: kérdezés minorban, szlem nemesben
 
 Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani, például ha a kérdező lapjánál a ♣K vagy a ♦K különösen fontos. Ehhez a kulcslap-kérdés után a végső színt külön lépésnek kellene választania: a legjobb ismert fitet (8+ lapos nemes fit esetén a nemest), nem automatikusan a kérdezett minort. A szerkesztő példákat keres rá.
+
+## Ki kérdezhet a 3NT után, a nyitó második licitje, a negyedik színre adott szan — 2026-10-23
+
+- **A hézag-elv** (a tartalék döntés, amikor egyik szabály sem illik a lapra) nem választ mesterséges (alertos) licitet. Ilyet csak a szabály adhat, a teljes feltételével, mert a partner a megállapodás szerint érti (#48: a 4♦ ORKC volt, #138: a 4♣ splinter).
+- **3NT után 4m (ORKC):** az kérdezhet, akinek a saját pontjaival a partner ígért *alsó* határával számolva sem kockázatos az 5m (27+), a *felső* határával számolva pedig szlemerő jön ki (31+).
+- **A nyitó egyszerű új színe** (nem riverz) 1-re 1 vagy 1NT válasz után: 12–16 pont (rossz 17). (A saját szín egyszerű ismétlésének sávja nem változott: NYITOTT.)
+- **A nyitó ugró új színe** (nem riverz), ahol az egyszerű új szín nem kényszerítene: 17–19 pont, limitált. 5-5-tel jó 16 is, ha legfeljebb 5 vesztő van.
+- **A nyitó ugrása a saját színében** (második licitként): 17–19 pont, limitált, jó 6+ színnel (szinglivel is játszható: legfeljebb 1 vesztő a színben).
+- **A negyedik színre a válaszoló a teljes laperejét mutatja:**
+  - Ha a legolcsóbb szan 3NT alatt van, és gémforszban vagyunk: a 2NT plusz erő (lassú), az ugrás a 3NT-be minimum (gyors).
+  - Ha a legolcsóbb szan a 3NT: a 3NT az ígért sáv alja (12–15, rossz 16), a 4NT a teteje (16, rossz 17), limitemelés, nem kényszerít.
+  - Színnel az ugrás a minimum (szlemérdek nélkül), de csak tudott 8+ lapos fittel (minorban 9+); különben a legolcsóbb színlicit jön.
+
+Teszt: `tests/test_szerkeszto_2026_10_23.py`.
