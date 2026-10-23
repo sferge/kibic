@@ -296,7 +296,14 @@ képest a valódi lapokkal (double dummy), és hogy elrontotta-e az eredményt
   összevetjük: kibic–ember döntésenként. Szűrők: `--jatekos gal` (csak az
   ő lapjai, felvevőként az asztaléi is), `--oldal felvevo|vedo`,
   `--max-parti`, `--max-dontes`; sebesség: `--minta` (alap 200), `--ido`,
-  `--parhuzamos N` (N folyamat).
+  `--parhuzamos N` (N folyamat; legfeljebb a valódi magok száma).
+- **Ismételhetőség**: `--mag 1`-gyel két futás lapra pontosan ugyanazt adja,
+  akárhány folyamattal. Ilyenkor a döntés a minta számán (`--minta`) és a
+  biztonságon áll meg, nem az időn: az idő a gép terhelésétől függne. Az
+  időkorlát (`--ido` legalább 120 mp, a licit-következtetés 300 mp) csak
+  biztonsági határ; `--idokorlat` visszaállítja az élő asztal korlátait.
+  A `--json` soraiban a `megallt` (BIZTOS / MAX / KIMERITO / IDO …) és a
+  `minta` mutatja, mi állította meg a mintavételt.
 - Kimenet: összesen / felvevő / védő / helyzetenként (INDITAS, HIVAS,
   SZINADAS, DOBAS, FELVEVO); `--reszletes`: a legrosszabb döntések;
   `--json`: minden mérés soronként.

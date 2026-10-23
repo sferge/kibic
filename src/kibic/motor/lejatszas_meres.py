@@ -55,6 +55,8 @@ class DontesMeres:
     # `veszt`..`veszt_max` között van — ez nem számít az összesítésbe
     bizonytalan: bool = False
     veszt_max: int | None = None
+    megallt: str | None = None      # a mintavétel miért állt meg (BIZTOS / IDO / MAX / KIMERITO …)
+    minta: int | None = None        # ennyi mintán döntött
 
     def szotar(self) -> dict:
         return asdict(self)
@@ -253,7 +255,8 @@ def naplo_meres(sorok: list[dict], dd_fv=None) -> tuple[list[DontesMeres], dict]
                                   legjobb=[] if bizonytalan else legjobb, szabaly=mk.get("rule"),
                                   felvevo_oldal=fo, ido_ms=(d.get("meta") or {}).get("elapsed_ms"),
                                   bizonytalan=bizonytalan,
-                                  veszt_max=max(v for v, _ in ertekek) if bizonytalan else None))
+                                  veszt_max=max(v for v, _ in ertekek) if bizonytalan else None,
+                                  megallt=mk.get("stopped"), minta=mk.get("samples")))
     return ki, stat
 
 
@@ -375,7 +378,8 @@ def parti_meres(p: Parti, dontes_fv, dd_fv=None, ulesek: set[str] | None = None,
             helyzet=mk.get("situation") or "?", lap=lap, veszt=veszt, eredmeny_veszt=ered,
             legjobb=legjobb, szabaly=mk.get("rule"), felvevo_oldal=fo,
             emberi_lap=emberi, emberi_veszt=e_veszt, emberi_eredmeny_veszt=e_ered,
-            ido_ms=int((time.time() - t0) * 1000)))
+            ido_ms=int((time.time() - t0) * 1000), megallt=mk.get("stopped"),
+            minta=mk.get("samples")))
     return ki
 
 

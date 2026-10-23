@@ -30,6 +30,12 @@ GYOKER = Path(__file__).resolve().parents[3]
 
 # --- a kibic döntése a YAML-ból (mint a jatekelemzes) ---------------------------------
 
+# --mag mellett az idő nem lehet döntő: a terheléstől (16 párhuzamos folyamat, a
+# processzor órajele) függne, hány minta fér bele, és két futás eltérne.
+PONTOS_IDO_S = 120
+PONTOS_KOVETKEZTETES_MS = 300_000
+
+
 def yaml_dontes(rendszer: str, ido_s: float, minta: int, kovetkeztetes_ms: int = 15000,
                 mag: int | None = None):
     from ..motor import lejatszas as lj
@@ -200,6 +206,7 @@ def jelentes(meresek, stat: dict | None = None, reszletes: bool = False) -> str:
         fej += f" │{'EMBER v/l':>9}{'hibás':>9}{'eredm.':>8} │{'kibic+':>7}{'ember+':>7}"
     ki += ["", "KIBIC" + (" " * 40 + "EMBER (ugyanott)" if emberrel else ""), fej]
     ki.append(_sor("összesen", o["osszes"]))
+    idore = sum(1 for m in meresek if m.megallt == "IDO")
     ki.append(_sor("felvevő", o["felvevo"]))
     ki.append(_sor("védő", o["vedo"]))
     ki.append("")
@@ -209,6 +216,9 @@ def jelentes(meresek, stat: dict | None = None, reszletes: bool = False) -> str:
                "ütést; eredm.: ennyi lap rontotta el a teljesítést / buktatást (IMP-ben ez fáj)."]
     if emberrel:
         ki.append("kibic+ / ember+: ennyi helyzetben vesztett kevesebbet a kibic / az ember.")
+    if idore:
+        ki.append(f"{idore} döntés az időkorlátnál állt meg: ezek a gép terhelésétől függnek, "
+                  "két futás itt eltérhet.")
     if reszletes:
         bizt = [m for m in meresek if m.bizonytalan and (m.veszt_max or 0) > 0]
         if bizt:
@@ -245,10 +255,15 @@ def main(argv=None) -> int:
     ap.add_argument("--rendszer", default="KIBIC_STAND", help="licit- és jelzésrendszer (YAML)")
     ap.add_argument("--pontozas", choices=["IMP", "MP"], default="IMP")
     ap.add_argument("--minta", type=int, default=200, help="minta döntésenként (alap 200)")
-    ap.add_argument("--ido", type=float, default=4.0, help="időkeret döntésenként, mp")
+    ap.add_argument("--ido", type=float, default=4.0,
+                    help="időkeret döntésenként, mp (--mag mellett: legalább %d)" % PONTOS_IDO_S)
     ap.add_argument("--kovetkeztetes-ms", type=int, default=15000,
                     help="a licit kizárásos következtetésének ideje leosztásonként (alap 15000; 0: ki)")
-    ap.add_argument("--mag", type=int, help="véletlen mag: ugyanaz a futás ugyanazt adja")
+    ap.add_argument("--mag", type=int,
+                    help="véletlen mag: ugyanaz a futás ugyanazt adja (az időkorlát ilyenkor "
+                         "csak biztonsági felső határ, a döntés a minta számán áll meg)")
+    ap.add_argument("--idokorlat", action="store_true",
+                    help="--mag mellett is a valódi időkorlátokkal (mint az élő asztalon)")
     ap.add_argument("--max-parti", type=int)
     ap.add_argument("--max-dontes", type=int, help="partinként legfeljebb ennyi döntés")
     ap.add_argument("--parhuzamos", type=int, default=1,
@@ -263,6 +278,9 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     from ..motor import lejatszas_meres as lm
 
+    if a.mag is not None and not a.idokorlat:
+        a.ido = max(a.ido, PONTOS_IDO_S)
+        a.kovetkeztetes_ms = max(a.kovetkeztetes_ms, PONTOS_KOVETKEZTETES_MS) if a.kovetkeztetes_ms else 0
     if a.naplo:
         sorok = []
         with open(a.naplo, encoding="utf-8") as f:
