@@ -117,6 +117,15 @@ fejezetek:
         szoveg: >-
           Negyedik kézben a legolcsóbb nyerő lappal ütünk — ha a partner
           negyedikként nagyobbal ütött, kisebb nyerő lapja nem volt.
+      - kovetkeztetes: FIGURA_SOROZAT
+        kitol: [ELLENJATEKOSOK]
+        sajat: true
+        suly: 0.1
+        szoveg: >-
+          A nem ütésre tett figura (Á, K, D, B) — amit aláteszünk vagy
+          dobunk — zárt sorozat teteje, vagy abban a színben az egyetlen
+          lapunk: a partner ászára tett D a B-t ígéri (DB, vagy szingli D),
+          a dobott K a D-t. A kibic maga is így teszi (DB-ből a D-t).
       # mérlegelés: ahol a DD vak, mert a partnert is mindentudónak hiszi
       - merlegeles: ATVETEL
         szoveg: >-
@@ -128,7 +137,9 @@ fejezetek:
         szoveg: >-
           A partnerség kedvéért: a partner első dobással kért színét hívjuk
           menet közben, és ütést is veszünk érte (lopunk, átvesszük az
-          ütését), hogy mi hívhassuk — akkor is, ha az elemzés szerint ez
+          ütését), hogy mi hívhassuk; a Smith-jele szerint (kis lap: „van
+          jobb ötletem”) váltunk, nagy lappal folytatjuk az indítás
+          színét — akkor is, ha az elemzés szerint ez
           legfeljebb a tűréssel rosszabb (átlagosan; IMP-ben negyed IMP-vel,
           MP-ben negyed ütéssel). A partner a saját
           lapját ismeri; a kérése többet tud, mint a mi becslésünk.

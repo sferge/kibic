@@ -191,8 +191,11 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    `SAJAT_EROS_SZIN` (szan ellen 5+ lap, 2+ figura, köztük Á vagy K),
    `LOPAS` (szín ellen saját szingli, 1-3 aduval); a lap a színen belül a
    megállapodásé, a DD csak a biztosan rosszat vétózza;
-   *menet közbeni hívásnál* színenként a megállapodás lapja a jó lapok
-   közül; ha a megállapodás lapja nem jó, a legjobb lap. *Színadásnál* a rács első jele: kérés (van-e figuránk a
+   *menet közbeni hívásnál* a SZÍNT az elemzés választja (2026-10-23, a
+   szerkesztő döntése): a színek a legjobb lapjuk értéke szerint; a
+   megállapodás csak a színen belül dönt a lapról (ha az jó lap; ha nem, a
+   szín legjobb lapja), és színt csak a gyakorlatilag egyforma (0,05-ön
+   belüli) színek közül választhat. *Színadásnál* a rács első jele: kérés (van-e figuránk a
    színben), lapszám / maradék lapszám (a módszer szerint páros-páratlan),
    Smith (a felvevő első hívásában; tetszik-e az indulás) — magas vagy
    alacsony lap a jók közül. A „magas” a legnagyobb NÉLKÜLÖZHETŐ (figura nem,
@@ -208,7 +211,10 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    átvesszük (ha ez semmibe sem kerül), és mi folytatunk;
    `PARTNER_KERESE` (`tures: 0.25`) — a partnerség kedvéért: a partner első
    dobással kért színét hívjuk menet közben, és ütést is veszünk érte
-   (lopunk, átvesszük az ütését), hogy mi hívhassuk — akkor is, ha az elemzés
+   (lopunk, átvesszük az ütését), hogy mi hívhassuk; a partner SMITH-jele
+   szerint (a felvevő első hívásában, ha nem ütni próbált; hogy a lapja kicsi
+   vagy nagy volt, a mintákból becsüljük — a minták 65%-ában) váltunk, illetve
+   folytatjuk az indítás színét — akkor is, ha az elemzés
    átlaga szerint ez legfeljebb a tűréssel rosszabb — a pontozás egységében:
    IMP-ben 0,25 IMP, MP-ben negyed ütés (egy „alig” kevesebb ütés is
    elbuktathatja a felvételt); a biztosan rossz lapot soha. A többi mérlegelő elv még csak szöveg.
@@ -222,7 +228,16 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
 - kovetkeztetes: LEGOLCSOBB_NYERO        # 4. kézben a legolcsóbb nyerő lap
   kitol: [ELLENJATEKOSOK]
   sajat: true
+- kovetkeztetes: FIGURA_SOROZAT          # a nem ütésre tett (dobott) Á/K/D/B zárt sorozat
+  kitol: [ELLENJATEKOSOK]                # teteje (nála a következő kint lévő lap), vagy szingli:
+  sajat: true                            # a partner ászára a D: DB vagy szingli D
+  suly: 0.1
 ```
+
+A `FIGURA_SOROZAT` (2026-10-23) súlyoz (alapból 0,1): a jelzés téves is
+lehet. A kibic maga is így tesz: ha nem ütésre tesz figurát, a sorozata
+tetejét (ha az elemzés szerint ugyanannyit ér). Aki egy lap-megállapodást
+már megszegett, arra csak az a következtetés nem él.
 
 Akinek a lapjaiból következtetünk, annak az ennek ellentmondó elosztásai
 kiesnek a mintából (ha marad elosztás). A Moha a felvevőéből nem következtet

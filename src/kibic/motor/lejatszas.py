@@ -104,6 +104,7 @@ class JatekAllas:
     beliallas: str = "NONE"
     partner_szinek: list[str] = field(default_factory=list)   # amit a partner licitált (4+)
     pontozas: str = "IMP"                   # IMP / MP (a kérés game.scoring-ja)
+    partner_smith: str | None = None        # a partner Smith-jele: VALT / FOLYTAT (a mintákból)
 
     @property
     def felvevo(self) -> str:
@@ -332,8 +333,8 @@ def kovetkeztetes_szabalyai(allas: JatekAllas, jelzesek, rejtett: list[str]) -> 
     return ki
 
 
-def kovetkezetlen(allas: JatekAllas, eredeti: dict[str, set[Lap]],
-                  szabalyok: dict[str, set[str]]) -> str | None:
+def _ellentmondasok(allas: JatekAllas, eredeti: dict[str, set[Lap]],
+                    szabalyok: dict[str, set[str]]):
     """
     KÖVETKEZTETÉS AZ ELLENJÁTÉKOS lapjaiból (2026-10-21). Az ellenjátékos a
     partnerét segíti, ezért (a felvevővel ellentétben) a lapja beszél:
@@ -343,21 +344,25 @@ def kovetkezetlen(allas: JatekAllas, eredeti: dict[str, set[Lap]],
         kisebb, vele egyenértékű lap (KD-ből a D-t teszi; ha a K-t tette, nincs
         nála a D);
       * NEGYEDIK KÉZBEN A LEGOLCSÓBB NYERŐ LAP: ha negyedikként vitte, nem volt
-        nála kisebb lap, amely szintén vitte volna.
+        nála kisebb lap, amely szintén vitte volna;
+      * a NEM ÜTÉSRE TETT FIGURA (2026-10-23, FIGURA_SOROZAT): ha az Á, K, D
+        vagy B nem veri az előtte tetteket (aláteszi, vagy dobja), zárt sorozat
+        teteje — nála van a következő, még kint lévő kisebb lap —, vagy abban a
+        színben az egyetlen lapja volt (szingli). A partner ászára tett D: DB
+        vagy szingli D; a dobott K: KD.
 
-    `ulesek`: akiknek a lapjaiból következtetünk — csak ellenjátékosok (a
-    felvevő hamis lapja „a legolcsóbb trükk”, abból nem következtetünk).
-    Visszaadja az első ellentmondás leírását, vagy None-t; a hívó csak akkor
-    zár ki, ha marad elosztás (az ellenjátékos is tévedhet).
+    Sorra adja az ellentmondásokat: (kód, leírás). `eredeti` lehet részleges
+    is (a rejtett kéznek csak a letett lapjai): a FIGURA_SOROZAT csak akkor
+    ellentmondás, ha a következő lap BIZONYOSAN máshol van.
     """
     adu = allas.adu
     lement: set[Lap] = set()
     for utes in allas.utesek:
         elotte: list[Lap] = []
         for poz, (u, x) in enumerate(utes):
+            kodok = szabalyok.get(u) or set()
             # csak harmadik és negyedik kézben: a hívó lapja a hívási megállapodás
             # (sorozat teteje), a második kéz lapja jelzés (lapszám) lehet
-            kodok = szabalyok.get(u) or set()
             if poz >= 2 and kodok and _uti(x, elotte, adu):
                 kez_akkor = eredeti[u] - lement
                 for y in kez_akkor:
@@ -365,15 +370,40 @@ def kovetkezetlen(allas: JatekAllas, eredeti: dict[str, set[Lap]],
                         continue
                     if "LEGKISEBB_EGYENERTEKU" in kodok and \
                             _egyenerteku(x, y, kez_akkor, lement | set(elotte)):
-                        return f"{u} a(z) {x}-t tette, pedig nála volt az egyenértékű {y}"
+                        yield ("LEGKISEBB_EGYENERTEKU",
+                               f"{u} a(z) {x}-t tette, pedig nála volt az egyenértékű {y}")
                     if "LEGOLCSOBB_NYERO" in kodok and poz == 3 and len(utes) == 4:
-                        return f"{u} negyedikként a(z) {x}-vel vitte, pedig a(z) {y} is vitte volna"
+                        yield ("LEGOLCSOBB_NYERO",
+                               f"{u} negyedikként a(z) {x}-vel vitte, pedig a(z) {y} is vitte volna")
+            if poz >= 1 and "FIGURA_SOROZAT" in kodok and x.ertek in FIGURAK \
+                    and not _uti(x, elotte, adu):
+                szinben = [y for y in eredeti[u] - lement if y.szin == x.szin]
+                kint = lement | set(elotte)
+                kovetkezo = max((Lap(x.szin, e) for e in LAPOK
+                                 if Lap(x.szin, e).rang < x.rang and Lap(x.szin, e) not in kint),
+                                key=lambda l: l.rang, default=None)
+                if len(szinben) >= 2 and kovetkezo is not None and kovetkezo not in eredeti[u] \
+                        and any(kovetkezo in eredeti[v] for v in eredeti if v != u):
+                    yield ("FIGURA_SOROZAT",
+                           f"{u} a(z) {x}-t nem ütésre tette, de a(z) {kovetkezo} nem nála volt")
             elotte.append(x)
         lement |= {l for _, l in utes}
-    return None
 
 
-LAP_KODOK = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO")
+def kovetkezetlen(allas: JatekAllas, eredeti: dict[str, set[Lap]],
+                  szabalyok: dict[str, set[str]]) -> str | None:
+    """Az első ellentmondás leírása (lásd `_ellentmondasok`), vagy None; a hívó
+    csak akkor zár ki, ha marad elosztás (az ellenjátékos is tévedhet)."""
+    return next((leiras for _, leiras in _ellentmondasok(allas, eredeti, szabalyok)), None)
+
+
+def kovetkezetlen_kodok(allas: JatekAllas, eredeti: dict[str, set[Lap]],
+                        szabalyok: dict[str, set[str]]) -> set[str]:
+    """Mely következtetéseknek mond ellent az elosztás."""
+    return {kod for kod, _ in _ellentmondasok(allas, eredeti, szabalyok)}
+
+
+LAP_KODOK = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT")
 FIGURA_ERO = set("AKQ")
 
 
@@ -419,8 +449,9 @@ def kovetkeztetes_beallitas(allas: JatekAllas, jelzesek, rejtett: list[str],
               for u in ULESEK}
     for u in list(kov.kodok):
         lapkod = kov.kodok[u] & set(LAP_KODOK)
-        if lapkod and kovetkezetlen(allas, ismert, {u: lapkod}):
-            kov.kodok[u] -= lapkod
+        megszegett = kovetkezetlen_kodok(allas, ismert, {u: lapkod}) if lapkod else set()
+        if megszegett:
+            kov.kodok[u] -= megszegett
             kov.nem_kovetett.add(u)
     return kov
 
@@ -607,9 +638,10 @@ def _jatek_suly(allas: JatekAllas, eredeti: dict[str, set[Lap]], kov: Kovetkezte
                 w *= (1 + kov.suly.get("LICIT_KIZARAS", 0.2)) / 2
                 okok.add("LICIT_KIZARAS")
     lap = {u: k & set(LAP_KODOK) for u, k in kov.kodok.items() if k & set(LAP_KODOK)}
-    if lap and kovetkezetlen(allas, eredeti, lap):
-        w *= min(kov.suly.get(k, 0.0) for kk in lap.values() for k in kk)
-        okok.add("LAP")
+    if lap:
+        for kod in kovetkezetlen_kodok(allas, eredeti, lap):
+            w *= kov.suly.get(kod, 0.0)
+            okok.add("LAP" if kod != "FIGURA_SOROZAT" else kod)
     return w, okok
 
 
@@ -1395,6 +1427,97 @@ def _szin_elsobbseg(allas: JatekAllas, jelzesek, kez: list[Lap], stat) -> Dontes
                   szabaly=sor["kulcs"], helyzet="INDITAS")
 
 
+# HÍVÁS menet közben: két szín „egyforma”, ha a legjobb lapjuk értéke ennyin
+# belül van (a pontozás egységében) — ilyenkor a megállapodás választhat.
+SZIN_EGYENLO = 0.05
+# a Smith-jel olvasása: a minták legalább ekkora (súlyozott) részében a
+# partner lapja a legkisebb (illetve nem a legkisebb) volt
+SMITH_BIZTOS = 0.65
+
+
+def smith_utes(allas: JatekAllas) -> tuple[int, Lap] | None:
+    """A felvevő első hívása (nem az első ütés) és benne a partner lapja,
+    ha színt adott (nem ütésre), és a szín nem az indításé: (az ütés sorszáma, a lap)."""
+    if not allas.vedo or not allas.lejatszott:
+        return None
+    inditas = allas.lejatszott[0][1].szin
+    for i, utes in enumerate(allas.utesek):
+        if i == 0 or not utes or vonal(utes[0][0]) != vonal(allas.felvevo):
+            continue
+        hivott = utes[0][1].szin
+        if hivott == inditas or hivott == allas.adu:
+            return None
+        poz = next((j for j, (u, _) in enumerate(utes) if u == allas.partner()), None)
+        if poz is None:
+            return None
+        lap = utes[poz][1]
+        # csak a színadás jel: ha a partner ütést próbált vinni, a lapja nem Smith
+        if lap.szin != hivott or _uti(lap, [l for _, l in utes[:poz]], allas.adu):
+            return None
+        return i, lap
+    return None
+
+
+def partner_smith(allas: JatekAllas, jelzesek, leosztasok: list[Leosztas],
+                  sulyok: list[float] | None = None) -> str | None:
+    """
+    A partner SMITH-jele (2026-10-23): a felvevő első hívásában (szan ellen,
+    a rács szerint) a partner lapja az indítás színéről beszél. Hogy a lapja
+    nagy volt-e vagy kicsi, azt a kezét nem látva a mintákból becsüljük: a
+    minták hányadában volt ez a legkisebb lapja abban a színben (ahol csak
+    egy lapja volt, ott nem jelzés). Visszaad: 'VALT' (váltsunk) / 'FOLYTAT'
+    (folytassuk az indítás színét) / None (nincs jel, vagy nem egyértelmű).
+    """
+    if not jelzesek or not leosztasok:
+        return None
+    if hasattr(jelzesek, "nincs_jelzes") and jelzesek.nincs_jelzes(allas.kontraktus.szint,
+                                                                    allas.felvetel):
+        return None
+    if _racs_jel(jelzesek, "FELVEVO_HIV", allas.felvetel, True) != "SMITH":
+        return None
+    su = smith_utes(allas)
+    if su is None:
+        return None
+    i, lap = su
+    p = allas.partner()
+    elotte = {l for utes in allas.utesek[:i] for _, l in utes}
+    kicsi = osszes = 0.0
+    for lo, w in zip(leosztasok, sulyok or [1.0] * len(leosztasok)):
+        akkor = [l for l in lo.kezek[p].lapok if l.szin == lap.szin and l not in elotte]
+        if len(akkor) < 2:
+            continue
+        osszes += w
+        if lap == min(akkor, key=lambda l: l.rang):
+            kicsi += w
+    if not osszes:
+        return None
+    nagy_jo = dict(getattr(jelzesek, "modszer", {}) or {}).get("SMITH", "NAGY_POZITIV") == "NAGY_POZITIV"
+    if kicsi / osszes >= SMITH_BIZTOS:
+        return "VALT" if nagy_jo else "FOLYTAT"
+    if kicsi / osszes <= 1 - SMITH_BIZTOS:
+        return "FOLYTAT" if nagy_jo else "VALT"
+    return None
+
+
+def _sorozat_teteje(lap: Lap, allas: JatekAllas, legalis: list[Lap], stat) -> Lap:
+    """
+    FIGURA_SOROZAT a saját játékban: ha nem ütésre teszünk figurát (aláteszünk
+    vagy dobunk), a zárt sorozatunk tetejét (DB-ből a D-t) — a partner így
+    olvas belőle. Csak egyenértékű, az elemzés szerint ugyanannyit érő lappal.
+    """
+    akt = allas.aktualis
+    elotte = [l for _, l in akt]
+    if not akt or lap.ertek not in FIGURAK or _uti(lap, elotte, allas.adu):
+        return lap
+    kez = set(allas.lathato[allas.ules])
+    lement = {l for _, l in allas.lejatszott}
+    jobb = [l for l in legalis if l.szin == lap.szin and l.rang > lap.rang
+            and _egyenerteku(l, lap, kez, lement)
+            and (not stat or (l in stat and lap in stat
+                              and stat[l].ertek >= stat[lap].ertek - 1e-9))]
+    return max(jobb, key=lambda l: l.rang) if jobb else lap
+
+
 def _sajat_kodok(jelzesek) -> set[str]:
     """Amit a kibic maga is betart (a `kovetkeztetes:` sorok `sajat: true`-ja)."""
     return {s["kovetkeztetes"] for s in (getattr(jelzesek, "kovetkeztetes_sorok", None) or [])
@@ -1427,6 +1550,16 @@ def _legolcsobb(lap: Lap, jok: list[Lap], allas: JatekAllas,
 
 
 def dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = None) -> Dontes:
+    d = _dontes(allas, jelzesek, stat)
+    if allas.vedo and "FIGURA_SOROZAT" in _sajat_kodok(jelzesek):
+        lap = _sorozat_teteje(d.lap, allas, list(allas.legalis), stat)
+        if lap != d.lap:
+            d = Dontes(lap, d.indok + "; a sorozat teteje (FIGURA_SOROZAT)", szabaly=d.szabaly,
+                       helyzet=d.helyzet, jo=d.jo)
+    return d
+
+
+def _dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = None) -> Dontes:
     legalis = list(allas.legalis)
     jo = _jok(stat, legalis)
 
@@ -1487,6 +1620,63 @@ def dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = N
                           + (" (az elemzés szerint ez is jó lap)" if lap in jo else
                              " (a partnerség kedvéért, az elemzés szerint alig rosszabb)"),
                           szabaly=kerese["kulcs"], helyzet=helyzet, jo=jo)
+
+        def legjobb_a_szinben(sz):
+            lapok = [l for l in legalis if l.szin == sz]
+            k = next((l for l in lapok if l in konv), None)
+            if k is not None and (not stat or k in jo):
+                return k, True
+            return max(lapok, key=lambda l: (round(utes_kulcs(l), 6),
+                                             l.rang if l.ertek in FIGURAK else -l.rang)), False
+
+        if helyzet == "HIVAS" and stat:
+            # A SZÍNT AZ ELEMZÉS VÁLASZTJA (2026-10-23, a szerkesztő döntése): a
+            # színek a legjobb lapjuk értéke szerint; a megállapodás csak a
+            # színen belül dönt a lapról, színt csak a gyakorlatilag egyforma
+            # (SZIN_EGYENLO-n belüli) színek közül választhat. A fred-mérésben a
+            # megállapodás négyszer választott a „jó” lapok közül olyan színt,
+            # amely a DD szerint rossz volt.
+            szin_ertek = {}
+            for sz in SZINEK:
+                ert = [stat[l].ertek for l in legalis if l.szin == sz and l in stat
+                       and stat[l].osztaly != "BIZTOSAN_ROSSZ"]
+                if ert:
+                    szin_ertek[sz] = max(ert)
+            if szin_ertek:
+                legjobb = max(szin_ertek.values())
+                # a partner Smith-jele: váltsunk / folytassuk az indítás színét —
+                # a partnerség kedvéért, ha az elemzés nem mond neki jelentősen
+                # (a PARTNER_KERESE tűrésénél többel) ellent
+                smith = allas.partner_smith if kerese else None
+                if smith:
+                    inditas = allas.lejatszott[0][1].szin
+                    from .jelzes import MERLEGELES_TURES
+                    tures = float(kerese.get("tures", MERLEGELES_TURES.get("PARTNER_KERESE", 0.0)))
+                    kert_szinek = [sz for sz in szin_ertek
+                                   if (sz != inditas) == (smith == "VALT")
+                                   and szin_ertek[sz] >= legjobb - tures - 1e-9]
+                    if kert_szinek:
+                        sz = max(kert_szinek, key=lambda x: szin_ertek[x])
+                        lap, _ = legjobb_a_szinben(sz)
+                        mit = "vált" if smith == "VALT" else "folytatja az indítás színét"
+                        return Dontes(lap, f"menet közbeni hívás: a partner Smith-jele szerint {mit}"
+                                      + ("" if szin_ertek[sz] >= legjobb - SZIN_EGYENLO else
+                                         " (a partnerség kedvéért, az elemzés szerint alig rosszabb)"),
+                                      szabaly=kerese["kulcs"], helyzet=helyzet, jo=jo)
+                egyformak = [sz for sz, e in szin_ertek.items() if e >= legjobb - SZIN_EGYENLO]
+                jelolt = [legjobb_a_szinben(sz) for sz in egyformak]
+                konvben = [l for l, k in jelolt if k]
+                if konvben:
+                    lap = max(konvben, key=lambda l: (utes_kulcs(l),
+                                                      len([x for x in kez if x.szin == l.szin])))
+                    return Dontes(lap, "menet közbeni hívás: a színt az elemzés választotta, "
+                                       "a lapot a megállapodás", szabaly=konv[lap],
+                                  helyzet=helyzet, jo=jo)
+                lap = max((l for l, _ in jelolt), key=lambda l: (round(utes_kulcs(l), 6),
+                                                                l.rang if l.ertek in FIGURAK else -l.rang))
+                return Dontes(lap, "menet közbeni hívás: a színt az elemzés választotta "
+                                   "(a megállapodás lapja nem jó lap — a legjobb lap)",
+                              helyzet=helyzet, jo=jo)
         jo_konv = [l for l in jo if l in konv]
         if jo_konv:
             lap = max(jo_konv, key=lambda l: (utes_kulcs(l), len([x for x in kez if x.szin == l.szin])))
@@ -1699,6 +1889,8 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                            mag=None if mag is None else mag + k,
                            max_proba=max(4000, 30 * koteg), kovetkeztetes=kov)
             if k == 0:
+                if allas.vedo and not allas.aktualis and allas.lejatszott:
+                    allas.partner_smith = partner_smith(allas, jelzesek, m.leosztasok, m.sulyok)
                 kimerito, ismeretlen = m.kimerito, m.ismeretlen
                 osszevont = m.osszevont
                 igazitott = list(m.igazitott)

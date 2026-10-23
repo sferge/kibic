@@ -76,6 +76,7 @@ JELEK = ("KERES", "LAPSZAM", "MARADEK", "PREF", "SMITH", "ATTITUD")
 KOVETKEZTETESEK = (
     "LEGKISEBB_EGYENERTEKU",   # 3./4. kézben, ha ütést próbál vinni: az egyenértékűek legkisebbike
     "LEGOLCSOBB_NYERO",        # 4. kézben: a legolcsóbb nyerő lap
+    "FIGURA_SOROZAT",          # a nem ütésre tett (dobott) figura zárt sorozat teteje, vagy szingli
     "PARTNER_INDITASA",        # a partner indító lapja a megállapodás szerinti lap
     "PARTNER_DOBASA",          # a partner első dobása egy színben a dobási jel szerint (kér / nem kér)
     "LICIT_PONTHATAR",         # a licit pontsávja nem éles határ: `tures` ponton belül, `suly` pontonként
@@ -85,17 +86,17 @@ KOVETKEZTETESEK = (
 # mintában (0 = kizárjuk). A lapból levont két régi következtetés alapból
 # kizár, a jelzésekből levontak alapból csak leértékelnek (a partner is
 # tévedhet, kényszerhelyzetben lehet).
-KOVETKEZTETES_SULY = {"LEGKISEBB_EGYENERTEKU": 0.0, "LEGOLCSOBB_NYERO": 0.0,
+KOVETKEZTETES_SULY = {"LEGKISEBB_EGYENERTEKU": 0.0, "LEGOLCSOBB_NYERO": 0.0, "FIGURA_SOROZAT": 0.1,
                       "PARTNER_INDITASA": 0.2, "PARTNER_DOBASA": 0.25,
                       "LICIT_PONTHATAR": 0.5, "LICIT_KIZARAS": 0.2}
 # akiknél a kibic maga is így játszik (a `sajat:` csak itt értelmes)
-KOVETKEZTETES_SAJAT = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO")
+KOVETKEZTETES_SAJAT = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT")
 # MÉRLEGELŐ ELVEK a döntésben (2026-10-21) — ahol az elemzés (DD) vak, mert a
 # partnert is mindentudónak hiszi. A jelzésrendszer `merlegeles:` sora
 # kapcsolja be; sor nélkül nem élnek.
 MERLEGELESEK = (
     "ATVETEL",        # ha az elemzés szerint mindegy: a partner ütését nyerő lappal átvesszük, és mi folytatunk
-    "PARTNER_KERESE", # a partner dobással kért színe: menet közben azt hívjuk, és ütést veszünk érte
+    "PARTNER_KERESE", # a partner kérése (dobással kért szín, Smith): menet közben aszerint hívunk
 )
 # A mérlegelés tűrése a pontozás egységében (IMP-ben IMP, MP-ben ütés):
 # ennyivel rosszabb lapot is vállalunk a partnerség kedvéért (az elemzés átlaga szerint).
@@ -1355,6 +1356,7 @@ def sor_szoveg(s: JSor) -> str:
         kod = a["kovetkeztetes"]
         nev = {"LEGKISEBB_EGYENERTEKU": "harmadik-negyedik kézben az egyenértékűek legkisebbike",
                "LEGOLCSOBB_NYERO": "negyedik kézben a legolcsóbb nyerő lap",
+               "FIGURA_SOROZAT": "a nem ütésre tett (dobott) figura zárt sorozat teteje, vagy szingli",
                "PARTNER_INDITASA": "az indító lap a megállapodás szerinti lap",
                "PARTNER_DOBASA": "az első dobás egy színben a dobási jel szerint kér vagy nem kér",
                "LICIT_PONTHATAR": f"a licit pontsávja {a.get('tures', 2)} pontig puha határ",
@@ -1373,8 +1375,9 @@ def sor_szoveg(s: JSor) -> str:
     if s.alak == "MERLEGELES":
         nev = {"ATVETEL": "ha az elemzés szerint mindegy, a partner ütését nyerő lappal "
                           "átvesszük, és mi folytatjuk",
-               "PARTNER_KERESE": "a partner dobással kért színe: menet közben azt hívjuk, és "
-                                 "ütést veszünk (lopunk, átveszünk), hogy hívhassuk — ha az "
+               "PARTNER_KERESE": "a partner kérése: a dobással kért színt hívjuk menet közben "
+                                 "(és ütést veszünk érte: lopunk, átveszünk), a Smith-jele "
+                                 "szerint váltunk vagy folytatjuk az indítás színét — ha az "
                                  f"elemzés szerint legfeljebb {a.get('tures', MERLEGELES_TURES['PARTNER_KERESE']):g} "
                                  "egységgel rosszabb (IMP-ben IMP, MP-ben ütés)"}.get(a["merlegeles"], a["merlegeles"])
         return (f"Mérlegelés: {nev}" + (f" — {a['szoveg']}" if a.get("szoveg") else ""))
