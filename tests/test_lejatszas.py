@@ -752,3 +752,64 @@ def test_moha_informativ_kontra_indulo_ero(betolto):
     kibic = kenyszertar_menetbol({"seat": "S", "dealer": "S", "vulnerability": "both",
                                   "auction": menet, "system": "KIBIC_STAND"}, betolto)
     assert sorted(v.pont_min for v in kibic["N"].alternativak[0]) == [9, 12, 17]   # a KIBIC-ben 17+ (és a 9-11-es felmentés)
+
+
+# --- 2026-10-23: pontozás (IMP / MP) és a döntés biztossága szerinti mintaszám ------
+
+def test_pontozas_neve():
+    assert lj.pontozas_neve("IMP") == "IMP" and lj.pontozas_neve("MP") == "MP"
+    assert lj.pontozas_neve("matchpoints") == "MP" and lj.pontozas_neve(None) == "IMP"
+    k = _keres("W")
+    k["game"] = {"scoring": "MP"}
+    assert lj.allas_keresbol(k).pontozas == "MP"
+
+
+def test_imp_biztonsagi_jatek():
+    """3NT, felvevő: A lap átlagban több ütés (11 / 8), B biztos 9 — IMP-ben B, MP-ben A."""
+    from kibic.solver.dds import LapErtekeles
+    k = _keres("S", lathato=["S", "N"])
+    k["state"]["contract"] = {"level": 3, "strain": "N", "multiplier": 1}
+    k["legal_actions"] = {"cards": ["SA", "S3"]}
+    a = lj.allas_keresbol(k)
+    A, B = Lap("S", "A"), Lap("S", "3")
+
+    def minta(a_ut):
+        return [LapErtekeles("SA", a_ut, a_ut, True, 0), LapErtekeles("S3", 9, 9, True, 0)]
+    for pontozas, vart in (("IMP", B), ("MP", A)):
+        gy = lj.DDGyujto(a, pontozas)
+        for a_ut in (11, 8, 11, 8):
+            gy.hozzaad(minta(a_ut))
+        st = gy.stat(tures=0.0)
+        legjobb = max(st, key=lambda l: st[l].ertek)
+        assert legjobb == vart, (pontozas, {str(l): s.ertek for l, s in st.items()})
+    # IMP-ben a veszteség IMP-ben: bukás (-50) vs teljesítés (400 / 460) = 10 / 11 IMP
+    gy = lj.DDGyujto(a, "IMP")
+    gy.hozzaad(minta(8))
+    assert gy.stat()[A].veszt == 10
+
+
+def _hamis_dd_fv(ertek_fv):
+    from kibic.solver.dds import LapErtekeles
+    szamlalo = [0]
+
+    def fv(lo, jatszott, k):
+        szamlalo[0] += 1
+        return [LapErtekeles(str(l), u, 13 - u, True, 0)        # u: a védő (W) ütései
+                for l, u in ertek_fv(szamlalo[0]).items()]
+    return fv, szamlalo
+
+
+def test_a_minta_nagysaga_a_dontes_biztossagatol_fugg():
+    a = lj.allas_keresbol(_keres("W"))                  # indítás: sok ismeretlen lap
+    lapok = sorted(a.legalis, key=lambda l: (l.szin, l.rang))
+    jo, tobbi = lapok[0], lapok[1:]
+    # egyértelmű: az egyik lap mindig egy ütéssel jobb -> a minimumnál megáll
+    fv, n = _hamis_dd_fv(lambda i: {jo: 6, **{l: 5 for l in tobbi}})
+    e = lj.jatek_dontes(a, None, None, fv, ido_keret_s=30, db=3000, mag=1)
+    assert e.megallt == "BIZTOS" and e.mintak <= lj.MIN_MINTA + lj.KOTEG
+    # szoros: a két legjobb felváltva nyer -> tovább gondolkodik (itt a db-ig)
+    fv, n = _hamis_dd_fv(lambda i: {lapok[0]: 6 + i % 2, lapok[1]: 7 - i % 2,
+                                    **{l: 4 for l in lapok[2:]}})
+    e = lj.jatek_dontes(a, None, None, fv, ido_keret_s=30, db=400, mag=1)
+    assert e.megallt == "MAX" and e.mintak == 400
+    assert lj.meta(e)["stopped"] == "MAX" and lj.meta(e)["scoring"] == "IMP"

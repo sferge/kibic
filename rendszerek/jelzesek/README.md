@@ -137,9 +137,14 @@ semmit. A kártya a jóvá nem hagyott sorokat kérdőjellel mutatja.
 A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
 
 1. **Tények → minta.** A látható kezek, a lejátszott lapok, a renonszok és a
-   licit kényszertára alapján lehetséges teljes leosztásokat vesz; annyit,
-   amennyi az időkeretbe belefér (legfeljebb `KIBIC_LEJATSZAS_MINTA`, alap
-   400). Ha a lehetséges elosztások száma legfeljebb 600, MINDET megnézi
+   licit kényszertára alapján lehetséges teljes leosztásokat vesz,
+   KÖTEGENKÉNT (40), és addig, amíg a döntés el nem dől: a legjobb lap minden
+   mástól biztosan jobb (a különbség három standard hibán túl) vagy biztosan
+   alig különbözik tőle (0,05 alatt) — legalább 60 (`KIBIC_LEJATSZAS_MIN_MINTA`),
+   legfeljebb `KIBIC_LEJATSZAS_MINTA` (alap 3000), az időkereten belül.
+   Egyértelmű helyzetben 60–200 minta, szorosban az időkeret végéig
+   (`meta.kibic.stopped`: BIZTOS / IDO / MAX / KIMERITO). Ha a lehetséges
+   elosztások száma legfeljebb 600, MINDET megnézi
    (kimerítő elemzés: a végjátékban pontos). Ha a kényszertár túl szűk (a
    próbák első felében 30-nál kevesebb illeszkedő minta), a második félidőben
    elengedi (`meta.kibic.relaxed`); ha van elég, inkább kevesebb mintával
@@ -148,8 +153,12 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    legalább egy változatot ki kell elégítenie — nem csak az uniót („12+”).
    Az elosztások SÚLYT kapnak a következtetésekből (lent): ami a partner
    jelzésének vagy a licit pontsávjának kicsit ellentmond, az kevesebbet ér.
-2. **DD-szűrő.** Mintánként double dummy kiértékeli a szabályos lapokat;
-   laponként: **JO** (a legjobb átlagától legfeljebb a TŰRÉSSEL marad el —
+2. **DD-szűrő.** Mintánként double dummy kiértékeli a szabályos lapokat, a
+   PONTOZÁS szerint (`game.scoring`, `meta.kibic.scoring`): **IMP**-ben
+   (csapat, összpont, alapból) mintánként a lap pontszáma IMP-ben, a mintán
+   elérhető legjobbhoz mérve — így a teljesítés / buktatás sokkal többet ér,
+   mint egy többletütés (biztonsági játék); **MP**-ben (párosverseny) az
+   átlagos ütés. Laponként: **JO** (a legjobb átlagától legfeljebb a TŰRÉSSEL marad el —
    *indításnál* 0,2 ütés, ha 26+ lap helye ismeretlen, és vele arányosan
    kisebb; *játék közben* csak a minta zaja: a párosított különbség kétszeres
    standard hibája, legalább 0,02 ütés — „játék közben a szabályok
