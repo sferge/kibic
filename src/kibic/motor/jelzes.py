@@ -97,8 +97,8 @@ MERLEGELESEK = (
     "ATVETEL",        # ha az elemzés szerint mindegy: a partner ütését nyerő lappal átvesszük, és mi folytatunk
     "PARTNER_KERESE", # a partner dobással kért színe: menet közben azt hívjuk, és ütést veszünk érte
 )
-# A mérlegelés tűrése (ütésben): ennyivel rosszabb lapot is vállalunk a
-# partnerség kedvéért (az elemzés átlaga szerint).
+# A mérlegelés tűrése a pontozás egységében (IMP-ben IMP, MP-ben ütés):
+# ennyivel rosszabb lapot is vállalunk a partnerség kedvéért (az elemzés átlaga szerint).
 MERLEGELES_TURES = {"PARTNER_KERESE": 0.25}
 KOVETKEZTETES_FORRASOK = ("PARTNER", "ELLENJATEKOSOK", "FELVEVO")
 # Az indító kijátszás színének elsőbbségei és beépített kivételeik.
@@ -1376,7 +1376,7 @@ def sor_szoveg(s: JSor) -> str:
                "PARTNER_KERESE": "a partner dobással kért színe: menet közben azt hívjuk, és "
                                  "ütést veszünk (lopunk, átveszünk), hogy hívhassuk — ha az "
                                  f"elemzés szerint legfeljebb {a.get('tures', MERLEGELES_TURES['PARTNER_KERESE']):g} "
-                                 "ütéssel rosszabb"}.get(a["merlegeles"], a["merlegeles"])
+                                 "egységgel rosszabb (IMP-ben IMP, MP-ben ütés)"}.get(a["merlegeles"], a["merlegeles"])
         return (f"Mérlegelés: {nev}" + (f" — {a['szoveg']}" if a.get("szoveg") else ""))
     if s.alak == "SZINVALASZTAS":
         nev = {"PARTNER_SZINE": "a partner licitált színe"}.get(a["szinvalasztas"], a["szinvalasztas"])

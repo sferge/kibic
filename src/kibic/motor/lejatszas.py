@@ -242,6 +242,7 @@ class MintaEredmeny:
     sulyok: list[float] = field(default_factory=list)   # elosztásonként (kimerítő mód); üres = mind 1
     osszevont: bool = False     # a kimerítő elemzés a kis lapokat összevonta (mintázatok)
     leertekelt: dict[str, int] = field(default_factory=dict)  # kód -> ennyi elosztást értékelt le
+    igazitott: list[str] = field(default_factory=list)  # ezeknek a licitjét a lapokhoz kellett igazítani
 
 
 def _uti(lap: Lap, elotte: list[Lap], adu: str | None) -> bool:
@@ -272,10 +273,13 @@ def _partnersegben(stat, lapok: list[Lap], jo: list[Lap], sor: dict | None) -> l
         return [l for l in lapok if l in jo]
     from .jelzes import MERLEGELES_TURES
     tures = float(sor.get("tures", MERLEGELES_TURES.get(sor.get("merlegeles"), 0.0)))
-    legjobb = max(s.utes for s in stat.values() if s.n) if any(s.n for s in stat.values()) else 0.0
+    # a tűrés a pontozás egységében (IMP-ben IMP, MP-ben ütés — ott az érték az
+    # átlagos ütés): ütésben mérve egy 0,16 ütéssel „alig rosszabb” lap a
+    # minták 19%-ában a felvételt engedte teljesülni (2026-10-23, fred-mérés)
+    legjobb = max(s.ertek for s in stat.values() if s.n) if any(s.n for s in stat.values()) else 0.0
     return [l for l in lapok if l in jo or (
         l in stat and stat[l].n and stat[l].osztaly != "BIZTOSAN_ROSSZ"
-        and stat[l].utes >= legjobb - tures - 1e-9)]
+        and stat[l].ertek >= legjobb - tures - 1e-9)]
 
 
 def _nyero(utes: list[tuple[str, Lap]], adu: str | None) -> tuple[str, Lap]:
@@ -752,6 +756,75 @@ def _megfelel(lapok: set[Lap], ig) -> bool:
     return ig.pont_min <= _hcp(lapok) <= ig.pont_max
 
 
+def _igeret_igazit(ig, hatar: dict[str, tuple[int, int]], pont: tuple[int, int]):
+    """
+    Az ígéret a lejátszás tényeihez igazítva: ahol a licit a már ismert
+    lapokkal lehetetlent ígér (5 kőr, de csak 4 lehet nála), a sávot a
+    lehetséges legközelebbi értékre húzzuk — a többi ígéret marad. A
+    többértelmű licit változatai közül a lehetetleneket elhagyjuk (ezek
+    úgyis 0 súlyt kapnának); ha mind lehetetlen, mindet igazítjuk.
+    Visszaad: (az ígéret vagy az igazított másolata, igazítani kellett-e).
+    """
+    import copy
+
+    def osszefer(x) -> bool:
+        if not all(x.hossz(sz)[0] <= hatar[sz][1] and x.hossz(sz)[1] >= hatar[sz][0]
+                   for sz in SZINEK):
+            return False
+        if x.pont_max < pont[0] or x.pont_min > pont[1]:
+            return False
+        return all(any(osszefer(v) for v in cs) for cs in (getattr(x, "alternativak", None) or []))
+
+    if ig is None or osszefer(ig):
+        return ig, False
+    uj = copy.copy(ig)
+    uj.hossz_min, uj.hossz_max = dict(ig.hossz_min), dict(ig.hossz_max)
+    for sz in SZINEK:
+        lo, hi = ig.hossz(sz)
+        if lo > hatar[sz][1]:
+            uj.hossz_min[sz] = hatar[sz][1]
+        if hi < hatar[sz][0]:
+            uj.hossz_max[sz] = hatar[sz][0]
+    if uj.pont_max < pont[0]:
+        uj.pont_max = float(pont[0])
+    if uj.pont_min > pont[1]:
+        uj.pont_min = float(pont[1])
+    csoportok = []
+    for cs in (getattr(ig, "alternativak", None) or []):
+        jo = [v for v in cs if osszefer(v)]
+        csoportok.append(jo or [_igeret_igazit(v, hatar, pont)[0] for v in cs])
+    uj.alternativak = csoportok
+    return uj, True
+
+
+def tar_igazitas(tar: dict, rejtett: list[str], fix: dict, szabad: list[Lap],
+                 renonsz: dict) -> tuple[dict, list[str]]:
+    """
+    A licit kényszertára a lejátszás tényeihez igazítva (2026-10-23): eddig
+    ha EGY ígéret ellentmondott a letett lapoknak (pl. a 2♥ közbeszólás 5
+    kőrt ígér, de csak 4 lehet nála), az egész licitet elengedtük — a
+    pontsávokat, a többi játékos ígéreteit és a lejátszás következtetéseit is.
+    Most csak az ellentmondó részt igazítjuk. Visszaad: (tár, igazított ülések).
+    """
+    if not tar:
+        return tar, []
+    szabad_db = {sz: sum(1 for l in szabad if l.szin == sz) for sz in SZINEK}
+    szabad_hcp = _hcp(szabad)
+    ki, igazitott = dict(tar), []
+    for u in rejtett:
+        if tar.get(u) is None:
+            continue
+        hatar = {}
+        for sz in SZINEK:
+            van = sum(1 for l in fix[u] if l.szin == sz)
+            hatar[sz] = (van, van + (0 if sz in renonsz.get(u, ()) else szabad_db[sz]))
+        h = _hcp(fix[u])
+        ki[u], valt = _igeret_igazit(tar[u], hatar, (h, h + szabad_hcp))
+        if valt:
+            igazitott.append(u)
+    return ki, igazitott
+
+
 class HosszSorsolo:
     """
     ÉPÍTŐ SORSOLÁS (2026-10-23): a rejtett kezek színhosszait a licit
@@ -879,12 +952,12 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
     if sum(kell.values()) != len(szabad) or any(v < 0 for v in kell.values()):
         raise LejatszasHiba("A látható és a lejátszott lapok nem adnak ki egy leosztást")
     renonsz = allas.renonszok()
-    tar = kenyszertar or {}
+    tar, igazitott = tar_igazitas(kenyszertar or {}, rejtett, fix, szabad, renonsz)
     kov = kovetkeztetes
     if isinstance(kov, dict):                 # régi alak: {ülés: {kód}} — kizáró következtetés
         kov = Kovetkeztetes(kodok=kov) if kov else None
     cache: dict = {}
-    ki = MintaEredmeny([], ismeretlen=len(szabad))
+    ki = MintaEredmeny([], ismeretlen=len(szabad), igazitott=igazitott)
 
     def jegyez(okok):
         for o in okok:
@@ -1593,6 +1666,7 @@ class Eredmeny:
     pontozas: str = "IMP"
     megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT
     osszevont: bool = False         # kimerítő elemzés a kis lapok összevonásával
+    igazitott: list[str] = field(default_factory=list)  # a licitjüket a lapokhoz igazítottuk
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -1609,6 +1683,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
         allas.partner_szinek = partner_szinei(allas, kenyszertar)
     megallt = ""
     osszevont = False
+    igazitott: list[str] = []
     try:
         if dd_fv is None:
             from ..solver.dds import lap_elemzes as dd_fv
@@ -1626,6 +1701,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
             if k == 0:
                 kimerito, ismeretlen = m.kimerito, m.ismeretlen
                 osszevont = m.osszevont
+                igazitott = list(m.igazitott)
                 # a tűrés a bizonytalansággal arányos; kimerítő elemzésnél nincs minta-zaj
                 tures = 0.0 if kimerito else JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
             lazitott = lazitott or m.lazitott
@@ -1679,7 +1755,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     d = dontes(allas, jelzesek, stat)
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
                     kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
-                    allas.pontozas, megallt, osszevont)
+                    allas.pontozas, megallt, osszevont, igazitott)
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -1702,7 +1778,7 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "inference_weighted": dict(e.leertekelt),
           "tolerance": round(e.tures, 3),
           "scoring": e.pontozas, "stopped": e.megallt,
-          "small_cards_merged": e.osszevont,
+          "small_cards_merged": e.osszevont, "bidding_adjusted": e.igazitott,
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
     if e.stat:
         db = {"JO": 0, "TALAN": 0, "BIZTOSAN_ROSSZ": 0}

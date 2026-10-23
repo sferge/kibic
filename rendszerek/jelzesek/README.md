@@ -159,7 +159,10 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    (kimerítő elemzés: a végjátékban pontos). Ha a kényszertár túl szűk (a
    próbák első felében 30-nál kevesebb illeszkedő minta), a második félidőben
    elengedi (`meta.kibic.relaxed`); ha van elég, inkább kevesebb mintával
-   dolgozik, de a licitnek megfelelőkkel. A TÖBBÉRTELMŰ licitnél (pl. információs
+   dolgozik, de a licitnek megfelelőkkel. Ha egy ígéret a letett lapoknak
+   mond ellent (a 2♥ közbeszólás 5 kőrt ígér, de csak 4 lehet nála), előbb
+   csak azt a részt igazítja a lehetségeshez (`meta.kibic.bidding_adjusted`),
+   a pontsáv és a többiek ígéretei maradnak. A TÖBBÉRTELMŰ licitnél (pl. információs
    kontra: rövid káró + 3+ a többiben 12+-szal, VAGY 18+ bármi) a kéznek
    legalább egy változatot ki kell elégítenie — nem csak az uniót („12+”);
    a szabályon BELÜLI `vagy:` ágai is (Michaels: pikk és treff VAGY káró).
@@ -206,8 +209,9 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    `PARTNER_KERESE` (`tures: 0.25`) — a partnerség kedvéért: a partner első
    dobással kért színét hívjuk menet közben, és ütést is veszünk érte
    (lopunk, átvesszük az ütését), hogy mi hívhassuk — akkor is, ha az elemzés
-   átlaga szerint ez legfeljebb a tűréssel (negyed ütéssel) rosszabb; a
-   biztosan rossz lapot soha. A többi mérlegelő elv még csak szöveg.
+   átlaga szerint ez legfeljebb a tűréssel rosszabb — a pontozás egységében:
+   IMP-ben 0,25 IMP, MP-ben negyed ütés (egy „alig” kevesebb ütés is
+   elbuktathatja a felvételt); a biztosan rossz lapot soha. A többi mérlegelő elv még csak szöveg.
 
 **Következtetés a lejátszásból — a jelzésrendszer sora, nem rejtett tudás.**
 
