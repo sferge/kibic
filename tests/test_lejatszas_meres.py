@@ -188,3 +188,26 @@ def test_mappa_forras(tmp_path):
     ki = fajlok_kibontasa([str(tmp_path)], ".pbn")
     assert [p.split("/")[-1] for p in ki] == ["a.PBN", "c.pbn", "b.pbn"]   # útvonal szerint: a.PBN, al/c.pbn, b.pbn
     assert fajlok_kibontasa([str(tmp_path), "egy.lin"], ".lin") == [str(tmp_path / "x.lin"), "egy.lin"]
+
+
+def test_mag_mellett_nem_az_ido_dont(monkeypatch):
+    """--mag mellett az időkorlát csak biztonsági határ (a futás ismételhető);
+    --idokorlat-tal a megadott marad. A mérés feljegyzi, miért állt meg a mintavétel."""
+    import kibic.cli.jatekmeres as jm
+    kapott = {}
+
+    def init(rendszer, ido_s, minta, kov_ms=15000, mag=None):
+        kapott.update(ido=ido_s, kov=kov_ms)
+        jm._MUNKAS["fv"] = lambda k: (k["legal_actions"]["cards"][0], {"kibic": {"stopped": "BIZTOS",
+                                                                                   "samples": 80}})
+    monkeypatch.setattr(jm, "_munkas_init", init)
+    monkeypatch.setattr(jm, "partik_fajlbol", lambda utak, pont: iter([PARTI]))
+    eredeti_dd = lm._dd_szotar
+    monkeypatch.setattr(lm, "_dd_szotar", lambda *a, **k: {})      # nincs DD: nincs mérés
+    jm.main(["--pbn", "x.pbn", "--mag", "1", "--max-dontes", "1"])
+    assert kapott == {"ido": jm.PONTOS_IDO_S, "kov": jm.PONTOS_KOVETKEZTETES_MS}
+    jm.main(["--pbn", "x.pbn", "--mag", "1", "--idokorlat", "--ido", "3", "--max-dontes", "1"])
+    assert kapott == {"ido": 3, "kov": 15000}
+    monkeypatch.setattr(lm, "_dd_szotar", eredeti_dd)
+    m = lm.parti_meres(PARTI, jm._MUNKAS["fv"], _hamis_dd(), max_dontes=1)
+    assert m[0].megallt == "BIZTOS" and m[0].minta == 80
