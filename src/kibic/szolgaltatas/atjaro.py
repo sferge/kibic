@@ -748,6 +748,8 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict
         bizonyossag = 0.5 + 0.45 * (s.legjobb if s else 0.0)
     else:
         bizonyossag = 0.3
+    if e.terites is not None and e.terites.mind:
+        bizonyossag = 1.0               # terítés: minden elosztás ellen biztos
     kibic = lj.meta(e)
     kibic["system"] = rendszer
     kibic["signals"] = jelz.rendszer.kod if jelz and jelz.rendszer else None
