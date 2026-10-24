@@ -97,6 +97,8 @@ KOVETKEZTETES_SAJAT = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SORO
 MERLEGELESEK = (
     "ATVETEL",        # ha az elemzés szerint mindegy: a partner ütését nyerő lappal átvesszük, és mi folytatunk
     "PARTNER_KERESE", # a partner kérése (dobással kért szín, Smith): menet közben aszerint hívunk
+    "ASZ_ALOL",       # színfelvétel ellen ász alól nem indulunk: az ásszal (a partner színében is)
+    "DUBLO_INDULAS",  # színfelvétel ellen dublóból csak figurával; szlem és szan-jellegű leosztás ellen
 )
 # A mérlegelés tűrése a pontozás egységében (IMP-ben IMP, MP-ben ütés):
 # ennyivel rosszabb lapot is vállalunk a partnerség kedvéért (az elemzés átlaga szerint).
@@ -1375,6 +1377,9 @@ def sor_szoveg(s: JSor) -> str:
     if s.alak == "MERLEGELES":
         nev = {"ATVETEL": "ha az elemzés szerint mindegy, a partner ütését nyerő lappal "
                           "átvesszük, és mi folytatjuk",
+               "ASZ_ALOL": "színfelvétel ellen ász alól nem indulunk: az ásszal (a partner színében is)",
+               "DUBLO_INDULAS": "színfelvétel ellen a dublóból indulás (figura nélkül) szlem és "
+                                "szan-jellegű (nem lopásra épülő) felvétel ellen nem",
                "PARTNER_KERESE": "a partner kérése: a dobással kért színt hívjuk menet közben "
                                  "(és ütést veszünk érte: lopunk, átveszünk), a Smith-jele "
                                  "szerint váltunk vagy folytatjuk az indítás színét — ha az "

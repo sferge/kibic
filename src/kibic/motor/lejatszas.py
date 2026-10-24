@@ -105,6 +105,7 @@ class JatekAllas:
     partner_szinek: list[str] = field(default_factory=list)   # amit a partner licitált (4+)
     pontozas: str = "IMP"                   # IMP / MP (a kérés game.scoring-ja)
     partner_smith: str | None = None        # a partner Smith-jele: VALT / FOLYTAT (a mintákból)
+    lopasos_arany: float | None = None      # indulásnál: a minták hányadában épül a felvétel lopásra
 
     @property
     def felvevo(self) -> str:
@@ -1377,7 +1378,7 @@ def _szin_elsobbseg(allas: JatekAllas, jelzesek, kez: list[Lap], stat) -> Dontes
             r, _ = jelzesek.indito_lap(_lapsor(szinben(sz)), allas.felvetel, helyzet)
         except Exception:                  # noqa: BLE001
             r = None
-        return Lap(sz, r) if r else None
+        return _asz_alol(Lap(sz, r), kez, allas, jelzesek) if r else None
 
     def nem_rossz(l):
         return l is not None and (not stat or l not in stat or stat[l].osztaly != "BIZTOSAN_ROSSZ")
@@ -1518,6 +1519,59 @@ def _sorozat_teteje(lap: Lap, allas: JatekAllas, legalis: list[Lap], stat) -> La
     return max(jobb, key=lambda l: l.rang) if jobb else lap
 
 
+# INDÍTÁSI ELVEK (2026-10-24, a szerkesztő döntései a Pavlicek-mérés után)
+# Egy felvétel LOPÁSRA ÉPÜL, ha a felvevő a DD szerint legalább ennyivel több
+# ütést visz a színfelvételben, mint ugyanazon a szinten szanban; a leosztás
+# lopásos, ha a minták legalább felében ilyen.
+LOPASOS_KULONBSEG = 2
+LOPASOS_ARANY = 0.5
+
+
+def _asz_alol(lap: Lap, kez, allas: JatekAllas, jelzesek) -> Lap:
+    """ASZ_ALOL: színfelvétel ellen ász alól nem indulunk — az ásszal (a
+    partner színében is; az aduban nem). A partner nem számít rá, és az ászt a felvevőnél
+    feltételezve hibás lapot tesz."""
+    if not allas.adu or lap.szin == allas.adu or not jelzesek \
+            or not hasattr(jelzesek, "merlegeles") or not jelzesek.merlegeles("ASZ_ALOL"):
+        return lap                           # az aduszínben az ász alóli kis adu rendben
+    asz = Lap(lap.szin, "A")
+    return asz if lap != asz and asz in kez else lap
+
+
+def _dublo_tiltott(lap: Lap, kez, allas: JatekAllas, jelzesek) -> bool:
+    """
+    DUBLO_INDULAS: színfelvétel ellen figura nélküli dublóból (a felső lapja
+    nem Á, K vagy D, és nem B10) nem indulunk szlem ellen — a lopáshoz előbb
+    két ütést kell nyerni, az már a bukás —, és szan-jellegű (nem lopásra
+    épülő) felvétel ellen sem: ott a hosszú színből kell ütéseket fejleszteni,
+    a dubló csak időt veszít vagy ütést ad. A DD ezt nem látja: benne a
+    partner mindig tudja, mikor kell visszahívni.
+    """
+    if not allas.adu or lap.szin == allas.adu or not jelzesek \
+            or not hasattr(jelzesek, "merlegeles") or not jelzesek.merlegeles("DUBLO_INDULAS"):
+        return False
+    szin = sorted((l for l in kez if l.szin == lap.szin), key=lambda l: -l.rang)
+    if len(szin) != 2:
+        return False
+    if szin[0].ertek in "AKQ" or (szin[0].ertek == "J" and szin[1].ertek == "T"):
+        return False
+    if allas.kontraktus.szint >= 6:
+        return True
+    return allas.lopasos_arany is not None and allas.lopasos_arany < LOPASOS_ARANY
+
+
+def _dublo_kell_jelleg(allas: JatekAllas, jelzesek) -> bool:
+    """Kell-e indulásnál a leosztás jellege (van-e tiltható dublónk)."""
+    if allas.lejatszott or not allas.adu or allas.kontraktus.szint >= 6 or not jelzesek \
+            or not hasattr(jelzesek, "merlegeles") or not jelzesek.merlegeles("DUBLO_INDULAS"):
+        return False
+    kez = allas.lathato.get(allas.ules) or []
+    allas_ = JatekAllas.__new__(JatekAllas)
+    allas_.__dict__.update(allas.__dict__)
+    allas_.lopasos_arany = 0.0
+    return any(_dublo_tiltott(l, kez, allas_, jelzesek) for l in kez)
+
+
 def _sajat_kodok(jelzesek) -> set[str]:
     """Amit a kibic maga is betart (a `kovetkeztetes:` sorok `sajat: true`-ja)."""
     return {s["kovetkeztetes"] for s in (getattr(jelzesek, "kovetkeztetes_sorok", None) or [])
@@ -1589,7 +1643,13 @@ def _dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = 
                 except Exception:          # noqa: BLE001 — a megállapodás hibája nem állíthatja meg
                     r, sor = None, None
                 if r:
-                    konv[Lap(sz, r)] = sor.kulcs if sor else ""
+                    lap_ = Lap(sz, r)
+                    if helyzet == "INDITAS":
+                        uj = _asz_alol(lap_, kez, allas, jelzesek)
+                        if uj != lap_:
+                            konv[uj] = "MERLEGELES/ASZ_ALOL"
+                            continue
+                    konv[lap_] = sor.kulcs if sor else ""
         # INDÍTÓ KIJÁTSZÁS: itt még nincs igazi információ (az asztal sem
         # látszik), a szabály ERŐS: a lap mindig a megállapodásé, a DD csak a
         # SZÍNT választja (a megállapodás lapjainak értéke szerint), és csak a
@@ -1602,6 +1662,15 @@ def _dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = 
         if helyzet == "INDITAS" and konv:
             jeloltek = [l for l in konv if not stat or l not in stat
                         or stat[l].osztaly != "BIZTOSAN_ROSSZ"]
+            szabad = [l for l in jeloltek if not _dublo_tiltott(l, kez, allas, jelzesek)]
+            if szabad and len(szabad) < len(jeloltek):
+                jeloltek = szabad
+                lap = max(jeloltek, key=lambda l: (utes_kulcs(l),
+                                                   len([x for x in kez if x.szin == l.szin])))
+                mi = "szlem" if allas.kontraktus.szint >= 6 else "szan-jellegű felvétel"
+                return Dontes(lap, f"indító kijátszás: a megállapodás szerinti lap; {mi} ellen "
+                                   "nem dublóból (DUBLO_INDULAS)", szabaly=konv[lap],
+                              helyzet=helyzet, jo=jo)
             if jeloltek:
                 lap = max(jeloltek, key=lambda l: (utes_kulcs(l),
                                                    len([x for x in kez if x.szin == l.szin])))
@@ -1857,6 +1926,7 @@ class Eredmeny:
     megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT
     osszevont: bool = False         # kimerítő elemzés a kis lapok összevonásával
     igazitott: list[str] = field(default_factory=list)  # a licitjüket a lapokhoz igazítottuk
+    lopasos_arany: float | None = None  # indulásnál: a minták hányadában épül a felvétel lopásra
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -1874,6 +1944,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     megallt = ""
     osszevont = False
     igazitott: list[str] = []
+    jelleg = None
     try:
         if dd_fv is None:
             from ..solver.dds import lap_elemzes as dd_fv
@@ -1881,6 +1952,9 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                                       valoszinu)
         jatszott = [str(l) for _, l in allas.lejatszott]
         gy = DDGyujto(allas, allas.pontozas)
+        # indulásnál, ha van tiltható dublónk: a leosztás jellege (lopásra épül-e)
+        jelleg = [0.0, 0.0] if _dublo_kell_jelleg(allas, jelzesek) else None
+        szan_k = Kontraktus(allas.kontraktus.szint, "NT", "", allas.kontraktus.felvevo)
         # 1. köteg; ha kimerítő, ez az összes elosztás
         koteg = min(db, KOTEG) if db > MIN_MINTA else db
         k = 0
@@ -1912,7 +1986,17 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                 if gy.n >= 6 and time.time() - start > ido_keret_s:
                     ido_le = True
                     break
-                gy.hozzaad(dd_fv(lo, jatszott, allas.kontraktus), w)
+                ered = dd_fv(lo, jatszott, allas.kontraktus)
+                gy.hozzaad(ered, w)
+                if jelleg is not None:
+                    try:
+                        szin_u = min(e.felvevo_osszesen for e in ered)
+                        szan_u = min(e.felvevo_osszesen for e in dd_fv(lo, jatszott, szan_k))
+                        jelleg[0] += w
+                        if szin_u - szan_u >= LOPASOS_KULONBSEG:
+                            jelleg[1] += w
+                    except (AttributeError, ValueError):
+                        jelleg = None
                 if menet_kozben and gy.n >= MIN_MINTA and gy.n % KOTEG == 0 and gy.biztos():
                     megallt = "BIZTOS"
                     break
@@ -1944,10 +2028,12 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     except Exception as e:              # noqa: BLE001 — a DD hibája: a megállapodás marad
         hiba = f"{type(e).__name__}: {e}"
         stat = None
+    if jelleg and jelleg[0]:
+        allas.lopasos_arany = jelleg[1] / jelleg[0]
     d = dontes(allas, jelzesek, stat)
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
                     kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
-                    allas.pontozas, megallt, osszevont, igazitott)
+                    allas.pontozas, megallt, osszevont, igazitott, allas.lopasos_arany)
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -1971,6 +2057,7 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "tolerance": round(e.tures, 3),
           "scoring": e.pontozas, "stopped": e.megallt,
           "small_cards_merged": e.osszevont, "bidding_adjusted": e.igazitott,
+          "ruff_based_share": None if e.lopasos_arany is None else round(e.lopasos_arany, 3),
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
     if e.stat:
         db = {"JO": 0, "TALAN": 0, "BIZTOSAN_ROSSZ": 0}

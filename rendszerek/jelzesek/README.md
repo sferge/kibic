@@ -206,6 +206,19 @@ A `/v1/bridge/play` döntése (`src/kibic/motor/lejatszas.py`) négy lépés:
    legjobbja, azonos értékűekből a legkisebb.
 4. **Mérlegelő elvek** (ahol a DD vak) — a jelzésrendszer `merlegeles:` sora
    kapcsolja be őket, sor nélkül nem élnek:
+   `ASZ_ALOL` (2026-10-24) — színfelvétel ellen ász alól nem indulunk, a
+   partner színében sem: az ásszal (merev szabály; a partner nem számít az
+   aláhívásra); az aduszínben nem él;
+   `DUBLO_INDULAS` (2026-10-24) — színfelvétel ellen figura nélküli dublóból
+   (a felső lap nem Á, K, D, és nem B10) nem indulunk szlem ellen (a lopáshoz
+   előbb két ütés kell — az már a bukás), és szan-jellegű leosztásban sem.
+   A JELLEG a mintákból: minden mintában a felvevő DD-ütése a színfelvételben
+   és ugyanazon a szinten szanban; ha a minták legalább felében a szín
+   legalább 2-vel többet ér, a felvétel lopásra épül (ott marad az elemzés),
+   különben szan-jellegű (`meta.kibic.ruff_based_share`). A partner licitált
+   színe kivétel. A Pavlicek-partikon a kibic 127-szer indult dublóból (az
+   ember 81-szer); ahol a dubló nem volt figurás, a szan-jellegű leosztásokban
+   62 IMP-t vesztett (az ember 15-öt), a lopásra épülőkben ugyanannyit, mint az ember;
    `ATVETEL` — a DD a partnert is mindentudónak hiszi, ezért ha mindegy, ki
    viszi az ütést, a folytatást rábízza; mi a partner ütését nyerő lappal
    átvesszük (ha ez semmibe sem kerül), és mi folytatunk;
