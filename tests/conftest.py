@@ -49,3 +49,6 @@ for nev in (".env", ".env.local"):
 # 3. A kizárásos következtetés (licitmotor-szimuláció) lassú: a tesztekben
 #    alapból kikapcsolva; a saját tesztje kérésenként kapcsolja be.
 os.environ.setdefault("KIBIC_KOVETKEZTETES_MS", "0")
+# 4. A kijátszás gondolkodási ideje (KIBIC_GONDOLKODAS_MS) a tesztekben kikapcsolva;
+#    a saját tesztje a modulváltozót állítja.
+os.environ.setdefault("KIBIC_GONDOLKODAS_MS", "0")
