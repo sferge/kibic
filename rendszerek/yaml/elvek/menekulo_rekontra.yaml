@@ -1,0 +1,70 @@
+# MENEKULO_REKONTRA — a menekülő rekontra (SOS), ELV (a szerkesztő, 2026-10-24).
+#
+# Ha a mi felvételünket megkontrázták, és a kontrát BÜNTETŐRE PASSZOLTÁK
+# (a sor végén ülünk: kontra – passz – passz), a rekontra MENEKÜLŐ: annak
+# jelzése, hogy várhatóan van jobb felvétel a kontrázottnál. Plusz erőt
+# jelezni itt nincs értelme. Mondhatja az, aki a felvételt licitálta (pl. az
+# induló 5440-es lappal, a kontrázott színében rövidebb), és a partnere is
+# (aki már passzolt: gyenge, de „különleges” lap).
+#   * A rekontra lapja: a kontrázott színben 0-1 lap (5-5-tel 2 is), és
+#     legalább két MÁSIK 4+ lapos szín. Ha a színt a rekontrázó maga
+#     licitálta (pl. az induló 5440-ese 4 lapos 1♦-vel): legfeljebb 4 lapos,
+#     és két másik 4+ lapos szín (mögötte ül a hosszú adu). Szan elől: legalább két 4+ lapos
+#     szín. Pontot nem ígér. Bármilyen szinten (1-es, 2-es, 3-as).
+#   * Egyszínű lappal (6+ lap) nem rekontra: a színt mondjuk be.
+#   * A partner nem passzolhat: a legolcsóbb 4+ lapos másik színét mondja
+#     (alulról fölfelé, hogy a rekontrázó javíthasson); ha nincs, a
+#     legolcsóbb 3 lapost.
+#
+# NYITOTT: él-e a KÖZVETLEN kontra után is (ma csak a büntetőre passzolt
+# után); az erős, hosszú színnel bent maradhat-e a felvevő.
+rendszer:
+  kod: MENEKULO_REKONTRA
+  nev: Menekülő rekontra
+  nev_en: SOS redouble
+  fajta: KONVENCIO
+  tema: "A büntetőre passzolt kontra után: menekülés"
+  leiras: "A mi felvételünk büntetőre passzolt kontrája után (a sor végén) a rekontra menekülő: rövid a kontrázott színben, két másik 4+ lapos szín; a partner a legolcsóbb 4+ (különben 3) lapos másik színét mondja."
+fejezetek:
+  - fejezet: "A menekülő rekontra"
+    szabalyok:
+      # a felvételt én licitáltam (pl. az induló): én (X) P (P) XX
+      - {minta: ".. nB (X) P (P) XX", kulcs: MENEKULO-XX-SAJAT, fajta: ELV, menekulo: {szin: B, sajat: true},
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 6,
+         alert: "Menekülő rekontra: a kontrázott színem legfeljebb 4 lapos, két másik színem van — válassz"}
+      # a felvételt a partner licitálta, én már passzoltam
+      - {minta: ".. nB (P) P (X) P (P) XX", kulcs: MENEKULO-XX-PARTNER, fajta: ELV, menekulo: B,
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 6,
+         alert: "Menekülő rekontra: rövid a kontrázott színben, két másik színem van — válassz"}
+      - {minta: ".. nNT (X) P (P) XX", kulcs: MENEKULO-XX-SZAN-SAJAT, fajta: ELV, menekulo: NT,
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 6,
+         alert: "Menekülő rekontra: két színem van — válassz"}
+      - {minta: ".. nNT (P) P (X) P (P) XX", kulcs: MENEKULO-XX-SZAN-PARTNER, fajta: ELV, menekulo: NT,
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 6,
+         alert: "Menekülő rekontra: két színem van — válassz"}
+      # egyszínű, gyenge lappal (6+): a színt mondjuk be
+      - {minta: ".. nB (P) P (X) P (P) +A", kulcs: MENEKULO-SZIN, fajta: ELV,
+         kulonbozo: [A, B], hossz: {A: 6+, B: 0-2}, prioritas: 6,
+         magyarazat: "Menekülés a kontrázott felvételből: hosszú (6+) saját szín"}
+
+  - fejezet: "Válasz a menekülő rekontrára"
+    szabalyok:
+      # a partner rekontrázott (ő ült a sor végén), én választok
+      - {minta: ".. nB (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-4-A, fajta: ELV,
+         kulonbozo: [A, B], hossz: {A: 4+}, alulrol: true, prioritas: 7,
+         magyarazat: "A menekülő rekontrára: a legolcsóbb 4+ lapos másik színem"}
+      - {minta: ".. nB (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-3-A, fajta: ELV,
+         kulonbozo: [A, B], hossz: {A: 3+}, alulrol: true, prioritas: 6,
+         magyarazat: "A menekülő rekontrára: nincs 4 lapos másik színem — a legolcsóbb 3 lapos"}
+      - {minta: ".. nB (P) P (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-4-B, fajta: ELV,
+         kulonbozo: [A, B], hossz: {A: 4+}, alulrol: true, prioritas: 7,
+         magyarazat: "A menekülő rekontrára: a legolcsóbb 4+ lapos másik színem"}
+      - {minta: ".. nB (P) P (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-3-B, fajta: ELV,
+         kulonbozo: [A, B], hossz: {A: 3+}, alulrol: true, prioritas: 6,
+         magyarazat: "A menekülő rekontrára: nincs 4 lapos másik színem — a legolcsóbb 3 lapos"}
+      - {minta: ".. nNT (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-SZAN-A, fajta: ELV,
+         hossz: {A: 3+}, alulrol: true, prioritas: 6,
+         magyarazat: "A menekülő rekontrára: a legolcsóbb színem"}
+      - {minta: ".. nNT (P) P (X) P (P) XX (P) +A", kulcs: MENEKULO-VALASZ-SZAN-B, fajta: ELV,
+         hossz: {A: 3+}, alulrol: true, prioritas: 6,
+         magyarazat: "A menekülő rekontrára: a legolcsóbb színem"}

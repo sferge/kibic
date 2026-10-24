@@ -182,7 +182,7 @@ _SZABALY_KULCSOK = {
     "maradek_vesztok", "osszesen", "leghosszabb", "fit",
     "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
     "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "gyenge_fogas", "help_fogas",
-    "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit",
+    "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit", "menekulo",
 }
 _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "feltetel", "lapok", "nincs", "fohonor", "figura", "fogas",
@@ -195,7 +195,7 @@ _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
                 "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont",
                 "gyenge_fogas", "help_fogas", "gem_eselytelen", "eros_fogas",
-                "leghosszabb_partner_szin", "misfit"}
+                "leghosszabb_partner_szin", "misfit", "menekulo"}
 
 # A lap minősége (LAPMINOSEG = jó jelek − rossz jelek, lásd 023_lapminoseg.sql)
 _MINOSEG = {"jo": (">=", 2), "rossz": ("<=", -2),
@@ -621,6 +621,13 @@ def _kez_fa(spec: dict, hely: str) -> dict:
         gy.append(n_ if spec["gemeselyes"] else {"t": "NEM", "gy": [n_]})
     if spec.get("splinter_tamogatas"):           # feltételezett 8 lapos nemes fit
         gy.append({"t": "SPLINTER_FIT"})
+    if "menekulo" in spec:                       # menekülő lap a kontrázott B szín / szan elől
+        m_ = spec["menekulo"]                    # B / NT, vagy {szin: B, sajat: true}
+        m_szin = m_.get("szin") if isinstance(m_, dict) else m_
+        n_ = {"t": "MENEKULO", "szin": "NT" if str(m_szin).upper() == "NT" else _szin_kod(str(m_szin))}
+        if isinstance(m_, dict) and m_.get("sajat"):
+            n_["sajat"] = True
+        gy.append(n_)
     if "misfit" in spec:                         # 0-1 lap a partner tudott 5+ lapos színében
         n_ = {"t": "MISFIT"}
         gy.append(n_ if spec["misfit"] else {"t": "NEM", "gy": [n_]})

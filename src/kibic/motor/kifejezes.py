@@ -631,6 +631,24 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
             ig = szukitett_tar({"p": ig}, {"p": v})["p"]
         return gemesely(kez, ig)
 
+    if t == "MENEKULO":            # a menekülő rekontra lapja (a szerkesztő, 2026-10-24)
+        # A kontrázott szín (B) elől van jobb felvétel: B-ben 0-1 lap (5-5-tel
+        # 2 is), és legalább két MÁSIK színben 4+ lap. Ha a színt ÉN licitáltam
+        # (`sajat`): legfeljebb 4 lapos, és két másik 4+ lapos szín (pl. az
+        # induló 5440-ese 4 lapos 1♦-vel). Szan elől: legalább két 4+ lapos
+        # szín, és a lap nem 4333.
+        b = csp.get("szin")
+        b = None if b == "NT" else _kotott_szin(b, ktx)
+        masik = [sz for sz in ("S", "H", "D", "C") if sz != b]
+        negyes = sum(1 for sz in masik if kez.hossz(sz) >= 4)
+        if b is None:
+            return negyes >= 2 and sorted((kez.hossz(sz) for sz in masik), reverse=True)[0] >= 4 \
+                and sorted(kez.hossz(sz) for sz in masik) != [3, 3, 3, 4]
+        otos = sum(1 for sz in masik if kez.hossz(sz) >= 5)
+        if csp.get("sajat"):           # a SAJÁT licitált színem: legfeljebb 4 lapos
+            return negyes >= 2 and kez.hossz(b) <= 4
+        return negyes >= 2 and (kez.hossz(b) <= 1 or (kez.hossz(b) <= 2 and otos >= 2))
+
     if t == "MISFIT":              # 0-1 lap a partner tudott 5+ lapos színében (2026-10-23)
         ig = _partner_igeret(ktx)
         if ig is None:
@@ -919,6 +937,8 @@ def leiras(csp: dict) -> str:
     if t == "GEMESELY":
         return ("gémesély (nemes fittel 25, minor fittel 27, szanban 24 FP — "
                 "egyenetlen pontelosztásnál hosszú színnel)")
+    if t == "MENEKULO":
+        return "menekülő lap: rövid a kontrázott színben, legalább két másik 4+ lapos szín"
     if t == "MISFIT":
         return "misfit (0-1 lap a partner tudottan 5+ lapos színében)"
     if t == "SPLINTER_FIT":
