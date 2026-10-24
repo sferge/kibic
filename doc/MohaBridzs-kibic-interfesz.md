@@ -571,7 +571,11 @@ használja belőle: `actor.acting_for_seat`, `state.contract`, `declarer`,
    preferencia. Felvevőként a DD legjobbja (azonos értékből a legkisebb).
 4. **Mérlegelő elvek** (ahol a DD vak): még csak a jelzésrendszer szövegében.
 
-Kényszerű lapnál nincs számolás. DDS nélkül a megállapodás választ a
+Kényszerű lapnál nincs számolás — de a válasz akkor sem azonnali: a
+kijátszásra a kibic legalább `KIBIC_GONDOLKODAS_MS` ideig „gondolkodik”
+(alap 1,5–3 s, véletlenszerűen; legfeljebb a `deadline_ms` 30%-a; az utolsó
+ütésben nem), hogy a válasz gyorsasága ne árulja el, volt-e választás. A
+`meta.elapsed_ms` a döntés ideje, a várakozás nélkül. DDS nélkül a megállapodás választ a
 szabályos lapok közül. Értelmezhetetlen állásnál tartalék (a legkisebb lap,
 `source: fallback`).
 
@@ -897,6 +901,7 @@ leírás, HTML / Markdown) alakja — ezekhez titok nem kell.
 | `KIBIC_LEJATSZAS_MINTA` | a lejátszó réteg legfeljebb ennyi mintát néz (alap 3000; ténylegesen a döntés biztossága és az időkeret dönti el) |
 | `KIBIC_LEJATSZAS_MIN_MINTA` | legalább ennyi minta, mielőtt a döntést biztosnak veszi (alap 60) |
 | `KIBIC_LEJATSZAS_KOVETKEZTETES_MS` | a licit kizárásos következtetése a lejátszásban (leosztásonként egyszer; alap 15000, legfeljebb a `deadline_ms` 30%-a; utána gyorsítótár) |
+| `KIBIC_GONDOLKODAS_MS` | a kijátszás legrövidebb válaszideje: `1500-3000` (véletlen a tartományból, ez az alap), `2000` (fix), `0` (ki). Ha a döntés tovább tartott, nincs várakozás; legfeljebb a `deadline_ms` 30%-a; az utolsó ütésben nincs |
 | `KIBIC_LEJATSZAS_KIS_LAP` | a kimerítő elemzésben ennél nem nagyobb rejtett lapok egyenértékűek (alap `8`; `0`: ki) |
 | `KIBIC_LEJATSZAS_MINTAZAT_HATAR` | ennyi mintázatig (kis lapok összevonva) a teljes sokaságot nézi (alap 5000) |
 | `KIBIC_ATJARO_NAPLO_KERES` | `1`: a napló play-sorában a teljes kérés is (a saját kéz és az asztal!) — a visszajátszáshoz: `python -m kibic.cli.jatekelemzes` |
@@ -979,3 +984,4 @@ Az adatbázis vagy a YAML-rendszerek módosítása után: `POST /v1/kibic/ujrato
 | 2026-10-23 (6.) | Mérőpad: IMP-veszteség döntésenként (`imp_veszt`, `emberi_imp_veszt` a `--json`-ban; `IMP` oszlop a jelentésben), a beliállás és a kontra szerint; a `kibic+ / ember+` IMP-ben számol. |
 | 2026-10-24 | Játék-szál, a szerkesztő döntései a Pavlicek-indulások után. Új mérlegelő sorok (MOHA_STAND): **`ASZ_ALOL`** — színfelvétel ellen ász alól nem indulunk (a partner színében sem); **`DUBLO_INDULAS`** — színfelvétel ellen figura nélküli dublóból nem indulunk szlem ellen, és ha a leosztás szan-jellegű (a minták többségében a felvevő szanban is ugyanannyit vinne; a mintánkénti szan-DD csak ilyenkor fut); `meta.kibic.ruff_based_share`. YAML: import kell. |
 | 2026-10-24 (2.) | Játék-szál. Új következtetés: **`FELVETEL_HIHETO`** (MOHA_STAND, súly 0,6) — indulásnál az ellenfél önként licitált, kontrázatlan gémje / szleme ellen a DD szerint bukó elosztások kisebb súllyal számítanak (a kibic gém és szlem ellen kétszer annyi bukást várt, mint ahány lett). Mérőeszközök: `--suly KOD=SULY` (a súly felülírása hangoláshoz; `KIBIC_KOVETKEZTETES_SULY`), az `inditaselemzes` `--hangolas`-sal több súlyt vet össze egyszerre, és kalibrál vállalásonként. YAML: import kell. |
+| 2026-10-24 (3.) | Játék-szál. **Gondolkodási idő a kijátszásban**: a kényszerű (pl. szingli) lapra se jöjjön azonnal a válasz, mert a gyorsaság elárulná, hogy nem volt választás. A `/v1/bridge/play` válasza legalább `KIBIC_GONDOLKODAS_MS` (alap 1500–3000 ms, véletlen) után érkezik; a hosszabb döntésekhez nem ad hozzá; legfeljebb a `deadline_ms` 30%-a; az utolsó ütésben nincs. A `meta.elapsed_ms` a döntés ideje. |

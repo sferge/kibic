@@ -604,7 +604,60 @@ def _tartalek_play(keres: dict, lapok: list[str], ok: str, start: float) -> dict
          "elapsed_ms": int((time.time() - start) * 1000), "fallback_reason": ok})
 
 
+# Gondolkodási idő (2026-10-24): a kijátszásra adott válasz legalább ennyi ms
+# (egyenletes véletlen a tartományból) — a kényszerű / szingli lapra adott
+# azonnali válasz elárulná, hogy nem volt választás. Ha a döntés tovább tartott,
+# nincs várakozás; legfeljebb a határidő (deadline_ms) 30%-a; az utolsó ütésben
+# (mindenkinek egy lapja van) nincs. "0" kikapcsolja. Formátum: "1500-3000" vagy "2000".
+GONDOLKODAS_MS = os.getenv("KIBIC_GONDOLKODAS_MS", "1500-3000")
+GONDOLKODAS_HATARIDO_ARANY = 0.3
+
+
+def _gondolkodas_tartomany(ertek: str) -> tuple[int, int]:
+    try:
+        a, _, b = str(ertek).strip().partition("-")
+        lo = max(0, int(a))
+        hi = max(lo, int(b)) if b else lo
+        return lo, hi
+    except ValueError:
+        return 0, 0
+
+
+def _utolso_utes(keres: dict) -> bool:
+    st = keres.get("state") or {}
+    hist = (keres.get("history") or {}).get("play")
+    if hist is None:
+        hist = [c for t in (st.get("completed_tricks") or []) for c in (t.get("cards") or [])]
+    return len(hist or []) >= 48
+
+
+def gondolkodasi_ido(keres: dict, start: float, rng=None) -> int:
+    """
+    A válaszig hátralévő várakozás ms-ban (0, ha nem kell). `start`: a kérés
+    feldolgozásának kezdete (time.time()).
+    """
+    import random
+    lo, hi = _gondolkodas_tartomany(GONDOLKODAS_MS)
+    if hi <= 0 or _utolso_utes(keres):
+        return 0
+    cel = (rng or random).randint(lo, hi)
+    hatarido = int(keres.get("deadline_ms") or 0)
+    if hatarido > 0:
+        cel = min(cel, int(hatarido * GONDOLKODAS_HATARIDO_ARANY))
+    return max(0, cel - int((time.time() - start) * 1000))
+
+
 def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
+    """`POST /v1/bridge/play` — a döntés (`_play_dontes`) és a gondolkodási idő."""
+    start = time.time()
+    valasz = _play_dontes(keres, betolto, jelzes_fv, dd_zar)
+    var_ms = gondolkodasi_ido(keres, start)
+    if var_ms > 0:
+        time.sleep(var_ms / 1000)
+    return valasz
+
+
+def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
     """
     `POST /v1/bridge/play` — a lejátszó réteg (motor/lejatszas.py):
 

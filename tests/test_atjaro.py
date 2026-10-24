@@ -171,6 +171,41 @@ def test_kenyszeru_lap():
     assert v["confidence"] == 1.0
 
 
+def test_kenyszeru_lapnal_is_gondolkodik(monkeypatch):
+    """A kényszerű (szingli) lapra se jöjjön azonnal a válasz — az elárulná."""
+    import time
+    from kibic.szolgaltatas import atjaro
+    monkeypatch.setattr(atjaro, "GONDOLKODAS_MS", "120-150")
+    t = time.time()
+    v = play_dontes({"request_id": "r", "decision": "play",
+                     "legal_actions": {"cards": ["D6"]}})
+    assert v["action"]["card"] == "D6"
+    assert time.time() - t >= 0.11
+
+
+def test_gondolkodasi_ido_szabalyai(monkeypatch):
+    import random
+    import time
+    from kibic.szolgaltatas import atjaro
+    rng = random.Random(1)
+    most = time.time()
+    monkeypatch.setattr(atjaro, "GONDOLKODAS_MS", "1500-3000")
+    assert 1400 <= atjaro.gondolkodasi_ido({}, most, rng) <= 3000
+    # a határidő 30%-áig
+    assert atjaro.gondolkodasi_ido({"deadline_ms": 2000}, most, rng) <= 600
+    # ami a döntésre már elment, az levonódik
+    assert atjaro.gondolkodasi_ido({}, most - 5, rng) == 0
+    # az utolsó ütésben nincs
+    tele = {"history": {"play": ["C2"] * 48}}
+    assert atjaro.gondolkodasi_ido(tele, most, rng) == 0
+    monkeypatch.setattr(atjaro, "GONDOLKODAS_MS", "0")
+    assert atjaro.gondolkodasi_ido({}, most, rng) == 0
+    monkeypatch.setattr(atjaro, "GONDOLKODAS_MS", "2000")
+    assert 1900 <= atjaro.gondolkodasi_ido({}, most, rng) <= 2000
+    monkeypatch.setattr(atjaro, "GONDOLKODAS_MS", "hibás")
+    assert atjaro.gondolkodasi_ido({}, most, rng) == 0
+
+
 def test_ertelmezhetetlen_allasnal_tartalek_es_ezt_be_is_vallja():
     v = play_dontes({"request_id": "r", "decision": "play",
                      "legal_actions": {"cards": ["DT", "D6", "C6"]}})
