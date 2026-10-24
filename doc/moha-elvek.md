@@ -697,3 +697,14 @@ Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 - **4441, 9+ (gémforsz):** 3♦ = minor szingli (3♥ relé: 3♠ = káró, 3NT = treff szingli), 3♥ = kőr szingli, 3♠ = pikk szingli. Az induló: 3NT passzkérő (16+ ponttal 4NT), 4M passzkérő.
 - **Az egyenletes invit 4-es nemes nélkül a Staymanen** megy (1NT-2♣, bármi a válasz, 2NT). 8 ponttal 4-es nemes nélkül passz (rossz 8), így ez 9 pont.
 - **NYITOTT:** ugyanez a közbeszóló 1NT-je (16–19) után, a határok egy ponttal lejjebb (invit 8+ helyett 7+, gémforsz 15+); ehhez a minta-nyelvbe a „rendszer él” kell. A rövidség után a 4m ORKC és az 5m passzkérő még nincs a gépben.
+
+## Menekülő rekontra — 2026-10-24
+
+`elvek/menekulo_rekontra.yaml`. Ha a mi felvételünket megkontrázták, és a kontrát büntetőre passzolták (a sor végén ülünk: kontra – passz – passz), a rekontra menekülő: várhatóan van jobb felvétel a kontrázottnál. Bármilyen szinten, és mondhatja a felvevő is, a partnere is.
+
+- **A partner (aki már passzolt) rekontrája:** a kontrázott színben 0–1 lap (5-5-tel 2 is), és legalább két másik 4+ lapos szín. Pontot nem ígér.
+- **A felvevő saját rekontrája:** „van jobb ötletem, nem is egy, és nem egyértelmű, melyik”: a kontrázott (saját) színe legfeljebb 5 lapos, és van két másik 4+ lapos vagy egy másik 5+ lapos színe (5440, 5530; mögötte ül a hosszú adu).
+- **Szan elől:** legalább két 4+ lapos szín (nem 4333).
+- **Egyszínű lappal** (6+) nem rekontra: a színt mondjuk be.
+- **A válasz:** a legolcsóbb 4+ lapos másik szín (alulról fölfelé), ha nincs, a legolcsóbb 3 lapos. Bent is lehet maradni: a felvevő 6+ lapos színével, illetve a felvevő rekontrájára a partner 4+ lapos támogatással.
+- **NYITOTT:** a közvetlen kontra utáni rekontra (ma csak a büntetőre passzolt után).
