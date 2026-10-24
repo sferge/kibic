@@ -325,9 +325,15 @@ def main(argv=None) -> int:
                     ulesek.add(kovetkezo_ules(p.kontraktus.felvevo, 2))
             feladatok.append((p, ulesek, oldal, a.rendszer, a.max_dontes))
         meresek, stat = [], {"partik": 0, "dontesek": 0}
+        # a --json partinként íródik (menet közben is olvasható, megszakításnál sem vész el)
+        kimenet = open(a.json, "w", encoding="utf-8") if a.json else None
 
         def jegyez(m):
             meresek.extend(m)
+            if kimenet is not None:
+                for x in m:
+                    kimenet.write(json.dumps(x.szotar(), ensure_ascii=False) + "\n")
+                kimenet.flush()
             stat["partik"] += 1
             stat["dontesek"] += len(m)
             print(f"\r{stat['partik']}/{len(feladatok)} parti, {stat['dontesek']} döntés",
@@ -344,7 +350,9 @@ def main(argv=None) -> int:
             for f in feladatok:
                 jegyez(_munkas_parti(f))
         print(file=sys.stderr)
-    if a.json:
+        if kimenet is not None:
+            kimenet.close()
+    if a.naplo and a.json:
         with open(a.json, "w", encoding="utf-8") as f:
             for m in meresek:
                 f.write(json.dumps(m.szotar(), ensure_ascii=False) + "\n")

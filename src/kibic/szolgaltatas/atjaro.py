@@ -768,3 +768,85 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict
     valasz = _valasz(keres, "play", {"card": lap}, lj.magyarazat(e), bizonyossag, meta)
     naploz(keres, None, valasz)
     return valasz
+
+
+# =====================================================================
+# Terítés elbírálása — POST /v1/bridge/claim (MB AI-terítés 1.0)
+# =====================================================================
+# Az MB a terítő ellenfeleit kérdezi (mindkettőt külön); a válasz
+# `action: {type: claim_response, accept: true|false}`. A döntés a
+# motor/terites.py `elbiral` függvénye. A magyarázat KÉZ NÉLKÜLI és nem
+# árulja el, hogy a terítés a valódi állásban kijönne-e (az a terítőnek
+# információ volna) — a részletes ok csak teszt módban megy ki.
+
+CLAIM_IDO_MS = int(os.getenv("KIBIC_CLAIM_MS", "20000"))
+
+_CLAIM_SZOVEG = {
+    "BIZTOS": "Elfogadom: a bejelentett ütések a lapok bármely elhelyezkedése mellett megvannak.",
+    "MINDEN_ELOSZTAS": "Elfogadom: a bejelentett ütések a lapok minden lehetséges elhelyezkedése mellett megvannak.",
+}
+_CLAIM_ELUTASIT = "Nem fogadom el: nem látom biztosnak — játsszuk le."
+
+
+def claim_dontes(keres: dict, dd_zar=None) -> dict:
+    """`POST /v1/bridge/claim` — elfogadjuk-e az ellenfél (vagy az ellenvonal) terítését."""
+    from ..motor import lejatszas as lj
+    from ..domain import vonal
+    from ..motor.terites import elbiral
+    start = time.time()
+    if not isinstance(keres, dict):
+        raise AtjaroHiba("A kérés JSON-objektum legyen")
+    if keres.get("decision") not in (None, "claim_response"):
+        raise AtjaroHiba("A 'decision' értéke 'claim_response' legyen")
+    c = keres.get("claim")
+    if not isinstance(c, dict):
+        raise AtjaroHiba("A 'claim' objektum hiányzik")
+    terito = str(c.get("claimant") or "").upper()
+    if terito not in ("N", "E", "S", "W"):
+        raise AtjaroHiba("A 'claim.claimant' hiányzik vagy hibás")
+    utesek = c.get("tricks")
+    if isinstance(utesek, bool) or not isinstance(utesek, int):
+        raise AtjaroHiba("A 'claim.tricks' egész szám legyen")
+
+    def valasz(elfogad: bool, szoveg: str, kibic: dict, forras: str = "model",
+               ok: str | None = None) -> dict:
+        meta = {"source": forras, "pipeline": "kibic_claim",
+                "elapsed_ms": int((time.time() - start) * 1000),
+                "fallback_reason": ok if forras == "fallback" else None, "kibic": kibic}
+        v = _valasz(keres, "claim_response", {"accept": elfogad}, szoveg,
+                    1.0 if elfogad else None, meta)
+        naploz(keres, None, v)
+        return v
+
+    # a szabályos kijátszási kérés alakja kell a játékállás olvasásához
+    szereplo = keres.get("actor") or {}
+    ules = str(szereplo.get("acting_for_seat") or szereplo.get("seat") or "").upper()
+    sajat = ((keres.get("state") or {}).get("visible_hands") or {}).get(ules) or []
+    try:
+        allas = lj.allas_keresbol(dict(keres, legal_actions={"cards": list(sajat[:1]) or ["C2"]}))
+    except lj.LejatszasHiba as e:
+        return valasz(False, _CLAIM_ELUTASIT, {}, "fallback", f"a játékállás nem értelmezhető: {e}")
+    if vonal(allas.ules) == vonal(terito):
+        return valasz(False, _CLAIM_ELUTASIT, {}, "fallback", "a saját vonal terítéséről nem dönt")
+
+    def dd_fv(lo, jatszott, k):
+        from ..solver.dds import lap_elemzes
+        if dd_zar is None:
+            return lap_elemzes(lo, jatszott, k)
+        with dd_zar:
+            return lap_elemzes(lo, jatszott, k)
+
+    hatarido = int(keres.get("deadline_ms") or 60000)
+    ido_s = max(1.0, min(CLAIM_IDO_MS, hatarido * 0.5) / 1000)
+    try:
+        e = elbiral(allas, terito, utesek, dd_fv, ido_s)
+    except ImportError:
+        return valasz(False, _CLAIM_ELUTASIT, {}, "fallback", "nincs DDS")
+    except Exception as ex:                      # noqa: BLE001
+        return valasz(False, _CLAIM_ELUTASIT, {}, "fallback", f"belső hiba: {type(ex).__name__}")
+    kibic = {"worlds_checked": e.vilagok, "exhaustive": e.kimerito}
+    if keres.get("test_mode"):
+        kibic["debug"] = {"reason": e.ok, "declarer_tricks_claimed": e.cel,
+                          "declarer_tricks_dd": e.dd, "worlds_total": e.osszes_vilag}
+    return valasz(e.elfogad, _CLAIM_SZOVEG.get(e.ok, "Elfogadom.") if e.elfogad else _CLAIM_ELUTASIT,
+                  kibic)
