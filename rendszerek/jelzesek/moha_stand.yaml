@@ -203,10 +203,12 @@ fejezetek:
       A szabály csak azt mondja meg, hogy a jó lapok közül melyikkel
       üzenünk a partnernek.
     sorok:
-      # többfigurás színek: a sorozat teteje (az érintkezőknél a hézag dönt)
-      - {helyzet: HIVAS, minta: [AK+, KQ+, QJ+, JT+], hossz: "3+", hezag: "1-",
+      # többfigurás színek: a sorozat teteje (2026-10-24, a szerkesztő: a
+      # hézag-szabály — 2. és 3. lap között legfeljebb 1 hely — csak az
+      # INDÍTÓ kijátszásra vonatkozik; menet közben az érintkező figurák teteje)
+      - {helyzet: HIVAS, minta: [AK+, KQ+, QJ+, JT+], hossz: "3+",
          lap: SOROZAT_TETEJE, kulcs: "HIVAS/SOROZAT",
-         megjegyzes: "érintkező figurák: a figurával, ha a 2. és 3. lap között legfeljebb 1 hely van; különben lapszám szerint"}
+         megjegyzes: "érintkező figurák: a sorozat teteje (a hézag csak az indításnál számít)"}
       - {helyzet: HIVAS, minta: [AQJ+, AJT+, KJT+, AT9+, KT9+, QT9+], lap: SOROZAT_TETEJE,
          kulcs: "HIVAS/BELSO_SOROZAT", megjegyzes: "belső sorozat teteje, mint az indításnál"}
       - {kihagy: "HIVAS/*/*/h2", megjegyzes: "dublóból nem a nagyobb: a lapszám szerint a kisebb (a rács és a módszer adja)"}
