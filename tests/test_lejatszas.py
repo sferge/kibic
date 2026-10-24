@@ -1167,3 +1167,20 @@ def test_a_leosztas_jellege_a_mintakbol(moha):
         return [LapErtekeles(str(l), 13 - felv, felv, True, 0) for l in a.legalis]
     e = lj.jatek_dontes(a, moha, None, dd, db=20, mag=1)
     assert e.lopasos_arany == 1.0 and lj.meta(e)["ruff_based_share"] == 1.0
+
+
+def test_onmagara_hivatkozo_alternativa_nem_akad_el():
+    """2026-10-24: az egyágú `vagy:` önmagára hivatkozó alternatívát hagyott (1♣-1♦-X):
+    a mintavétel végtelen rekurzióba futott. A propagal javítva; a lejátszás védekezik."""
+    from kibic.motor.propagal import alkalmaz
+    ig = Igeret()
+    ig.pont_min = 5
+    egy = alkalmaz(Igeret(), {"vagy": [{"pont": [6, 10]}]}, {}, {}, None)
+    assert all(egy not in cs for cs in egy.alternativak)
+    kor = Igeret()
+    kor.hossz_min = {"H": 13}
+    kor.alternativak = [[kor]]                                    # régi, hibás alak
+    assert lj._pont_tav(set(LO.kezek["E"].lapok), kor) is None
+    a = lj.allas_keresbol(_keres("W"))
+    m = lj.mintavetel(a, {"E": kor}, db=3, mag=1)
+    assert len(m.leosztasok) == 3
