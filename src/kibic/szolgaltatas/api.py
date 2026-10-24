@@ -26,7 +26,7 @@ except ImportError as e:      # pragma: no cover
     ) from e
 
 from .atjaro import (PROTOKOLL, TAR as _IDEM, AtjaroHiba, Utkozes,
-                     bid_dontes, play_dontes)
+                     bid_dontes, claim_dontes, play_dontes)
 from .dd import DdHiba, dd_elemzes
 from .licit import LicitHiba, licit_elemzes
 
@@ -497,6 +497,25 @@ async def bridge_play(
         # a mintavétel és a DD másodpercekig is tarthat: ne az eseményhurkon fusson
         valasz = await run_in_threadpool(play_dontes, keres, _rendszer_betolto,
                                          _jelzesek_rendszerhez, _DDS_ZAR)
+    except AtjaroHiba as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    _IDEM.ir(idempotency_key, keres, valasz)
+    return valasz
+
+
+@app.post("/v1/bridge/claim", dependencies=[Depends(_jogosultsag_atjaro)])
+async def bridge_claim(
+    keres: dict,
+    idempotency_key: str | None = Header(default=None,
+                                         alias="Idempotency-Key"),
+) -> dict:
+    """Terítés elbírálása (MB AI-terítés 1.0): elfogadjuk-e (motor/terites.py)."""
+    from starlette.concurrency import run_in_threadpool
+    kesz = _idempotencia(keres, idempotency_key)
+    if kesz is not None:
+        return kesz
+    try:
+        valasz = await run_in_threadpool(claim_dontes, keres, _DDS_ZAR)
     except AtjaroHiba as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     _IDEM.ir(idempotency_key, keres, valasz)

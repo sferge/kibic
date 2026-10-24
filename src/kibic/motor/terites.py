@@ -200,3 +200,151 @@ def szoveg(t: Terites) -> str:
         return f"Terítek: mind a {t.hatralevo} ütés a miénk. Sorban: {sor}."
     return (f"Terítek: a hátralévő {t.hatralevo} ütésből {t.utesek} a miénk, "
             f"{t.hatralevo - t.utesek} a védőké. Sorban: {sor}, a többit átadom.")
+
+
+# --- A terítés elbírálása (MB AI-terítés 1.0, `claim_response`) ------------
+#
+# Az elbíráló (a terítő ellenfele) a saját kezét, az asztalt és a terítő
+# nyitott kezét látja — a negyedik kéz így kiszámolható, a valódi állás
+# teljesen ismert. A döntés:
+#
+#   1. DD a valódi állásban: ha tökéletes ellenjáték ellen nem jön ki a
+#      bejelentett ütésszám → elutasítás;
+#   2. a terítő BIZTOS terve (`terites`, a felvevő oldalán, ütés elején) eléri
+#      → elfogadás;
+#   3. a TERÍTŐ szemszögéből (ő a saját kezét és az asztalt látja) a lapok
+#      minden lehetséges elhelyezkedésében — a megmutatott renonszokkal —
+#      kijön (DD) → elfogadás; ha valamelyikben nem: elutasítás (pl. egy
+#      impasszon múlik, amit a bejelentés nem mond). Sok elosztásnál
+#      mintavétel (VILAG_MINTA), az időkeretig.
+#
+# Ismert engedékenység: a 3. pont a kétirányú találgatást nem szűri ki (a DD
+# minden elhelyezkedésben jól találgat).
+
+VILAG_KIMERITO = 2000      # ennyi elosztásig mindet megnézi
+VILAG_MINTA = 300          # különben ennyi véletlen elosztást
+VILAG_MIN = 30             # ha lejár az idő, legalább ennyi kell az elfogadáshoz
+
+
+@dataclass
+class Elbiralas:
+    elfogad: bool
+    ok: str                 # BIZTOS / MINDEN_ELOSZTAS / DD_KEVES / NEM_BIZTOS / NEM_LATOM / IDO
+    cel: int = 0            # a felvevő oldal végső ütésszáma a terítés szerint
+    dd: int | None = None   # ... és a valódi állásban, tökéletes játékkal
+    vilagok: int = 0
+    osszes_vilag: int = 0
+    kimerito: bool = False
+
+
+def _leosztas(allas, kezek: dict):
+    from ..domain import Kez, Leosztas
+    return Leosztas({u: Kez(frozenset(set(kezek[u]) | set(allas.jatszott(u)))) for u in kezek},
+                    oszto=allas.oszto, beliallas=allas.beliallas)
+
+
+def _soron_hivo(allas) -> str:
+    """Aki a következő ütést hívja (befejezett ütések után)."""
+    n = len(allas.lejatszott) - len(allas.lejatszott) % 4
+    if n == 0:
+        return kovetkezo_ules(allas.felvevo)
+    return _nyero(allas.lejatszott[n - 4:n], allas.adu)
+
+
+def elbiral(allas, terito: str, utesek: int, dd_fv, ido_s: float = 20.0) -> Elbiralas:
+    """
+    `allas`: az elbíráló szemszöge (lejatszas.JatekAllas; a látható kezek közt a
+    terítőé is). `terito`: a terítő ülése; `utesek`: a terítő oldal által kért
+    hátralévő ütések; `dd_fv(leosztas, jatszott, kontraktus)` → lap_elemzes.
+    """
+    import hashlib
+    import random
+    import time
+    from itertools import combinations
+
+    start = time.time()
+    felvevo, asztal, adu = allas.felvevo, allas.asztal, allas.adu
+    jatszott_lapok = {l for _, l in allas.lejatszott}
+    rejtett = [u for u in "NESW" if u not in allas.lathato]
+    if len(rejtett) != 1:
+        return Elbiralas(False, "NEM_LATOM")
+    ismert = jatszott_lapok | {l for ls in allas.lathato.values() for l in ls}
+    maradek = [Lap(sz, e) for sz in SZINEK for e in LAPOK if Lap(sz, e) not in ismert]
+    if len(maradek) != 13 - len(allas.jatszott(rejtett[0])):
+        return Elbiralas(False, "NEM_LATOM")
+    kezek = {u: list(ls) for u, ls in allas.lathato.items()}
+    kezek[rejtett[0]] = maradek
+
+    hatralevo = 13 - len(allas.lejatszott) // 4
+    eddig = _eddigi_utesek(allas.lejatszott, adu, vonal(felvevo))
+    fo = vonal(terito) == vonal(felvevo)
+    utesek = max(0, min(hatralevo, int(utesek)))
+    cel = eddig + (utesek if fo else hatralevo - utesek)
+    jatszott = [str(l) for _, l in allas.lejatszott]
+    k = allas.kontraktus
+
+    def dd(kz: dict) -> int:
+        ered = dd_fv(_leosztas(allas, kz), jatszott, k)
+        return ered[0].felvevo_osszesen if ered else eddig
+
+    def jo(x: int) -> bool:
+        return x >= cel if fo else x <= cel
+
+    valodi = dd(kezek)
+    if not jo(valodi):
+        return Elbiralas(False, "DD_KEVES", cel, valodi)
+
+    # 2. a felvevő biztos terve (ütés elején, ha a felvevő oldal hív)
+    if fo and not allas.aktualis and vonal(_soron_hivo(allas)) == vonal(felvevo):
+        from copy import copy
+        a2 = copy(allas)
+        a2.ules = _soron_hivo(allas)
+        a2.lathato = {felvevo: kezek[felvevo], asztal: kezek[asztal]}
+        tr = terites(a2)
+        if tr is not None and tr.utesek >= utesek:
+            return Elbiralas(True, "BIZTOS", cel, valodi)
+
+    # 3. a terítő szemszögéből minden elhelyezkedés
+    lat = {terito, asztal}
+    ket = [u for u in "NESW" if u not in lat]
+    if len(ket) != 2:
+        return Elbiralas(False, "NEM_LATOM", cel, valodi)
+    a_, b_ = ket
+    pool = sorted(kezek[a_] + kezek[b_], key=lambda l: (l.szin, l.rang))
+    na = len(kezek[a_])
+    ren = allas.renonszok()
+
+    def szabalyos(ha: set, hb: list) -> bool:
+        return not any(l.szin in ren[a_] for l in ha) and not any(l.szin in ren[b_] for l in hb)
+
+    from math import comb
+    osszes = comb(len(pool), na)
+    if osszes <= VILAG_KIMERITO:
+        kimerito = True
+        vilagok = (set(c) for c in combinations(pool, na))
+    else:
+        kimerito = False
+        mag = int(hashlib.sha256("".join(map(str, pool)).encode()).hexdigest()[:8], 16)
+        rng = random.Random(mag)
+
+        def sorsol():
+            for _ in range(VILAG_MINTA * 50):
+                yield set(rng.sample(pool, na))
+        vilagok = sorsol()
+    db = 0
+    for ha in vilagok:
+        hb = [l for l in pool if l not in ha]
+        if not szabalyos(ha, hb):
+            continue
+        if time.time() - start > ido_s:
+            if db >= VILAG_MIN:
+                return Elbiralas(True, "MINDEN_ELOSZTAS", cel, valodi, db, osszes, False)
+            return Elbiralas(False, "IDO", cel, valodi, db, osszes, False)
+        kz = dict(kezek)
+        kz[a_], kz[b_] = list(ha), hb
+        db += 1
+        if not jo(dd(kz)):
+            return Elbiralas(False, "NEM_BIZTOS", cel, valodi, db, osszes, kimerito)
+        if not kimerito and db >= VILAG_MINTA:
+            break
+    return Elbiralas(True, "MINDEN_ELOSZTAS", cel, valodi, db, osszes, kimerito)

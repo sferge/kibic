@@ -293,7 +293,7 @@ def kepessegek(rendszerek: list[dict] | None = None,
     ki = {"protocol": "mohabridzs-ai/1.1",
           "accepts": ["mohabridzs-ai/1.0", "mohabridzs-ai/1.1"],
           "endpoints": {"bid": True, "play": True, "explain": True,
-                        "card": True},
+                        "card": True, "claim_response": True},
           "bid_alert": True}
     if alap is not None:
         ki["default_system"] = alap
@@ -304,7 +304,8 @@ def kepessegek(rendszerek: list[dict] | None = None,
     ki["line_systems"] = True
     # 2026-10-21: a kijátszás lejátszó réteggel — mintavétel a rejtett
     # kezekből, double dummy szűrő, a jelzésrendszer a jó lapok közül választ
-    ki["play"] = {"dd_sampling": True, "signals": True, "deliberation_principles": False}
+    ki["play"] = {"dd_sampling": True, "signals": True, "deliberation_principles": False,
+                  "declarer": True, "claims": True}
     # a teljes katalógus (család → alaprendszer → rendszer) külön végponton
     ki["endpoints"]["systems"] = True
     ki["systems_catalog"] = "/v1/bridge/systems"
