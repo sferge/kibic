@@ -164,6 +164,13 @@ def _valodi_imp(e: dict, lap: str | None) -> int | None:
     return r["valodi"]["imp"] if r and r["valodi"] else None
 
 
+BIZTOSSAG = (("azonos lap", 0, 0), ("az emberét látta jobbnak", -99, 0),
+             ("0–0,25 IMP", 0, 0.25), ("0,25–0,5 IMP", 0.25, 0.5),
+             ("0,5–1 IMP", 0.5, 1), ("1 IMP fölött", 1, 99))
+KALIBRACIO = (("0–10%", 0, .1), ("10–30%", .1, .3), ("30–50%", .3, .5),
+              ("50–70%", .5, .7), ("70–100%", .7, 1.01))
+
+
 def osszegzes(elemzesek: list[dict]) -> dict:
     """A valódi jelleg szerint: darab, a kibic és az ember IMP-vesztesége; és a
     mintákból becsült jelleg a valódihoz képest (keveredési tábla)."""
@@ -175,8 +182,39 @@ def osszegzes(elemzesek: list[dict]) -> dict:
         szerint[o]["kibic_imp"] += _valodi_imp(e, e["kibic_lap"]) or 0
         szerint[o]["ember_imp"] += _valodi_imp(e, e["ember_lap"]) or 0
         kever[e["jelleg_minta"]["osztaly"]][o] += 1
+    # a döntés biztossága: a kibic a SAJÁT becslése szerint mennyivel látta jobbnak
+    # a lapját az emberénél (minta-IMP), és mi lett belőle a valóságban
+    biztos = {nev: {"db": 0, "kibic_imp": 0, "ember_imp": 0} for nev, _, _ in BIZTOSSAG}
+    # kalibráció: a kibic becsülte esély a buktatásra és a valóság
+    kal = {nev: {"db": 0, "becsult": 0.0, "kibic_lapja": 0, "becsult_barmely": 0.0, "barmely": 0}
+           for nev, _, _ in KALIBRACIO}
+    for e in elemzesek:
+        kl = next((r for r in e["lapok"] if r["lap"] == e["kibic_lap"]), None)
+        el = next((r for r in e["lapok"] if r["lap"] == e["ember_lap"]), None)
+        if kl and el and kl["minta"] and el["minta"]:
+            if kl["lap"] == el["lap"]:
+                nev = "azonos lap"
+            else:
+                d = el["minta"]["imp"] - kl["minta"]["imp"]
+                nev = next(n for n, lo, hi in BIZTOSSAG if n != "azonos lap" and lo <= d < hi)
+            biztos[nev]["db"] += 1
+            biztos[nev]["kibic_imp"] += kl["valodi"]["imp"] if kl["valodi"] else 0
+            biztos[nev]["ember_imp"] += el["valodi"]["imp"] if el["valodi"] else 0
+        if kl and kl["minta"] and kl["valodi"]:
+            b = kl["minta"]["buktat"]
+            nev = next(n for n, lo, hi in KALIBRACIO if lo <= b < hi)
+            k = kal[nev]
+            k["db"] += 1
+            k["becsult"] += b
+            k["kibic_lapja"] += bool(kl["valodi"]["buktat"])
+            k["becsult_barmely"] += 1 - (e["jelleg_minta"].get("eloszlas") or {}).get("NEM_BUKTATHATO", 0)
+            k["barmely"] += e["jelleg_valodi"]["osztaly"] != "NEM_BUKTATHATO"
     return {"jelleg_szerint": {o: szerint[o] for o in OSZTALYOK if o in szerint},
-            "becsult_vs_valodi": {b: dict(v) for b, v in kever.items()}}
+            "becsult_vs_valodi": {b: dict(v) for b, v in kever.items()},
+            "biztossag": {n: v for n, v in biztos.items() if v["db"]},
+            "kalibracio": {n: {**v, "becsult": round(v["becsult"], 1),
+                               "becsult_barmely": round(v["becsult_barmely"], 1)}
+                           for n, v in kal.items() if v["db"]}}
 
 
 _SZIN = {"S": "♠", "H": "♥", "D": "♦", "C": "♣"}
@@ -218,6 +256,19 @@ oszlopok a valódi osztás DD-eredménye. A jelleg: hány induló lap buktat.</p
         if b in o["becsult_vs_valodi"]:
             ki.append(f"<tr><td>{OSZTALY_NEV[b].split(' (')[0]}</td>" + "".join(
                 f"<td>{o['becsult_vs_valodi'][b].get(v, '') or ''}</td>" for v in OSZTALYOK) + "</tr>")
+    ki.append("</table></div><h2>A döntés biztossága</h2><p class='mut'>A kibic a saját becslése "
+              "szerint mennyivel látta jobbnak a lapját az emberénél, és mi lett belőle (valódi IMP).</p>"
+              "<div class='wrap'><table><tr><th>a kibic előnye a mintákban</th><th>indulás</th>"
+              "<th>kibic IMP</th><th>ember IMP</th></tr>")
+    for n, v in o["biztossag"].items():
+        ki.append(f"<tr><td>{n}</td><td>{v['db']}</td><td>{v['kibic_imp']}</td><td>{v['ember_imp']}</td></tr>")
+    ki.append("</table></div><h2>Kalibráció: a buktatás becsült esélye és a valóság</h2>"
+              "<div class='wrap'><table><tr><th>a kibic lapja buktat (becslés)</th><th>indulás</th>"
+              "<th>várható buktatás</th><th>valóban buktatott</th><th>várható: bármelyik lap</th>"
+              "<th>valóban bármelyik</th></tr>")
+    for n, v in o["kalibracio"].items():
+        ki.append(f"<tr><td>{n}</td><td>{v['db']}</td><td>{v['becsult']}</td><td>{v['kibic_lapja']}</td>"
+                  f"<td>{v['becsult_barmely']}</td><td>{v['barmely']}</td></tr>")
     ki.append("</table></div><h2>Leosztásonként</h2>")
     rendezett = sorted(elemzesek, key=lambda e: -((_valodi_imp(e, e["kibic_lap"]) or 0)
                                                   - (_valodi_imp(e, e["ember_lap"]) or 0)))
@@ -306,6 +357,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{'valódi jelleg':<28}{'db':>5}{'kibic IMP':>11}{'ember IMP':>11}")
     for osz, b in o["jelleg_szerint"].items():
         print(f"{OSZTALY_NEV[osz]:<28}{b['db']:>5}{b['kibic_imp']:>11}{b['ember_imp']:>11}")
+    print("\na kibic előnye a mintákban      db  kibic IMP  ember IMP")
+    for n, v in o["biztossag"].items():
+        print(f"{n:<28}{v['db']:>5}{v['kibic_imp']:>11}{v['ember_imp']:>11}")
+    print("\nkalibráció (a kibic lapja buktat)  db  várható  valóban  várható(bármely)  valóban(bármely)")
+    for n, v in o["kalibracio"].items():
+        print(f"{n:<32}{v['db']:>5}{v['becsult']:>9}{v['kibic_lapja']:>9}{v['becsult_barmely']:>18}{v['barmely']:>18}")
     print("\nbecsült (sor) / valódi (oszlop) jelleg:")
     print(" " * 16 + "".join(f"{x[:9]:>10}" for x in OSZTALYOK))
     for b in OSZTALYOK:
