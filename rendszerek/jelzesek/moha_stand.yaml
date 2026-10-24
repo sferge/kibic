@@ -175,7 +175,11 @@ fejezetek:
           lappal nem kérte, nincs benne ásza vagy királya.
       - kovetkeztetes: FELVETEL_HIHETO
         kitol: [FELVEVO]
-        suly: 0.6
+        # 2026-10-24: KIKAPCSOLVA (1). A becslést 0,4 kalibrálja (gém/szlem:
+        # 117 várt / 118 valódi bukás), de az indulások rosszabbak lettek
+        # (Pavlicek, 953: 694 -> 742 IMP; a megváltozott 47 indulás: 17 -> 66):
+        # a ritka, de megbuktatható felvételeknél éppen az aktív indulást vitte el.
+        suly: 1.0
         szoveg: >-
           Az önként licitált (kontrázatlan) gémet és szlemet a jó játékos
           teljesíthetőnek látott lappal licitálja — az illeszkedés, az

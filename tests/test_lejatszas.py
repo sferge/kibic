@@ -1193,7 +1193,7 @@ def test_felvetel_hiheto(moha, monkeypatch):
     from kibic.solver.dds import LapErtekeles
     a = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "S", 4))      # 4♠ ellen indulunk
     kov = lj.kovetkeztetes_beallitas(a, moha, [u for u in "NESW" if u not in a.lathato])
-    assert lj.felvetel_hiheto(a, kov) == 0.6
+    assert lj.felvetel_hiheto(a, kov) == 1.0                          # a MOHA_STAND-ban kikapcsolva
     assert lj.gem_vagy_szlem(a.kontraktus)
     reszsz = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "S", 3))
     assert lj.felvetel_hiheto(reszsz, lj.kovetkeztetes_beallitas(reszsz, moha, ["N", "E", "S"])) is None

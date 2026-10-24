@@ -366,7 +366,11 @@ indulással is) bukik, kisebb súllyal számít — egy bukás: a súly, kettő 
 több: a négyzete. A Pavlicek-partikon a kibic gém és szlem ellen kétszer
 annyi bukást várt, mint ahány lett (szín gém: 118 / 70, szan gém: 63 / 33,
 szín szlem: 34 / 15); részszerződés és kontrázott vállalás ellen a becslés
-rendben volt. Hangoláshoz a mérőeszközökben: `--suly FELVETEL_HIHETO=0.4`.
+rendben volt. Hangoláshoz a mérőeszközökben: `--suly FELVETEL_HIHETO=0.4`. **A mérés után kikapcsolva
+(`suly: 1.0`):** 0,4-nél a becslés kalibrált, de az indulások rosszabbak lettek
+(694 → 742 IMP; ahol a lap megváltozott, 17 → 66) — a jól kalibrált esély nem
+jobb döntés: ahol a felvétel megbuktatható, az aktív indulás nyeresége (10+
+IMP) nagyobb, mint amennyit a passzív a felülütéseken megtakarít.
 
 ## Munkamenet
 
