@@ -711,6 +711,7 @@ class Propagalo:
             # fogást ígér az ellenfél licitált színében
             from .minta import zavartalan_menet
             zm = zavartalan_menet(elozo_licitek, ules, licit)
+            # (a versenyhelyzeti saját szabály itt már nem illett: a reteg üres)
             if zm is not None:
                 reteg = self._illeszkedok(self.szabalyok, zm[0], elo_kotes,
                                           licit, allas)
@@ -720,6 +721,16 @@ class Propagalo:
         if not reteg:
             reteg = self._illeszkedok(self.elvek, elozmeny, elo_kotes,
                                       licit, allas)
+        if not reteg and elozo_licitek:
+            # az elvek is a zavartalan menet szerint (2026-10-24)
+            from .minta import zavartalan_menet
+            zm = zavartalan_menet(elozo_licitek, ules, licit)
+            if zm is not None:
+                reteg = self._illeszkedok(self.elvek, zm[0], elo_kotes,
+                                          licit, allas)
+                if licit.upper().endswith("NT") and zm[1]:
+                    for _, ig_ in reteg:
+                        ig_.fogas |= set(zm[1])
         return reteg
 
     def _illeszkedok(self, reteg, elozmeny, elo_kotes, licit, allas):

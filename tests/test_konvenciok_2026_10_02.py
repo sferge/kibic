@@ -178,9 +178,10 @@ def test_lott_9_lapos_fittel_harmas_szint(betolto):
     # a válaszolóra is: 1♥-2♥-P-P-X után 4 lappal 3♥
     v = _moha(betolto, "K32.Q932.J432.32", ["1H", "P", "2H", "P", "P", "X"], "S")
     assert v["call"] == "3H"
-    # a KIBIC_STAND-on nincs törvény
+    # a KIBIC_STAND-on nincs törvény (a 3♥ ott a „küzdelmi” elvből jöhet,
+    # amely a zavartalan menet óta él — 2026-10-24)
     v = _licit(betolto, "A2.KQJ932.K32.32", ["1H", "1S", "2H", "2S"], "N")
-    assert v["call"] != "3H" or v["source"] != "ELV"
+    assert "törvény" not in (v.get("explanation") or "")
 
 
 def test_lott_8_lapos_fittel_nem_megyunk_a_harmas_szintre(betolto):
