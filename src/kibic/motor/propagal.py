@@ -118,7 +118,9 @@ def alkalmaz(ig: Igeret, jelentes: dict,
         egyesitett.nyilatkozott = True
         # a lejátszás mintavételének (2026-10-23): az ágak MEGMARADNAK — a kéznek
         # legalább egyet ki kell elégítenie (Michaels: pikk és treff VAGY káró)
-        egyesitett.alternativak = list(ig.alternativak) + [agak]
+        # (2026-10-24) csak valódi elágazásnál, és MÁSOLATTAL: egyetlen ágnál az
+        # `egyesit` magát az ágat adja vissza — az önmagára hivatkozott (ciklus)
+        egyesitett.alternativak = list(ig.alternativak) + ([deepcopy(agak)] if len(agak) > 1 else [])
         maradek = {k: v for k, v in jelentes.items() if k != "vagy"}
         return alkalmaz(egyesitett, maradek, kotesek, paramtar, allas) \
             if maradek else egyesitett

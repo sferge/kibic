@@ -457,7 +457,7 @@ def kovetkeztetes_beallitas(allas: JatekAllas, jelzesek, rejtett: list[str],
     return kov
 
 
-def _pont_tav(lapok: set[Lap], ig) -> float | None:
+def _pont_tav(lapok: set[Lap], ig, _latott: frozenset = frozenset()) -> float | None:
     """
     Hány ponttal esik a kéz a licit(ek) pontsávján kívül (0: belül); None, ha
     a hossza nem stimmel. A többértelmű licitnél (Igeret.alternativak) a
@@ -472,8 +472,11 @@ def _pont_tav(lapok: set[Lap], ig) -> float | None:
             return None
     h = _hcp(lapok)
     tav = max(ig.pont_min - h, h - ig.pont_max, 0.0)
+    if id(ig) in _latott:                    # védekezés a hivatkozási kör ellen
+        return tav
+    _latott = _latott | {id(ig)}
     for csoport in (getattr(ig, "alternativak", None) or []):
-        t = [x for x in (_pont_tav(lapok, v) for v in csoport) if x is not None]
+        t = [x for x in (_pont_tav(lapok, v, _latott) for v in csoport) if x is not None]
         if not t:
             return None
         tav = max(tav, min(t))
@@ -789,7 +792,8 @@ def _megfelel(lapok: set[Lap], ig) -> bool:
     return ig.pont_min <= _hcp(lapok) <= ig.pont_max
 
 
-def _igeret_igazit(ig, hatar: dict[str, tuple[int, int]], pont: tuple[int, int]):
+def _igeret_igazit(ig, hatar: dict[str, tuple[int, int]], pont: tuple[int, int],
+                   _latott: frozenset = frozenset()):
     """
     Az ígéret a lejátszás tényeihez igazítva: ahol a licit a már ismert
     lapokkal lehetetlent ígér (5 kőr, de csak 4 lehet nála), a sávot a
@@ -800,13 +804,17 @@ def _igeret_igazit(ig, hatar: dict[str, tuple[int, int]], pont: tuple[int, int])
     """
     import copy
 
-    def osszefer(x) -> bool:
+    def osszefer(x, latott=frozenset()) -> bool:
         if not all(x.hossz(sz)[0] <= hatar[sz][1] and x.hossz(sz)[1] >= hatar[sz][0]
                    for sz in SZINEK):
             return False
         if x.pont_max < pont[0] or x.pont_min > pont[1]:
             return False
-        return all(any(osszefer(v) for v in cs) for cs in (getattr(x, "alternativak", None) or []))
+        if id(x) in latott:                  # védekezés a hivatkozási kör ellen
+            return True
+        latott = latott | {id(x)}
+        return all(any(osszefer(v, latott) for v in cs)
+                   for cs in (getattr(x, "alternativak", None) or []))
 
     if ig is None or osszefer(ig):
         return ig, False
@@ -823,9 +831,11 @@ def _igeret_igazit(ig, hatar: dict[str, tuple[int, int]], pont: tuple[int, int])
     if uj.pont_min > pont[1]:
         uj.pont_min = float(pont[1])
     csoportok = []
+    _latott = _latott | {id(ig)}
     for cs in (getattr(ig, "alternativak", None) or []):
         jo = [v for v in cs if osszefer(v)]
-        csoportok.append(jo or [_igeret_igazit(v, hatar, pont)[0] for v in cs])
+        csoportok.append(jo or [v if id(v) in _latott else _igeret_igazit(v, hatar, pont, _latott)[0]
+                                for v in cs])
     uj.alternativak = csoportok
     return uj, True
 
