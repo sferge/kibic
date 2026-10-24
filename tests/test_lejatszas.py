@@ -409,7 +409,8 @@ def _lejatszas(lo, felvevo, adu, utesek):
     return play, kez, hivo
 
 
-def test_vegjatek_kimerito_es_nulla_tures():
+def test_vegjatek_kimerito_es_nulla_tures(monkeypatch):
+    monkeypatch.setattr(lj, "TERITES", False)    # itt a felvevő terítene (mind biztos)
     play, kez, hivo = _lejatszas(LO, "S", None, 10)
     ules = hivo                                  # aki hív a 11. ütésben
     lathato = [ules, "N"] if ules != "N" else ["N", "S"]

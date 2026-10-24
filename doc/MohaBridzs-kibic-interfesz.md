@@ -571,6 +571,29 @@ használja belőle: `actor.acting_for_seat`, `state.contract`, `declarer`,
    preferencia. Felvevőként a DD legjobbja (azonos értékből a legkisebb).
 4. **Mérlegelő elvek** (ahol a DD vak): még csak a jelzésrendszer szövegében.
 
+**Terítés (claim).** Ha a felvevő oldal hív (az ütés elején), a kibic
+megnézi, van-e biztos terve: „föntről lefelé” lehívott ütések (kiaduzás,
+átmenet a két kéz között, lopás a rövid kézben, amikor kint már nincs adu),
+amelyek a lapok BÁRMELY elhelyezkedése és bármilyen ellenjáték ellen ütnek —
+a licitből vett következtetés nem számít. Ha a terv minden hátralévő ütést
+hoz (ütésszám-korlát nincs: 7NT-ben 13 magas lappal már az első hívásnál),
+vagy annyit, amennyinél a DD egyik mintában sem ad többet (tovább játszva sem
+lenne több), a válasz a terv első lapja, és mellette a terítési ajánlat:
+
+```json
+"meta": {"kibic": {"rule": "TERITES", "claim": {"tricks": 9, "remaining": 9, "total_tricks": 11,
+  "statement": "Terítek: mind a 9 ütés a miénk. Sorban: asztalról ♠Á ♠K ♠D; kézből ♣B ♥3→♥Á …"}}}
+```
+
+`tricks`: a hátralévőkből a miénk; `remaining`: ennyi ütés van hátra;
+`total_tricks`: a felvevő oldal összes ütése (az eddigiekkel); `statement`: a
+bejelentés (a lehívás sorrendje kezenként; `→`: a másik kéz üt; `lopva`: a
+másik kéz lop; ha nem mind a miénk: „a többit átadom”). Ha az MB nem ismeri a
+mezőt, semmi sem változik: a kibic a tervet játssza tovább. Ha a terítést
+elutasítják, a következő kérésekre ugyanígy számol (a terv a lapokból
+következik). Minden ütés biztos terítésnél `confidence` = 1,0.
+Kikapcsolás: `KIBIC_TERITES=0`.
+
 Kényszerű lapnál nincs számolás — de a válasz akkor sem azonnali: a
 kijátszásra a kibic legalább `KIBIC_GONDOLKODAS_MS` ideig „gondolkodik”
 (alap 1,5–3 s, véletlenszerűen; legfeljebb a `deadline_ms` 30%-a; az utolsó
@@ -902,6 +925,7 @@ leírás, HTML / Markdown) alakja — ezekhez titok nem kell.
 | `KIBIC_LEJATSZAS_MIN_MINTA` | legalább ennyi minta, mielőtt a döntést biztosnak veszi (alap 60) |
 | `KIBIC_LEJATSZAS_KOVETKEZTETES_MS` | a licit kizárásos következtetése a lejátszásban (leosztásonként egyszer; alap 15000, legfeljebb a `deadline_ms` 30%-a; utána gyorsítótár) |
 | `KIBIC_GONDOLKODAS_MS` | a kijátszás legrövidebb válaszideje: `1500-3000` (véletlen a tartományból, ez az alap), `2000` (fix), `0` (ki). Ha a döntés tovább tartott, nincs várakozás; legfeljebb a `deadline_ms` 30%-a; az utolsó ütésben nincs |
+| `KIBIC_TERITES` | `0`: a felvevő nem ajánl terítést (alap: `1`, be; 5.3) |
 | `KIBIC_LEJATSZAS_KIS_LAP` | a kimerítő elemzésben ennél nem nagyobb rejtett lapok egyenértékűek (alap `8`; `0`: ki) |
 | `KIBIC_LEJATSZAS_MINTAZAT_HATAR` | ennyi mintázatig (kis lapok összevonva) a teljes sokaságot nézi (alap 5000) |
 | `KIBIC_ATJARO_NAPLO_KERES` | `1`: a napló play-sorában a teljes kérés is (a saját kéz és az asztal!) — a visszajátszáshoz: `python -m kibic.cli.jatekelemzes` |
@@ -985,3 +1009,4 @@ Az adatbázis vagy a YAML-rendszerek módosítása után: `POST /v1/kibic/ujrato
 | 2026-10-24 | Játék-szál, a szerkesztő döntései a Pavlicek-indulások után. Új mérlegelő sorok (MOHA_STAND): **`ASZ_ALOL`** — színfelvétel ellen ász alól nem indulunk (a partner színében sem); **`DUBLO_INDULAS`** — színfelvétel ellen figura nélküli dublóból nem indulunk szlem ellen, és ha a leosztás szan-jellegű (a minták többségében a felvevő szanban is ugyanannyit vinne; a mintánkénti szan-DD csak ilyenkor fut); `meta.kibic.ruff_based_share`. YAML: import kell. |
 | 2026-10-24 (2.) | Játék-szál. Új következtetés: **`FELVETEL_HIHETO`** (MOHA_STAND, súly 0,6) — indulásnál az ellenfél önként licitált, kontrázatlan gémje / szleme ellen a DD szerint bukó elosztások kisebb súllyal számítanak (a kibic gém és szlem ellen kétszer annyi bukást várt, mint ahány lett). Mérőeszközök: `--suly KOD=SULY` (a súly felülírása hangoláshoz; `KIBIC_KOVETKEZTETES_SULY`), az `inditaselemzes` `--hangolas`-sal több súlyt vet össze egyszerre, és kalibrál vállalásonként. YAML: import kell. |
 | 2026-10-24 (3.) | Játék-szál. **Gondolkodási idő a kijátszásban**: a kényszerű (pl. szingli) lapra se jöjjön azonnal a válasz, mert a gyorsaság elárulná, hogy nem volt választás. A `/v1/bridge/play` válasza legalább `KIBIC_GONDOLKODAS_MS` (alap 1500–3000 ms, véletlen) után érkezik; a hosszabb döntésekhez nem ad hozzá; legfeljebb a `deadline_ms` 30%-a; az utolsó ütésben nincs. A `meta.elapsed_ms` a döntés ideje. |
+| 2026-10-24 (4.) | Játék-szál. **Terítés (claim) a felvevő oldalán** (`motor/terites.py`): ha a felvevő oldal hív, és van biztos terve (föntről lefelé lehívott ütések, kiaduzás, átmenet, lopás a rövid kézben) a lapok bármely elhelyezkedése ellen, a válasz a terv első lapja, mellette `meta.kibic.claim` (`tricks`, `remaining`, `total_tricks`, `statement`). Részleges terítés (a többit átadja), ha a DD szerint tovább játszva sem lenne több. Ellenőrzés: 6571 valódi felvevő-pozíció (fred, Pavlicek), a bejelentett ütésszám egyszer sem haladta meg a valódi DD-t. `KIBIC_TERITES=0` kikapcsolja. Az MB-ben a felajánlás még nincs bekötve. |

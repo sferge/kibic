@@ -1976,6 +1976,14 @@ class Eredmeny:
     osszevont: bool = False         # kimerítő elemzés a kis lapok összevonásával
     igazitott: list[str] = field(default_factory=list)  # a licitjüket a lapokhoz igazítottuk
     lopasos_arany: float | None = None  # indulásnál: a minták hányadában épül a felvétel lopásra
+    terites: object | None = None   # terites.Terites, ha a felvevő terít (claim)
+
+
+# Terítés (2026-10-24): a felvevő oldal hívásánál, ha a biztos terv (motor/terites.py)
+# az összes hátralévő ütést hozza — vagy annyit, amennyit a DD egyik mintában sem
+# múl felül (tovább játszva sem lenne több) —, a válasz mellé terítési ajánlat megy
+# (meta.kibic.claim). A lap a terv első lapja. KIBIC_TERITES=0: kikapcsolva.
+TERITES = os.getenv("KIBIC_TERITES", "1").strip() != "0"
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -1986,6 +1994,14 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     if len(allas.legalis) == 1:
         lap = next(iter(allas.legalis))
         return Eredmeny(Dontes(lap, "kényszerű lap", helyzet="KENYSZER", jo=[lap]), None)
+    tr = None
+    if TERITES and not allas.vedo and not allas.aktualis:
+        from .terites import terites
+        tr = terites(allas)
+        if tr is not None and tr.mind and tr.elso in allas.legalis:
+            return Eredmeny(Dontes(tr.elso, "terítés: minden hátralévő ütés biztos",
+                                   szabaly="TERITES", helyzet="FELVEVO", jo=[tr.elso]),
+                            None, ms=int((time.time() - start) * 1000), terites=tr)
     stat, n, lazitott, hiba = None, 0, False, None
     kimerito, ismeretlen, tures, kizart_jatek, leertekelt = False, 0, JO_TURES, 0, {}
     if not allas.partner_szinek:
@@ -2083,9 +2099,17 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     if jelleg and jelleg[0]:
         allas.lopasos_arany = jelleg[1] / jelleg[0]
     d = dontes(allas, jelzesek, stat)
+    # részleges terítés: ha egyik mintában sem lenne több ütés, mint a biztos terv
+    if tr is not None and stat and \
+            max(s.utes for s in stat.values()) <= tr.utesek + 1e-9:
+        if tr.elso is not None and tr.elso in allas.legalis:
+            d = Dontes(tr.elso, "terítés: tovább játszva sem lenne több ütés",
+                       szabaly="TERITES", helyzet="FELVEVO", jo=[tr.elso])
+    else:
+        tr = None
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
                     kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
-                    allas.pontozas, megallt, osszevont, igazitott, allas.lopasos_arany)
+                    allas.pontozas, megallt, osszevont, igazitott, allas.lopasos_arany, tr)
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -2093,6 +2117,8 @@ def magyarazat(e: Eredmeny) -> str:
     d = e.dontes
     if d.helyzet == "KENYSZER":
         return "Kényszerű lap."
+    if e.terites is not None and e.terites.mind:
+        return "Terítés: minden hátralévő ütés biztos."
     alap = d.indok[:1].upper() + d.indok[1:]
     if e.stat and e.kimerito:
         return f"{alap} (mind a(z) {e.mintak} lehetséges elosztás double dummy elemzése alapján)."
@@ -2111,6 +2137,11 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "small_cards_merged": e.osszevont, "bidding_adjusted": e.igazitott,
           "ruff_based_share": None if e.lopasos_arany is None else round(e.lopasos_arany, 3),
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
+    if e.terites is not None:
+        from .terites import szoveg
+        t = e.terites
+        ki["claim"] = {"tricks": t.utesek, "remaining": t.hatralevo, "total_tricks": t.osszes,
+                       "statement": szoveg(t)}
     if e.stat:
         db = {"JO": 0, "TALAN": 0, "BIZTOSAN_ROSSZ": 0}
         for s in e.stat.values():
