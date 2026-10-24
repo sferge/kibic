@@ -692,6 +692,10 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict
         return valasz
 
     figyelem: list[str] = []
+    # a kibic nem néz bele abba, amit a játékos nem láthat (pl. tanári nézet)
+    eldobott = lj.lathato_szures(allas, str(szereplo.get("seat") or "").upper() or None)
+    if eldobott:
+        figyelem.append(f"nem látható kezek figyelmen kívül: {','.join(eldobott)}")
     rendszer = par = None
     vf: dict = {}
     try:

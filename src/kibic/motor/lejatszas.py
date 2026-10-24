@@ -202,6 +202,25 @@ def allas_keresbol(keres: dict) -> JatekAllas:
                       pontozas=pontozas_neve(g.get("scoring") or g.get("scoring_type")))
 
 
+def lathato_szures(allas: JatekAllas, szereplo: str | None = None) -> list[str]:
+    """
+    Ha a kérés MIND A NÉGY kezet mutatja (pl. a tanári asztal nézete jut el a
+    kibichez), a kibic csak azt használja, amit a játékos az asztalnál láthat:
+    a saját kezét (és a felvevőét, ha ő játszik az asztalról), az asztalt az
+    indítás után. Három látható kéz szabályos lehet (elutasított terítés után
+    a terítő keze nyitva van), azt nem bántja. Visszaadja az elhagyott üléseket.
+    """
+    if len(allas.lathato) < 4:
+        return []
+    jogos = {allas.ules} | ({szereplo} if szereplo else set())
+    if allas.lejatszott:
+        jogos.add(allas.asztal)
+    eldobott = sorted(u for u in allas.lathato if u not in jogos)
+    for u in eldobott:
+        del allas.lathato[u]
+    return eldobott
+
+
 def pontozas_neve(x) -> str:
     """A kérés pontozása -> IMP / MP. Párosverseny (MP, BAM): MP; minden más
     (IMP, csapat, összpont, ismeretlen): IMP — ott a teljesítés a fő kérdés."""
@@ -666,6 +685,8 @@ def _felsorol(rejtett: list[str], szabad: list[Lap], kell: dict[str, int],
         if becsles > hatar:
             return None
     ki: list[dict] = []
+    if not rejtett:                     # minden kéz látszik: egyetlen „elosztás”
+        return [{}]
 
     def rek(i: int, marad: list[Lap], hely: dict):
         u = rejtett[i]
