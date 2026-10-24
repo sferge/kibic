@@ -26,6 +26,20 @@ fejezetek:
       — kivéve, ha a partner licitált: az ő színe elsőbbséget élvez,
       különösen szan ellen.
     sorok:
+      - merlegeles: ASZ_ALOL
+        szoveg: >-
+          Színfelvétel ellen ász alól nem indulunk (a partner színében sem;
+          az aduban igen): az ásszal. Olykor ez volna az egyetlen buktató indulás, de csak ha a
+          partner számít rá — általában nem számít, az ászt a felvevőnél
+          feltételezi, és hibás lapot tesz.
+      - merlegeles: DUBLO_INDULAS
+        szoveg: >-
+          Színfelvétel ellen figura nélküli dublóból (nem Á, K, D vagy B10 a
+          felső lapja) nem indulunk: szlem ellen — a lopáshoz előbb két ütést
+          kell nyernünk, az már a bukás, a lopás csak a második bukás —, és
+          ha a leosztás szan-jellegű (a felvétel nem lopásra épül: a minták
+          többségében a felvevő szanban is ugyanannyit vinne): ott a hosszú
+          színünkből kell ütést fejleszteni. A partner licitált színe kivétel.
       - szinvalasztas: PARTNER_SZINE
         felvetel: "*"
         kiveve: [NINCS_LAP, KIS_SZINGLI, SAJAT_EROS_SZIN, LOPAS]

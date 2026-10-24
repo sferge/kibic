@@ -357,7 +357,7 @@ def _w_keres(pbn, partner_licit, strain="N", szint=3):
     ("AJ75.A765.T.9543", "2D", "N", "DT", "a 10-es már nagy"),
     ("KQJ52.873.K6.974", "1H", "N", "SK", "saját erős szín, szan ellen"),
     ("AJ75.765.8.Q9543", "1S", "H", "D8", "lopás rövid aduval"),
-    ("AJ7.7652.8.Q9543", "1S", "H", "S7", "hosszú aduval nem lopunk: a partner színe"),
+    ("AJ7.7652.8.Q9543", "1S", "H", "SA", "hosszú aduval nem lopunk: a partner színe; ász alól nem"),
 ])
 def test_partner_szine_elsobbseg(moha, pbn, licit, strain, vart, miert):
     a = lj.allas_keresbol(_w_keres(pbn, licit, strain, 3 if strain == "N" else 4))
@@ -559,7 +559,7 @@ def test_kovetkeztetes_sor_nelkul_nincs(moha):
     assert {k["kovetkeztetes"] for k in moha.kovetkeztetes_sorok} == {
         "LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT", "PARTNER_INDITASA", "PARTNER_DOBASA",
         "LICIT_PONTHATAR", "LICIT_KIZARAS"}
-    assert {m["merlegeles"] for m in moha.merlegeles_sorok} == {"ATVETEL", "PARTNER_KERESE"}
+    assert {m["merlegeles"] for m in moha.merlegeles_sorok} == {"ATVETEL", "PARTNER_KERESE", "ASZ_ALOL", "DUBLO_INDULAS"}
 
 
 # --- 2026-10-21 (2.): súlyozott következtetések, mérlegelés --------------------------
@@ -1115,3 +1115,55 @@ def test_smith_nem_az_utesre_tett_lap(moha):
             ("S", "D2"), ("W", "D6"), ("N", "D3"), ("E", "DT")]       # Kelet a ♦10-zel üt
     a = lj.allas_keresbol(_keres("W", play, lathato=["W", "N"]))
     assert lj.smith_utes(a) is None
+
+
+# --- 2026-10-24: indítási elvek (ASZ_ALOL, DUBLO_INDULAS) -----------------------------
+
+def _w_inditas(pbn, strain, szint, kedvenc):
+    a = lj.allas_keresbol(_w_keres(pbn, "P", strain, szint))
+    st = _stat(a, {}, alap=5)
+    for l, x in st.items():
+        if l.szin == kedvenc:
+            x.utes = x.ertek = 5.5
+    return a, st
+
+
+def test_asz_alol_nem_indulunk(moha):
+    a, st = _w_inditas("A93.765.Q87.9543", "H", 4, "S")
+    d = lj.dontes(a, moha, st)
+    assert str(d.lap) == "SA" and d.szabaly == "MERLEGELES/ASZ_ALOL"
+    a, st = _w_inditas("A93.765.Q87.9543", "N", 3, "S")          # szan ellen marad a kicsi
+    assert lj.dontes(a, moha, st).lap.ertek != "A"
+    a, st = _w_inditas("A93.765.Q87.9543", "S", 4, "S")          # az aduban rendben a kicsi
+    assert lj.dontes(a, moha, st).lap.ertek != "A"
+    szm = jelzesek("SZEGEDI_MRAZ", rendszerek_betolt([JELZESEK]), "ELES")
+    a, st = _w_inditas("A93.765.Q87.9543", "H", 4, "S")          # sor nélkül nem él
+    assert lj.dontes(a, szm, st).lap.ertek != "A"
+
+
+def test_dublo_indulas(moha):
+    pbn = "Q852.T4.K973.J65"
+    a, st = _w_inditas(pbn, "C", 6, "H")                          # szlem: nem a ♥10
+    d = lj.dontes(a, moha, st)
+    assert d.lap.szin != "H" and "DUBLO_INDULAS" in d.indok
+    a, st = _w_inditas(pbn, "C", 4, "H")                          # gém, jelleg nélkül: marad
+    assert lj.dontes(a, moha, st).lap == Lap.parse("HT")
+    a.lopasos_arany = 0.2                                         # szan-jellegű
+    assert lj.dontes(a, moha, st).lap.szin != "H"
+    a.lopasos_arany = 0.8                                         # lopásra épül
+    assert lj.dontes(a, moha, st).lap == Lap.parse("HT")
+    a, st = _w_inditas("Q852.Q4.K973.J65", "C", 6, "H")           # figurás dubló: szabad
+    assert lj.dontes(a, moha, st).lap == Lap.parse("HQ")
+    assert lj._dublo_kell_jelleg(lj.allas_keresbol(_w_keres(pbn, "P", "C", 4)), moha)
+    assert not lj._dublo_kell_jelleg(lj.allas_keresbol(_w_keres(pbn, "P", "C", 6)), moha)
+
+
+def test_a_leosztas_jellege_a_mintakbol(moha):
+    from kibic.solver.dds import LapErtekeles
+    a = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "C", 4))
+
+    def dd(lo, jatszott, k):                                      # szanban 2-vel kevesebb: lopásos
+        felv = 8 if k.szin == "NT" else 10
+        return [LapErtekeles(str(l), 13 - felv, felv, True, 0) for l in a.legalis]
+    e = lj.jatek_dontes(a, moha, None, dd, db=20, mag=1)
+    assert e.lopasos_arany == 1.0 and lj.meta(e)["ruff_based_share"] == 1.0
