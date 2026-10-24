@@ -705,6 +705,18 @@ class Propagalo:
                         if ig.pont_max < 40:
                             ig.pont_max = max(0.0, ig.pont_max - eltolas)
                     reteg.append((sor, ig))
+        if not reteg and elozo_licitek:
+            # ZAVARTALAN MENET (2026-10-24): az ellenfél akciói nem zavartak
+            # meg — a licit a páros menet szerinti jelentését tartja; a szan
+            # fogást ígér az ellenfél licitált színében
+            from .minta import zavartalan_menet
+            zm = zavartalan_menet(elozo_licitek, ules, licit)
+            if zm is not None:
+                reteg = self._illeszkedok(self.szabalyok, zm[0], elo_kotes,
+                                          licit, allas)
+                if licit.upper().endswith("NT") and zm[1]:
+                    for _, ig_ in reteg:
+                        ig_.fogas |= set(zm[1])
         if not reteg:
             reteg = self._illeszkedok(self.elvek, elozmeny, elo_kotes,
                                       licit, allas)

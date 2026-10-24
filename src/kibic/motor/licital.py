@@ -363,6 +363,26 @@ class Licitmotor:
                 ktx.pont_eltolas = eltolas
                 _menet(self.szabalyok, uj_elozmeny)
             ktx.pont_eltolas = 0.0
+        # ZAVARTALAN MENET (a szerkesztő, 2026-10-24): ha a versenyhelyzetben
+        # nincs konkrét szabály, és az ellenfél akciói nem zavartak meg minket
+        # (közbeszólás nélkül is ugyanezt mondhattuk volna), a páros menet
+        # szabályai érvényesek. A szan ilyenkor fogást is ígér az ellenfél
+        # licitált színében.
+        if not d.jeloltek and not d.merlegelendo and licitek:
+            from .minta import zavartalan_menet
+            zm = zavartalan_menet(licitek, ules)
+            if zm is not None:
+                _menet(self.szabalyok, zm[0])
+
+                def _zavartalan_jo(j):
+                    if zavartalan_menet(licitek, ules, j.licit) is None:
+                        return False
+                    if j.licit.upper().endswith("NT") and zm[1]:
+                        from .helyzet import fogas_kezben
+                        return all(fogas_kezben(kez, sz) for sz in zm[1])
+                    return True
+                d.jeloltek = [j for j in d.jeloltek if _zavartalan_jo(j)]
+                d.merlegelendo = [j for j in d.merlegelendo if _zavartalan_jo(j)]
         # FALLBACK: az elvek csak akkor jönnek, ha a konkrét réteg néma
         # maradt. "Az elvhez hozzá kell tenni, hogy a konkrét helyzetre
         # nincs érvényes konvenció."

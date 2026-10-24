@@ -630,3 +630,96 @@ def aliasok_sorokbol(sorok) -> list[tuple[Minta, str, float]]:
         except MintaHiba:
             continue
     return ki
+
+
+# --- A zavartalan menet (a szerkesztő elve, 2026-10-24) --------------------
+#
+# „Ha az ellenfél licitje (vagy kontrája) nem zavarja meg a mi licitünket — az
+# ellenfél közbeszólása nélkül is tudtuk volna ugyanazt mondani —, akkor a
+# licit megtartja eredeti jelentését.” A mi licitjeinket ilyenkor a PÁROS
+# licitmenet szabályai szerint értjük (és mondjuk). Megzavar minket, ha:
+#   * az ellenfél licitje elvette a szintet: a színünk legolcsóbb szintje
+#     feljebb került (1♣ (2♥) 2♠ nem azonos az 1♣-2♠ ugrással);
+#   * az ellenfél színét licitáljuk (az felüllicit, nem természetes);
+#   * a közbeszólás után passzolunk, kontrázunk vagy rekontrázunk (ezeknek a
+#     páros menetben nincs párjuk).
+# A szan a közbeszólás után fogást is ígér az ellenfél licitált színében
+# (ezt a hívó teszi hozzá). Csak a MI nyitásunk után él: az ellenfél
+# nyitása után a mi első licitünk közbeszólás, nem nyitás.
+
+_SZAN_RANG = {"C": 0, "D": 1, "H": 2, "S": 3, "NT": 4}
+
+
+def _bont_licit(licit: str):
+    licit = (licit or "").upper()
+    if not licit or not licit[0].isdigit():
+        return None
+    sz = "NT" if licit[1:] in ("NT", "N") else licit[1:]
+    if sz not in _SZAN_RANG:
+        return None
+    return int(licit[0]), sz
+
+
+def _legolcsobb(szin: str, utolso) -> int:
+    if utolso is None:
+        return 1
+    sz_, sn = utolso
+    return sz_ if _SZAN_RANG[szin] > _SZAN_RANG[sn] else sz_ + 1
+
+
+def zavartalan_menet(licitek: list[dict], ules: str,
+                     licit: str | None = None):
+    """
+    (tokenek, ellenfél színei) — a mi vonalunk licitjei a PÁROS licitmenet
+    alakjában, ha az ellenfél akciói egyik licitünket sem zavarták meg (és a
+    most vizsgált `licit` sem zavart); különben None. Csak versenyhelyzetben
+    ad eredményt (ha az ellenfél nem szólalt meg, nincs mit kiszűrni).
+    """
+    from ..domain import vonal
+    mienk = vonal(ules)
+    resz = list(licitek)
+    elso = next((i for i, b in enumerate(resz)
+                 if (b.get("licit") or "").upper() not in ("PASS", "P")), len(resz))
+    resz = resz[elso:]
+    # csak a MI nyitásunk után: az ellenfél nyitása mindig megzavar (a mi
+    # első licitünk akkor közbeszólás, nem nyitás)
+    if not resz or vonal(resz[0]["ules"]) != mienk:
+        return None
+    if licit is not None:
+        resz = resz + [{"ules": ules, "licit": licit}]
+    volt_ellen = False
+    utolso_mienk = utolso_barki = None
+    ellen_szinek: set[str] = set()
+    sajat: list[dict] = []
+    for b in resz:
+        h = (b.get("licit") or "").upper()
+        if vonal(b["ules"]) != mienk:
+            if h in ("PASS", "P"):
+                continue
+            volt_ellen = True
+            bl = _bont_licit(h)
+            if bl is not None:
+                utolso_barki = bl
+                if bl[1] != "NT":
+                    ellen_szinek.add(bl[1])
+            continue
+        if h in ("PASS", "P", "X", "DBL", "XX", "RDBL"):
+            # a mi passzunk a nyitás után a páros menetben lezárná a licitet;
+            # kontrának / rekontrának nincs páros párja
+            return None
+        bl = _bont_licit(h)
+        if bl is None:
+            return None
+        if volt_ellen:
+            if bl[1] in ellen_szinek:
+                return None
+            if _legolcsobb(bl[1], utolso_mienk) != _legolcsobb(bl[1], utolso_barki):
+                return None
+        utolso_mienk = utolso_barki = bl
+        sajat.append(b)
+    if not volt_ellen:
+        return None
+    if licit is not None:
+        sajat = sajat[:-1]
+    _, tok = kanonizal(sajat, ules) if sajat else ("", [])
+    return tok, ellen_szinek
