@@ -266,14 +266,15 @@ def elbiral(allas, terito: str, utesek: int, dd_fv, ido_s: float = 20.0) -> Elbi
     felvevo, asztal, adu = allas.felvevo, allas.asztal, allas.adu
     jatszott_lapok = {l for _, l in allas.lejatszott}
     rejtett = [u for u in "NESW" if u not in allas.lathato]
-    if len(rejtett) != 1:
-        return Elbiralas(False, "NEM_LATOM")
-    ismert = jatszott_lapok | {l for ls in allas.lathato.values() for l in ls}
-    maradek = [Lap(sz, e) for sz in SZINEK for e in LAPOK if Lap(sz, e) not in ismert]
-    if len(maradek) != 13 - len(allas.jatszott(rejtett[0])):
+    if len(rejtett) > 1:
         return Elbiralas(False, "NEM_LATOM")
     kezek = {u: list(ls) for u, ls in allas.lathato.items()}
-    kezek[rejtett[0]] = maradek
+    if rejtett:                 # a negyedik kéz: ami maradt
+        ismert = jatszott_lapok | {l for ls in allas.lathato.values() for l in ls}
+        maradek = [Lap(sz, e) for sz in SZINEK for e in LAPOK if Lap(sz, e) not in ismert]
+        if len(maradek) != 13 - len(allas.jatszott(rejtett[0])):
+            return Elbiralas(False, "NEM_LATOM")
+        kezek[rejtett[0]] = maradek
 
     hatralevo = 13 - len(allas.lejatszott) // 4
     eddig = _eddigi_utesek(allas.lejatszott, adu, vonal(felvevo))

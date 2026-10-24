@@ -192,3 +192,28 @@ def test_atjaro_claim_valasz(dd_valodi):
     v = claim_dontes(k)
     assert v["action"]["accept"] is False and v["meta"]["kibic"]["debug"]["reason"] == "DD_KEVES"
     assert "♠" not in v["explanation"]
+
+
+def test_elbiral_negy_lathato_kezzel(dd_valodi):
+    """Ha a bíró mind a négy kezet kapja (tanári nézet), akkor is dönt (2026-10-25)."""
+    a = _biro("SA SK SQ SJ ST HA HK HQ HJ HT",
+              "S9 S8 S7 S6 S5 H9 H8 H7 DQ DK", "S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    a.lathato["E"] = _l("S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    e = tm.elbiral(a, "S", 10, dd_valodi)
+    assert e.elfogad and e.ok == "BIZTOS"
+
+
+def test_lathato_szures_tanari_nezet():
+    a = _biro("SA SK SQ SJ ST HA HK HQ HJ HT",
+              "S9 S8 S7 S6 S5 H9 H8 H7 DQ DK", "S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    a.lathato["E"] = _l("S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    assert lj.lathato_szures(a, "W") == ["E", "S"]          # a partner és a felvevő keze
+    assert set(a.lathato) == {"W", "N"}
+    # három látható kéz (elutasított terítés után) marad
+    b = _biro("SA SK SQ SJ ST HA HK HQ HJ HT",
+              "S9 S8 S7 S6 S5 H9 H8 H7 DQ DK", "S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    assert lj.lathato_szures(b, "W") == [] and set(b.lathato) == {"S", "N", "W"}
+    # és a mintavétel minden kéz ismeretében sem omlik össze
+    b.lathato["E"] = _l("S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    m = lj.mintavetel(b, None, db=5, mag=1)
+    assert len(m.leosztasok) == 1
