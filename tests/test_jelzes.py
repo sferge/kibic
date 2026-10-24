@@ -356,14 +356,14 @@ def test_hezag_feltetel():
 
 
 @pytest.mark.parametrize("lapsor,szan,hivas,szin", [
-    ("KQ72", "2", "2", "K"), ("KQ92", "2", "2", "K"), ("KQT2", "K", "K", "K"),
-    ("KQJ2", "K", "K", "K"), ("QJ93", "Q", "Q", "Q"), ("AK72", "2", "2", "A"),
+    ("KQ72", "2", "K", "K"), ("KQ92", "2", "K", "K"), ("KQT2", "K", "K", "K"),
+    ("KQJ2", "K", "K", "K"), ("QJ93", "Q", "Q", "Q"), ("AK72", "2", "A", "A"),
     ("KJT2", "J", "J", "J"), ("AQJ5", "Q", "Q", "Q"),
 ])
 def test_moha_ket_erintkezo_figura(rr, lapsor, szan, hivas, szin):
-    """A hézag-szabály (legfeljebb 1 hely) a Moha szan elleni indításában és
-    játék közben; szín ellen marad a sorozat teteje; a belső sorozat játék
-    közben is a teteje."""
+    """A hézag-szabály (legfeljebb 1 hely) csak a Moha szan elleni INDÍTÁSÁBAN
+    (2026-10-24, a szerkesztő); menet közben és szín ellen a sorozat teteje; a
+    belső sorozat játék közben is a teteje."""
     j = jelzesek("MOHA_STAND", rr)
     assert j.indito_lap(lapsor, "SZAN")[0] == szan
     assert j.indito_lap(lapsor, "SZIN", "HIVAS")[0] == hivas
