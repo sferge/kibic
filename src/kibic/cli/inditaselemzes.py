@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import sys
 from collections import Counter, defaultdict
 
@@ -55,7 +56,7 @@ def _vedo_pont(k, felvevo_utes: int, beli: str) -> int:
 
 def inditas_elemzes(p, jelz, betolto, minta: int = 200, mag: int | None = 1,
                     kovetkeztetes_ms: int = 300_000, rendszer: str = "KIBIC_STAND",
-                    dd_fv=None) -> dict:
+                    dd_fv=None, hangolas: tuple = ()) -> dict:
     """Egy leosztás indulása: a kibic mintái és a valódi osztás DD-je, laponként."""
     from ..domain.pontozas import imp
     from ..motor import lejatszas as lj
@@ -82,7 +83,12 @@ def inditas_elemzes(p, jelz, betolto, minta: int = 200, mag: int | None = 1,
     m = lj.mintavetel(allas, tar, db=minta, mag=mag, max_proba=max(4000, 30 * minta),
                       kovetkeztetes=kov)
     sulyok = m.sulyok or [1.0] * len(m.leosztasok)
+    hiheto = lj.felvetel_hiheto(allas, kov)
     lapok = [str(l) for l in allas.legalis]
+    # hangolás: a FELVETEL_HIHETO több súlyával egyszerre (ugyanazokon a mintákon)
+    hiheto_el = allas.vedo and not k.kontra and lj.gem_vagy_szlem(k)
+    hang = {v: {"W": 0.0, "buk": dict.fromkeys(lapok, 0.0), "imp": dict.fromkeys(lapok, 0.0),
+                "barmely": 0.0} for v in hangolas}
     gy = {l: [0.0, 0.0, 0.0] for l in lapok}        # védőütés, buktat, IMP-veszteség (súlyozva)
     W = 0.0
     jelleg_m = Counter()
@@ -91,8 +97,18 @@ def inditas_elemzes(p, jelz, betolto, minta: int = 200, mag: int | None = 1,
         dd = lm._dd_szotar(dd_fv, lo, [], k)
         if not dd or any(l not in dd for l in lapok):
             continue
+        w0 = w
+        if hiheto is not None:                      # ugyanaz a súlyozás, mint a döntésben
+            w = w * lj.hiheto_suly(list(dd.values()), cel, hiheto)
         pont = {l: _vedo_pont(k, dd[l].felvevo_osszesen, beli) for l in lapok}
         legjobb = max(pont.values())
+        for v, h in hang.items():
+            wv = w0 * (lj.hiheto_suly(list(dd.values()), cel, v) if hiheto_el else 1.0)
+            h["W"] += wv
+            h["barmely"] += wv * any(dd[l].felvevo_osszesen < cel for l in lapok)
+            for l in lapok:
+                h["buk"][l] += wv * (dd[l].felvevo_osszesen < cel)
+                h["imp"][l] += wv * imp(legjobb - pont[l])
         buktat = 0
         for l in lapok:
             felv = dd[l].felvevo_osszesen
@@ -125,6 +141,10 @@ def inditas_elemzes(p, jelz, betolto, minta: int = 200, mag: int | None = 1,
         "tabla": p.azonosito, "kontraktus": str(k), "felvevo": k.felvevo, "indito": allas.ules,
         "beliallas": beli, "licit": " ".join(f"{x.get('ules')}:{x.get('licit')}" for x in p.licit),
         "kez": kez, "lapok": sorok, "minta_db": len(m.leosztasok), "lazitott": m.lazitott,
+        "hangolas": {str(v): {"barmely": round(h["barmely"] / h["W"], 3),
+                              "buktat": {l: round(x / h["W"], 3) for l, x in h["buk"].items()},
+                              "imp": {l: round(x / h["W"], 2) for l, x in h["imp"].items()}}
+                     for v, h in hang.items() if h["W"]},
         "jelleg_minta": {"arany": round(arany_ossz / W, 3) if W else None,
                          "osztaly": osztaly(arany_ossz / W) if W else None,
                          "eloszlas": {o: round(jelleg_m[o] / W, 3) for o in OSZTALYOK} if W else {}},
@@ -138,13 +158,13 @@ def inditas_elemzes(p, jelz, betolto, minta: int = 200, mag: int | None = 1,
 _M: dict = {}
 
 
-def _init(mappak, rendszer, minta, mag, kov_ms):
+def _init(mappak, rendszer, minta, mag, kov_ms, hangolas=()):
     from ..motor.kartya import jelzesek_rendszerhez_yaml
     from .aranykeszlet import yaml_betolto
     _M.update(partik={p.azonosito: p for p in partik_fajlbol(fajlok_kibontasa(mappak, ".pbn"), "IMP")},
               jelz=jelzesek_rendszerhez_yaml(rendszer),
               betolto=yaml_betolto([str(GYOKER / "rendszerek" / "yaml")]),
-              rendszer=rendszer, minta=minta, mag=mag, kov_ms=kov_ms)
+              rendszer=rendszer, minta=minta, mag=mag, kov_ms=kov_ms, hangolas=tuple(hangolas))
 
 
 def _egy(meres: dict) -> dict | None:
@@ -152,7 +172,7 @@ def _egy(meres: dict) -> dict | None:
     if p is None:
         return None
     e = inditas_elemzes(p, _M["jelz"], _M["betolto"], _M["minta"], _M["mag"], _M["kov_ms"],
-                        _M["rendszer"])
+                        _M["rendszer"], hangolas=_M["hangolas"])
     e.update(kibic_lap=meres["lap"], ember_lap=meres.get("emberi_lap"), szabaly=meres.get("szabaly"))
     return e
 
@@ -169,6 +189,17 @@ BIZTOSSAG = (("azonos lap", 0, 0), ("az emberét látta jobbnak", -99, 0),
              ("0,5–1 IMP", 0.5, 1), ("1 IMP fölött", 1, 99))
 KALIBRACIO = (("0–10%", 0, .1), ("10–30%", .1, .3), ("30–50%", .3, .5),
               ("50–70%", .5, .7), ("70–100%", .7, 1.01))
+
+
+def vallalas_tipus(kontraktus: str) -> str:
+    """'4SX' -> 'szín gém, kontrázva'."""
+    from ..domain.pontozas import Kontraktus
+    from ..motor.lejatszas import gem_vagy_szlem
+    k = Kontraktus.parse(kontraktus)
+    if k is None:
+        return "?"
+    szint = "szlem" if k.szint >= 6 else ("gém" if gem_vagy_szlem(k) else "részszerződés")
+    return f"{'szan' if k.szin == 'NT' else 'szín'} {szint}" + (", kontrázva" if k.kontra else "")
 
 
 def osszegzes(elemzesek: list[dict]) -> dict:
@@ -188,9 +219,18 @@ def osszegzes(elemzesek: list[dict]) -> dict:
     # kalibráció: a kibic becsülte esély a buktatásra és a valóság
     kal = {nev: {"db": 0, "becsult": 0.0, "kibic_lapja": 0, "becsult_barmely": 0.0, "barmely": 0}
            for nev, _, _ in KALIBRACIO}
+    tipus: dict = defaultdict(lambda: {"db": 0, "becsult": 0.0, "kibic_lapja": 0,
+                                       "becsult_barmely": 0.0, "barmely": 0})
     for e in elemzesek:
         kl = next((r for r in e["lapok"] if r["lap"] == e["kibic_lap"]), None)
         el = next((r for r in e["lapok"] if r["lap"] == e["ember_lap"]), None)
+        if kl and kl["minta"] and kl["valodi"]:
+            t = tipus[vallalas_tipus(e["kontraktus"])]
+            t["db"] += 1
+            t["becsult"] += kl["minta"]["buktat"]
+            t["kibic_lapja"] += bool(kl["valodi"]["buktat"])
+            t["becsult_barmely"] += 1 - (e["jelleg_minta"].get("eloszlas") or {}).get("NEM_BUKTATHATO", 0)
+            t["barmely"] += e["jelleg_valodi"]["osztaly"] != "NEM_BUKTATHATO"
         if kl and el and kl["minta"] and el["minta"]:
             if kl["lap"] == el["lap"]:
                 nev = "azonos lap"
@@ -209,12 +249,38 @@ def osszegzes(elemzesek: list[dict]) -> dict:
             k["kibic_lapja"] += bool(kl["valodi"]["buktat"])
             k["becsult_barmely"] += 1 - (e["jelleg_minta"].get("eloszlas") or {}).get("NEM_BUKTATHATO", 0)
             k["barmely"] += e["jelleg_valodi"]["osztaly"] != "NEM_BUKTATHATO"
-    return {"jelleg_szerint": {o: szerint[o] for o in OSZTALYOK if o in szerint},
+    hang: dict = {}
+    for e in elemzesek:
+        if not e.get("hangolas"):
+            continue
+        csoport = "gém/szlem, kontrázatlan" if (vallalas_tipus(e["kontraktus"]).split(" ")[1] in ("gém", "szlem")
+                                               and "kontrázva" not in vallalas_tipus(e["kontraktus"])) else "egyéb"
+        valodi = {r["lap"]: r["valodi"] for r in e["lapok"] if r["valodi"]}
+        for v, h in e["hangolas"].items():
+            x = hang.setdefault((csoport, v), {"db": 0, "kibic_varhato": 0.0, "kibic_valoban": 0,
+                                               "barmely_varhato": 0.0, "barmely_valoban": 0,
+                                               "legjobb_imp": 0, "kibic_imp": 0, "ember_imp": 0})
+            x["db"] += 1
+            x["kibic_varhato"] += h["buktat"].get(e["kibic_lap"], 0)
+            x["kibic_valoban"] += bool(valodi.get(e["kibic_lap"], {}).get("buktat"))
+            x["barmely_varhato"] += h["barmely"]
+            x["barmely_valoban"] += e["jelleg_valodi"]["osztaly"] != "NEM_BUKTATHATO"
+            best = min(h["imp"], key=lambda l: h["imp"][l])
+            x["legjobb_imp"] += valodi.get(best, {}).get("imp", 0)
+            x["kibic_imp"] += valodi.get(e["kibic_lap"], {}).get("imp", 0)
+            x["ember_imp"] += valodi.get(e["ember_lap"], {}).get("imp", 0) if e["ember_lap"] else 0
+    return {"hangolas": {f"{c} | súly {v}": {kk: (round(vv, 1) if isinstance(vv, float) else vv)
+                                              for kk, vv in x.items()}
+                         for (c, v), x in sorted(hang.items())},
+            "jelleg_szerint": {o: szerint[o] for o in OSZTALYOK if o in szerint},
             "becsult_vs_valodi": {b: dict(v) for b, v in kever.items()},
             "biztossag": {n: v for n, v in biztos.items() if v["db"]},
             "kalibracio": {n: {**v, "becsult": round(v["becsult"], 1),
                                "becsult_barmely": round(v["becsult_barmely"], 1)}
-                           for n, v in kal.items() if v["db"]}}
+                           for n, v in kal.items() if v["db"]},
+            "kalibracio_tipus": {n: {**v, "becsult": round(v["becsult"], 1),
+                                     "becsult_barmely": round(v["becsult_barmely"], 1)}
+                                 for n, v in sorted(tipus.items(), key=lambda kv: -kv[1]["db"])}}
 
 
 _SZIN = {"S": "♠", "H": "♥", "D": "♦", "C": "♣"}
@@ -269,6 +335,22 @@ oszlopok a valódi osztás DD-eredménye. A jelleg: hány induló lap buktat.</p
     for n, v in o["kalibracio"].items():
         ki.append(f"<tr><td>{n}</td><td>{v['db']}</td><td>{v['becsult']}</td><td>{v['kibic_lapja']}</td>"
                   f"<td>{v['becsult_barmely']}</td><td>{v['barmely']}</td></tr>")
+    if o["hangolas"]:
+        ki.append("</table></div><h2>Hangolás: a FELVETEL_HIHETO súlya</h2><div class='wrap'><table><tr>"
+                  "<th>csoport | súly</th><th>indulás</th><th>a kibic lapja buktat: várható</th>"
+                  "<th>valóban</th><th>bármelyik: várható</th><th>valóban</th>"
+                  "<th>IMP: a minta legjobbja</th><th>kibic</th><th>ember</th></tr>")
+        for n, v in o["hangolas"].items():
+            ki.append(f"<tr><td>{n}</td><td>{v['db']}</td><td>{v['kibic_varhato']}</td>"
+                      f"<td>{v['kibic_valoban']}</td><td>{v['barmely_varhato']}</td>"
+                      f"<td>{v['barmely_valoban']}</td><td>{v['legjobb_imp']}</td>"
+                      f"<td>{v['kibic_imp']}</td><td>{v['ember_imp']}</td></tr>")
+    ki.append("</table></div><h2>Kalibráció vállalásonként</h2><div class='wrap'><table><tr>"
+              "<th>vállalás</th><th>indulás</th><th>a kibic lapja buktat: várható</th><th>valóban</th>"
+              "<th>bármelyik lap: várható</th><th>valóban</th></tr>")
+    for n, v in o["kalibracio_tipus"].items():
+        ki.append(f"<tr><td>{n}</td><td>{v['db']}</td><td>{v['becsult']}</td><td>{v['kibic_lapja']}</td>"
+                  f"<td>{v['becsult_barmely']}</td><td>{v['barmely']}</td></tr>")
     ki.append("</table></div><h2>Leosztásonként</h2>")
     rendezett = sorted(elemzesek, key=lambda e: -((_valodi_imp(e, e["kibic_lap"]) or 0)
                                                   - (_valodi_imp(e, e["ember_lap"]) or 0)))
@@ -312,14 +394,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--rendszer", default="KIBIC_STAND")
     ap.add_argument("--minta", type=int, default=200)
     ap.add_argument("--mag", type=int, default=1)
+    ap.add_argument("--suly", action="append", default=[], metavar="KOD=SULY",
+                    help="egy következtetés-sor súlyának felülírása (hangoláshoz), pl. FELVETEL_HIHETO=0.4")
     ap.add_argument("--kovetkeztetes-ms", type=int, default=300_000)
     ap.add_argument("--mind", action="store_true", help="minden indulás (nem csak a rosszak)")
+    ap.add_argument("--hangolas", help="a FELVETEL_HIHETO súlyai egyszerre (pl. 1,0.6,0.4,0.25): "
+                                      "kalibráció és a minta szerinti legjobb lap súlyonként")
     ap.add_argument("--rosszabb", action="store_true", help="csak ahol az ember jobban indult")
     ap.add_argument("--max", type=int, help="legfeljebb ennyi leosztás")
     ap.add_argument("--parhuzamos", type=int, default=1)
     ap.add_argument("--html", help="a kimutatás HTML-ben")
     ap.add_argument("--ki", help="az elemzések JSON-ban (soronként)")
     a = ap.parse_args(argv)
+    if a.suly:
+        os.environ["KIBIC_KOVETKEZTETES_SULY"] = ",".join(a.suly)
     meresek = []
     with open(a.json, encoding="utf-8") as f:
         for s in f:
@@ -338,7 +426,8 @@ def main(argv: list[str] | None = None) -> int:
     if a.max:
         meresek = meresek[:a.max]
     print(f"{len(meresek)} indulás", file=sys.stderr)
-    arg = (a.pbn, a.rendszer, a.minta, a.mag, a.kovetkeztetes_ms)
+    arg = (a.pbn, a.rendszer, a.minta, a.mag, a.kovetkeztetes_ms,
+           tuple(float(x) for x in a.hangolas.split(",")) if a.hangolas else ())
     if a.parhuzamos > 1:
         import multiprocessing as mp
         with mp.get_context("spawn").Pool(a.parhuzamos, _init, arg) as pool:
@@ -363,6 +452,16 @@ def main(argv: list[str] | None = None) -> int:
     print("\nkalibráció (a kibic lapja buktat)  db  várható  valóban  várható(bármely)  valóban(bármely)")
     for n, v in o["kalibracio"].items():
         print(f"{n:<32}{v['db']:>5}{v['becsult']:>9}{v['kibic_lapja']:>9}{v['becsult_barmely']:>18}{v['barmely']:>18}")
+    print("\nvállalásonként                 db  várható  valóban  várható(bármely)  valóban(bármely)")
+    for n, v in o["kalibracio_tipus"].items():
+        print(f"{n:<28}{v['db']:>5}{v['becsult']:>9}{v['kibic_lapja']:>9}{v['becsult_barmely']:>18}{v['barmely']:>18}")
+    if o["hangolas"]:
+        print("\nhangolás (FELVETEL_HIHETO)            db  kibic lapja: várható/valóban  bármely: várható/valóban"
+              "  IMP: minta legjobbja / kibic / ember")
+        for n, v in o["hangolas"].items():
+            print(f"{n:<36}{v['db']:>5}{v['kibic_varhato']:>16}/{v['kibic_valoban']:<6}"
+                  f"{v['barmely_varhato']:>16}/{v['barmely_valoban']:<6}"
+                  f"{v['legjobb_imp']:>12} /{v['kibic_imp']:>5} /{v['ember_imp']:>5}")
     print("\nbecsült (sor) / valódi (oszlop) jelleg:")
     print(" " * 16 + "".join(f"{x[:9]:>10}" for x in OSZTALYOK))
     for b in OSZTALYOK:

@@ -442,6 +442,12 @@ def kovetkeztetes_beallitas(allas: JatekAllas, jelzesek, rejtett: list[str],
         kov.suly[kod] = float(sor.get("suly", KOVETKEZTETES_SULY.get(kod, 0.0)))
         if kod == "LICIT_PONTHATAR":
             kov.tures = int(sor.get("tures", 2))
+    # a mérőpad hangolásához (2026-10-24): KIBIC_KOVETKEZTETES_SULY="KOD=0.4,KOD2=1"
+    # felülírja a meglévő sorok súlyát (élesben nincs beállítva)
+    for tetel in os.getenv("KIBIC_KOVETKEZTETES_SULY", "").split(","):
+        kod, _, ertek = tetel.partition("=")
+        if kod.strip() in kov.suly and ertek.strip():
+            kov.suly[kod.strip()] = float(ertek)
     # aki a lapjaival MÁR megmutatta, hogy nem így játszik (pl. QJT-ből a D-vel
     # ütött, és a B-t később le is tette), arra a lapból levont következtetés
     # nem él — különben minden elosztást kizárna, és vele a többi
@@ -1570,6 +1576,39 @@ def _dublo_tiltott(lap: Lap, kez, allas: JatekAllas, jelzesek) -> bool:
     return allas.lopasos_arany is not None and allas.lopasos_arany < LOPASOS_ARANY
 
 
+def gem_vagy_szlem(k) -> bool:
+    """Gém- vagy szlemszintű vállalás (szan 3+, nemes 4+, minor 5+)."""
+    return (k.szin == "NT" and k.szint >= 3) or (k.szin in "HS" and k.szint >= 4) or k.szint >= 5
+
+
+def felvetel_hiheto(allas: JatekAllas, kov) -> float | None:
+    """
+    FELVETEL_HIHETO (2026-10-24): indulásnál, az ellenfél önként licitált,
+    kontrázatlan gémje vagy szleme ellen az egy bukás súlya (a sor `suly`-a;
+    két vagy több bukás: a négyzete) — különben None. A Pavlicek-partikon a
+    kibic gém és szlem ellen kétszer annyi bukást várt, mint ahány lett: a
+    licit pontsávjaiból sorsolt kezek gyengébbek a valódinál (a jó játékos a
+    gémet teljesíthetőnek látott lappal licitálja: illeszkedés, elosztás,
+    kontrollok). Részszerződés és kontrázott vállalás ellen a becslés rendben volt.
+    """
+    if not kov or allas.lejatszott or not allas.vedo or allas.kontraktus.kontra:
+        return None
+    if not kov.van(allas.felvevo, "FELVETEL_HIHETO") or not gem_vagy_szlem(allas.kontraktus):
+        return None
+    return kov.suly.get("FELVETEL_HIHETO", 0.6)
+
+
+def hiheto_suly(ered, cel: int, suly: float) -> float:
+    """Egy minta súlya: a felvevő DD-ütése a legjobb védekezés mellett (a
+    legjobb indulással) — teljesül: 1; egy bukás: suly; több: suly²."""
+    try:
+        felv = min(e.felvevo_osszesen for e in ered)
+    except (AttributeError, ValueError):
+        return 1.0
+    buk = cel - felv
+    return 1.0 if buk <= 0 else suly ** min(buk, 2)
+
+
 def _dublo_kell_jelleg(allas: JatekAllas, jelzesek) -> bool:
     """Kell-e indulásnál a leosztás jellege (van-e tiltható dublónk)."""
     if allas.lejatszott or not allas.adu or allas.kontraktus.szint >= 6 or not jelzesek \
@@ -1964,6 +2003,7 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
         gy = DDGyujto(allas, allas.pontozas)
         # indulásnál, ha van tiltható dublónk: a leosztás jellege (lopásra épül-e)
         jelleg = [0.0, 0.0] if _dublo_kell_jelleg(allas, jelzesek) else None
+        hiheto = felvetel_hiheto(allas, kov)
         szan_k = Kontraktus(allas.kontraktus.szint, "NT", "", allas.kontraktus.felvevo)
         # 1. köteg; ha kimerítő, ez az összes elosztás
         koteg = min(db, KOTEG) if db > MIN_MINTA else db
@@ -1997,6 +2037,8 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                     ido_le = True
                     break
                 ered = dd_fv(lo, jatszott, allas.kontraktus)
+                if hiheto is not None:
+                    w *= hiheto_suly(ered, 6 + allas.kontraktus.szint, hiheto)
                 gy.hozzaad(ered, w)
                 if jelleg is not None:
                     try:

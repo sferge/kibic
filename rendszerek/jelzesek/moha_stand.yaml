@@ -173,6 +173,16 @@ fejezetek:
           A partner első dobása a dobási jel szerint kér vagy nem kér: ha kis
           lappal kérte a színt, van benne figurája (Á, K vagy D); ha nagy
           lappal nem kérte, nincs benne ásza vagy királya.
+      - kovetkeztetes: FELVETEL_HIHETO
+        kitol: [FELVEVO]
+        suly: 0.6
+        szoveg: >-
+          Az önként licitált (kontrázatlan) gémet és szlemet a jó játékos
+          teljesíthetőnek látott lappal licitálja — az illeszkedés, az
+          elosztás, a kontrollok szerint, amit a licit pontsávja nem mond el.
+          Indulásnál az az elosztás, amelyben a vállalás a DD szerint bukik,
+          kisebb súllyal számít (egy bukás: a súly, kettő vagy több: a
+          négyzete). Részszerződés és kontrázott vállalás ellen nem él.
       - kovetkeztetes: LICIT_PONTHATAR
         kitol: [ELLENJATEKOSOK, FELVEVO]
         tures: 2

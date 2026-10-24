@@ -472,7 +472,7 @@ def test_kovetkeztetes_csak_az_ellenjatekostol():
     szab = lj.kovetkeztetes_szabalyai(a, moha_, ["S", "W"])
     assert {"LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO"} <= szab["W"]
     assert not szab.get("S", set()) & set(lj.LAP_KODOK)          # a felvevő lapjából soha
-    assert szab["S"] == {"LICIT_PONTHATAR", "LICIT_KIZARAS"}      # a licitjéből igen
+    assert szab["S"] == {"LICIT_PONTHATAR", "LICIT_KIZARAS", "FELVETEL_HIHETO"}   # a licitjéből igen
     assert lj.kovetkeztetes_szabalyai(a, None, ["S", "W"]) == {}   # sor nélkül semmi
     base = {"N": {L("C", "2")}, "E": {L("C", "3")}, "S": {L("C", "K"), L("C", "J")}}
     # W az Á-val ütött; ha nála lett volna az egyenértékű... nincs: az Á és a K között semmi
@@ -558,7 +558,7 @@ def test_kovetkeztetes_sor_nelkul_nincs(moha):
     assert not szm.merlegeles_sorok
     assert {k["kovetkeztetes"] for k in moha.kovetkeztetes_sorok} == {
         "LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT", "PARTNER_INDITASA", "PARTNER_DOBASA",
-        "LICIT_PONTHATAR", "LICIT_KIZARAS"}
+        "LICIT_PONTHATAR", "LICIT_KIZARAS", "FELVETEL_HIHETO"}
     assert {m["merlegeles"] for m in moha.merlegeles_sorok} == {"ATVETEL", "PARTNER_KERESE", "ASZ_ALOL", "DUBLO_INDULAS"}
 
 
@@ -1184,3 +1184,55 @@ def test_onmagara_hivatkozo_alternativa_nem_akad_el():
     a = lj.allas_keresbol(_keres("W"))
     m = lj.mintavetel(a, {"E": kor}, db=3, mag=1)
     assert len(m.leosztasok) == 3
+
+
+
+# --- 2026-10-24 (2.): a felvétel hihetősége (FELVETEL_HIHETO) ----------------------------
+
+def test_felvetel_hiheto(moha, monkeypatch):
+    from kibic.solver.dds import LapErtekeles
+    a = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "S", 4))      # 4♠ ellen indulunk
+    kov = lj.kovetkeztetes_beallitas(a, moha, [u for u in "NESW" if u not in a.lathato])
+    assert lj.felvetel_hiheto(a, kov) == 0.6
+    assert lj.gem_vagy_szlem(a.kontraktus)
+    reszsz = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "S", 3))
+    assert lj.felvetel_hiheto(reszsz, lj.kovetkeztetes_beallitas(reszsz, moha, ["N", "E", "S"])) is None
+    E = lambda f: [LapErtekeles("S2", 13 - f, f, True, 0), LapErtekeles("H4", 12 - f, f + 1, False, 1)]
+    assert lj.hiheto_suly(E(10), 10, 0.6) == 1.0                     # a legjobb indulással is teljesül
+    assert lj.hiheto_suly(E(9), 10, 0.6) == 0.6                      # egy bukás
+    assert lj.hiheto_suly(E(7), 10, 0.6) == pytest.approx(0.36)      # három: a négyzet
+    monkeypatch.setenv("KIBIC_KOVETKEZTETES_SULY", "FELVETEL_HIHETO=0.3")
+    kov = lj.kovetkeztetes_beallitas(a, moha, [u for u in "NESW" if u not in a.lathato])
+    assert lj.felvetel_hiheto(a, kov) == 0.3
+
+
+def test_felvetel_hiheto_a_dontesben(moha):
+    """Ha a bukó minták kisebb súlyt kapnak, a teljesítő mintákban jobb lap nyer."""
+    from kibic.solver.dds import LapErtekeles
+    a = lj.allas_keresbol(_w_keres("Q852.T4.K973.J65", "P", "S", 4))
+    szamlalo = {"n": 0}
+
+    def dd(lo, jatszott, k, bukik_arany=None):
+        if k.szin != "NT":
+            szamlalo["n"] += 1
+        bukik = szamlalo["n"] % 2 == 0                   # minden második mintában bukik
+        ki = []
+        for l in a.legalis:
+            s = str(l)
+            if bukik:                                    # ott a ♦K a jó (buktat), a többi nem
+                felv = 9 if s == "DK" else 10
+                felv = 9 if s.startswith("D") else felv
+            else:                                        # ahol teljesül: a ♠ nem ad felülütést
+                felv = 10 if s.startswith("S") else 11
+            ki.append(LapErtekeles(s, 13 - felv, felv, True, 0))
+        return ki
+    # súly nélkül (1): a fele mintában buktató káró nyer
+    import os
+    os.environ["KIBIC_KOVETKEZTETES_SULY"] = "FELVETEL_HIHETO=1"
+    try:
+        assert lj.jatek_dontes(a, moha, None, dd, db=40, mag=1).dontes.lap.szin == "D"
+        # erős súlyozással (0,05): a bukó minták alig számítanak — a felülütést nem adó ♠
+        os.environ["KIBIC_KOVETKEZTETES_SULY"] = "FELVETEL_HIHETO=0.05"
+        assert lj.jatek_dontes(a, moha, None, dd, db=40, mag=1).dontes.lap.szin == "S"
+    finally:
+        os.environ.pop("KIBIC_KOVETKEZTETES_SULY", None)

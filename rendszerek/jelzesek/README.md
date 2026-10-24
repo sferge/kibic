@@ -354,7 +354,19 @@ lapra a kibic becslése az indulás pillanatában (a mintákból: átlagos
 védőütés, hány %-ban buktat, IMP) és a valódi osztás DD-je; és a leosztás
 JELLEGE — hány induló lap buktat: nem buktatható / aktív (≤ ⅓) / vegyes /
 passzív (> ⅔) / mindig bukik —, a mintákban és a valóságban. `--html`:
-böngészőben olvasható kimutatás, `--ki`: JSON.
+böngészőben olvasható kimutatás, `--ki`: JSON. Benne: a döntés biztossága (a kibic becsült
+előnye az ember lapjához képest), kalibráció (a becsült és a valódi buktatás,
+esélysávonként és vállalásonként), és `--hangolas 1,0.6,0.4` mellett a
+`FELVETEL_HIHETO` több súlya egyszerre, ugyanazokon a mintákon.
+
+**A felvétel hihetősége** (`kovetkeztetes: FELVETEL_HIHETO`, 2026-10-24,
+MOHA_STAND, `suly: 0.6`): az önként licitált, kontrázatlan gém és szlem ellen
+indulásnál az az elosztás, amelyben a vállalás a DD szerint (a legjobb
+indulással is) bukik, kisebb súllyal számít — egy bukás: a súly, kettő vagy
+több: a négyzete. A Pavlicek-partikon a kibic gém és szlem ellen kétszer
+annyi bukást várt, mint ahány lett (szín gém: 118 / 70, szan gém: 63 / 33,
+szín szlem: 34 / 15); részszerződés és kontrázott vállalás ellen a becslés
+rendben volt. Hangoláshoz a mérőeszközökben: `--suly FELVETEL_HIHETO=0.4`.
 
 ## Munkamenet
 
