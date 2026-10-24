@@ -260,6 +260,8 @@ def main(argv=None) -> int:
     ap.add_argument("--minta", type=int, default=200, help="minta döntésenként (alap 200)")
     ap.add_argument("--ido", type=float, default=4.0,
                     help="időkeret döntésenként, mp (--mag mellett: legalább %d)" % PONTOS_IDO_S)
+    ap.add_argument("--suly", action="append", default=[], metavar="KOD=SULY",
+                    help="egy következtetés-sor súlyának felülírása (hangoláshoz), pl. FELVETEL_HIHETO=0.4")
     ap.add_argument("--kovetkeztetes-ms", type=int, default=15000,
                     help="a licit kizárásos következtetésének ideje leosztásonként (alap 15000; 0: ki)")
     ap.add_argument("--mag", type=int,
@@ -279,6 +281,8 @@ def main(argv=None) -> int:
     ap.add_argument("--user", default=os.getenv("KIBIC_USER", "kibic"))
     ap.add_argument("--jelszo", default=os.getenv("KIBIC_PASS", ""))
     a = ap.parse_args(argv)
+    if a.suly:
+        os.environ["KIBIC_KOVETKEZTETES_SULY"] = ",".join(a.suly)
     from ..motor import lejatszas_meres as lm
 
     if a.mag is not None and not a.idokorlat:

@@ -81,6 +81,7 @@ KOVETKEZTETESEK = (
     "PARTNER_DOBASA",          # a partner első dobása egy színben a dobási jel szerint (kér / nem kér)
     "LICIT_PONTHATAR",         # a licit pontsávja nem éles határ: `tures` ponton belül, `suly` pontonként
     "LICIT_KIZARAS",           # amit a licitjével KIZÁRT (a passz: nincs nyitóereje / válasza)
+    "FELVETEL_HIHETO",         # az önként licitált gém / szlem jellemzően teljesíthető lappal megy
 )
 # A következtetés súlya (2026-10-21): az ellentmondó elosztás ennyit ér a
 # mintában (0 = kizárjuk). A lapból levont két régi következtetés alapból
@@ -88,7 +89,7 @@ KOVETKEZTETESEK = (
 # tévedhet, kényszerhelyzetben lehet).
 KOVETKEZTETES_SULY = {"LEGKISEBB_EGYENERTEKU": 0.0, "LEGOLCSOBB_NYERO": 0.0, "FIGURA_SOROZAT": 0.1,
                       "PARTNER_INDITASA": 0.2, "PARTNER_DOBASA": 0.25,
-                      "LICIT_PONTHATAR": 0.5, "LICIT_KIZARAS": 0.2}
+                      "LICIT_PONTHATAR": 0.5, "LICIT_KIZARAS": 0.2, "FELVETEL_HIHETO": 0.6}
 # akiknél a kibic maga is így játszik (a `sajat:` csak itt értelmes)
 KOVETKEZTETES_SAJAT = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO", "FIGURA_SOROZAT")
 # MÉRLEGELŐ ELVEK a döntésben (2026-10-21) — ahol az elemzés (DD) vak, mert a
@@ -1362,7 +1363,10 @@ def sor_szoveg(s: JSor) -> str:
                "PARTNER_INDITASA": "az indító lap a megállapodás szerinti lap",
                "PARTNER_DOBASA": "az első dobás egy színben a dobási jel szerint kér vagy nem kér",
                "LICIT_PONTHATAR": f"a licit pontsávja {a.get('tures', 2)} pontig puha határ",
-               "LICIT_KIZARAS": "amit a licitjével kizárt (pl. a passz: nem volt válaszereje)"
+               "LICIT_KIZARAS": "amit a licitjével kizárt (pl. a passz: nem volt válaszereje)",
+               "FELVETEL_HIHETO": "az önként licitált (kontrázatlan) gém és szlem jellemzően "
+                                  "teljesíthető lappal megy: ahol a DD szerint bukik, kisebb súly "
+                                  "(egy bukás: a súly, kettő vagy több: a négyzete)"
                }.get(kod, kod)
         kitol = {"PARTNER": "a partner", "ELLENJATEKOSOK": "az ellenjátékosok",
                  "FELVEVO": "a felvevő"}

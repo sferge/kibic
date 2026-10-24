@@ -29,3 +29,16 @@ def test_osszegzes_es_html():
     assert o["kalibracio"]["50–70%"]["db"] == 2 and o["kalibracio"]["50–70%"]["kibic_lapja"] == 1
     h = ie.html_jelentes(el)
     assert h.startswith("<!doctype html>") and "♠Á" in h and "vegyes" in h
+
+
+
+def test_hangolas_osszegzes():
+    e = _e("H2", "SA", "VEGYES", "AKTIV")
+    e["hangolas"] = {"1.0": {"barmely": 0.8, "buktat": {"SA": 0.6, "H2": 0.5}, "imp": {"SA": 0.5, "H2": 0.9}},
+                     "0.3": {"barmely": 0.4, "buktat": {"SA": 0.3, "H2": 0.2}, "imp": {"SA": 0.6, "H2": 0.4}}}
+    o = ie.osszegzes([e])
+    a = o["hangolas"]["gém/szlem, kontrázatlan | súly 0.3"]
+    assert a["kibic_varhato"] == 0.2 and a["kibic_valoban"] == 0 and a["legjobb_imp"] == 10
+    assert o["hangolas"]["gém/szlem, kontrázatlan | súly 1.0"]["legjobb_imp"] == 0
+    assert ie.vallalas_tipus("4SX") == "szín gém, kontrázva" and ie.vallalas_tipus("2NT") == "szan részszerződés"
+    assert "Hangolás" in ie.html_jelentes([e])
