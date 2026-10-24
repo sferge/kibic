@@ -634,8 +634,9 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
     if t == "MENEKULO":            # a menekülő rekontra lapja (a szerkesztő, 2026-10-24)
         # A kontrázott szín (B) elől van jobb felvétel: B-ben 0-1 lap (5-5-tel
         # 2 is), és legalább két MÁSIK színben 4+ lap. Ha a színt ÉN licitáltam
-        # (`sajat`): legfeljebb 4 lapos, és két másik 4+ lapos szín (pl. az
-        # induló 5440-ese 4 lapos 1♦-vel). Szan elől: legalább két 4+ lapos
+        # (`sajat`): legfeljebb 5 lapos, és két másik 4+ lapos vagy egy másik
+        # 5+ lapos szín (5440, 5530; a szerkesztő: „van jobb ötletem, nem is
+        # egy”). Szan elől: legalább két 4+ lapos
         # szín, és a lap nem 4333.
         b = csp.get("szin")
         b = None if b == "NT" else _kotott_szin(b, ktx)
@@ -645,8 +646,8 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
             return negyes >= 2 and sorted((kez.hossz(sz) for sz in masik), reverse=True)[0] >= 4 \
                 and sorted(kez.hossz(sz) for sz in masik) != [3, 3, 3, 4]
         otos = sum(1 for sz in masik if kez.hossz(sz) >= 5)
-        if csp.get("sajat"):           # a SAJÁT licitált színem: legfeljebb 4 lapos
-            return negyes >= 2 and kez.hossz(b) <= 4
+        if csp.get("sajat"):           # a SAJÁT licitált színem: „van jobb ötletem, nem is egy”
+            return kez.hossz(b) <= 5 and (negyes >= 2 or otos >= 1)
         return negyes >= 2 and (kez.hossz(b) <= 1 or (kez.hossz(b) <= 2 and otos >= 2))
 
     if t == "MISFIT":              # 0-1 lap a partner tudott 5+ lapos színében (2026-10-23)

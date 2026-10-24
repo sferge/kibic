@@ -703,8 +703,8 @@ Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 `elvek/menekulo_rekontra.yaml`. Ha a mi felvételünket megkontrázták, és a kontrát büntetőre passzolták (a sor végén ülünk: kontra – passz – passz), a rekontra menekülő: várhatóan van jobb felvétel a kontrázottnál. Bármilyen szinten, és mondhatja a felvevő is, a partnere is.
 
 - **A partner (aki már passzolt) rekontrája:** a kontrázott színben 0–1 lap (5-5-tel 2 is), és legalább két másik 4+ lapos szín. Pontot nem ígér.
-- **A felvevő saját rekontrája:** a kontrázott (saját) színe legfeljebb 4 lapos, és van két másik 4+ lapos színe (pl. az induló 5440-ese 4 lapos 1♦-vel; mögötte ül a hosszú adu).
+- **A felvevő saját rekontrája:** „van jobb ötletem, nem is egy, és nem egyértelmű, melyik”: a kontrázott (saját) színe legfeljebb 5 lapos, és van két másik 4+ lapos vagy egy másik 5+ lapos színe (5440, 5530; mögötte ül a hosszú adu).
 - **Szan elől:** legalább két 4+ lapos szín (nem 4333).
 - **Egyszínű lappal** (6+) nem rekontra: a színt mondjuk be.
-- **A válasz:** a partner nem passzolhat; a legolcsóbb 4+ lapos másik színét mondja (alulról fölfelé), ha nincs, a legolcsóbb 3 lapost.
-- **NYITOTT:** a közvetlen kontra utáni rekontra (ma csak a büntetőre passzolt után); bent maradhat-e a felvevő erős, hosszú színnel.
+- **A válasz:** a legolcsóbb 4+ lapos másik szín (alulról fölfelé), ha nincs, a legolcsóbb 3 lapos. Bent is lehet maradni: a felvevő 6+ lapos színével, illetve a felvevő rekontrájára a partner 4+ lapos támogatással.
+- **NYITOTT:** a közvetlen kontra utáni rekontra (ma csak a büntetőre passzolt után).

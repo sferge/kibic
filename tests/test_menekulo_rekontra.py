@@ -23,6 +23,11 @@ def _h(f, kez, menet, oszto):
     ("8.J9742.T8643.32", "1NT P P X P P", "N", "XX"),         # szan elől, 5-5
     ("6.874.52.QT98652", "1S P P X P P", "W", "2C"),          # egyszínű: a színt mondja
     ("643.T98.J965.874", "1S P P X P P", "W", "P"),           # nincs menekülő lap
+    ("K2.AJ54.Q43.AJ82", "1C X P P", "N", "P"),               # csak egy másik 4+ lapos szín: nem
+    (".AJ543.Q43.AKJ85", "1C X P P", "N", "XX"),              # 5530: a treff 5, a kőr 5
+    ("AKQJ87.K62.874.4", "1S P P X P P XX P", "W", "P"),      # a felvevő bent marad: 6+ jó pikk
+    ("8743.Q2.765.T943", "1D X P P XX P", "N", "1S"),         # (ismét) a legolcsóbb 4 lapos
+    ("8.Q732.Q765.T943", "1D X P P XX P", "N", "P"),          # 4+ káró támogatás: bent marad
 ])
 def test_menekulo_rekontra(kibic_stand, kez, menet, oszto, vart):
     assert _h(kibic_stand, kez, menet, oszto) == vart
