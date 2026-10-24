@@ -5,6 +5,8 @@
 #   LASSÚ (a legolcsóbb emelés, gém alatt) = plusz erő, SZLEMINVIT —
 #     alacsonyan tartjuk a licitet, hogy maradjon hely a kulcslicitnek;
 #   GYORS (ugrás a gémbe) = LEÁLLÁS, minimális gémerő.
+# A gyors (ugró) emelés csak TUDOTT 8+ lapos fittel (minorban 9+) jelent
+# minimumot (2026-10-23); kevesebbel a legolcsóbb színlicit jön.
 # Példa: 1♥-2♣-2♥-3♥ = plusz erő, szleminvit; 1♥-2♣-2♥-4♥ = 5+ treff,
 # 3 kőr, minimális gémerő, leállás.
 #
@@ -54,6 +56,7 @@ fejezetek:
         fajta: ELV
         ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5}}
         hossz: {A: 3+}
+        fit: {A: 9+}              # minorban a gyors emelés csak 9+ lapos tudott fittel (2026-10-23)
         licit_gem: {gem: A}
         igeret: {pont: also}
         vesztok: 7+

@@ -182,7 +182,7 @@ _SZABALY_KULCSOK = {
     "maradek_vesztok", "osszesen", "leghosszabb", "fit",
     "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
     "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "gyenge_fogas", "help_fogas",
-    "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin",
+    "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit",
 }
 _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "feltetel", "lapok", "nincs", "fohonor", "figura", "fogas",
@@ -195,7 +195,7 @@ _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
                 "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont",
                 "gyenge_fogas", "help_fogas", "gem_eselytelen", "eros_fogas",
-                "leghosszabb_partner_szin"}
+                "leghosszabb_partner_szin", "misfit"}
 
 # A lap minősége (LAPMINOSEG = jó jelek − rossz jelek, lásd 023_lapminoseg.sql)
 _MINOSEG = {"jo": (">=", 2), "rossz": ("<=", -2),
@@ -621,6 +621,9 @@ def _kez_fa(spec: dict, hely: str) -> dict:
         gy.append(n_ if spec["gemeselyes"] else {"t": "NEM", "gy": [n_]})
     if spec.get("splinter_tamogatas"):           # feltételezett 8 lapos nemes fit
         gy.append({"t": "SPLINTER_FIT"})
+    if "misfit" in spec:                         # 0-1 lap a partner tudott 5+ lapos színében
+        n_ = {"t": "MISFIT"}
+        gy.append(n_ if spec["misfit"] else {"t": "NEM", "gy": [n_]})
     for nev, s_ in (spec.get("szin_vesztok") or {}).items():
         lo, hi = sav(s_)                         # vesztőütés egy színben
         gy += _sav_fa({"t": "VESZTO", "szin": _szin_kod(str(nev))}, lo, hi)
@@ -909,6 +912,8 @@ def _ha_fa(ha, hely: str) -> dict | None:
             gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "partner_negyedik":      # a partner utolsó licitje a negyedik szín
             n = {"t": "PARTNER_NEGYEDIK"}
+            if isinstance(v, dict) and "szint" in v:   # {szint: 3}: ezen a szinten
+                n["szint"] = int(v["szint"])
             gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "ugras":                 # a licit ugrás-e (nem a legolcsóbb szinten)
             n = {"t": "UGRAS"}

@@ -268,6 +268,13 @@ class Hezag:
         konkret = [s for s, _ in lista if getattr(s, "szabaly_fajta", "SZABALY") != "ELV"]
         return bool(fk) and not konkret
 
+    def _vonal_mondta(self, sz: str) -> bool:
+        """A vonalunk mondta-e már a színt (bármikor)."""
+        from ..domain import vonal
+        return any(vonal(e.get("ules")) == vonal(self.ules)
+                   and str(e.get("licit", "")).upper()[1:] == sz
+                   and str(e.get("licit", ""))[:1].isdigit() for e in self.licitek)
+
     def _mondtuk_korabban(self, sz: str) -> bool:
         """A vonalunk a partner utolsó licitje ELŐTT mondta-e már (természetesen) a színt."""
         from ..domain import vonal
@@ -582,10 +589,21 @@ class Hezag:
                 # leíró licit a kibic számára (2026-10-21)
                 if (getattr(_sor, "jelentes", None) or {}).get("csak_megertes"):
                     continue
+                # mesterséges (alertos) licitet — ORKC, splinter — a hézag-elv
+                # nem választ: azt csak a szabály adhatja, a teljes
+                # feltételével (2026-10-23); a sor jelentése a partnernél él
+                if getattr(_sor, "alert", False):
+                    break
                 if not (ig.pont_min - 1 <= sajat <= ig.pont_max + 1):
                     continue
                 if any(self.kez.hossz(sz) < ig.hossz(sz)[0] - 1 or
                        self.kez.hossz(sz) > ig.hossz(sz)[1] + 1 for sz in SZINEK):
+                    continue
+                # az ÚJ szín (a vonalunk még nem mondta) ígért hosszából nincs
+                # tűrés: 3 lappal nem mondunk 4+ lapot ígérő új színt
+                # (2026-10-23, #254); a támogatásra/preferenciára marad a tűrés
+                if h[1:] in SZINEK and self.kez.hossz(h[1:]) < ig.hossz(h[1:])[0] \
+                        and not self._vonal_mondta(h[1:]):
                     continue
                 # a fogás-ígéretnek nincs tűrése: hamis fogást nem mutatunk
                 # (2026-10-05, FOGASMUTATAS: a 3♥ = fogás a kőrben)
@@ -720,6 +738,14 @@ class Hezag:
 
         # 1. az alsó határral is gém
         if also:
+            # gémforszban, szlemeséllyel (a partner felső határával 30+): ne
+            # ugorjunk a gémbe — a legolcsóbb természetes licit (a saját 6+
+            # lapos szín, vagy a partner 5+ lapos színének támogatása), hogy
+            # maradjon hely (gyors-lassú; a szerkesztő, 2026-10-23, #48)
+            lassu = self._lassu_szlemeselynel(sajat, phi, gem_folott)
+            if lassu:
+                return HezagDontes(lassu, "1", f"{osszeg}: gémforsz, szlemesély (a felső "
+                                               f"határral {sajat + phi}): lassan — {lassu}")
             gf = [h for h, o in self.jelentesek() if o == "GF"]
             if gf:
                 return HezagDontes(gf[0], "1", f"{osszeg}: az alsó határral is gém — gémforsz")
@@ -760,6 +786,41 @@ class Hezag:
                                       f"{esely:.0%}", self.kenyszer())
         # 3. gém alatt
         return self._lezaras("3", f"{osszeg}: nincs gémesély", kenyszer)
+
+    def _lassu_szlemeselynel(self, sajat: int, phi: int, gem_folott: bool) -> str | None:
+        if gem_folott or phi >= 37 or sajat + phi < SZIN_SZLEM:
+            return None
+        # csak PLUSZ erővel lassú: a saját ígért sávom felső részében vagyok
+        # (nyitott sávnál az alja + 3-tól, széles sávnál a 35%-ától; a
+        # minimum gyorsan megy a gémbe)
+        en = self.tar.get(self.ules) if self.tar else None
+        if en is None:
+            return None
+        lo, hi = en.pont_min, en.pont_max
+        if hi >= 40:
+            kozep = lo + 2.5
+        else:
+            kozep = lo + (hi - lo) * (0.35 if hi - lo >= 7 else 0.5)
+        if sajat <= kozep:
+            return None
+        from .helyzet import kiertekel
+        try:
+            if kiertekel({"t": "GEMFORSZ"}, self.allas, {}, None) is not True:
+                return None
+        except Exception:                  # noqa: BLE001
+            return None
+        jeloltek = []
+        for sz in SZINEK:                  # a saját 6+ lapos szín
+            if self.kez.hossz(sz) >= 6:
+                jeloltek.append((self.kez.hossz(sz), sz))
+        for sz in SZINEK:                  # a partner 5+ lapos színe, 8+ lapos fittel
+            if self.partner_hossz(sz) >= 5 and self.fit(sz) >= 8:
+                jeloltek.append((self.fit(sz) - 2, sz))
+        for _, sz in sorted(jeloltek, reverse=True):
+            h = self.legolcsobb(sz)
+            if h and h in self.legalis and _rang(h) < _rang(f"{GEMSZINT[sz]}{sz}"):
+                return h
+        return None
 
     def _beliben(self) -> bool:
         from ..domain import vonal

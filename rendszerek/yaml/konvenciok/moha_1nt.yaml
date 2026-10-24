@@ -1,0 +1,170 @@
+# MOHA_1NT — a Moha-kör válaszai az 1NT indulásra (a szerkesztő, 2026-10-23/24).
+#
+# Egy csomag, három rész (a Stayman és a Jacoby-transzfer külön konvenció):
+#
+#  1. NÉGY SZÍNRE SZÓLÓ TRANSZFER a minorokra:
+#       2♠ = treff-transzfer, 2NT = káró-transzfer. Ponthatár nincs;
+#       jellemzően 6+ lap, invittel / gémerővel 5+ is (nem egyenletes lappal;
+#       az 5332 3NT-t vagy invitet mond). 5-5 minorral
+#       invit+ erővel: előbb 2♠, majd 3♦ (legalább 5-5, gémforsz).
+#     Az induló:
+#       2♠ után: 2NT = MAXIMÁLIS (invitet fogadna, és a treffhez jó: 3+
+#                 treff vagy dubló magasfigura), 3♣ = nem maximális;
+#       2NT után: 3♣ = maximális, 3♦ = nem maximális.
+#     A válaszoló:
+#       gyenge (leállás): a „nem max”-ra passz, a „max” után 3m;
+#       invit: a „nem max”-ra passz; a „max” után egyenletes lappal 3NT,
+#              3M = szingli ebben a nemesben;
+#       gémforsz: a „nem max” után ugyanaz, mint invittel a „max” után.
+#
+#  2. 1NT-3♣ = kétszínű minor-leállás: 5-5 a minorokban, 0-7 (8) pont; az
+#     induló passzol, vagy 3♦-ra javít (a hosszabb / jobb minorja).
+#
+#  3. 4441, 9+ pont (gémforsz), rövidség-mutatás:
+#       3♦ = szingli valamelyik minorban; a 3♥ relé kérdez: 3♠ = káró
+#            szingli, 3NT = treff szingli;
+#       3♥ = kőr szingli; 3♠ = pikk szingli.
+#     Utána az induló dönt: 3NT passzkérő (16+ ponttal 4NT), 4M és 5m
+#     passzkérő, 4m ORKC.
+#
+# Az egyenletes 8-9 pontos invit 4-es nemes nélkül a Staymanen megy:
+# 1NT-2♣, bármi a válasz, 2NT = invit (JUNK_STAYMAN).
+#
+# NYITOTT: ugyanez a közbeszólóként mondott 1NT (16-19) után, a határok egy
+# ponttal lejjebb (invit 8+ helyett 7+, gémforsz 15+ — a szerkesztő); ehhez
+# a minta-nyelvben a „rendszer él” (systems on) kell.
+rendszer:
+  kod: MOHA_1NT
+  nev: 1NT-válaszok (Moha)
+  nev_en: 1NT responses (Moha) — four-suit transfers, minor two-suiter, 4441
+  fajta: KONVENCIO
+  tema: "1NT után: minor-transzfer, kétszínű minor, 4441"
+  leiras: "1NT-re: 2♠ treff-, 2NT káró-transzfer (az induló max/nem max választ), 3♣ = 5-5 minor leállás, 3♦/3♥/3♠ = 4441 rövidség (9+)."
+fejezetek:
+  - fejezet: "Az alaprendszer helyett"
+    szabalyok:
+      - {minta: 1NT-2S, kivalt: true}
+      - {minta: 1NT-2S-3C, kivalt: true}
+      - {minta: 1NT-2S-3C-3D, kivalt: true}
+      - {minta: 1NT-2NT, kivalt: true}
+      - {minta: 1NT-3C, kivalt: true}
+      - {minta: 1NT-3D, kivalt: true}
+      - {minta: 1NT-3H, kivalt: true}
+      - {minta: 1NT-3S, kivalt: true}
+
+  - fejezet: "Minor-transzfer (2♠ treff, 2NT káró)"
+    szabalyok:
+      - {minta: 1NT-2S, kulcs: MOHA1NT-2S, hossz: {S: 0-3, H: 0-3}, rel: ["C>=D"],
+         vagy: [{hossz: {C: 6+}}, {hossz: {C: 5+}, pont: 8+, elosztas: NEM_BAL}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Treff-transzfer (jellemzően 6+, invittel / gémerővel 5+); 5-5 minorral invit+ erővel is ez"}
+      - {minta: 1NT-2NT, kulcs: MOHA1NT-2NT, hossz: {S: 0-3, H: 0-3}, rel: ["D>C"],
+         vagy: [{hossz: {D: 6+}}, {hossz: {D: 5+}, pont: 8+, elosztas: NEM_BAL}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Káró-transzfer (jellemzően 6+, invittel / gémerővel 5+)"}
+
+  - fejezet: "Az induló a transzferre: maximális / nem maximális"
+    szabalyok:
+      - {minta: 1NT-2S-2NT, kulcs: MOHA1NT-2S-MAX, pont: 16-17,
+         vagy: [{hossz: {C: 3+}}, {hossz: {C: 2}, fohonor: {C: 1+}}],
+         forsz: EGY_MENET, prioritas: 52,
+         alert: "Maximális lap: invitet fogadna, és a treffhez jó (3+ treff vagy dubló magasfigura)"}
+      - {minta: 1NT-2S-3C, kulcs: MOHA1NT-2S-NEMMAX, forsz: EGY_MENET, prioritas: 50,
+         alert: "Nem maximális (vagy nem jó a treffhez)"}
+      - {minta: 1NT-2NT-3C, kulcs: MOHA1NT-2NT-MAX, pont: 16-17,
+         vagy: [{hossz: {D: 3+}}, {hossz: {D: 2}, fohonor: {D: 1+}}],
+         forsz: EGY_MENET, prioritas: 52,
+         alert: "Maximális lap: invitet fogadna, és a káróhoz jó (3+ káró vagy dubló magasfigura)"}
+      - {minta: 1NT-2NT-3D, kulcs: MOHA1NT-2NT-NEMMAX, forsz: EGY_MENET, prioritas: 50,
+         alert: "Nem maximális (vagy nem jó a káróhoz)"}
+
+  - fejezet: "A válaszoló a „nem max” után"
+    szabalyok:
+      # gyenge és invit: passz; gémforsz: egyenletes 3NT, 3M = szingli
+      - {minta: 1NT-2S-3C-P, kulcs: MOHA1NT-2S-NEMMAX-P, pont: 0-9, hossz: {C: 5+}, prioritas: 50,
+         magyarazat: "Leállás (gyenge vagy invit erő)"}
+      - {minta: 1NT-2NT-3D-P, kulcs: MOHA1NT-2NT-NEMMAX-P, pont: 0-9, hossz: {D: 5+}, prioritas: 50,
+         magyarazat: "Leállás (gyenge vagy invit erő)"}
+      - {minta: 1NT-2S-3C-3NT, kulcs: MOHA1NT-2S-NEMMAX-3NT, pont: 10+, hossz: {S: 2+, H: 2+}, prioritas: 51,
+         magyarazat: "Gémerő, egyenletes (nincs nemes szingli): 3NT"}
+      - {minta: 1NT-2NT-3D-3NT, kulcs: MOHA1NT-2NT-NEMMAX-3NT, pont: 10+, hossz: {S: 2+, H: 2+}, prioritas: 51,
+         magyarazat: "Gémerő, egyenletes (nincs nemes szingli): 3NT"}
+      - {minta: 1NT-2S-3C-3H, kulcs: MOHA1NT-2S-NEMMAX-3H, pont: 10+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémerő, kőr szingli (rövidség)"}
+      - {minta: 1NT-2S-3C-3S, kulcs: MOHA1NT-2S-NEMMAX-3S, pont: 10+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémerő, pikk szingli (rövidség)"}
+      - {minta: 1NT-2NT-3D-3H, kulcs: MOHA1NT-2NT-NEMMAX-3H, pont: 10+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémerő, kőr szingli (rövidség)"}
+      - {minta: 1NT-2NT-3D-3S, kulcs: MOHA1NT-2NT-NEMMAX-3S, pont: 10+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Gémerő, pikk szingli (rövidség)"}
+      # 5-5 minor, gémforsz: 2♠, majd 3♦
+      - {minta: 1NT-2S-3C-3D, kulcs: MOHA1NT-2S-NEMMAX-55, pont: 10+, hossz: {C: 5+, D: 5+}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Legalább 5-5 a minorokban, gémforsz"}
+
+  - fejezet: "A válaszoló a „max” után"
+    szabalyok:
+      - {minta: 1NT-2S-2NT-3C, kulcs: MOHA1NT-2S-MAX-3C, pont: 0-7, hossz: {C: 6+}, prioritas: 50,
+         magyarazat: "Leállás 3♣-ban"}
+      - {minta: 1NT-2NT-3C-3D, kulcs: MOHA1NT-2NT-MAX-3D, pont: 0-7, hossz: {D: 6+}, prioritas: 50,
+         magyarazat: "Leállás 3♦-ban"}
+      - {minta: 1NT-2S-2NT-3NT, kulcs: MOHA1NT-2S-MAX-3NT, pont: 8+, hossz: {S: 2+, H: 2+}, prioritas: 51,
+         magyarazat: "Invit vagy gémerő, egyenletes (nincs nemes szingli): 3NT"}
+      - {minta: 1NT-2NT-3C-3NT, kulcs: MOHA1NT-2NT-MAX-3NT, pont: 8+, hossz: {S: 2+, H: 2+}, prioritas: 51,
+         magyarazat: "Invit vagy gémerő, egyenletes (nincs nemes szingli): 3NT"}
+      - {minta: 1NT-2S-2NT-3H, kulcs: MOHA1NT-2S-MAX-3H, pont: 8+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Kőr szingli (rövidség)"}
+      - {minta: 1NT-2S-2NT-3S, kulcs: MOHA1NT-2S-MAX-3S, pont: 8+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Pikk szingli (rövidség)"}
+      - {minta: 1NT-2NT-3C-3H, kulcs: MOHA1NT-2NT-MAX-3H, pont: 8+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Kőr szingli (rövidség)"}
+      - {minta: 1NT-2NT-3C-3S, kulcs: MOHA1NT-2NT-MAX-3S, pont: 8+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "Pikk szingli (rövidség)"}
+      - {minta: 1NT-2S-2NT-3D, kulcs: MOHA1NT-2S-MAX-55, pont: 8+, hossz: {C: 5+, D: 5+}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Legalább 5-5 a minorokban, gémforsz"}
+
+  - fejezet: "1NT-3♣: kétszínű minor-leállás"
+    szabalyok:
+      - {minta: 1NT-3C, kulcs: MOHA1NT-3C, pont: 0-8, hossz: {C: 5+, D: 5+}, prioritas: 58,
+         alert: "Kétszínű minor-leállás: 5-5 a minorokban, 0-7 (8) pont — az induló passzol vagy 3♦-ra javít"}
+      - {minta: 1NT-3C-P, kulcs: MOHA1NT-3C-P, rel: ["C>=D"], prioritas: 50, magyarazat: "A treff a jobb (passz)"}
+      - {minta: 1NT-3C-3D, kulcs: MOHA1NT-3C-3D, rel: ["D>C"], prioritas: 50, magyarazat: "A káró a jobb (javítás)"}
+
+  - fejezet: "4441, 9+ pont: rövidség-mutatás"
+    szabalyok:
+      - {minta: 1NT-3D, kulcs: MOHA1NT-3D, pont: 9+, elosztas: ["4441"], vagy: [{hossz: {C: 1}}, {hossz: {D: 1}}],
+         forsz: GEMFORSZ, prioritas: 59, alert: "4441, 9+: szingli valamelyik minorban (a 3♥ kérdezi)"}
+      - {minta: 1NT-3H, kulcs: MOHA1NT-3H, pont: 9+, elosztas: ["4441"], hossz: {H: 1},
+         forsz: GEMFORSZ, prioritas: 59, alert: "4441, 9+: kőr szingli"}
+      - {minta: 1NT-3S, kulcs: MOHA1NT-3S, pont: 9+, elosztas: ["4441"], hossz: {S: 1},
+         forsz: GEMFORSZ, prioritas: 59, alert: "4441, 9+: pikk szingli"}
+      - {minta: 1NT-3D-3H, kulcs: MOHA1NT-3D-RELE, forsz: EGY_MENET, prioritas: 55,
+         alert: "Relé: melyik minorban a szingli?"}
+      - {minta: 1NT-3D-3H-3S, kulcs: MOHA1NT-3D-RELE-3S, hossz: {D: 1}, prioritas: 50,
+         alert: "Káró szingli"}
+      - {minta: 1NT-3D-3H-3NT, kulcs: MOHA1NT-3D-RELE-3NT, hossz: {C: 1}, prioritas: 50,
+         alert: "Treff szingli"}
+
+  - fejezet: "Az induló a rövidség után"
+    jegyzet: >-
+      3NT passzkérő (16+ ponttal 4NT: szleminvit); 4M és 5m passzkérő;
+      4m ORKC. A treff szingli után (1NT-3♦-3♥-3NT) a passz a 3NT, a 4NT
+      a 16+ szleminvit.
+    szabalyok:
+      # kőr szingli (1NT-3♥): a válaszolónál ♠4 ♦4 ♣4
+      - {minta: 1NT-3H-3NT, kulcs: MOHA1NT-3H-3NT, pont: 15, fogas: [H], prioritas: 50, magyarazat: "Fogás a kőrben: 3NT (passzkérő)"}
+      - {minta: 1NT-3H-4NT, kulcs: MOHA1NT-3H-4NT, pont: 16+, fogas: [H], prioritas: 50, magyarazat: "Fogás a kőrben, 16+: szleminvit"}
+      - {minta: 1NT-3H-4S, kulcs: MOHA1NT-3H-4S, hossz: {S: 4+}, prioritas: 52, magyarazat: "Pikk fit: 4♠ (passzkérő)"}
+      # pikk szingli (1NT-3♠): a válaszolónál ♥4 ♦4 ♣4
+      - {minta: 1NT-3S-3NT, kulcs: MOHA1NT-3S-3NT, pont: 15, fogas: [S], prioritas: 50, magyarazat: "Fogás a pikkben: 3NT (passzkérő)"}
+      - {minta: 1NT-3S-4NT, kulcs: MOHA1NT-3S-4NT, pont: 16+, fogas: [S], prioritas: 50, magyarazat: "Fogás a pikkben, 16+: szleminvit"}
+      - {minta: 1NT-3S-4H, kulcs: MOHA1NT-3S-4H, hossz: {H: 4+}, prioritas: 52, magyarazat: "Kőr fit: 4♥ (passzkérő)"}
+      # káró szingli (1NT-3♦-3♥-3♠): a válaszolónál ♠4 ♥4 ♣4
+      - {minta: 1NT-3D-3H-3S-3NT, kulcs: MOHA1NT-3D-3S-3NT, pont: 15, fogas: [D], prioritas: 50, magyarazat: "Fogás a káróban: 3NT (passzkérő)"}
+      - {minta: 1NT-3D-3H-3S-4NT, kulcs: MOHA1NT-3D-3S-4NT, pont: 16+, fogas: [D], prioritas: 50, magyarazat: "Fogás a káróban, 16+: szleminvit"}
+      - {minta: 1NT-3D-3H-3S-4H, kulcs: MOHA1NT-3D-3S-4H, hossz: {H: 4+}, prioritas: 52, magyarazat: "Kőr fit: 4♥ (passzkérő)"}
+      - {minta: 1NT-3D-3H-3S-4S, kulcs: MOHA1NT-3D-3S-4S, hossz: {S: 4+, H: 0-3}, prioritas: 52, magyarazat: "Pikk fit: 4♠ (passzkérő)"}
+      # treff szingli (1NT-3♦-3♥-3NT): a válaszolónál ♠4 ♥4 ♦4
+      - {minta: 1NT-3D-3H-3NT-P, kulcs: MOHA1NT-3D-3NT-P, pont: 15, fogas: [C], prioritas: 50, magyarazat: "Fogás a treffben: 3NT marad"}
+      - {minta: 1NT-3D-3H-3NT-4NT, kulcs: MOHA1NT-3D-3NT-4NT, pont: 16+, fogas: [C], prioritas: 50, magyarazat: "Fogás a treffben, 16+: szleminvit"}
+      - {minta: 1NT-3D-3H-3NT-4H, kulcs: MOHA1NT-3D-3NT-4H, hossz: {H: 4+}, prioritas: 52, magyarazat: "Kőr fit: 4♥ (passzkérő)"}
+      - {minta: 1NT-3D-3H-3NT-4S, kulcs: MOHA1NT-3D-3NT-4S, hossz: {S: 4+, H: 0-3}, prioritas: 52, magyarazat: "Pikk fit: 4♠ (passzkérő)"}

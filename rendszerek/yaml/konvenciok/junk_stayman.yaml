@@ -51,6 +51,10 @@ fejezetek:
         vagy:
           - {pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 5}}]}
           - {pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}]}
+          # 4-es nemes nélkül is (a szerkesztő, 2026-10-24): az egyenletes
+          # invit a 2♣-n megy, mert a 2NT káró-transzfer (MOHA_1NT). 8 ponttal
+          # 4-es nemes nélkül passz (rossz 8, 2026-10-23), így ez 9 pont.
+          - {pont: 9, elosztas: BAL, hossz: {S: 0-3, H: 0-3}}
           - {pont: 10+, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}]}
         forsz: EGY_MENET
         elvaras: VALASZ

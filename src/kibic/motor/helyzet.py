@@ -817,6 +817,8 @@ def kiertekel(csp: dict, allas: Allas,
         if licit is None or i < j or not licit[0].isdigit() or licit[1:] not in SZINEK:
             return False
         sz = licit[1:]
+        if "szint" in csp and int(licit[0]) != int(csp["szint"]):
+            return False
         v = allas.valodi_szinek("mi")
         return len(v) == 3 and sz not in v and not allas.mondta(sz, "ok")
 

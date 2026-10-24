@@ -301,10 +301,15 @@ def test_junk_stayman_3m_nem_fogadja(betolto):
 # --- délután: negyedik szín, gémesély, Walsh egyenetlen, Junk 3♥ ---------
 
 def test_negyedik_szin_elv(betolto):
-    v = _licit(betolto, "K2.AQ932.Q32.432", ["1D", "P", "1H", "P", "1S", "P"], "S")
+    # a negyedik szín kvázi gémforsz (2026-10-23): gémforsz-erő kell hozzá
+    v = _licit(betolto, "K2.AQ932.Q32.A32", ["1D", "P", "1H", "P", "1S", "P"], "S")
     assert v["call"] == "2C" and "Negyedik szín" in _alert(v)
-    # lapleírás: fogás a negyedik színben -> szan
+    # lapleírás: fogás a negyedik színben -> szan; a negyedik szín kvázi
+    # gémforsz (2026-10-23): minimummal 3NT (gyors), plusz erővel 2NT (lassú)
     v = _licit(betolto, "AQ32.32.KJ432.A2",
+               ["1D", "P", "1H", "P", "1S", "P", "2C", "P"], "N")
+    assert v["call"] == "3NT"
+    v = _licit(betolto, "AQ32.32.KQJ43.AQ",
                ["1D", "P", "1H", "P", "1S", "P", "2C", "P"], "N")
     assert v["call"] == "2NT"
 

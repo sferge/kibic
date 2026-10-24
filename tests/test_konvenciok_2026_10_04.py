@@ -208,9 +208,10 @@ def test_spiral_kerdezo_dont(kibic_stand, valasz, vart):
 
 
 def test_spiral_ket_kulcslap_hianyzik(kibic_stand):
-    # a partner 4♠ = 1/4 (az A-ágon), nekem 2 → 3 kulcslap: leállás 5♣
+    # a partner 4♠ = 1/4 (az A-ágon), nekem 2 → 3 kulcslap: leállás; a
+    # vonal 3NT-t mondott, a fit legfeljebb 8 lapos → 4NT (2026-10-23)
     v = _licit(kibic_stand.sorok, _pbn("32.KQ2.KQ2.AKQ93"), T7 + ["4C", "P", "4S", "P"])
-    assert v["call"] == "5C" and v["source"] == "SPIRAL"
+    assert v["call"] == "4NT" and v["source"] == "SPIRAL"
 
 
 def test_spiral_leallas_utan_passz(kibic_stand):
@@ -383,7 +384,8 @@ SZLEM_MENET = ["1H", "P", "1S", "P", "3H", "P", "3S", "P", "4D", "P", "4NT", "P"
 
 @pytest.mark.parametrize("kez, vart", [
     ("AKJ32.Q2.K32.AQ2", "6C"),       # 19 + 16 = 35, a felső 36: kulcslicit tovább (♣A)
-    ("AKT32.Q2.K32.AJ2", "6H"),       # 17 + 16 = 33, a nagyszlem nem jön szóba: 6♥
+    ("AKT32.Q2.K32.AJ2", "6C"),       # 17 + 19 = 36 (a 3♥ 17-19, 2026-10-23): kulcslicit tovább
+    ("AKT32.Q2.K32.Q32", "6H"),       # 14 + 19 = 33, a nagyszlem nem jön szóba: 6♥
 ])
 def test_szin_szlem_a_gem_folott(kibic_stand, kez, vart):
     v = _licit(kibic_stand.sorok, _pbn(kez), SZLEM_MENET)
@@ -405,12 +407,12 @@ def test_szin_szlem_parosversenyen_dd_dont():
     er = prop.kenyszertar(lic, oszto="N")
     allas = Allas(ules="S", licitek=lic, oszto="N", kenyszertar=er.kenyszertar)
     kerdes = []
-    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.AJ2"), allas, prop, lic, "S", "N",
+    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.Q32"), allas, prop, lic, "S", "N",
               ["P", "5S", "5NT", "6C", "6D", "6H", "6S", "6NT"],
               vegkontraktus=lambda hiv: (kerdes.append(hiv) or {"best": "6NT", "options": {}}),
               pontozas="MP").dont()
     assert h.licit == "6NT" and kerdes == [["6H", "6NT"]]
-    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.AJ2"), allas, prop, lic, "S", "N",
+    h = Hezag(Kez.pbn_bol("AKT32.Q2.K32.Q32"), allas, prop, lic, "S", "N",
               ["P", "5S", "5NT", "6C", "6D", "6H", "6S", "6NT"],
               vegkontraktus=lambda hiv: {"best": "6NT"}, pontozas="IMP").dont()
     assert h.licit == "6H"                  # csapatversenyen a biztosabb adu
@@ -470,9 +472,10 @@ def test_scoring_ertekek(ertek, paros):
 # --- kétértelmű kulcslap-válasz: a kérdező a rosszabbat tételezi fel -------
 
 def test_kerdezo_a_rosszabb_esetet_tetelezi_fel(kibic_stand):
-    # 4♥ = 0/3 (A-ág); a kérdezőnek 2 kulcslapja van: 0 esetén 3 hiányzik → 5♣
+    # 4♥ = 0/3 (A-ág); a kérdezőnek 2 kulcslapja van: 0 esetén 3 hiányzik →
+    # leállás (a 3NT után 4NT, 2026-10-23)
     v = _licit(kibic_stand.sorok, _pbn("32.KQ2.KQ2.AKQ93"), T7 + ["4C", "P", "4H", "P"])
-    assert v["call"] == "5C" and v["source"] == "SPIRAL"
+    assert v["call"] == "4NT" and v["source"] == "SPIRAL"
 
 
 def test_valaszolo_a_jobbik_esettel_szlemet_mond(kibic_stand):

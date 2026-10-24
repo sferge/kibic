@@ -28,6 +28,7 @@ hivatkozasok:
   - MOHA_JACOBY                 # az alaprendszer ELŐTT: a Jacoby 2NT folytatása az ígérthez mérve; 2M-2NT
   - TIMBUKTU                    # a küzdelmi rész ELŐTT: erős (16+) 1♣ / erős 2♣ ellen (csak ott írja felül)
   - JUNK_STAYMAN                # az alaprendszer ELŐTT: ezen a kártyán a Stayman helyett ez van (azonos téma)
+  - MOHA_1NT                    # az alaprendszer ELŐTT: 1NT-re minor-transzfer (2♠/2NT), 3♣ 5-5 minor, 4441 (2026-10-24)
   - KIBICEGY_STAND
   - GYENGE_UGRO_VALASZ          # a gyenge ugró válasz folytatásai (nyitó, 2NT-kérdés)
   - POZITIV_SZABAD_LICIT        # a küzdelmi rész ELŐTT: a 2-es szintű új szín pozitív (SZABAD_LICIT_MIN)

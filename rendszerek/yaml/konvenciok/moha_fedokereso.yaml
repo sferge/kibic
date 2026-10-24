@@ -28,7 +28,8 @@
 #
 # A kártyán az alaprendszer ELŐTT kell állnia: az alap rövidszín-
 # gémkísérletét (1M-2M-3♣/3♦/3oM), az 1M-2M-4M-et és az 1m-1M-2M-3m
-# természetes invitjét kiváltja.
+# természetes invitjét kiváltja. Megfelelő mellékszín nélkül a fedőt egy
+# 2 vesztős dublóban keressük (2026-10-23).
 rendszer:
   kod: MOHA_FEDOKERESO
   nev: Fedőkereső invit (Moha)
@@ -62,6 +63,18 @@ fejezetek:
         forsz: EGY_MENET
         prioritas: 58
         alert: "Fedőkereső invit: 3+ lap a színben, 2,5-3 vesztővel"
+      # Megfelelő (3+ lapos, 2,5-3 vesztős) mellékszín nélkül a fedőt egy
+      # 2 vesztős DUBLÓBAN keressük (a szerkesztő, 2026-10-23, #142)
+      - minta: 1M-2M-+A
+        kulcs: FEDOKERESO-DUBLO
+        mellekszin: [A]
+        vagy: [{vesztok: 0-4.5}, {vesztok: 6-6.5}]
+        hossz: {A: 2}
+        szin_vesztok: {A: 2}
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 57
+        alert: "Fedőkereső invit: fedőt keres ebben a színben (dubló, 2 vesztő)"
       # az alaprendszer rövidszín-gémkísérlete helyett
       - {minta: 1M-2M-3C, kivalt: true}
       - {minta: 1M-2M-3D, kivalt: true}
@@ -140,6 +153,16 @@ fejezetek:
         forsz: EGY_MENET
         prioritas: 58
         alert: "Fedőkereső invit: 3+ lap a színben, 2,5-3 vesztővel"
+      - minta: 1m-1M-2M-+A
+        kulcs: FEDOKERESO-DUBLO-VALASZOLO
+        mellekszin: [A]
+        fedoutes: {M: 3+}
+        hossz: {A: 2}
+        szin_vesztok: {A: 2}
+        alulrol: true
+        forsz: EGY_MENET
+        prioritas: 57
+        alert: "Fedőkereső invit: fedőt keres ebben a színben (dubló, 2 vesztő)"
       # az alaprendszer természetes 3m invitje helyett
       - {minta: 1m-1M-2M-3m, kivalt: true}
 

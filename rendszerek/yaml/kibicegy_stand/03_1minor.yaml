@@ -59,7 +59,7 @@ fejezetek:
          nyers: "1♠ (1♥-re) | 4-es ♠, Ø 4-es ♥; kényszerít, nem AZ, csak riverz alatt, unbal"}
       - {minta: 1m-1M-1NT, pont: 12-14, elosztas: BAL, hossz: {M: 0-3}, prioritas: 50,
          magyarazat: "Nincs 4-es támogatás, kvázi egyenletes", nyers: "1N | Ø 4-es támogatás, kvázi BAL."}
-      - {minta: 1D-1M-2C, pont: 12-15, hossz: {D: 5+, C: 4+, M: 0-3}, prioritas: 51,
+      - {minta: 1D-1M-2C, pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}], hossz: {D: 5+, C: 4+, M: 0-3}, prioritas: 51,
          magyarazat: "Természetes 5-4+, alsó zóna", nyers: "2mm | NAT; 5-4+; AZ"}
       - {minta: 1m-1M-2m, pont: 12-15, hossz: {m: 6+, M: 0-3}, prioritas: 52,
          magyarazat: "Természetes, 6+, alsó zóna", nyers: "2m | NAT; 6+; AZ"}
@@ -71,9 +71,9 @@ fejezetek:
          alert: "Riverz, 18+", nyers: "1♦ – 1♠ – 2♥! (riverz)"}
       - {minta: 1m-1M-2NT, pont: 18-19, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 53,
          magyarazat: "18-19 FP, egyenletes, nincs 4-es nemes", nyers: "2N | 18-19 FP; bal; nincs 4M"}
-      - {minta: 1D-1M-3C, pont: 16+, hossz: {D: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 55,
-         magyarazat: "Természetes, 5-4+ a minorokban, gémforsz", nyers: "3mm | NAT; 5-4+ a minorokban, GF"}
-      - {minta: 1m-1M-3m, pont: 16-18, hossz: {m: 6+, M: 0-3}, forsz: EGY_MENET, prioritas: 54,
+      - {minta: 1D-1M-3C, pont: 16-19, vagy: [{pont: 18-19}, {pont: 17, minoseg: nem_rossz}, {pont: 16, vesztok: 0-5, hossz: {D: 5+, C: 5+}}], hossz: {D: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Természetes, 5-4+ a minorokban, gémforsz", nyers: "3mm | NAT; 5-4+ a minorokban, GF"}  # 17-19 (5-5: jó 16), 2026-10-23
+      - {minta: 1m-1M-3m, pont: 17-19, vagy: [{pont: 18-19}, {pont: 17, minoseg: nem_rossz}], szin_vesztok: {m: 0-1}, hossz: {m: 6+, M: 0-3}, forsz: EGY_MENET, prioritas: 54,
          magyarazat: "Természetes, 6+, erős", nyers: "3m | NAT; 6+; FZ"}
       - {minta: 1m-1M-3M, pont: 15-17, hossz: {M: 4}, prioritas: 56,
          magyarazat: "Ugró emelés: 4-es támogatás, invit", nyers: "Ugró emelés | 4-es támogatás, invit"}
@@ -164,7 +164,7 @@ fejezetek:
     szabalyok:
       - {minta: 1m-1NT-2m, pont: 12-14, hossz: {m: 5+}, prioritas: 50,
          magyarazat: "Természetes, alsó zóna", nyers: "2m | NAT; AZ"}
-      - {minta: 1D-1NT-2C, pont: 12-15, hossz: {D: 5+, C: 4+}, prioritas: 51,
+      - {minta: 1D-1NT-2C, pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}], hossz: {D: 5+, C: 4+}, prioritas: 51,
          magyarazat: "Természetes 5-4, alsó zóna", nyers: "2mm (treff) | NAT; 5-4; AZ"}
       - {minta: 1C-1NT-2D, pont: 17+, hossz: {C: 5+, D: 4+}, forsz: EGY_MENET, prioritas: 51,
          alert: "Riverz", nyers: "(1♣-re) 2♦ | Riverz; FZ"}
@@ -174,7 +174,7 @@ fejezetek:
          alert: "Riverz"}
       - {minta: 1m-1NT-2NT, pont: 17-18, elosztas: BAL, prioritas: 51,
          alert: "Invit", nyers: "2N! | inv"}
-      - {minta: 1m-1NT-3m, pont: 16-18, hossz: {m: 6+}, forsz: EGY_MENET, prioritas: 53,
+      - {minta: 1m-1NT-3m, pont: 17-19, vagy: [{pont: 18-19}, {pont: 17, minoseg: nem_rossz}], szin_vesztok: {m: 0-1}, hossz: {m: 6+}, forsz: EGY_MENET, prioritas: 53,
          magyarazat: "Természetes, 6+, erős", nyers: "3m | NAT; 6+; FZ"}
 
   - fejezet: "1♦ – 2♣ (gémforsz) után a nyitó"

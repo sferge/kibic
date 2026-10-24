@@ -631,6 +631,12 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
             ig = szukitett_tar({"p": ig}, {"p": v})["p"]
         return gemesely(kez, ig)
 
+    if t == "MISFIT":              # 0-1 lap a partner tudott 5+ lapos színében (2026-10-23)
+        ig = _partner_igeret(ktx)
+        if ig is None:
+            return None
+        return any(ig.hossz(sz)[0] >= 5 and kez.hossz(sz) <= 1 for sz in ("S", "H", "D", "C"))
+
     if t == "SPLINTER_FIT":        # feltételezett 8 lapos fit a partner (tudott) nemesében
         allas = getattr(ktx, "allas", None)
         licit = ktx.kotesek.get("_licit")
@@ -913,6 +919,8 @@ def leiras(csp: dict) -> str:
     if t == "GEMESELY":
         return ("gémesély (nemes fittel 25, minor fittel 27, szanban 24 FP — "
                 "egyenetlen pontelosztásnál hosszú színnel)")
+    if t == "MISFIT":
+        return "misfit (0-1 lap a partner tudottan 5+ lapos színében)"
     if t == "SPLINTER_FIT":
         return "feltételezett 8 lapos fit a partner nemesében"
     if t == "FIT_HOSSZ":

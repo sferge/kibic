@@ -641,3 +641,59 @@ A szerkesztővel közösen, a 13:25–17:44 közötti leosztások alapján.
   és az 5m sem jobb (8 lapos minor fit 27+ ponttal).
 - Leaping Michaels a minor blokkra is: (2♦)/(3♦) után 4♦, (3♣) után 4♣ =
   mindkét nemes 5-5 (a vesztő-határral); a partner a jobb nemesét mondja.
+
+## Minor ORKC: leállás 4NT-ben — 2026-10-23
+
+A 3NT utáni 4m definíció szerint ORKC marad (nem kap pont- vagy fitfeltételt).
+
+A negatív kulcslap-válasz után:
+
+- **A kérdező:** ha a minorban legfeljebb 8 lapos fitről tud (a saját lapjai és a partner ígért minimuma együtt), és a vonal már licitált szant (a 4NT reális alternatíva), akkor 4NT-vel áll le, különben 5m-mel.
+- **A válaszoló a 4NT-re:**
+  - ha van még nem mondott többlethossza a minorban, és a lapja nem szan jellegű (van 0-1 lapos színe), 5m-re javít;
+  - ha a kétértelmű válaszának (0/3, 1/4) a jobbik esete igaz, szlemet mond (ez a 2026-10-05-i szabály).
+
+Gépben: `motor/spiral.py`, teszt: `tests/test_spiral_4nt.py`.
+
+### NYITOTT ötlet: kérdezés minorban, szlem nemesben
+
+Néha hasznos a minorban kérdezni ászt, és a végén nemes szlemet játszani, például ha a kérdező lapjánál a ♣K vagy a ♦K különösen fontos. Ehhez a kulcslap-kérdés után a végső színt külön lépésnek kellene választania: a legjobb ismert fitet (8+ lapos nemes fit esetén a nemest), nem automatikusan a kérdezett minort. A szerkesztő példákat keres rá.
+
+## Ki kérdezhet a 3NT után, a nyitó második licitje, a negyedik színre adott szan — 2026-10-23
+
+- **A hézag-elv** (a tartalék döntés, amikor egyik szabály sem illik a lapra) nem választ mesterséges (alertos) licitet. Ilyet csak a szabály adhat, a teljes feltételével, mert a partner a megállapodás szerint érti (#48: a 4♦ ORKC volt, #138: a 4♣ splinter).
+- **3NT után 4m (ORKC):** az kérdezhet, akinek a saját pontjaival a partner ígért *alsó* határával számolva sem kockázatos az 5m (27+), a *felső* határával számolva pedig szlemerő jön ki (31+); VAGY a vesztői szerint: legfeljebb 4,5 vesztő, misfitnél (0–1 lap a partner tudottan 5+ lapos színében) legfeljebb 4.
+- **A negyedik szín kvázi gémforsz** (4 minorig kényszerít; eddig F1 volt).
+- **Lassan szlemeséllyel:** gémforszban, ha a partner felső határával szlem lehet (30+), a hézag-elv nem ugrik gémbe, hanem a legolcsóbb természetes licitet mondja (a saját 6+ lapos szín vagy a partner 5+ lapos színének támogatása).
+- **A nyitó egyszerű új színe** (nem riverz) 1-re 1 vagy 1NT válasz után: 12–16 pont (rossz 17). (A saját szín egyszerű ismétlésének sávja nem változott: NYITOTT.)
+- **A nyitó ugró új színe** (nem riverz), ahol az egyszerű új szín nem kényszerítene: 17–19 pont, limitált. 5-5-tel jó 16 is, ha legfeljebb 5 vesztő van.
+- **A nyitó ugrása a saját színében** (második licitként): 17–19 pont, limitált, jó 6+ színnel (szinglivel is játszható: legfeljebb 1 vesztő a színben).
+- **A negyedik színre a válaszoló a teljes laperejét mutatja:**
+  - Ha a legolcsóbb szan 3NT alatt van, és gémforszban vagyunk: a 2NT plusz erő (lassú), az ugrás a 3NT-be minimum (gyors).
+  - Ha a legolcsóbb szan a 3NT: a 3NT az ígért sáv alja (12–15, rossz 16), a 4NT a teteje (16, rossz 17), limitemelés, nem kényszerít.
+  - Színnel az ugrás a minimum (szlemérdek nélkül), de csak tudott 8+ lapos fittel (minorban 9+); különben a legolcsóbb színlicit jön.
+
+Teszt: `tests/test_szerkeszto_2026_10_23.py`.
+- **Fedőkereső megfelelő mellékszín nélkül:** ha nincs 3+ lapos, 2,5–3 vesztős mellékszín, a fedőt a legolcsóbb 2 vesztős dublóban keressük (1M-2M és 1m-1M-2M után is).
+- **Passz az 1NT-re:** 0–7 ponttal és rossz 8-cal. Rossz 8: rossz lapminőség (üres figurák, nincs 10-es/9-es), vagy egyenletes lap 4-es nemes nélkül. Kivétel: Junk Stayman, transzfer és leállás; 6+ lapos minorral marad a 3m invit (DD: mansban +0,8, bellben +1,8 IMP a passzhoz képest).
+- **A 4-4 fit jobb az 5-3-nál** (a hosszú színre dobni lehet): a saját 4+ lapos nemesünket akkor is megmutatjuk, ha a partner nemesét 3 lappal támogathatnánk. Pl. (1♣) 1♥ (P): 4–5 pikkel és 3 kőrrel 1♠, nem felüllicit; a felüllicites emelés 4 lapos támogatással vagy pikk nélkül jön. A nyitó 1♠-2m után gyenge lappal is mondja a 4-es kőrt (1♠-2m-2♥, már megvolt).
+- **A misfit-határ** (3NT utáni 4m vesztős ága): 4 vesztő, egyelőre.
+- **Walsh:** az 1♣-1NT (8–10, rossz 11) kiváltja az alaprendszer 1m-1NT-jét (6–9); az 1♦-1NT marad 6–9.
+
+### DD-mérés (2026-10-23, véletlen leosztások, a nyitó 1NT 15–17 egyenletes)
+
+- **Gyenge lap (0–7) AK-s 5 lapos színnel, 3NT a passz helyett:** a 3NT 24%-ban teljesül; a passzhoz képest mansban −2,0, bellben −2,2 IMP leosztásonként. Nemes színnel a transzfer és passz (2M) 2,2 IMP-vel jobb a 3NT-nél. A DD tehát nem támasztja alá; ez tapasztalati („C módú”) döntés maradna.
+- **5332, gyenge 5 lapos nemes (A és K nélkül), 10–14 pont, a nyitónál 3+ lap:** a 3NT 83%-ban, a 4M 82%-ban teljesül; a 3NT a 4M-hez képest −0,36 IMP. Szinte azonos; a DD nem méri a lap „eltitkolását”.
+- **11–12 pontos egyenletes lapok vesztői:** 7 vesztő 22%, 8 vesztő 60%, 9 vesztő 18%. A 7 vesztőhöz 5 fedő figura kell az első 3 lapban, ami 11–12 ponttal csak sok dámával jön ki. A FELMENTÉS után (11–12 ponttal csak legfeljebb 7 vesztővel nyitunk) a nyitó egyenletes lapjai közül a pontok: 11: 3%, 12: 9%, 13: 48%, 14: 40% (11–14 között). NYITOTT: ezt a következtetést a partner sávjába bevinni.
+
+## MOHA_1NT — az 1NT-válaszok — 2026-10-24
+
+`konvenciok/moha_1nt.yaml`, a kártyán az alaprendszer előtt; kiváltja a kártya 1NT-2♠, 1NT-2NT, 1NT-3♣/3♦ és 1NT-3♥/3♠ sorát.
+
+- **Minor-transzfer:** 2♠ = treff, 2NT = káró. Jellemzően 6+ lap; invit vagy gémerővel 5+ is (nem egyenletes lappal). 5-5 minorral invit+ erővel előbb 2♠, majd 3♦ (gémforsz).
+  - Az induló: 2♠ után 2NT = maximális (16–17, és a treffhez jó: 3+ lap vagy dubló magasfigura), 3♣ = nem maximális; 2NT után 3♣ = maximális, 3♦ = nem.
+  - A válaszoló: gyengén a „nem max”-ra passz, a „max” után 3m; invittel a „nem max”-ra passz, a „max” után egyenletes lappal 3NT, 3M = szingli; gémerővel a „nem max” után ugyanígy (3NT / 3M szingli).
+- **1NT-3♣:** 5-5 minor, 0–7 (8) pont, leállás; az induló passzol vagy 3♦-ra javít.
+- **4441, 9+ (gémforsz):** 3♦ = minor szingli (3♥ relé: 3♠ = káró, 3NT = treff szingli), 3♥ = kőr szingli, 3♠ = pikk szingli. Az induló: 3NT passzkérő (16+ ponttal 4NT), 4M passzkérő.
+- **Az egyenletes invit 4-es nemes nélkül a Staymanen** megy (1NT-2♣, bármi a válasz, 2NT). 8 ponttal 4-es nemes nélkül passz (rossz 8), így ez 9 pont.
+- **NYITOTT:** ugyanez a közbeszóló 1NT-je (16–19) után, a határok egy ponttal lejjebb (invit 8+ helyett 7+, gémforsz 15+); ehhez a minta-nyelvbe a „rendszer él” kell. A rövidség után a 4m ORKC és az 5m passzkérő még nincs a gépben.
