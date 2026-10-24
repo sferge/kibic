@@ -708,3 +708,12 @@ Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 - **Egyszínű lappal** (6+) nem rekontra: a színt mondjuk be.
 - **A válasz:** a legolcsóbb 4+ lapos másik szín (alulról fölfelé), ha nincs, a legolcsóbb 3 lapos. Bent is lehet maradni: a felvevő 6+ lapos színével, illetve a felvevő rekontrájára a partner 4+ lapos támogatással.
 - **NYITOTT:** a közvetlen kontra utáni rekontra (ma csak a büntetőre passzolt után).
+
+## A zavartalan menet — 2026-10-24
+
+„Ha az ellenfél licitje (vagy kontrája) nem zavarja meg a mi licitünket — az ellenfél közbeszólása nélkül is tudtuk volna ugyanazt mondani —, akkor a licit megtartja eredeti jelentését.” (`motor/minta.py: zavartalan_menet`; a döntésben `licital.py`, a megértésben `propagal.py`.)
+
+- **Megzavar minket:** ha az ellenfél licitje feljebb tolta a színünk legolcsóbb szintjét (1♣ (2♥) 2♠ nem azonos az 1♣-2♠ ugrással); ha az ellenfél színét mondjuk (felüllicit); ha a közbeszólás után passzolunk, kontrázunk vagy rekontrázunk; ha az ellenfél nyitott (a mi első licitünk közbeszólás).
+- **A sorrend:** előbb a versenyhelyzet saját szabályai és elvei (pl. negatív kontra, törvény); ha ezek nem mondanak semmit (legfeljebb passzt), a páros menet szabályai, majd elvei. Ha egy hívásnak a versenyhelyzetben saját szabálya van, az a jelentése.
+- **A szan** a közbeszólás után fogást is ígér az ellenfél licitált színében (a kontrával ígért nemesben „illik” — ezt még nem kérjük meg).
+- **Kivételek** (a szerkesztő): a közbeszólás után az 1-es szintű új nemes 5+ lapot ígér (4 lappal negatív kontra); a minor emelése nem fordított (egyszerű emelés, 6–10); a 2/1 gémforsz marad.

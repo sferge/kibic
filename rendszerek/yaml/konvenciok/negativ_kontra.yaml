@@ -47,6 +47,31 @@ fejezetek:
       - {minta: "1S (3H) X", pont: 10+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 55, alert: "Negatív kontra: 10+ FP, minor szín(ek)", vagy: [{"hossz": {"C": "4+"}}, {"hossz": {"D": "4+"}}]}
       - {minta: "1S (3H) X", kulcs: "1S (3H) X ~EROS", pont: 15+, hossz: {"S": "0-2"}, forsz: EGY_MENET, prioritas: 56, alert: "Negatív kontra: erős lap (15+ FP), nincs jobb licit — a folytatásban derül ki"}
 
+  - fejezet: "A természetes válasz a közbeszólás után"
+    jegyzet: >-
+      A szerkesztő, 2026-10-24: a közbeszólás után az 1-es szintű új nemes
+      5+ lapot ígér (4 lappal negatív kontra). A minor emelése a
+      közbeszólás után NEM fordított: egyszerű, nem kényszerítő emelés.
+      (Ami a közbeszólás nélkül is ugyanígy mondható volna, az egyébként a
+      páros menet szerinti jelentését tartja — „zavartalan menet”.)
+    szabalyok:
+      - {minta: "1C (1D) 1H", pont: 6+, hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Természetes, 5+ kőr (4 lappal negatív kontra), egy körre kényszerít"}
+      - {minta: "1C (1D) 1S", pont: 6+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Természetes, 5+ pikk (4 lappal negatív kontra), egy körre kényszerít"}
+      - {minta: "1C (1H) 1S", pont: 6+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Természetes, 5+ pikk (4 lappal negatív kontra), egy körre kényszerít"}
+      - {minta: "1D (1H) 1S", pont: 6+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Természetes, 5+ pikk (4 lappal negatív kontra), egy körre kényszerít"}
+      - {minta: "1C (?) 2C", pont: 6-10, hossz: {C: 5+}, prioritas: 52,
+         magyarazat: "Egyszerű emelés (a közbeszólás után nem fordított): 6-10 FP, 5+ treff"}
+      - {minta: "1D (?) 2D", pont: 6-10, hossz: {D: 4+}, prioritas: 52,
+         magyarazat: "Egyszerű emelés (a közbeszólás után nem fordított): 6-10 FP, 4+ káró"}
+      - {minta: "1C (1NT) 2C", pont: 6-10, hossz: {C: 5+}, prioritas: 52,
+         magyarazat: "Egyszerű emelés (a közbeszólás után nem fordított): 6-10 FP, 5+ treff"}
+      - {minta: "1D (1NT) 2D", pont: 6-10, hossz: {D: 4+}, prioritas: 52,
+         magyarazat: "Egyszerű emelés (a közbeszólás után nem fordított): 6-10 FP, 4+ káró"}
+
   - fejezet: "Negatív kontra — minden más"
     jegyzet: >-
       2026-10-02, Moha: a negatív kontra a válaszoló „minden más” licitje.
