@@ -24,5 +24,8 @@ def test_osszegzes_es_html():
     o = ie.osszegzes(el)
     assert o["jelleg_szerint"]["VEGYES"] == {"db": 2, "kibic_imp": 10, "ember_imp": 10}
     assert o["becsult_vs_valodi"] == {"AKTIV": {"VEGYES": 1}, "VEGYES": {"VEGYES": 1}}
+    assert o["biztossag"]["0,25–0,5 IMP"]["db"] == 1                 # H2: 0,5 vs SA: 0,9 → 0,4
+    assert o["biztossag"]["az emberét látta jobbnak"]["db"] == 1
+    assert o["kalibracio"]["50–70%"]["db"] == 2 and o["kalibracio"]["50–70%"]["kibic_lapja"] == 1
     h = ie.html_jelentes(el)
     assert h.startswith("<!doctype html>") and "♠Á" in h and "vegyes" in h
