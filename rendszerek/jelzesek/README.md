@@ -347,6 +347,15 @@ képest a valódi lapokkal (double dummy), és hogy elrontotta-e az eredményt
 A DD-veszteség FELSŐ korlát (nyílt lapokkal a találgatás is „hiba”), ezért a
 kibic és az ember EGYMÁSHOZ mért eredménye a beszédes.
 
+**Az indulások kimutatása** (`python -m kibic.cli.inditaselemzes`, 2026-10-24):
+a mérés `--json`-jából azokra az indulásokra, ahol a kibic IMP-t vesztett
+(`--mind`: mind, `--rosszabb`: ahol az ember jobban indult), minden induló
+lapra a kibic becslése az indulás pillanatában (a mintákból: átlagos
+védőütés, hány %-ban buktat, IMP) és a valódi osztás DD-je; és a leosztás
+JELLEGE — hány induló lap buktat: nem buktatható / aktív (≤ ⅓) / vegyes /
+passzív (> ⅔) / mindig bukik —, a mintákban és a valóságban. `--html`:
+böngészőben olvasható kimutatás, `--ki`: JSON.
+
 ## Munkamenet
 
 ```bash
