@@ -21,3 +21,11 @@ def test_2025_10_25_6nt_6d_helyett():
     # dáma szanban nem számít: 6NT (DD: 12 ütés; a 6♦ bukik)
     menet = "2NT P 3C P 3NT P 4D P 4H P 4S P 4NT P"
     assert _h("K53.KJ.T964.A732", menet, "E") == "6NT"
+
+
+def test_2026_10_25_limitalt_lap_nem_kerdez_3nt_utan():
+    # É ♠T3 ♥AK32 ♦K762 ♣KJ9 (14) 1m-1M-1NT-vel limitálta a lapját (12-14);
+    # D ♠AQ42 ♥Q5 ♦Q54 ♣A543 a sávunk ismeretében mondott 3NT-t (leállás):
+    # a limitált lap nem kérdez kulcslapot 4♦-vel (DD: 9-10 ütés mindenütt)
+    menet = "P 1D P 1S P 1NT P 3NT P"
+    assert _h("T3.AK32.K762.KJ9", menet, "N") == "P"

@@ -47,7 +47,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .helyzet import JELENTESEK, _licit_rang, kovetkezo_ules
+from .helyzet import JELENTESEK, _licit_rang, fogas_kezben, kovetkezo_ules
 
 _KULSO_RENDBEN = ("S", "H", "D", "C")
 _SZIMB = {"S": "♠", "H": "♥", "D": "♦", "C": "♣"}
@@ -138,10 +138,29 @@ def _szan_szlem_jo(kez, tar_partner, adu: str, adu_hossz: int) -> bool:
     a lapok nem elosztásosak, és a partit nem lopásra / keresztlopásra /
     magasításra alapozzuk — szanban az ellenfél nem buktathat lopással.
     Gépben: nekem nincs 0-1 lapos színem, a partnernek sincs tudott
-    rövidsége, és az adu minor, vagy a nemes fit legfeljebb 8 lapos."""
+    rövidsége (két színe együtt sem 10+ lapos), minden nem-adu színt fog
+    valamelyikünk (nálam fogás, vagy a partner 4+ lapja / ígért fogása), és
+    az adu minor, vagy a nemes fit legfeljebb 8 lapos."""
     if any(kez.hossz(sz) <= 1 for sz in _KULSO_RENDBEN):
         return False
-    if tar_partner is not None and any(tar_partner.hossz(sz)[1] <= 1 for sz in _KULSO_RENDBEN):
+    if tar_partner is not None:
+        if any(tar_partner.hossz(sz)[1] <= 1 for sz in _KULSO_RENDBEN):
+            return False
+        # a partner ígért hosszaiból következő elosztás: ha két színe legalább
+        # 10 lapos (5-5, 6-4), a maradék két színben biztosan van 0-1 lapos
+        # (vagy erősen elosztásos) — nem szanlap
+        mins = sorted((tar_partner.hossz(sz)[0] for sz in _KULSO_RENDBEN), reverse=True)
+        if mins[0] + mins[1] >= 10:
+            return False
+    # a meg nem mutatott színt fogni kell: ahol a partner nem ígért 4+ lapot
+    # vagy fogást, ott nálam legyen fogás (A, Kx, Qxx, Jxxx) — különben az
+    # ellenfél a 6NT-t a hosszú színével elviszi
+    for sz in _KULSO_RENDBEN:
+        if sz == adu or fogas_kezben(kez, sz):
+            continue
+        if tar_partner is not None and (tar_partner.hossz(sz)[0] >= 4
+                                        or sz in (tar_partner.fogas or ())):
+            continue
         return False
     return adu in ("C", "D") or adu_hossz <= 8
 
