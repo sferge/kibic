@@ -717,3 +717,10 @@ Teszt: `tests/test_szerkeszto_2026_10_23.py`.
 - **A sorrend:** előbb a versenyhelyzet saját szabályai és elvei (pl. negatív kontra, törvény); ha ezek nem mondanak semmit (legfeljebb passzt), a páros menet szabályai, majd elvei. Ha egy hívásnak a versenyhelyzetben saját szabálya van, az a jelentése.
 - **A szan** a közbeszólás után fogást is ígér az ellenfél licitált színében (a kontrával ígért nemesben „illik” — ezt még nem kérjük meg).
 - **Kivételek** (a szerkesztő): a közbeszólás után az 1-es szintű új nemes 5+ lapot ígér (4 lappal negatív kontra); a minor emelése nem fordított (egyszerű emelés, 6–10); a 2/1 gémforsz marad.
+
+## Szlem szanban; a kétértelmű kulcslap-válasz a pontokból — 2026-10-25
+
+- **A kétértelmű kulcslap-válasz (0/3, 1/4)** a partner ígért pontjaiból is eldőlhet: ha a partner minimuma a rosszabb esettel ki sem jöhetne (a hiányzó kulcslapok az ellenfélnél, a maradék figurapont sem elég), a jobbik eset áll. Ha a pontok nem döntenek, a kérdező a rosszabb esetet veszi, és a válaszoló a jobbik esettel újra licitál (szlemet mond).
+- **A 6NT mindig szóba jön**, ha a lapok nem elosztásosak, és a partit nem lopásra / keresztlopásra / magasításra alapozzuk (szanban az ellenfél nem buktathat lopással). Gépben: a döntőnek nincs 0–1 lapos színe, a partnernek sincs tudott rövidsége, és az adu minor, vagy a nemes fit legfeljebb 8 lapos. Szanban az adu dáma nem számít: egy hiányzó kulcslappal kis szlem.
+- **A minor-ORKC marad** (alacsonyan kérdez, több hely a spirálnak); a végén szanban vagy akár nemesben is játszhatunk.
+- **Szan-szlem a partner 3NT-je után is:** 33 pont a szlem, 37 a nagyszlem; a „pont” a figurapont plusz a hosszú (5+) színek többlete (a 4. fölötti lapok). Szűk sávú partnernél 4NT kvantitatív invit (maximummal 6NT, különben passz). Renonsszal nem.

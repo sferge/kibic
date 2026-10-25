@@ -200,7 +200,7 @@ def test_spiral_valasz(kibic_stand, kez, vart):
 
 @pytest.mark.parametrize("valasz, vart", [
     ("5S", "7C"),                      # a ♠K megvan: nagyszlem
-    ("5H", "6C"),                      # a ♠K nincs: kis szlem
+    ("5H", "6NT"),                     # a ♠K nincs: kis szlem — szanban (egyenletes lapok, 2026-10-25)
 ])
 def test_spiral_kerdezo_dont(kibic_stand, valasz, vart):
     v = _licit(kibic_stand.sorok, _pbn(KERDEZO), RELE + ["5C", "P", "5D", "P", valasz, "P"])
@@ -473,16 +473,18 @@ def test_scoring_ertekek(ertek, paros):
 
 def test_kerdezo_a_rosszabb_esetet_tetelezi_fel(kibic_stand):
     # 4♥ = 0/3 (A-ág); a kérdezőnek 2 kulcslapja van: 0 esetén 3 hiányzik →
-    # leállás (a 3NT után 4NT, 2026-10-23)
-    v = _licit(kibic_stand.sorok, _pbn("32.KQ2.KQ2.AKQ93"), T7 + ["4C", "P", "4H", "P"])
+    # leállás (a 3NT után 4NT, 2026-10-23). 13 ponttal a partner nyitása a 0
+    # kulcslapot nem zárja ki (2026-10-25: a pontok is dönthetnek)
+    v = _licit(kibic_stand.sorok, _pbn("32.K32.Q32.AKJ93"), T7 + ["4C", "P", "4H", "P"])
     assert v["call"] == "4NT" and v["source"] == "SPIRAL"
 
 
 def test_valaszolo_a_jobbik_esettel_szlemet_mond(kibic_stand):
-    # a válaszolónál a jobbik eset van (3 kulcslap): a kérdező 5♣-je után 6♣
+    # a válaszolónál a jobbik eset van (3 kulcslap): a kérdező 5♣-je után
+    # szlem — egyenletes lapokkal szanban (2026-10-25)
     v = _licit(kibic_stand.sorok, _pbn("AQT32.A2.A32.J32"),
                T7 + ["4C", "P", "4H", "P", "5C", "P"])
-    assert v["call"] == "6C" and v["source"] == "SPIRAL"
+    assert v["call"] == "6NT" and v["source"] == "SPIRAL"
     # a rosszabbik esettel (0 kulcslap) passz
     v = _licit(kibic_stand.sorok, _pbn("KQT32.KQ.Q32.J32"),
                T7 + ["4C", "P", "4H", "P", "5C", "P"])

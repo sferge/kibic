@@ -546,6 +546,12 @@ class Hezag:
                           f"({m.get('options')})")
         return HezagDontes(valasz, "1", indok)
 
+    def _hosszpont(self) -> int:
+        """Hosszúsági pont a szan-szlemhez: az 5+ lapos színben a 4. fölötti
+        lapok (a szerkesztő, 2026-10-25: „a hosszú színek többletpontot
+        jelentenek”)."""
+        return sum(max(0, self.kez.hossz(sz) - 4) for sz in SZINEK)
+
     def _szan_szlem(self, also: int, felso: int, szelesseg: int = 0) -> tuple[str, str] | None:
         """
         Szan-szlem a közös erőből (a szerkesztő küszöbei, 2026-10-04: szanban
@@ -722,6 +728,17 @@ class Hezag:
             sz = self._szin_szlem(sajat, plo, phi, utolso)
             if sz is not None:
                 return sz
+        # SZAN-SZLEM a partner 3NT-je után is (a szerkesztő, 2026-10-25): a
+        # 33 „pont”, nem csak figurapont — az 5+ lapos szín lapjai többletet
+        # érnek. Szűk sávú partnernél 4NT kvantitatív invit, biztos
+        # szlemnél 6NT.
+        if gem_folott and mienk and not kenyszer and utolso == "3NT" \
+                and ki_mondta == self.partner and not self.allas.adu() \
+                and all(self.kez.hossz(sz) > 0 for sz in SZINEK):
+            hp = self._hosszpont()
+            sz = self._szan_szlem(sajat + hp + plo, sajat + hp + phi, phi - plo)
+            if sz is not None:
+                return HezagDontes(sz[0], "1", f"{osszeg} (+{hp} hosszúsági pont): {sz[1]}")
         if gem_folott and mienk and not kenyszer:
             return HezagDontes("P", "3", "már gémben vagyunk, és nincs kényszer")
 
@@ -750,8 +767,10 @@ class Hezag:
             if gf:
                 return HezagDontes(gf[0], "1", f"{osszeg}: az alsó határral is gém — gémforsz")
             g = self.gem()
-            if g == "3NT" and not (gem_folott and mienk):
-                sz = self._szan_szlem(sajat + plo, sajat + phi, phi - plo)
+            if g == "3NT" and not (gem_folott and mienk) \
+                    and all(self.kez.hossz(sz) > 0 for sz in SZINEK):   # renonsszal nem szanszlem
+                hp = self._hosszpont()
+                sz = self._szan_szlem(sajat + hp + plo, sajat + hp + phi, phi - plo)
                 if sz is not None:
                     return HezagDontes(sz[0], "1", f"{osszeg}: {sz[1]}")
             if g and not (gem_folott and mienk):

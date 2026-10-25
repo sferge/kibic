@@ -925,6 +925,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
         elif k == "ugras":                 # a licit ugrás-e (nem a legolcsóbb szinten)
             n = {"t": "UGRAS"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
+        elif k == "en_limitalt":           # a lapomat már limitáltam (legfeljebb 4 pont széles sáv)
+            n = {"t": "EN_LIMITALT"}
+            gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "partner_ugrott":        # a partner utolsó licitje ugrás volt-e
             n = {"t": "PARTNER_UGROTT"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})

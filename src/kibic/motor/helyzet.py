@@ -897,6 +897,15 @@ def kiertekel(csp: dict, allas: Allas,
             return None                        # a szabálykészlet nélkül nem eldönthető
         return defi(f"{kov[0]}{kov[1]}") and not defi(licit)
 
+    if t == "EN_LIMITALT":
+        # a lapomat már limitáltam: az ígért sávom legfeljebb 4 pont széles
+        # (pl. 1NT nyitás, 1m-1M-1NT 12-14) — a partner ennek ismeretében
+        # döntött (a szerkesztő, 2026-10-25)
+        en = allas.kenyszertar.get(allas.ules) if allas.kenyszertar else None
+        if en is None or not en.nyilatkozott:
+            return False
+        return en.pont_max < 40 and en.pont_max - en.pont_min <= 4
+
     if t == "EROS_UGRAS":
         # A gyenge ugrás párja (2026-10-02, Moha): MÁSODIK (vagy későbbi)
         # megszólalásban az új színben tett egyszeres ugrás éppen hogy

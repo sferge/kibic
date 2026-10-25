@@ -47,7 +47,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .helyzet import JELENTESEK, _licit_rang, kovetkezo_ules
+from .helyzet import JELENTESEK, _licit_rang, fogas_kezben, kovetkezo_ules
 
 _KULSO_RENDBEN = ("S", "H", "D", "C")
 _SZIMB = {"S": "♠", "H": "♥", "D": "♦", "C": "♣"}
@@ -131,6 +131,50 @@ def _van(kez, t: tuple[str, str], sikenek: set[str]) -> bool:
     if fig == "K" and sz in sikenek:
         return True
     return any(l.szin == sz and l.ertek == fig for l in kez.lapok)
+
+
+def _szan_szlem_jo(kez, tar_partner, adu: str, adu_hossz: int) -> bool:
+    """A szlem szanban (a szerkesztő, 2026-10-25): a 6NT mindig szóba jön, ha
+    a lapok nem elosztásosak, és a partit nem lopásra / keresztlopásra /
+    magasításra alapozzuk — szanban az ellenfél nem buktathat lopással.
+    Gépben: nekem nincs 0-1 lapos színem, a partnernek sincs tudott
+    rövidsége (két színe együtt sem 10+ lapos), minden nem-adu színt fog
+    valamelyikünk (nálam fogás, vagy a partner 4+ lapja / ígért fogása), és
+    az adu minor, vagy a nemes fit legfeljebb 8 lapos."""
+    if any(kez.hossz(sz) <= 1 for sz in _KULSO_RENDBEN):
+        return False
+    if tar_partner is not None:
+        if any(tar_partner.hossz(sz)[1] <= 1 for sz in _KULSO_RENDBEN):
+            return False
+        # a partner ígért hosszaiból következő elosztás: ha két színe legalább
+        # 10 lapos (5-5, 6-4), a maradék két színben biztosan van 0-1 lapos
+        # (vagy erősen elosztásos) — nem szanlap
+        mins = sorted((tar_partner.hossz(sz)[0] for sz in _KULSO_RENDBEN), reverse=True)
+        if mins[0] + mins[1] >= 10:
+            return False
+    # a meg nem mutatott színt fogni kell: ahol a partner nem ígért 4+ lapot
+    # vagy fogást, ott nálam legyen fogás (A, Kx, Qxx, Jxxx) — különben az
+    # ellenfél a 6NT-t a hosszú színével elviszi
+    for sz in _KULSO_RENDBEN:
+        if sz == adu or fogas_kezben(kez, sz):
+            continue
+        if tar_partner is not None and (tar_partner.hossz(sz)[0] >= 4
+                                        or sz in (tar_partner.fogas or ())):
+            continue
+        return False
+    return adu in ("C", "D") or adu_hossz <= 8
+
+
+def _partner_max_pont(kez, adu: str, kizart, v: int) -> int:
+    """A partner legnagyobb lehetséges figurapontja, ha `v` kulcslapja van:
+    40 − az enyém − a nála NEM lévő (tehát az ellenfélnél lévő) kulcslapok
+    értéke (a legolcsóbbakat feltételezve az ellenfélnél)."""
+    ertek = {"A": 4, "K": 3}
+    enyem = {(l.szin, l.ertek) for l in kez.lapok}
+    kulcsok = list(dict.fromkeys([(sz, "A") for sz in ("S", "H", "D", "C") if sz != kizart] + [(adu, "K")]))
+    nem_enyem = sorted(ertek[f] for (sz, f) in kulcsok if (sz, f) not in enyem)
+    ellenfelnel = max(0, len(nem_enyem) - v)
+    return 40 - _hcp(kez) - sum(nem_enyem[:ellenfelnel])
 
 
 def _hcp(kez) -> int:
@@ -243,6 +287,11 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
             aszok_ = sum(1 for l in kez.lapok if l.ertek == "A" and l.szin != kl.get("kizart"))
             sajat_kl_ = aszok_ + any(l.szin == adu and l.ertek == "K" for l in kez.lapok)
             kis_ = f"6{adu}"
+            ig_k = tar.get(kerdezo)
+            adu_h_ = kez.hossz(adu) + (ig_k.hossz(adu)[0] if ig_k is not None else 0)
+            if _szan_szlem_jo(kez, ig_k, adu, adu_h_) and \
+                    (not engedelyezett or "6NT" in engedelyezett):
+                kis_ = "6NT"
             if len(ertekek) > 1 and sajat_kl_ == max(ertekek) and \
                     _rang(leallas) < _rang(kis_) and \
                     (leallas[1:] == adu or leallas == "4NT") and \
@@ -301,6 +350,12 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     # A kétértelmű válasznál (0/3, 1/4) a ROSSZABB eset (a szerkesztő,
     # 2026-10-05) — ha a partnernél a jobbik van, ő mondja a szlemet.
     lehet = [v for v in ertekek if sajat_kl + v <= osszes]
+    # A PONTOK is dönthetnek (a szerkesztő, 2026-10-25): ha a partner ígért
+    # minimuma a rosszabb esettel ki sem jöhetne (a hiányzó kulcslapok az
+    # ellenfélnél, és a maradék figurapont sem elég), a jobbik eset áll.
+    if len(lehet) > 1 and ig_p is not None and ig_p.pont_min > 0:
+        lehet = [v for v in lehet
+                 if _partner_max_pont(kez, adu, kizart, v) >= ig_p.pont_min] or lehet
     p_kl = min(lehet) if lehet else min(ertekek)
     hiany = osszes - (sajat_kl + p_kl)
 
@@ -327,7 +382,12 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     szan_jellegu = all(kez.hossz(sz) >= 1 for sz in _KULSO_RENDBEN) and kez.hossz(adu) <= 5
     szan_leallas = adu in ("C", "D") and adu_hossz <= 8 and mi_szan and szan_jellegu
 
+    szlem_szan = _szan_szlem_jo(kez, ig_p, adu, adu_hossz)
+
     def cel(szint: int, indok: str) -> SpiralDontes:
+        if szint == 6 and szlem_szan and _rang("6NT") > r_last and van_e("6NT"):
+            return SpiralDontes("6NT", "kerdezo", indok + " — szanban (nem elosztásos "
+                                "lapok, a szanban nincs lopásveszély)")
         if szint == 5 and szan_leallas and _rang("4NT") > r_last and van_e("4NT"):
             return SpiralDontes("4NT", "kerdezo",
                                 indok + f" — leállás 4NT-ben (legfeljebb {adu_hossz} lapos "
@@ -359,6 +419,10 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     if hiany >= 2:
         return cel(5, f"Leállás: {hiany} kulcslap hiányzik")
     if hiany == 1:
+        # szanban az adu dáma nem számít: egy hiányzó kulcslappal kis szlem
+        # (a szerkesztő, 2026-10-25)
+        if szlem_szan and dama_ok is not True:
+            return cel(6, "Kis szlem szanban: 1 kulcslap hiányzik, az adu dáma szanban nem számít")
         if dama_ok is True:
             return cel(6, "Kis szlem: 1 kulcslap hiányzik, az adu dáma megvan")
         if dama_ok is False:
