@@ -1256,3 +1256,12 @@ def test_felvetel_hiheto_a_dontesben(moha):
         assert lj.jatek_dontes(a, moha, None, dd, db=40, mag=1).dontes.lap.szin == "S"
     finally:
         os.environ.pop("KIBIC_KOVETKEZTETES_SULY", None)
+
+
+def test_korlatozott_valasztas():
+    """2026-10-25: ha a védő DB-ből is tehette volna a B-t, az elosztás fele súlyú."""
+    lo_kezek = {"S": _kez("S")}
+    a = lj.allas_keresbol(_keres("N", play=[("W", "SK")], lathato=["S", "N"]))
+    W = {lj.lap_drotrol("SK"), lj.lap_drotrol("SQ")}
+    assert lj._valasztas_suly(a, {"W": W | set(), "E": set()}) == 0.5      # KD: a K-t vagy a D-t
+    assert lj._valasztas_suly(a, {"W": {lj.lap_drotrol("SK"), lj.lap_drotrol("S2")}, "E": set()}) == 1.0

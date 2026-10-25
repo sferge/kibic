@@ -687,6 +687,40 @@ def partner_kert_szine(allas: JatekAllas, jelzesek) -> str | None:
     return None
 
 
+# KORLÁTOZOTT VÁLASZTÁS (restricted choice, 2026-10-25): ha egy rejtett kéz egy
+# figurát (10-estől) tett, és abban az elosztásban egyenértékű lapja is volt
+# (DB-ből a B: a kettő között minden lap az övé vagy már lement), akkor bármelyiket
+# tehette volna — az elosztás súlya 1/(az egyenértékű lapok száma). Eddig a kibic
+# úgy vette, hogy a védő mindig a legkisebbet teszi, így a „B-t tett” semmit sem
+# árult el (a Pavlicek-asztal 8. partija: a dupla impassz második fele elmaradt).
+VALASZTAS_KORLAT = os.getenv("KIBIC_VALASZTAS_KORLAT", "1").strip() != "0"
+VALASZTAS_MIN_RANG = 10
+
+
+def _valasztas_suly(allas: JatekAllas, eredeti: dict[str, set[Lap]]) -> float:
+    if not VALASZTAS_KORLAT:
+        return 1.0
+    w = 1.0
+    lement: set[Lap] = set()
+    kezben = {u: set(v) for u, v in eredeti.items()}
+    for u, l in allas.lejatszott:
+        if u not in allas.lathato and l.rang >= VALASZTAS_MIN_RANG and u in kezben:
+            sajat = {x.rang for x in kezben[u] if x.szin == l.szin}
+            ki = {x.rang for x in lement if x.szin == l.szin}
+            k = 1
+            for irany in (1, -1):              # felfelé és lefelé, amíg egyenértékű
+                r = l.rang + irany
+                while 2 <= r <= 14 and (r in sajat or r in ki):
+                    if r in sajat:
+                        k += 1
+                    r += irany
+            w /= k
+        lement.add(l)
+        if u in kezben:
+            kezben[u].discard(l)
+    return w
+
+
 def _jatek_suly(allas: JatekAllas, eredeti: dict[str, set[Lap]], kov: Kovetkeztetes | None,
                 cache: dict) -> tuple[float, set[str]]:
     """A lejátszásból levont következtetések súlya egy elosztásra."""
@@ -1097,6 +1131,7 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         wj, okok = [], []
         for k, w in zip(kezek, wl):
             x, o = _jatek_suly(allas, {**ismert, **k}, kov, cache) if w else (1.0, set())
+            x *= _valasztas_suly(allas, {**ismert, **k}) if w else 1.0
             wj.append(x)
             okok.append(o)
         w = [a * b for a, b in zip(wl, wj)]
@@ -1172,6 +1207,9 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
                 okok.add("LICIT_PONTHATAR")
         else:
             ki.lazitott = True
+        wv = _valasztas_suly(allas, {**ismert, **kezek})
+        if wv < 1 and rnd.random() >= wv:
+            continue
         if szigoru and kov:
             wj, o = _jatek_suly(allas, {**ismert, **kezek}, kov, cache)
             if wj < 1:
@@ -1911,7 +1949,10 @@ def _dontes(allas: JatekAllas, jelzesek=None, stat: dict[Lap, LapStat] | None = 
             "kozbenso": sum(1 for l in asztal_lapjai if 10 <= l.rang < fig.rang),
             "hivott": "NAGY" if hivo_lap.rang >= 10 else "KICSI"}
         try:
-            r, sor = jelzesek.indito_lap(_lapsor(szinben), allas.felvetel, "MASODIK_KEZ",
+            # a minta az EREDETI holdingra illik (2026-10-25): a D107-ből a 7 után
+            # maradt D10 nem „dubló figura”, hanem harmadik dáma volt
+            eredeti_szin = [l for l in allas.eredeti(allas.ules) if l.szin == hivott]
+            r, sor = jelzesek.indito_lap(_lapsor(eredeti_szin), allas.felvetel, "MASODIK_KEZ",
                                          kornyezet=kornyezet)
         except Exception:                  # noqa: BLE001
             r, sor = None, None
@@ -2213,18 +2254,19 @@ def _alfamu_dontes(allas: JatekAllas, d: Dontes, stat: dict, vilag_tar: list, dd
                    hatarido: float) -> tuple[Dontes, dict | None]:
     """A közeli jelöltek közül az előrelátás választ (ha jelentősen jobbat talál)."""
     from .alfamu import ertekeles
-    # jelöltek: színenként a legjobb lap (egy színen belül a lapok értéke többnyire
-    # együtt mozog), a legjobb színekből; a döntés lapja mindenképp
+    # jelöltek: a legjobbak, egy színen belül az azonos értékűekből egy; a döntés
+    # lapja mindenképp
     sor = sorted(stat.values(), key=lambda s: -s.ertek)
     jeloltek: list[Lap] = []
     for s_ in sor:
         if s_.ertek < sor[0].ertek - ALFAMU_SAV:
             break
-        if all(c.szin != s_.lap.szin for c in jeloltek):
+        # egy színen belül csak a láthatóan egyenértékűt hagyjuk ki (azonos érték)
+        if all(not (c.szin == s_.lap.szin and abs(stat[c].ertek - s_.ertek) < 1e-9) for c in jeloltek):
             jeloltek.append(s_.lap)
     jeloltek = jeloltek[:ALFAMU_MAX]
     if d.lap not in jeloltek and d.lap in stat:
-        jeloltek = [c for c in jeloltek if c.szin != d.lap.szin][:ALFAMU_MAX - 1] + [d.lap]
+        jeloltek = jeloltek[:ALFAMU_MAX - 1] + [d.lap]
     if len(jeloltek) < 2 or time.time() > hatarido - 0.5:
         return d, None
     try:
