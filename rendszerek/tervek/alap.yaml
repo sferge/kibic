@@ -15,10 +15,20 @@
            "Desperation finesse", "Show-up finesse", "Lead toward honor", "Ducking play",
            "Combine chances", "Play for best chance", "Shun finesse", "Restricted choice"]
 
-- valtozat: ELOSZTASRA
+- valtozat: SZAN_ELOSZTASRA
   alap: KIMAGASITAS
-  nev: "Elosztásra játszás (kiadással / kiengedéssel)"
-  ha: {szin.egyutt: "7+", szin.tobblet: "1+", szin.adu: nem}
+  nev: "Szan: hosszú szín kimagasítása (kiadással / kiengedéssel)"
+  ha: {felvetel: SZAN, szin.egyutt: "7+", szin.tobblet: "1+"}
+
+- valtozat: SZIN_ELOSZTASRA
+  alap: KIMAGASITAS
+  nev: "Szín: mellékszín kimagasítása (az adu átmenet és fogás)"
+  ha: {felvetel: SZIN, szin.egyutt: "7+", szin.tobblet: "1+", szin.adu: nem}
+
+- valtozat: SZIN_LOPASSAL
+  alap: KIMAGASITAS
+  nev: "Szín: mellékszín kimagasítása lopással"
+  ha: {felvetel: SZIN, szin.lopassal_kimagasithato: igen}
 
 - valtozat: IMPASSZ
   alap: KIMAGASITAS
@@ -82,18 +92,55 @@
 - tipus: BESZORITAS
   potencial: pot_beszoritas              # az elvi ütésszám (elegendőség)
   nev: "Beszorítás"
-  szuro: {fenyegetes: "1+", szukseges_plusz: "1-2"}
+  szuro: {fenyegetes_mind: "1+"}
   cimkek: ["squeeze", "Squeeze", "Vienna coup", "Isolate threat", "Correct loser count"]
 
-- valtozat: BESZORITAS_KET_FENYEGETES
+# szanzadu
+- valtozat: SZAN_EGYSZERU
   alap: BESZORITAS
-  nev: "Egy (két) ütés hiányzik, két hosszú fenyegetés"
-  ha: {fenyegetes: "2+"}
+  nev: "Szan: egyszerű beszorítás (két fenyegetés, egy ütés hiányzik)"
+  ha: {felvetel: SZAN, fenyegetes_mind: "2+", hiany_terv: 1}
 
-- valtozat: BESZORITAS_EGY_FENYEGETES
+- valtozat: SZAN_KETTOS
   alap: BESZORITAS
-  nev: "Egy ütés hiányzik, egy hosszú fenyegetés + egylapos (figura) fenyegetés"
-  ha: {fenyegetes: 1, szukseges_plusz: 1}
+  nev: "Szan: kettős beszorítás (három fenyegetés, mindkét kézben)"
+  ha: {felvetel: SZAN, fenyegetes_mind: "3+", fenyegetes_kezek: 2, hiany_terv: "1-2"}
+
+- valtozat: SZAN_BEDOBASOS
+  alap: BESZORITAS
+  nev: "Szan: beszorításos bedobás (egy fenyegetés + villás szín)"
+  ha: {felvetel: SZAN, bedobo_szinek: "1+", hiany_terv: "1-2"}
+
+- valtozat: SZAN_BECS
+  alap: BESZORITAS
+  nev: "Szan: bécsi csel (a nyerőt előre lehúzni, hogy a fenyegetés éljen)"
+  ha: {felvetel: SZAN, bec: "1+", fenyegetes_mind: "2+"}
+
+# színfelvétel
+- valtozat: SZIN_EGYSZERU
+  alap: BESZORITAS
+  nev: "Szín: egyszerű beszorítás"
+  ha: {felvetel: SZIN, fenyegetes_mind: "2+", hiany_terv: 1}
+
+- valtozat: SZIN_KETTOS
+  alap: BESZORITAS
+  nev: "Szín: kettős beszorítás"
+  ha: {felvetel: SZIN, fenyegetes_mind: "3+", fenyegetes_kezek: 2, hiany_terv: "1-2"}
+
+- valtozat: SZIN_LOPASOS
+  alap: BESZORITAS
+  nev: "Szín: lopásos beszorítás (a fenyegetés lopással kimagasítható)"
+  ha: {felvetel: SZIN, lopasos_fenyegetes: "1+", fenyegetes_mind: "2+"}
+
+- valtozat: SZIN_BEDOBASOS
+  alap: BESZORITAS
+  nev: "Szín: beszorításos bedobás"
+  ha: {felvetel: SZIN, bedobo_szinek: "1+", hiany_terv: "1-2"}
+
+- valtozat: SZIN_BECS
+  alap: BESZORITAS
+  nev: "Szín: bécsi csel"
+  ha: {felvetel: SZIN, bec: "1+", fenyegetes_mind: "2+"}
 
 # --- 2. tengely: kísérő szempontok (a felismerés mérésére; később feltételek) ------
 
@@ -103,12 +150,22 @@
   cimkek: ["Holdup", "Avoidance", "Break communication", "Shun holdup",
            "Duck to keep control", "Erase dangerous entry", "Block enemy suit"]
 
-- valtozat: KIHAGYAS_EGY_FOGAS
+- valtozat: SZAN_KIHAGYAS
   alap: VESZELYES_VEDO
-  nev: "Szanzaduban egy fogás a hívott színben: kihagyás"
+  nev: "Szan: egy fogás a hívott színben — kihagyás"
   ha: {felvetel: SZAN, hivott_egy_fogas: igen, hivott_kint: "5+"}
 
-- valtozat: HOSSZU_VEDO_SZIN
+- valtozat: SZAN_HOSSZU_VEDO_SZIN
   alap: VESZELYES_VEDO
-  nev: "Szanzaduban a védőknek hosszú színük van: a veszélyes védőt távol tartani"
+  nev: "Szan: a védőknek hosszú színük van — a veszélyes védőt távol tartani"
   ha: {felvetel: SZAN, hivott_kint: "7+"}
+
+- valtozat: SZAN_KITETT_FIGURA
+  alap: VESZELYES_VEDO
+  nev: "Szan: kitett figura (Kx) — a mögüle hívó védő ne kerüljön hívásra"
+  ha: {felvetel: SZAN, kitett_figura: "1+"}
+
+- valtozat: SZIN_KITETT_FIGURA
+  alap: VESZELYES_VEDO
+  nev: "Szín: kitett figura — kerülő játék, a veszélyes védő távol tartása"
+  ha: {felvetel: SZIN, kitett_figura: "1+"}

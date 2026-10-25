@@ -59,3 +59,14 @@ def test_a_tervtar_betoltheto():
     from pathlib import Path
     sorok = tv.tervsorok_yamlbol([Path(__file__).resolve().parents[1] / "rendszerek" / "tervek"])
     assert {"KIMAGASITAS", "LOPAS", "BESZORITAS"} <= {s.tipus for s in sorok}
+
+
+def test_fogalmak_fenyegetesek():
+    # 6♠ (Pavlicek 409): ♥Á543 a hosszú kézben — hosszfenyegetés; ♦K875 / Á3 is az
+    h = tv.Helyzet("S", 6, "S",
+                   _l("SA SQ SJ S9 S8 S6 H8 H2 DA D3 CA C9 C2"),
+                   _l("SK ST HA H5 H4 H3 DK D8 D7 D5 CK C7 C4"))
+    g, sz = tv.jellemzok(h)
+    assert sz["H"]["hossz_fenyegetes"] and sz["D"]["hossz_fenyegetes"]
+    assert not sz["S"]["hossz_fenyegetes"]          # az adu nem fenyegetés
+    assert g["fenyegetes_mind"] >= 2

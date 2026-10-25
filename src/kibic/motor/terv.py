@@ -98,14 +98,40 @@ def _szin_jellemzok(h: Helyzet, sz: str) -> dict:
     eso = any(all(x in mi for x in range(r + 1, 15)) for r in hianyzo if r <= 13) and kint <= 5
     # fenyegetés (beszorításhoz): egyetlen védőlap van a legjobb nem-felső lapunk fölött
     fenyeget = False
+    fenyeget_kez = None
     if len(mi) > felso:
         nem_felso = mi[felso]
         fenyeget = sum(1 for r in vedo if r > nem_felso) == 1
+        if fenyeget:
+            fenyeget_kez = "D" if nem_felso in d else "Y"
+    # hosszfenyegetés: a hosszú kéz (4+) utolsó lapjait egy védő HOSSZA őrizheti; van
+    # nyerőnk a színben (bejáró), és elég lap van kint, hogy egy védő őrizni tudjon
+    hossz_fenyeget = hmax >= 4 and hmax > felso and felso >= 1 and kint >= hmax
+    if hossz_fenyeget and fenyeget_kez is None:
+        fenyeget_kez = "D" if len(d) >= len(y) else "Y"
+    # a fenyegetés melletti nyerő (bejáró a színben) melyik kézben van
+    nyero_kezek = {("D" if r in d else "Y") for r in mi[:felso]}
+    # osztott fenyegetés: a nyerő a másik kézben, mint a fenyegető lap (bécsi csel jelöltje,
+    # ha a nyerő kéz a rövidebb)
+    osztott = bool(fenyeget and nyero_kezek and fenyeget_kez not in nyero_kezek)
+    lt, lr_ = (len(d), len(y)) if fenyeget_kez == "D" else (len(y), len(d))
+    bec = osztott and lr_ <= lt
+    # lopással kimagasítható / lopásos fenyegetés (színfelvételnél): az egyik kéz 4+,
+    # a másik legfeljebb 1 lapos, és ott van legalább 2 adu
+    lopassal = False
+    if h.adu and sz != h.adu:
+        ad = sum(1 for l in h.kez if l.szin == h.adu)
+        ay = sum(1 for l in h.asztal if l.szin == h.adu)
+        lopassal = (len(d) >= 4 and len(y) <= 1 and ay >= 2) or (len(y) >= 4 and len(d) <= 1 and ad >= 2)
+    # kitett figura: Á nincs nálunk, K (vagy D kísérővel) igen — a figura mögül hívó védő veszélyes
+    kitett = 14 not in mi and (13 in mi or (12 in mi and 13 not in mi and hmax >= 2)) and kint >= 3
     return {
         "egyutt": len(mi), "hossz_max": hmax, "hossz_min": hmin, "felso": felso,
         "kint": kint, "kiadando": kiadando, "tobblet": tobblet,
         "hianyzo_figura": len(hianyzo), "impasszolhato": impassz, "expasszolhato": expassz,
-        "eso_figura": eso, "fenyegetes": fenyeget,
+        "eso_figura": eso, "fenyegetes": fenyeget, "fenyegetes_kez": fenyeget_kez,
+        "fenyegetes_nyerovel": bool(fenyeget and felso >= 1), "osztott_fenyegetes": osztott,
+        "hossz_fenyegetes": hossz_fenyeget, "bec": bec, "lopassal_kimagasithato": lopassal, "kitett_figura": kitett,
         "adu": sz == h.adu, "hivott": h.indulas is not None and h.indulas.szin == sz,
         "egy_fogas": felso == 1 or (felso == 0 and any(r >= 12 for r in mi) and hmax >= 2),
     }
@@ -169,7 +195,19 @@ def jellemzok(h: Helyzet) -> tuple[dict, dict[str, dict]]:
         dobas += max(0, x["felso"] + x["tobblet"] - min(d_, y_))
     g["dobas"] = dobas
     g["fenyegetes"] = sum(1 for x in szinek.values() if x["fenyegetes"] and not x["adu"])
+    fx = [x for x in szinek.values() if (x["fenyegetes"] or x["hossz_fenyegetes"]) and not x["adu"]]
+    g["fenyegetes_mind"] = sum(1 for x in szinek.values()
+                               if (x["fenyegetes"] or x["hossz_fenyegetes"]) and not x["adu"])
+    g["hossz_fenyegetes"] = sum(1 for x in szinek.values() if x["hossz_fenyegetes"] and not x["adu"])
+    g["fenyegetes_kezek"] = len({x["fenyegetes_kez"] for x in fx})
+    g["fenyegetes_nyerovel"] = sum(1 for x in fx if x["fenyegetes_nyerovel"])
+    g["osztott_fenyegetes"] = sum(1 for x in fx if x["osztott_fenyegetes"])
+    g["bec"] = sum(1 for x in fx if x["bec"])
+    g["lopasos_fenyegetes"] = sum(1 for x in szinek.values() if x["lopassal_kimagasithato"])
+    g["kitett_figura"] = sum(1 for x in szinek.values() if x["kitett_figura"] and not x["adu"])
     g["impassz_szinek"] = sum(1 for x in szinek.values() if x["impasszolhato"])
+    g["bedobo_szinek"] = sum(1 for x in szinek.values()
+                             if (x["impasszolhato"] or x["expasszolhato"]) and not x["adu"])
     # elimináció: adu mindkét kézben (a lopás-dobás fenyegetéséhez), és van szín, amelyet a
     # védőnek kedvező megnyitnia (impasszolható vagy szöktethető)
     g["eliminalhato"] = bool(h.adu) and g["adu_d"] >= 2 and g["adu_y"] >= 2 and any(
@@ -183,6 +221,8 @@ def jellemzok(h: Helyzet) -> tuple[dict, dict[str, dict]]:
                                for x in szinek.values())
     g["pot_lopas"] = g["lopas_rovid"] + (1 if g["asztalforditas"] or g["keresztlopas"] else 0)
     g["pot_dobas"] = g["dobas"] if h.adu else 0
+    # a hiány a „könnyű” források után (felső + hossz + lopás): a beszorítás ennyit pótol
+    g["hiany_terv"] = max(0, h.cel - g["biztos"] - g["tobblet_osszes"] - g["pot_lopas"])
     g["pot_vegjatek"] = 1 if g["eliminalhato"] else 0
     g["pot_beszoritas"] = 1 if g["fenyegetes"] >= 2 else 0
     hiv = szinek.get(h.indulas.szin) if h.indulas else None
