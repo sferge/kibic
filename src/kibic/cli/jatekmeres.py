@@ -79,7 +79,10 @@ def _munkas_init(rendszer: str, ido_s: float, minta: int, kov_ms: int = 15000,
 
 def _munkas_parti(feladat):
     from ..motor import lejatszas_meres as lm
-    p, ulesek, oldal, rendszer, max_dontes = feladat
+    p, ulesek, oldal, rendszer, max_dontes = feladat[:5]
+    if len(feladat) > 5 and feladat[5]:          # teljes lejátszás
+        m = lm.teljes_lejatszas(p, _MUNKAS["fv"], rendszer=rendszer)
+        return [m] if m else []
     return lm.parti_meres(p, _MUNKAS["fv"], ulesek=ulesek, felvevo_oldal=oldal,
                           rendszer=rendszer, max_dontes=max_dontes)
 
@@ -274,6 +277,9 @@ def main(argv=None) -> int:
     ap.add_argument("--parhuzamos", type=int, default=1,
                     help="ennyi folyamat dolgozik egyszerre (partinként; alap 1)")
     ap.add_argument("--json", help="minden mérés ide, soronként")
+    ap.add_argument("--teljes", action="store_true",
+                    help="teljes lejátszás: a valódi indulás után a kibic játssza végig a felvevőt, "
+                         "a védők tökéletesen (DD); partinként egy eredmény")
     ap.add_argument("--reszletes", action="store_true")
     ap.add_argument("--limit", type=int, help="--db: legfeljebb ennyi parti")
     ap.add_argument("--adatbazis", default=os.getenv("KIBIC_DB", "kibic"))
@@ -323,7 +329,7 @@ def main(argv=None) -> int:
                     continue
                 if p.kontraktus.felvevo in ulesek:      # az asztal lapjait a felvevő teszi
                     ulesek.add(kovetkezo_ules(p.kontraktus.felvevo, 2))
-            feladatok.append((p, ulesek, oldal, a.rendszer, a.max_dontes))
+            feladatok.append((p, ulesek, oldal, a.rendszer, a.max_dontes, a.teljes))
         meresek, stat = [], {"partik": 0, "dontesek": 0}
         # a --json partinként íródik (menet közben is olvasható, megszakításnál sem vész el)
         kimenet = open(a.json, "w", encoding="utf-8") if a.json else None
@@ -352,12 +358,38 @@ def main(argv=None) -> int:
         print(file=sys.stderr)
         if kimenet is not None:
             kimenet.close()
+    if getattr(a, "teljes", False) and not a.naplo:
+        print(teljes_jelentes(meresek))
+        return 0
     if a.naplo and a.json:
         with open(a.json, "w", encoding="utf-8") as f:
             for m in meresek:
                 f.write(json.dumps(m.szotar(), ensure_ascii=False) + "\n")
     print(jelentes(meresek, stat, a.reszletes))
     return 0
+
+
+def teljes_jelentes(meresek) -> str:
+    """A teljes lejátszás összesítése."""
+    n = len(meresek)
+    if not n:
+        return "Nincs mért parti."
+    tel = sum(1 for m in meresek if m.teljesult)
+    dd_tel = sum(1 for m in meresek if m.dd_teljesul)
+    bukott = [m for m in meresek if m.dd_teljesul and not m.teljesult]
+    tobb = sum(1 for m in meresek if m.utesek > m.dd_indulas_utan)
+    kev = [m for m in meresek if m.utesek < m.dd_indulas_utan]
+    sorok = [f"partik: {n}",
+             f"teljesült: kibic {tel} · tökéletes felvevővel (DD az indulás után) {dd_tel}",
+             f"a teljesíthetőből elbukta: {len(bukott)}",
+             f"kevesebb ütés a DD-nél: {len(kev)} parti, összesen {sum(m.dd_indulas_utan - m.utesek for m in kev)} ütés, "
+             f"{sum(m.imp_veszt for m in meresek)} IMP · több (a védők DD-hibája nem lehet): {tobb}",
+             "", "A teljesíthetőből elbukott partik (az első ütésvesztő lap):"]
+    for m in sorted(bukott, key=lambda m: -m.imp_veszt)[:30]:
+        h = m.hibak[0] if m.hibak else {}
+        sorok.append(f"  {m.tabla:<45} {m.kontraktus:<6} {m.utesek}/{m.cel} (DD {m.dd_indulas_utan})  "
+                     f"{h.get('utes', '?')}. ütés {h.get('ules', '')} {h.get('lap', '')} → legjobb {','.join(h.get('legjobb', []))}")
+    return "\n".join(sorok)
 
 
 if __name__ == "__main__":
