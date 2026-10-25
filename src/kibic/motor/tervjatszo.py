@@ -20,6 +20,9 @@ from dataclasses import dataclass, field
 from ..domain import SZINEK, Lap, kovetkezo_ules, vonal
 from ..domain.kartya import LAPOK
 
+# az utolsó ennyi ütést (ha a terv már elfogyott) a DD dönti el — gyorsítás
+DD_VEGE_UTES = 4
+
 # --- 1. A terv -----------------------------------------------------------------------
 
 
@@ -345,8 +348,16 @@ def hivas(j: Jatek, kez: str) -> Lap:
     return lap
 
 
+def szabalyos(j: Jatek, u: str, lap: Lap) -> Lap:
+    utes = j.aktualis()
+    van = [l for l in j.kezek[u] if utes and l.szin == utes[0][1].szin]
+    if lap in j.kezek[u] and (not van or lap.szin == utes[0][1].szin):
+        return lap
+    return min(van or j.kezek[u], key=lambda l: l.rang)
+
+
 def felvevo_lap(j: Jatek, u: str) -> Lap:
-    return hivas(j, u) if not j.aktualis() else kovetes(j, u)
+    return szabalyos(j, u, hivas(j, u) if not j.aktualis() else kovetes(j, u))
 
 
 # --- 4. Lejátszás a világokon --------------------------------------------------------
@@ -390,27 +401,123 @@ class TervErtek:
     n: int
 
 
+class DDTar:
+    """DD-eredmények világonként és lapsoronként (a tervek közös eleje egyszer számol)."""
+
+    def __init__(self, dd_fv, kontraktus):
+        self.dd_fv = dd_fv
+        self.k = kontraktus
+        self.tar: dict = {}
+        self.hivas = 0
+
+    def __call__(self, i: int, lo, lapok: list[tuple[str, Lap]]):
+        kulcs = (i, tuple(str(l) for _, l in lapok))
+        r = self.tar.get(kulcs)
+        if r is None:
+            self.hivas += 1
+            r = self.dd_fv(lo, list(kulcs[1]), self.k)
+            self.tar[kulcs] = r
+        return r
+
+
+def _vedo_lap(ered) -> Lap:
+    legj = max(e.utesek for e in ered)
+    return min((Lap.parse(e.lap) for e in ered if e.utesek == legj), key=lambda l: (l.rang, l.szin))
+
+
+def _szandekos(j: Jatek, u: str) -> bool:
+    """A követő lapot a terv szándéka dönti el (a partner hívott, szándékkal)?"""
+    return len(j.aktualis()) == 2 and j.szandek is not None and j.szandek[0] in (
+        "ALACSONY", "IMPASSZ", "NYER", "LOP")
+
+
+def dd_szavazas(eredmenyek: list, sulyok: list[float], cel: int) -> Lap:
+    """Közös lap több világra (amelyeket a felvevő nem tud megkülönböztetni): a
+    teljesítés súlyozott aránya, utána az átlagos ütésszám szerint; egyenlőségnél
+    a legkisebb lap."""
+    pont: dict[str, list[float]] = {}
+    for ered, w in zip(eredmenyek, sulyok):
+        for e in ered:
+            x = pont.setdefault(e.lap, [0.0, 0.0])
+            x[0] += w * (e.felvevo_osszesen >= cel)
+            x[1] += w * e.felvevo_osszesen
+    best = max(pont.values(), key=lambda v: (v[0], v[1]))
+    jo = [Lap.parse(l) for l, v in pont.items() if v == best]
+    return min(jo, key=lambda l: (l.rang, l.szin))
+
+
 def ertekel(tervek: list[Terv], vilagok, sulyok, felvevo, kontraktus, lejatszott,
-            dd_fv=None, hatarido: float | None = None) -> list[TervErtek]:
-    if dd_fv is None:
-        from ..solver.dds import lap_elemzes as dd_fv
+            dd_fv=None, hatarido: float | None = None, dd_tar: DDTar | None = None,
+            dd_vege: bool = True) -> list[TervErtek]:
+    """Minden terv: az összes világ EGYÜTT halad (lépésenként). A felvevő hívásait a
+    terv adja; a követő lapjait, ahol a terv nem rendelkezik, a még meg nem
+    különböztethető világok közös DD-szavazása (ugyanazt a lapot teszi mindben)."""
+    if dd_tar is None:
+        if dd_fv is None:
+            from ..solver.dds import lap_elemzes as dd_fv
+        dd_tar = DDTar(dd_fv, kontraktus)
     adu = None if kontraktus.szin == "NT" else kontraktus.szin
     cel = 6 + kontraktus.szint
     ki = []
     for t in tervek:
-        W = ok = ossz = 0.0
-        n = 0
-        for lo, w in zip(vilagok, sulyok):
-            if hatarido and time.time() > hatarido and n >= 5:
-                break
-            kezek = {u: set(lo.kezek[u].lapok) for u in "NESW"}
-            ut = lejatszik(kezek, felvevo, adu, lejatszott, t, vedo_dd(dd_fv, lo, kontraktus))
-            W += w
-            ok += w * (ut >= cel)
-            ossz += w * ut
-            n += 1
-        ki.append(TervErtek(t, ok / W if W else 0.0, ossz / W if W else 0.0, n))
+        if hatarido and time.time() > hatarido and ki:
+            break
+        jatekok = [Jatek({u: set(lo.kezek[u].lapok) for u in "NESW"}, felvevo, adu, lejatszott, t)
+                   for lo in vilagok]
+        vegso: dict[int, int] = {}            # világ -> a felvevő végső ütésszáma (ha már eldőlt)
+        while len(vegso) < len(jatekok):
+            csoport: dict[tuple, list[int]] = {}
+            for i, j in enumerate(jatekok):
+                if i not in vegso:
+                    csoport.setdefault(tuple(j.lapok), []).append(i)
+            for idx in csoport.values():
+                j0 = jatekok[idx[0]]
+                if len(j0.lapok) >= 52:
+                    for i in idx:
+                        vegso[i] = jatekok[i].felvevo_utesek()
+                    continue
+                u = j0.soron()
+                # a terv elfogyott, és ütés elején vagyunk: a maradékot a DD dönti el
+                # (itt már csak lehívás van hátra — a kukucskálás itt kevés kárt tesz)
+                if dd_vege and not j0.aktualis() and j0.kurzor >= len(t.lepesek) \
+                        and len(j0.lapok) >= 52 - 4 * DD_VEGE_UTES:
+                    for i in idx:
+                        ered = dd_tar(i, vilagok[i], jatekok[i].lapok)
+                        vegso[i] = (max if j0.mi(u) else min)(e.felvevo_osszesen for e in ered)
+                    continue
+                if not j0.mi(u):
+                    for i in idx:
+                        jatekok[i].tesz(u, _vedo_lap(dd_tar(i, vilagok[i], jatekok[i].lapok)))
+                    continue
+                if not j0.aktualis() or _szandekos(j0, u):
+                    lapok = [felvevo_lap(jatekok[i], u) for i in idx]
+                else:
+                    ered = [dd_tar(i, vilagok[i], jatekok[i].lapok) for i in idx]
+                    lap = dd_szavazas(ered, [sulyok[i] for i in idx], cel)
+                    lapok = [szabalyos(jatekok[i], u, lap) for i in idx]
+                for i, lap in zip(idx, lapok):
+                    jatekok[i].tesz(u, lap)
+        W = sum(sulyok)
+        ut = [vegso[i] for i in range(len(jatekok))]
+        ok = sum(w for w, x in zip(sulyok, ut) if x >= cel)
+        ki.append(TervErtek(t, ok / W if W else 0.0,
+                            sum(w * x for w, x in zip(sulyok, ut)) / W if W else 0.0, len(jatekok)))
     return sorted(ki, key=lambda x: (-x.esely, -x.atlag))
+
+
+def ertekel_lepcsos(tervek: list[Terv], vilagok, sulyok, felvevo, kontraktus, lejatszott,
+                    dd_fv=None, elso: int = 4, marad: int = 8) -> list[TervErtek]:
+    """Lépcsős értékelés: minden terv az első `elso` világon, a legjobb `marad`
+    (legalább a jelöltek ötöde) az összesen. A DD-tár közös (a világok indexe azonos)."""
+    if dd_fv is None:
+        from ..solver.dds import lap_elemzes as dd_fv
+    tar = DDTar(dd_fv, kontraktus)
+    if len(vilagok) <= elso or len(tervek) <= marad:
+        return ertekel(tervek, vilagok, sulyok, felvevo, kontraktus, lejatszott, dd_tar=tar)
+    elo = ertekel(tervek, vilagok[:elso], sulyok[:elso], felvevo, kontraktus, lejatszott, dd_tar=tar)
+    n = max(marad, len(tervek) // 5)
+    return ertekel([e.terv for e in elo[:n]], vilagok, sulyok, felvevo, kontraktus, lejatszott,
+                   dd_tar=tar)
 
 
 # --- 5. Jelöltállító -----------------------------------------------------------------
