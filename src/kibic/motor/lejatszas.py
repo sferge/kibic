@@ -264,6 +264,7 @@ class MintaEredmeny:
     osszevont: bool = False     # a kimerítő elemzés a kis lapokat összevonta (mintázatok)
     leertekelt: dict[str, int] = field(default_factory=dict)  # kód -> ennyi elosztást értékelt le
     igazitott: list[str] = field(default_factory=list)  # ezeknek a licitjét a lapokhoz kellett igazítani
+    licit_laza: int = 0         # ennyi elosztás lóg ki a licitből (puha licitkorlát)
 
 
 def _uti(lap: Lap, elotte: list[Lap], adu: str | None) -> bool:
@@ -506,6 +507,44 @@ def _pont_tav(lapok: set[Lap], ig, _latott: frozenset = frozenset()) -> float | 
             return None
         tav = max(tav, min(t))
     return tav
+
+
+# PUHA LICITKORLÁT (2026-10-25, a Pavlicek-mérés diagnózisa után): a licit
+# kényszertára eddig KIZÁRTA a nem illő kezeket — a 85 eredményrontó felvevő-
+# döntésből 18-nál a valódi elosztás így ki sem került a mintába (könnyű
+# közbeszólás, 3 lapos emelés versenyben, 4 lapos „szín" nyomás alatt). Most a
+# kilógó kéz is bekerülhet, kisebb súllyal: LICIT_LAZA_ARANY a minta ennyi
+# részét a licit nélkül sorsolja, és az ilyen kéz LICIT_LAZA_ALAP ** távolság
+# eséllyel marad (távolság: pontonként 1, hosszban lapodként LICIT_LAZA_HOSSZ).
+LICIT_LAZA_ARANY = float(os.getenv("KIBIC_LICIT_LAZA", "0.15"))
+LICIT_LAZA_ALAP = 0.5
+LICIT_LAZA_HOSSZ = 2.0
+
+
+def _licit_tav(lapok: set[Lap], ig, _latott: frozenset = frozenset()) -> float:
+    """A kéz távolsága a licit(ek) ígéretétől: pontonként 1, lapodként LICIT_LAZA_HOSSZ.
+    A többértelmű licitnél a legközelebbi változat számít."""
+    if ig is None:
+        return 0.0
+    h = _hcp(lapok)
+    tav = max(ig.pont_min - h, h - ig.pont_max, 0.0)
+    for sz in SZINEK:
+        lo, hi = ig.hossz(sz)
+        n = sum(1 for l in lapok if l.szin == sz)
+        tav += LICIT_LAZA_HOSSZ * max(lo - n, n - hi, 0)
+    if id(ig) in _latott:
+        return tav
+    _latott = _latott | {id(ig)}
+    for csoport in (getattr(ig, "alternativak", None) or []):
+        if csoport:
+            tav = max(tav, min(_licit_tav(lapok, v, _latott) for v in csoport))
+    return tav
+
+
+def _laza_suly(kezek: dict[str, set[Lap]], rejtett: list[str], tar: dict) -> float:
+    """A licitnek NEM megfelelő elosztás súlya (0 < súly < 1)."""
+    tav = sum(_licit_tav(kezek[u], tar.get(u)) for u in rejtett)
+    return LICIT_LAZA_ALAP ** tav if tav else 1.0
 
 
 def _igeret_suly(lapok: set[Lap], ig, tures: int = 0, suly: float = 0.5) -> float:
@@ -1050,6 +1089,9 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         ki.kimerito = True
         kezek = [{u: set(fix[u]) | set(h[u]) for u in rejtett} for h in osszes]
         wl = [_licit_suly(k, rejtett, tar, kov) for k in kezek]
+        if tar and LICIT_LAZA_ARANY > 0:      # puha licitkorlát: a kilógó kéz is számít, kicsit
+            wl = [w if w else LICIT_LAZA_ARANY * _laza_suly(k, rejtett, tar)
+                  for w, k in zip(wl, kezek)]
         if osszes and not any(wl):
             wl, ki.lazitott = [1.0] * len(osszes), bool(tar)
         wj, okok = [], []
@@ -1066,6 +1108,8 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
                 if a:
                     jegyez(o)
         jegyez(["LICIT_PONTHATAR"] * sum(1 for a, b in zip(wl, w) if b and a < 1))
+        ki.licit_laza = sum(1 for h, a in zip(kezek, w) if a and tar
+                            and not _licit_suly(h, rejtett, tar, kov))
         if szorzok:                           # egy mintázat ennyi valódi elosztást képvisel
             w = [a * sz for a, sz in zip(w, szorzok)]
         jok = [(h, a) for h, a in zip(osszes, w) if a > 0]
@@ -1100,6 +1144,10 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         # a hosszak a licit szerint (ha a licit hosszai teljesíthetők; elengedve
         # vagy ellentmondásnál csak a renonszok szerint)
         sorsolo = epito if (epito.ok and not elengedve) else szabad_epito
+        laza = (tar and not elengedve and LICIT_LAZA_ARANY > 0 and szabad_epito.ok
+                and rnd.random() < LICIT_LAZA_ARANY)
+        if laza:
+            sorsolo = szabad_epito
         if not sorsolo.ok:
             raise LejatszasHiba("A renonszok és a lapszámok nem adnak ki egy leosztást")
         hely = {u: list(fix[u]) + v for u, v in sorsolo.sorsol(rnd).items()}
@@ -1109,7 +1157,14 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         kezek = {u: set(v) for u, v in hely.items()}
         okok: set[str] = set()
         szigoru = not elengedve
-        if szigoru:
+        if laza:
+            # csak a licitnek NEM megfelelő kéz jön innen (a megfelelőt az építő adja)
+            if _licit_suly(kezek, rejtett, tar, kov):
+                continue
+            if rnd.random() >= _laza_suly(kezek, rejtett, tar):
+                continue
+            ki.licit_laza += 1
+        elif szigoru:
             wl = _licit_suly(kezek, rejtett, tar, kov)
             if wl < 1:
                 if rnd.random() >= wl:
@@ -1998,6 +2053,7 @@ class Eredmeny:
     igazitott: list[str] = field(default_factory=list)  # a licitjüket a lapokhoz igazítottuk
     lopasos_arany: float | None = None  # indulásnál: a minták hányadában épül a felvétel lopásra
     terites: object | None = None   # terites.Terites, ha a felvevő terít (claim)
+    alfamu: dict | None = None      # az előrelátás (motor/alfamu.py): világok, változtatott-e
 
 
 # Terítés (2026-10-24): a felvevő oldal hívásánál, ha a biztos terv (motor/terites.py)
@@ -2005,6 +2061,18 @@ class Eredmeny:
 # múl felül (tovább játszva sem lenne több) —, a válasz mellé terítési ajánlat megy
 # (meta.kibic.claim). A lap a terv első lapja. KIBIC_TERITES=0: kikapcsolva.
 TERITES = os.getenv("KIBIC_TERITES", "1").strip() != "0"
+
+# „Ugyanaz a lap minden világban” előrelátás a felvevőnek (motor/alfamu.py,
+# 2026-10-25). KIBIC_ALFAMU=1: be (alapból ki, amíg a mérés nem igazolja).
+# Csak ha a legjobb lapok közel vannak (ALFAMU_SAV IMP-n belül), legfeljebb
+# ALFAMU_MAX jelölttel és ALFAMU_VILAG világgal; az időkeret ALFAMU_IDO része
+# jut rá (a mintavétel ennyivel kevesebbet kap).
+ALFAMU = os.getenv("KIBIC_ALFAMU", "0").strip() not in ("", "0")
+ALFAMU_SAV = 8.0          # IMP: ennél rosszabb lapot nem vizsgál
+ALFAMU_MAX = 4
+ALFAMU_VILAG = int(os.getenv("KIBIC_ALFAMU_VILAG", "40"))
+ALFAMU_IDO = 0.35
+ALFAMU_ELTERES = 0.05
 
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
@@ -2031,6 +2099,9 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     osszevont = False
     igazitott: list[str] = []
     jelleg = None
+    alfamu_aktiv = ALFAMU and not allas.vedo
+    ido_minta = ido_keret_s * (1 - ALFAMU_IDO) if alfamu_aktiv else ido_keret_s
+    vilag_tar: list = []
     try:
         if dd_fv is None:
             from ..solver.dds import lap_elemzes as dd_fv
@@ -2070,10 +2141,12 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
             # sokaságon is megállhat, ha a döntés eldőlt
             menet_kozben = kimerito and len(m.leosztasok) > KIMERITO_HATAR
             for lo, w in zip(m.leosztasok, sulyok):
-                if gy.n >= 6 and time.time() - start > ido_keret_s:
+                if gy.n >= 6 and time.time() - start > ido_minta:
                     ido_le = True
                     break
                 ered = dd_fv(lo, jatszott, allas.kontraktus)
+                if alfamu_aktiv and len(vilag_tar) < ALFAMU_VILAG:
+                    vilag_tar.append((lo, w))
                 if hiheto is not None:
                     w *= hiheto_suly(ered, 6 + allas.kontraktus.szint, hiheto)
                 gy.hozzaad(ered, w)
@@ -2120,6 +2193,9 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
     if jelleg and jelleg[0]:
         allas.lopasos_arany = jelleg[1] / jelleg[0]
     d = dontes(allas, jelzesek, stat)
+    am = None
+    if alfamu_aktiv and stat and len(vilag_tar) >= 2:
+        d, am = _alfamu_dontes(allas, d, stat, vilag_tar, dd_fv, start + ido_keret_s)
     # részleges terítés: ha egyik mintában sem lenne több ütés, mint a biztos terv
     if tr is not None and stat and \
             max(s.utes for s in stat.values()) <= tr.utesek + 1e-9:
@@ -2130,7 +2206,43 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
         tr = None
     return Eredmeny(d, stat, n, lazitott, hiba, int((time.time() - start) * 1000),
                     kimerito, ismeretlen, tures, kizart_jatek, leertekelt,
-                    allas.pontozas, megallt, osszevont, igazitott, allas.lopasos_arany, tr)
+                    allas.pontozas, megallt, osszevont, igazitott, allas.lopasos_arany, tr, am)
+
+
+def _alfamu_dontes(allas: JatekAllas, d: Dontes, stat: dict, vilag_tar: list, dd_fv,
+                   hatarido: float) -> tuple[Dontes, dict | None]:
+    """A közeli jelöltek közül az előrelátás választ (ha jelentősen jobbat talál)."""
+    from .alfamu import ertekeles
+    # jelöltek: színenként a legjobb lap (egy színen belül a lapok értéke többnyire
+    # együtt mozog), a legjobb színekből; a döntés lapja mindenképp
+    sor = sorted(stat.values(), key=lambda s: -s.ertek)
+    jeloltek: list[Lap] = []
+    for s_ in sor:
+        if s_.ertek < sor[0].ertek - ALFAMU_SAV:
+            break
+        if all(c.szin != s_.lap.szin for c in jeloltek):
+            jeloltek.append(s_.lap)
+    jeloltek = jeloltek[:ALFAMU_MAX]
+    if d.lap not in jeloltek and d.lap in stat:
+        jeloltek = [c for c in jeloltek if c.szin != d.lap.szin][:ALFAMU_MAX - 1] + [d.lap]
+    if len(jeloltek) < 2 or time.time() > hatarido - 0.5:
+        return d, None
+    try:
+        er = ertekeles(allas, [lo for lo, _ in vilag_tar], [w for _, w in vilag_tar],
+                       jeloltek, dd_fv, hatarido)
+    except Exception as ex:                  # noqa: BLE001 — az előrelátás nem állíthatja meg a döntést
+        return d, {"error": type(ex).__name__}
+    if er is None:
+        return d, {"worlds": 0, "changed": False}
+    ertek, n = er
+    legjobb = max(jeloltek, key=lambda c: (ertek[c], c == d.lap))
+    info = {"worlds": n, "candidates": len(jeloltek), "changed": False, "_ertek": ertek}
+    if legjobb != d.lap and ertek[legjobb] > ertek.get(d.lap, float("-inf")) + ALFAMU_ELTERES:
+        info["changed"] = True
+        return Dontes(legjobb, "előrelátás: a következő lépésnél nem látunk a lapokba "
+                               "(ugyanaz a lap minden lehetséges elosztásban)",
+                      szabaly="ALFAMU", helyzet=d.helyzet or "FELVEVO", jo=d.jo), info
+    return d, info
 
 
 def magyarazat(e: Eredmeny) -> str:
@@ -2158,6 +2270,10 @@ def meta(e: Eredmeny, reszletes: bool = False) -> dict:
           "small_cards_merged": e.osszevont, "bidding_adjusted": e.igazitott,
           "ruff_based_share": None if e.lopasos_arany is None else round(e.lopasos_arany, 3),
           "rule": e.dontes.szabaly, "dd_error": e.dd_hiba, "elapsed_ms": e.ms}
+    if e.alfamu is not None:
+        ki["lookahead"] = {k: v for k, v in e.alfamu.items() if not k.startswith("_")}
+        if reszletes and "_ertek" in e.alfamu:
+            ki["lookahead"]["values"] = {str(l): round(v, 3) for l, v in e.alfamu["_ertek"].items()}
     if e.terites is not None:
         from .terites import szoveg
         t = e.terites

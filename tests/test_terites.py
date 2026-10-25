@@ -217,3 +217,17 @@ def test_lathato_szures_tanari_nezet():
     b.lathato["E"] = _l("S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
     m = lj.mintavetel(b, None, db=5, mag=1)
     assert len(m.leosztasok) == 1
+
+
+def test_alfamu_ertekeles_fut(dd_valodi):
+    """Az előrelátás (motor/alfamu.py) a jelöltekre értéket ad; kevés világnál None."""
+    from kibic.motor import alfamu
+    a = _biro("SA SK SQ SJ S9 HA HK HQ HJ HT",
+              "ST S8 S7 S6 S5 H9 H8 H7 DQ DK", "S4 S3 S2 H6 H5 H4 H3 H2 DA CA")
+    a.ules, a.legalis = "S", {l: str(l) for l in a.lathato["S"]}
+    a.lathato = {"S": a.lathato["S"], "N": a.lathato["N"]}
+    m = lj.mintavetel(a, None, db=12, mag=1)
+    jeloltek = [Lap.parse("SA"), Lap.parse("HA")]
+    er = alfamu.ertekeles(a, m.leosztasok, [1.0] * len(m.leosztasok), jeloltek, dd_valodi, min_vilag=5)
+    assert er is not None and set(er[0]) == set(jeloltek) and er[1] == len(m.leosztasok)
+    assert alfamu.ertekeles(a, m.leosztasok[:2], [1.0, 1.0], jeloltek, dd_valodi, min_vilag=5) is None
