@@ -61,25 +61,54 @@
 - tipus: VEGJATEK
   potencial: pot_vegjatek              # az elvi ütésszám (elegendőség)
   nev: "Végjáték: elimináció és bedobás (kényszerhívás), adupuccs"
-  szuro: {eliminalhato: igen, vesztok_tobblet: "1+"}
   cimkek: ["Elimination", "Throw-in", "Ruff/discard", "Trump endplay", "Trump coup",
            "throw-in", "endplay"]
+
+- valtozat: ELIMINACIO_LOPAS_DOBAS
+  alap: VEGJATEK
+  nev: "Elimináció, bedobás: lopás-dobás vagy a vesztő megspórolása"
+  ha: {eliminalhato: igen, vesztok_tobblet: "1+"}
+
+- valtozat: ELIMINACIO_TIPP_HELYETT
+  alap: VEGJATEK
+  nev: "Elimináció, bedobás: a védő hív a tippelendő/impasszolandó színbe"
+  ha: {eliminalhato: igen, impassz_szinek: "1+"}
+
+- valtozat: SZAN_BEDOBAS
+  alap: VEGJATEK
+  nev: "Szanzaduban kényszerhívás (a védő kénytelen nekünk hívni)"
+  ha: {felvetel: SZAN, impassz_szinek: "1+", szukseges_plusz: "1+"}
 
 - tipus: BESZORITAS
   potencial: pot_beszoritas              # az elvi ütésszám (elegendőség)
   nev: "Beszorítás"
-  szuro: {fenyegetes: "2+"}
+  szuro: {fenyegetes: "1+", szukseges_plusz: "1-2"}
   cimkek: ["squeeze", "Squeeze", "Vienna coup", "Isolate threat", "Correct loser count"]
 
-- valtozat: BESZORITAS_EGY_HIANY
+- valtozat: BESZORITAS_KET_FENYEGETES
   alap: BESZORITAS
-  nev: "Egy (két) ütés hiányzik, két fenyegetés"
-  ha: {szukseges_plusz: "1-2"}
+  nev: "Egy (két) ütés hiányzik, két hosszú fenyegetés"
+  ha: {fenyegetes: "2+"}
+
+- valtozat: BESZORITAS_EGY_FENYEGETES
+  alap: BESZORITAS
+  nev: "Egy ütés hiányzik, egy hosszú fenyegetés + egylapos (figura) fenyegetés"
+  ha: {fenyegetes: 1, szukseges_plusz: 1}
 
 # --- 2. tengely: kísérő szempontok (a felismerés mérésére; később feltételek) ------
 
 - tipus: VESZELYES_VEDO
   nev: "Veszélyes védő: kihagyás, kerülő játék, a kapcsolat elvágása"
-  szuro: {felvetel: SZAN, hivott_egy_fogas: igen, hiany: "1+", hivott_kint: "5+"}
+  szuro: {hiany: "1+"}
   cimkek: ["Holdup", "Avoidance", "Break communication", "Shun holdup",
            "Duck to keep control", "Erase dangerous entry", "Block enemy suit"]
+
+- valtozat: KIHAGYAS_EGY_FOGAS
+  alap: VESZELYES_VEDO
+  nev: "Szanzaduban egy fogás a hívott színben: kihagyás"
+  ha: {felvetel: SZAN, hivott_egy_fogas: igen, hivott_kint: "5+"}
+
+- valtozat: HOSSZU_VEDO_SZIN
+  alap: VESZELYES_VEDO
+  nev: "Szanzaduban a védőknek hosszú színük van: a veszélyes védőt távol tartani"
+  ha: {felvetel: SZAN, hivott_kint: "7+"}
