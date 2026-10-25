@@ -96,7 +96,8 @@ def test_mintavetel_tenyek():
         assert lo.kezek["N"] == LO.kezek["N"] and lo.kezek["S"] == LO.kezek["S"]
 
 
-def test_mintavetel_kenyszertar_es_lazitas():
+def test_mintavetel_kenyszertar_es_lazitas(monkeypatch):
+    monkeypatch.setattr(lj, "LICIT_LAZA_ARANY", 0.0)             # a kemény korlát viselkedése
     a = lj.allas_keresbol(_keres("W"))
     ig = Igeret()
     ig.pont_min = 12
@@ -111,6 +112,24 @@ def test_mintavetel_kenyszertar_es_lazitas():
     m = lj.mintavetel(a, {"E": ig}, db=400, mag=1, max_proba=400)
     assert not m.lazitott and lj.LAZIT_MIN <= len(m.leosztasok) < 400
     assert all(lj._hcp(lo.kezek["E"].lapok) >= 12 for lo in m.leosztasok)
+
+
+def test_puha_licitkorlat():
+    """2026-10-25: a licitnek nem megfelelő kéz is bekerülhet, ritkán (a valódi
+    elosztás nem eshet ki a mintából egy könnyű közbeszólás miatt)."""
+    a = lj.allas_keresbol(_keres("W"))
+    ig = Igeret()
+    ig.pont_min = 12
+    m = lj.mintavetel(a, {"E": ig}, db=300, mag=3)
+    pontok = [lj._hcp(lo.kezek["E"].lapok) for lo in m.leosztasok]
+    kilog = [x for x in pontok if x < 12]
+    assert kilog and len(kilog) < 0.2 * len(pontok) and m.licit_laza == len(kilog)
+    assert sum(1 for x in kilog if x >= 10) > sum(1 for x in kilog if x < 8)   # a közeliek a gyakoribbak
+    # a távolság: pontonként 1, hosszban lapodként 2
+    ig2 = Igeret()
+    ig2.pont_min, ig2.hossz_min = 12, {"S": 5}
+    kez = {lj.lap_drotrol(x) for x in "SA SK S2 S3 HA H2 H3 H4 D2 D3 D4 C2 C3".split()}
+    assert lj._hcp(kez) == 11 and lj._licit_tav(kez, ig2) == 1 + 2 * 1
 
 
 # --- 2. DD-szűrő -------------------------------------------------------------------
