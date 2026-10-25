@@ -70,3 +70,14 @@ def test_fogalmak_fenyegetesek():
     assert sz["H"]["hossz_fenyegetes"] and sz["D"]["hossz_fenyegetes"]
     assert not sz["S"]["hossz_fenyegetes"]          # az adu nem fenyegetés
     assert g["fenyegetes_mind"] >= 2
+
+
+def test_szin_utesek_impassz_es_hossz():
+    from kibic.motor.utesbesorolas import szin_utesek as f
+    fs = frozenset
+    # ÁD (É) – xx (D), K Ny-nál: az impassz bejön (2), K K-nél: nem (1)
+    assert f({"N": fs({14, 12}), "S": fs({2, 3}), "W": fs({13, 4}), "E": fs({5, 6})}, "NS") == 2
+    assert f({"N": fs({14, 12}), "S": fs({2, 3}), "E": fs({13, 4}), "W": fs({5, 6})}, "NS") == 1
+    # ÁKD2 – 3: a K-nál B-4-5-6 őrzi a negyedik lapot; ha egy lapja kevesebb, nem
+    assert f({"N": fs({14, 13, 12, 2}), "S": fs({3}), "E": fs({11, 4, 5, 6}), "W": fs({7})}, "NS") == 3
+    assert f({"N": fs({14, 13, 12, 2}), "S": fs({3}), "E": fs({11, 4, 5}), "W": fs({7})}, "NS") == 4
