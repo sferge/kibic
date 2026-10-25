@@ -7,6 +7,7 @@
 # --- 1. tengely: honnan jön a hiányzó ütés --------------------------------------
 
 - tipus: KIMAGASITAS
+  potencial: pot_kimagasitas              # az elvi ütésszám (elegendőség)
   nev: "Hiányzó ütés(ek) kimagasítása hosszból vagy figurából"
   szuro: {szukseges_plusz: "1+"}
   szinenkent: igen
@@ -33,6 +34,7 @@
   ha: {szin.eso_figura: igen}
 
 - tipus: LOPAS
+  potencial: pot_lopas              # az elvi ütésszám (elegendőség)
   nev: "Aduval szerzett plusz ütés"
   szuro: {felvetel: SZIN}
   cimkek: ["Ruff in short hand", "Dummy reversal", "Crossruff", "Transfer ruff",
@@ -51,17 +53,20 @@
   ha: {keresztlopas: igen}
 
 - tipus: VESZTOCSERE
+  potencial: pot_dobas              # az elvi ütésszám (elegendőség)
   nev: "Vesztő eltüntetése (dobás nyerőre, vesztő a vesztőre)"
   szuro: {felvetel: SZIN, vesztok_tobblet: "1+", dobas: "1+"}
   cimkek: ["Loser-on-loser", "Elopement", "Obtain early discard", "Shed loser"]
 
 - tipus: VEGJATEK
+  potencial: pot_vegjatek              # az elvi ütésszám (elegendőség)
   nev: "Végjáték: elimináció és bedobás (kényszerhívás), adupuccs"
   szuro: {eliminalhato: igen, vesztok_tobblet: "1+"}
   cimkek: ["Elimination", "Throw-in", "Ruff/discard", "Trump endplay", "Trump coup",
            "throw-in", "endplay"]
 
 - tipus: BESZORITAS
+  potencial: pot_beszoritas              # az elvi ütésszám (elegendőség)
   nev: "Beszorítás"
   szuro: {fenyegetes: "2+"}
   cimkek: ["squeeze", "Squeeze", "Vienna coup", "Isolate threat", "Correct loser count"]

@@ -176,6 +176,15 @@ def jellemzok(h: Helyzet) -> tuple[dict, dict[str, dict]]:
         (x["impasszolhato"] or x["expasszolhato"]) and not x["adu"] for x in szinek.values())
     # a szükséges plusz ütés: szanban a hiány (cél − biztos), színben a vesztők többlete
     g["szukseges_plusz"] = g["hiany"] if h.adu is None else g["vesztok_tobblet"]
+    # ELVI ÜTÉSPOTENCIÁL típusonként (optimista: minden impassz / expassz bejön):
+    # kimagasítás — a hosszból szerezhető ütések + színenként egy impassz/expassz
+    g["pot_kimagasitas"] = sum(x["tobblet"] + (1 if (x["impasszolhato"] or x["expasszolhato"])
+                                               and x["kiadando"] > 0 else 0)
+                               for x in szinek.values())
+    g["pot_lopas"] = g["lopas_rovid"] + (1 if g["asztalforditas"] or g["keresztlopas"] else 0)
+    g["pot_dobas"] = g["dobas"] if h.adu else 0
+    g["pot_vegjatek"] = 1 if g["eliminalhato"] else 0
+    g["pot_beszoritas"] = 1 if g["fenyegetes"] >= 2 else 0
     hiv = szinek.get(h.indulas.szin) if h.indulas else None
     g["hivott_egy_fogas"] = bool(hiv and h.adu is None and hiv["egy_fogas"])
     g["hivott_kint"] = hiv["kint"] if hiv else 0
@@ -222,6 +231,7 @@ class TervSor:
     feltetel: dict = field(default_factory=dict)      # feloldva (öröklés + eltérés)
     szinenkent: bool = False
     cimkek: list[str] = field(default_factory=list)
+    potencial: str | None = None      # a fogalom, amely a típus elvi ütésszámát adja
 
 
 class TervHiba(ValueError):
@@ -269,7 +279,9 @@ def tervsorok_yamlbol(utak: list[str | Path]) -> list[TervSor]:
             szinenkent = bool(s["szinenkent"])
         if s.get("cimkek"):
             cimkek = list(s["cimkek"])
-        kesz[kod] = TervSor(kod, s["_fajta"], tipus, s.get("nev", ""), felt, szinenkent, cimkek)
+        potencial = s.get("potencial") or (kesz[alap].potencial if alap else None)
+        kesz[kod] = TervSor(kod, s["_fajta"], tipus, s.get("nev", ""), felt, szinenkent, cimkek,
+                            potencial)
         return kesz[kod]
 
     return [felold(k) for k in nyers]
@@ -314,3 +326,32 @@ def helyzet_partibol(p) -> Helyzet | None:
     indulas = Lap.parse(p.lapok[0]) if p.lapok else None
     return Helyzet(k.felvevo, k.szint, k.szin, set(p.leosztas.kezek[k.felvevo].lapok),
                    set(p.leosztas.kezek[asztal].lapok), indulas)
+
+
+def elegendo(sorok: list[TervSor], h: Helyzet, fel: dict | None = None) -> dict:
+    """
+    Az ELVI elegendőség (2026-10-25, 1. szint): a felismert ütésforrás-típusok
+    elvi ütéspotenciálja lefedi-e a szükséges plusz ütést. Ha egy típus egymagában
+    elég, azok a típusok; ha egyik sem, a legkisebb kombináció (a YAML sorrendjében
+    előbb álló típusok előnyben). Vissza: {"szukseges", "potencial": {típus: ütés},
+    "elegendo": [[típus, ...], ...], "eleg": bool}.
+    """
+    glob, _ = jellemzok(h)
+    fel = felismeres(sorok, h) if fel is None else fel
+    tipus_sor = {s.kod: s for s in sorok if s.fajta == "TIPUS"}
+    pot = {}
+    for t in fel:
+        s = tipus_sor.get(t)
+        if s is not None and s.potencial and glob.get(s.potencial):
+            pot[t] = glob[s.potencial]
+    kell = glob.get("szukseges_plusz") or 0
+    if kell <= 0:
+        return {"szukseges": kell, "potencial": pot, "elegendo": [], "eleg": True}
+    from itertools import combinations
+    sorrend = [t for t in tipus_sor if t in pot]
+    for n in range(1, len(sorrend) + 1):
+        jo = [list(c) for c in combinations(sorrend, n) if sum(pot[t] for t in c) >= kell]
+        if jo:
+            return {"szukseges": kell, "potencial": pot, "elegendo": jo, "eleg": True}
+    return {"szukseges": kell, "potencial": pot, "elegendo": [sorrend] if sorrend else [],
+            "eleg": False}

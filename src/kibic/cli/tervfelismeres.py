@@ -33,11 +33,21 @@ def cimkek_pbnbol(ut: str) -> list[list[str] | None]:
     return ki
 
 
+def _sor(t, x) -> str:
+    cim = x["talalat"] + x["kimaradt"]
+    jelez = x["talalat"] + x["teves"]
+    pont = f"{100 * x['talalat'] / jelez:.0f}%" if jelez else "–"
+    lef = f"{100 * x['talalat'] / cim:.0f}%" if cim else "–"
+    return f"| {t} | {cim} | {x['talalat']} | {x['kimaradt']} | {x['teves']} | {pont} | {lef} |"
+
+
 def merni(utak: list[str], tervek: list[str], reszletes: bool = False, json_ki=None) -> str:
     from .jatekmeres import partik_fajlbol
     sorok = tv.tervsorok_yamlbol(tervek)
     tipusok = {s.kod: s for s in sorok if s.fajta == "TIPUS"}
     stat = {t: {"talalat": 0, "kimaradt": 0, "teves": 0} for t in tipusok}
+    stat2 = {t: {"talalat": 0, "kimaradt": 0, "teves": 0} for t in tipusok}
+    nem_eleg = 0
     n = cimkezett = 0
     for ut in utak:
         cimkek = cimkek_pbnbol(ut)
@@ -48,32 +58,43 @@ def merni(utak: list[str], tervek: list[str], reszletes: bool = False, json_ki=N
                 continue
             n += 1
             fel = tv.felismeres(sorok, h)
+            el = tv.elegendo(sorok, h, fel)
+            # az elegendő terv: a forrás-típusok az elegendő kombinációkból, a kísérő
+            # szempontok (potenciál nélküli típusok) a felismerésből
+            el_tip = {t for komb in el["elegendo"] for t in komb} | {
+                t for t in fel if tipusok[t].potencial is None}
+            if not el["eleg"]:
+                nem_eleg += 1
             if json_ki is not None:
                 json_ki.write(json.dumps({"tabla": p.azonosito, "kontraktus": str(p.kontraktus),
-                                          "cimkek": c, "felismert": fel}, ensure_ascii=False) + "\n")
+                                          "cimkek": c, "felismert": fel, "elegendo": el},
+                                         ensure_ascii=False) + "\n")
             if c is None:
                 continue
             cimkezett += 1
             szoveg = "; ".join(c)
             for t, s in tipusok.items():
                 van = any(k in szoveg for k in s.cimkek)
-                ismert = t in fel
-                if van and ismert:
-                    stat[t]["talalat"] += 1
-                elif van:
-                    stat[t]["kimaradt"] += 1
-                elif ismert:
-                    stat[t]["teves"] += 1
-    sor = [f"partik: {n} · címkézett: {cimkezett}", "",
-           "| típus | címke szerint | felismerte | kimaradt | téves jelzés | pontosság | lefedés |",
-           "|---|---|---|---|---|---|---|"]
-    for t, x in stat.items():
-        cim = x["talalat"] + x["kimaradt"]
-        jelez = x["talalat"] + x["teves"]
-        pont = f"{100 * x['talalat'] / jelez:.0f}%" if jelez else "–"
-        lef = f"{100 * x['talalat'] / cim:.0f}%" if cim else "–"
-        sor.append(f"| {t} | {cim} | {x['talalat']} | {x['kimaradt']} | {x['teves']} | {pont} | {lef} |")
-    sor += ["", "pontosság: a kibic jelzéseiből hány helyes; lefedés: a szerző címkéiből hányat ismert fel."]
+                for st, ismert in ((stat, t in fel), (stat2, t in el_tip)):
+                    if van and ismert:
+                        st[t]["talalat"] += 1
+                    elif van:
+                        st[t]["kimaradt"] += 1
+                    elif ismert:
+                        st[t]["teves"] += 1
+    sor = [f"partik: {n} · címkézett: {cimkezett} · ahol a típusok elvi ütései együtt sem elegendők: {nem_eleg}"]
+    for cim_, st in (("LEHETSÉGES (a feltételek igazak)", stat),
+                     ("ELVILEG ELEGENDŐ (a legkisebb elegendő típus / kombináció)", stat2)):
+        sor += ["", f"### {cim_}", "",
+                "| típus | címke szerint | felismerte | kimaradt | jelezte, címke nélkül | pontosság | lefedés |",
+                "|---|---|---|---|---|---|---|"]
+        o = {"talalat": 0, "kimaradt": 0, "teves": 0}
+        for t, x in st.items():
+            for kk in o:
+                o[kk] += x[kk]
+            sor.append(_sor(t, x))
+        sor.append(_sor("**összesen**", o))
+    sor += ["", "pontosság: a kibic jelzéseiből hány esik egybe a címkével; lefedés: a szerző címkéiből hányat ismert fel."]
     return "\n".join(sor)
 
 
