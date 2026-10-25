@@ -1184,7 +1184,7 @@ def mintavetel(allas: JatekAllas, kenyszertar: dict | None = None, db: int = 40,
         if laza:
             sorsolo = szabad_epito
         if not sorsolo.ok:
-            raise LejatszasHiba("A renonszok és a lapszámok nem adnak ki egy leosztást")
+            raise LejatszasHiba("A színhiányok és a lapszámok nem adnak ki egy leosztást")
         hely = {u: list(fix[u]) + v for u, v in sorsolo.sorsol(rnd).items()}
         if not epito.ok and ki.probak == 1 and tar:
             elengedve = True                  # a licit hosszai nem teljesíthetők: nélküle
