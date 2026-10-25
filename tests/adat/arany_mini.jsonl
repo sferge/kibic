@@ -1,4 +1,4 @@
-{"_fej": true, "rendszer": "MOHA_STAND", "mag": 1, "leosztas": 300, "kovetkeztetes": false, "elotag": null, "egyezo": null, "min_hcp": null, "rogzitve": "2026-10-24T16:55:34"}
+{"_fej": true, "rendszer": "MOHA_STAND", "mag": 1, "leosztas": 300, "kovetkeztetes": false, "elotag": null, "egyezo": null, "min_hcp": null, "rogzitve": "2026-10-25T13:30:17"}
 {"deal": 0, "dealer": "N", "vul": "none", "seat": "N", "hand": "98.A985.T63.KQ75", "auction": [], "call": "P", "source": "SZABALY", "explanation": "P — nincs nyitóerő: egyik nyitás-szabály sem illik"}
 {"deal": 0, "dealer": "N", "vul": "none", "seat": "E", "hand": "Q42.QJT6432.Q2.A", "auction": ["P"], "call": "P", "source": "SZABALY", "explanation": "P — Felmentés: rossz 11-12 pont (üres dáma/bubi vagy rossz lapminőség) nem induló erő  (jelöltek voltak még: 1H)"}
 {"deal": 0, "dealer": "N", "vul": "none", "seat": "S", "hand": "AKT76.K.A95.T984", "auction": ["P", "P"], "call": "1S", "source": "SZABALY", "explanation": "1S — 11-21 FP, 5+ pikk (5 pikkel mindig 1♠)"}
