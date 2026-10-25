@@ -45,7 +45,7 @@ ATJARO_TITOK = os.getenv("KIBIC_AI_SHARED_SECRET", "") or TITOK
 # A DDS globális állapotot használ, a szálbiztonsága nem garantált —
 # ezért egy zár mögé tesszük. Ha ez szűk keresztmetszet lesz, külön
 # folyamatokba érdemes tenni, nem szálakba.
-_DDS_ZAR = threading.Lock()
+from ..solver.dds import ZAR as _DDS_ZAR        # noqa: E402 — a DDS közös zárja (újrabelépős)
 
 app = FastAPI(title="kibic", version="0.2.0",
               description="Bridzs: double dummy elemzés és licitmagyarázat")
@@ -145,7 +145,7 @@ def allapot() -> dict:
 
 
 @app.post("/v1/kibic/dd", dependencies=[Depends(_jogosultsag)])
-async def dd(keres: dict, request: Request) -> dict:
+def dd(keres: dict, request: Request) -> dict:
     """Laponkénti double dummy elemzés egy játékállásra."""
     start = time.time()
     try:
@@ -161,7 +161,7 @@ async def dd(keres: dict, request: Request) -> dict:
 
 
 @app.post("/v1/kibic/dd-tabla", dependencies=[Depends(_jogosultsag)])
-async def dd_tabla_vegpont(keres: dict) -> dict:
+def dd_tabla_vegpont(keres: dict) -> dict:
     """
     Leosztás-elemzés: a 20 mezős DD-tábla, vonalankénti maximum, par, és
     ha a kérés hozza, a játszott kontraktus eltérése a partól. Ugyanazt a
@@ -184,7 +184,7 @@ async def dd_tabla_vegpont(keres: dict) -> dict:
 
 
 @app.post("/v1/kibic/licit", dependencies=[Depends(_jogosultsag)])
-async def licit(keres: dict, request: Request) -> dict:
+def licit(keres: dict, request: Request) -> dict:
     """
     Mit licitálna a kibic — és mit értett meg az eddigi menetből?
 
@@ -235,7 +235,7 @@ def _idempotencia(keres: dict, kulcs: str | None):
 
 
 @app.post("/v1/bridge/bid", dependencies=[Depends(_jogosultsag_atjaro)])
-async def bridge_bid(
+def bridge_bid(
     keres: dict,
     idempotency_key: str | None = Header(default=None,
                                          alias="Idempotency-Key"),
@@ -253,7 +253,7 @@ async def bridge_bid(
 
 
 @app.post("/v1/bridge/explain", dependencies=[Depends(_jogosultsag_atjaro)])
-async def bridge_explain(keres: dict) -> dict:
+def bridge_explain(keres: dict) -> dict:
     """
     Licitmagyarázat bárkinek az asztalnál (mohabridzs-ai/1.1): csak a
     MEGÁLLAPODÁS, kéz nélkül. Tiszta függvény — nincs idempotencia-tár.
@@ -339,7 +339,7 @@ _profil.ISMERT_FORRAS = _ismert
 
 
 @app.post("/v1/bridge/card", dependencies=[Depends(_jogosultsag_atjaro)])
-async def bridge_card(keres: dict) -> dict:
+def bridge_card(keres: dict) -> dict:
     """
     A konvenciókártya (mohabridzs-ai/1.1): a MEGÁLLAPODÁS, kéz nélkül,
     WBF-szerkezetben. `system` nélkül a kérdezett AI aktuális profiljáé,
@@ -469,7 +469,7 @@ def bridge_rendszerek() -> dict:
 
 
 @app.post("/v1/kibic/magyaraz", dependencies=[Depends(_jogosultsag)])
-async def kibic_magyaraz(keres: dict) -> dict:
+def kibic_magyaraz(keres: dict) -> dict:
     """
     MŰHELY: egy elhangzott licit jelentése + mit licitált volna ott a kibic
     a megadott kézzel, és miért. A kéz adatait is visszaadja — csak

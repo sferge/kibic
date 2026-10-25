@@ -337,3 +337,23 @@ def test_info_keres_kikapcsolhato(monkeypatch):
     monkeypatch.setattr(a, "INFO_KERES", False)
     v = bid_dontes(_info_keres(_INFO_MENET), _betolto)
     assert v["action"]["type"] == "bid"
+
+
+def test_nehez_vegpontok_nem_az_esemenyhurkon_futnak():
+    """2026-10-25: a tanári asztal minden döntéshez /v1/kibic/magyaraz-t kér; ha
+    az eseményhurkon fut, addig minden más kérés (bid, play) áll."""
+    import inspect
+    pytest.importorskip("fastapi")
+    from kibic.szolgaltatas import api
+    for nev in ("dd", "dd_tabla_vegpont", "licit", "bridge_bid", "bridge_explain",
+                "bridge_card", "kibic_magyaraz"):
+        assert not inspect.iscoroutinefunction(getattr(api, nev)), nev
+
+
+def test_dds_kozos_zar():
+    """A DDS minden bejárata ugyanazt az újrabelépős zárat fogja."""
+    import threading
+    from kibic.solver import dds
+    assert isinstance(dds.ZAR, type(threading.RLock()))
+    for nev in ("dd_tabla", "dd_tablak", "par_eredmeny", "maradek_utesek", "lap_elemzes"):
+        assert getattr(dds, nev).__wrapped__        # a _zarral burka

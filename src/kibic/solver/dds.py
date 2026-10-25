@@ -23,6 +23,8 @@ végállásokon, MIELŐTT több ezer leosztásra engednénk a modult.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import functools
+import threading
 
 from ..domain import Lap, Leosztas, SZINEK, ULESEK, kovetkezo_ules, vonal
 from ..domain import Kontraktus
@@ -33,6 +35,22 @@ _SZIN_ENDPLAY = {"S": "spades", "H": "hearts", "D": "diamonds",
                  "C": "clubs", "NT": "nt"}
 _ULES_ENDPLAY = {"N": "north", "E": "east", "S": "south", "W": "west"}
 _BELI_ENDPLAY = {"NONE": "none", "NS": "ns", "EW": "ew", "ALL": "both"}
+
+
+# A DDS (endplay) nem szálbiztos: egyszerre egy hívás mehet. A zár itt, a
+# könyvtár bejáratánál van, hogy egyetlen hívó (licit-szimuláció, lejátszás,
+# terítés, műhely) se felejthesse el (2026-10-25: a licit-szimuláció zár
+# nélkül hívta, a lejátszás és a terítés zárral — két szálon egyszerre is
+# futhatott). Újrabelépős: a hívó maga is foghatja.
+ZAR = threading.RLock()
+
+
+def _zarral(fv):
+    @functools.wraps(fv)
+    def burok(*a, **kw):
+        with ZAR:
+            return fv(*a, **kw)
+    return burok
 
 
 def _betolt():
@@ -96,6 +114,7 @@ def _utes_gyoztes(lapok: list[tuple[str, Lap]], adu: str | None) -> str:
 
 # --- 1. Teljes DD-tábla ----------------------------------------------
 
+@_zarral
 def dd_tabla(leosztas: Leosztas) -> dict[str, dict[str, int]]:
     """
     Mind a 20 érték. Visszaad: {ules: {szin: utesszam}}, ahol a `szin`
@@ -109,6 +128,7 @@ def dd_tabla(leosztas: Leosztas) -> dict[str, dict[str, int]]:
             for u in ULESEK}
 
 
+@_zarral
 def dd_tablak(leosztasok: list[Leosztas], koteg: int = 32
               ) -> list[dict[str, dict[str, int]]]:
     """
@@ -129,6 +149,7 @@ def dd_tablak(leosztasok: list[Leosztas], koteg: int = 32
     return eredmeny
 
 
+@_zarral
 def par_eredmeny(leosztas: Leosztas) -> tuple[int, str]:
     """
     Par-eredmény: az a pontszám, amit tökéletes licit mellett elérnének.
@@ -156,6 +177,7 @@ class MaradekEredmeny:
     hiba: str | None = None
 
 
+@_zarral
 def maradek_utesek(leosztas: Leosztas, lapok: list[str],
                    kontraktus: Kontraktus) -> MaradekEredmeny:
     """
@@ -255,6 +277,7 @@ class LapErtekeles:
     veszteseg: int        # hány ütést ad fel a legjobbhoz képest
 
 
+@_zarral
 def lap_elemzes(leosztas: Leosztas, lapok: list[str],
                 kontraktus: Kontraktus) -> list[LapErtekeles]:
     """

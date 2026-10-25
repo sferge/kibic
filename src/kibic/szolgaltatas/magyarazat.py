@@ -19,6 +19,8 @@ együtt (alert, szöveg, melyik konvencióból jön).
 """
 from __future__ import annotations
 
+import os
+
 import time
 
 from ..domain import ULESEK, vonal
@@ -162,6 +164,10 @@ def explain_valasz(keres: dict, betolto) -> dict:
 
 # --- 2. MŰHELY: /v1/kibic/magyaraz ------------------------------------
 
+# a műhely-magyarázat (tanári részlet) kizárásos következtetésének időkerete
+MUHELY_KOVETKEZTETES_MS = int(os.getenv("KIBIC_MUHELY_KOVETKEZTETES_MS", "3000"))
+
+
 def magyaraz_muhely(keres: dict, betolto) -> dict:
     """
     `POST /v1/kibic/magyaraz` — a tanításhoz.
@@ -208,6 +214,9 @@ def magyaraz_muhely(keres: dict, betolto) -> dict:
                  "debug": True}
         if teszt is not None:
             belso["test_mode"] = teszt
+        # a tanári asztal MINDEN döntéshez kér ilyet: a következtetés itt rövid
+        # (a KIBIC_KOVETKEZTETES_MS a szerveren akár 90 s is lehet)
+        belso["inference_ms"] = int(keres.get("inference_ms", MUHELY_KOVETKEZTETES_MS))
         e = licit_elemzes(belso, betolto)
         ki["would_bid"] = {
             "call": e.get("call"), "source": e.get("source"),
