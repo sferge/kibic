@@ -1,0 +1,80 @@
+# A felvevő tervtára — 1. változat (2026-10-25). Tervezet: claude/terv-tervtar-2026-10-25.md
+# A típus-sor a szűrő és a közös rész; a változat hivatkozik rá (alap), és csak az
+# eltérést írja le (ha / kivon / felulir). A `cimkek` a Pavlicek-partik „Play:”
+# címkéi (részszavak), amelyeket a típus fed — a mérés (cli/tervfelismeres) ezzel
+# veti össze a kibic felismerését.
+
+# --- 1. tengely: honnan jön a hiányzó ütés --------------------------------------
+
+- tipus: KIMAGASITAS
+  nev: "Hiányzó ütés(ek) kimagasítása hosszból vagy figurából"
+  szuro: {szukseges_plusz: "1+"}
+  szinenkent: igen
+  cimkek: ["Set up dummy", "Establish side suit", "Finessing technique", "Ruffing finesse",
+           "Desperation finesse", "Show-up finesse", "Lead toward honor", "Ducking play",
+           "Combine chances", "Play for best chance", "Shun finesse", "Restricted choice"]
+
+- valtozat: ELOSZTASRA
+  alap: KIMAGASITAS
+  nev: "Elosztásra játszás (kiadással / kiengedéssel)"
+  ha: {szin.egyutt: "7+", szin.tobblet: "1+", szin.adu: nem}
+
+- valtozat: IMPASSZ
+  alap: KIMAGASITAS
+  ha: {szin.impasszolhato: igen}
+
+- valtozat: EXPASSZ
+  alap: KIMAGASITAS
+  nev: "Expassz (szöktetés: hívás a figura felé)"
+  ha: {szin.expasszolhato: igen}
+
+- valtozat: ESO_FIGURA
+  alap: KIMAGASITAS
+  ha: {szin.eso_figura: igen}
+
+- tipus: LOPAS
+  nev: "Aduval szerzett plusz ütés"
+  szuro: {felvetel: SZIN}
+  cimkek: ["Ruff in short hand", "Dummy reversal", "Crossruff", "Transfer ruff",
+           "Ruffing with 4-4", "Put long trumps"]
+
+- valtozat: LOPAS_ROVID_KEZBEN
+  alap: LOPAS
+  ha: {lopas_rovid: "1+", vesztok_tobblet: "1+"}
+
+- valtozat: ASZTALFORDITAS
+  alap: LOPAS
+  ha: {asztalforditas: igen}
+
+- valtozat: KERESZTLOPAS
+  alap: LOPAS
+  ha: {keresztlopas: igen}
+
+- tipus: VESZTOCSERE
+  nev: "Vesztő eltüntetése (dobás nyerőre, vesztő a vesztőre)"
+  szuro: {felvetel: SZIN, vesztok_tobblet: "1+", dobas: "1+"}
+  cimkek: ["Loser-on-loser", "Elopement", "Obtain early discard", "Shed loser"]
+
+- tipus: VEGJATEK
+  nev: "Végjáték: elimináció és bedobás (kényszerhívás), adupuccs"
+  szuro: {eliminalhato: igen, vesztok_tobblet: "1+"}
+  cimkek: ["Elimination", "Throw-in", "Ruff/discard", "Trump endplay", "Trump coup",
+           "throw-in", "endplay"]
+
+- tipus: BESZORITAS
+  nev: "Beszorítás"
+  szuro: {fenyegetes: "2+"}
+  cimkek: ["squeeze", "Squeeze", "Vienna coup", "Isolate threat", "Correct loser count"]
+
+- valtozat: BESZORITAS_EGY_HIANY
+  alap: BESZORITAS
+  nev: "Egy (két) ütés hiányzik, két fenyegetés"
+  ha: {szukseges_plusz: "1-2"}
+
+# --- 2. tengely: kísérő szempontok (a felismerés mérésére; később feltételek) ------
+
+- tipus: VESZELYES_VEDO
+  nev: "Veszélyes védő: kihagyás, kerülő játék, a kapcsolat elvágása"
+  szuro: {felvetel: SZAN, hivott_egy_fogas: igen, hiany: "1+", hivott_kint: "5+"}
+  cimkek: ["Holdup", "Avoidance", "Break communication", "Shun holdup",
+           "Duck to keep control", "Erase dangerous entry", "Block enemy suit"]
