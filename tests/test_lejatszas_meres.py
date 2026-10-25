@@ -226,3 +226,24 @@ def test_imp_ertekeles():
     m = lm.parti_meres(PARTI, lambda k: (k["legal_actions"]["cards"][0], {}), _hamis_dd(), max_dontes=2)
     assert all(x.imp_veszt is not None and x.emberi_imp_veszt is not None for x in m)
     assert "imp_ossz" in lm.osszesit(m)["osszes"]
+
+
+@pytest.mark.skipif(not VAN_DDS, reason="nincs DDS")
+def test_teljes_lejatszas():
+    """A felvevőt a döntéshozó játssza végig, a védők DD szerint (2026-10-25)."""
+    def legkisebb(keres):
+        return min(keres["legal_actions"]["cards"], key=lambda c: (Lap.parse(c).rang, c)), {}
+    m = lm.teljes_lejatszas(PARTI, legkisebb)
+    assert m is not None and m.cel == 9 and 0 <= m.utesek <= 13
+    assert m.utesek <= m.dd_indulas_utan                 # a DD-védők ellen több nem lehet
+    assert (m.utesek < m.dd_indulas_utan) == bool(m.hibak)
+    # tökéletes felvevővel pontosan a DD jön ki
+    from kibic.solver.dds import lap_elemzes
+
+    def tokeletes(keres):
+        from kibic.motor import lejatszas as lj
+        a = lj.allas_keresbol(keres)
+        e = lap_elemzes(PARTI.leosztas, [x["card"] for x in keres["history"]["play"]], K3NT)
+        return max(e, key=lambda x: x.utesek).lap, {}
+    m2 = lm.teljes_lejatszas(PARTI, tokeletes)
+    assert m2.utesek == m2.dd_indulas_utan and not m2.hibak and m2.imp_veszt == 0

@@ -402,6 +402,93 @@ def parti_meres(p: Parti, dontes_fv, dd_fv=None, ulesek: set[str] | None = None,
     return ki
 
 
+# --- Teljes lejátszás (2026-10-25) ------------------------------------------------
+# A döntésenkénti mérés mindig az EMBER útján halad tovább: a kibic sosem kerül
+# a saját hibája utáni helyzetbe. Itt a kibic a valódi indulástól a végéig maga
+# játssza a felvevőt (és az asztalt); a védők a valódi lapok ismeretében
+# tökéletesen (DD; egyenlőségnél a legkisebb lappal) — vagy, `vedo_fv`-vel, egy
+# másik döntéshozó szerint. Az eredmény a parti végén: hány ütés, teljesült-e,
+# és mennyi lett volna tökéletes felvevőjátékkal (DD az indulás után).
+
+@dataclass
+class TeljesMeres:
+    tabla: str
+    kontraktus: str
+    felvevo: str
+    cel: int
+    utesek: int                 # a kibic felvevőként (a végén)
+    dd_indulas_utan: int        # tökéletes felvevőjátékkal a valódi indulás után
+    teljesult: bool
+    dd_teljesul: bool
+    imp_veszt: int              # a DD-hez képest (beliállással, kontrával)
+    hibak: list[dict] = field(default_factory=list)   # ahol a kibic lapja ütést vesztett (DD)
+    ido_ms: int = 0
+
+    def szotar(self) -> dict:
+        return dict(self.__dict__)
+
+
+def teljes_lejatszas(p: Parti, dontes_fv, dd_fv=None, vedo_fv=None,
+                     rendszer: str = "KIBIC_STAND") -> TeljesMeres | None:
+    """A valódi indulás után a kibic játssza végig a felvevőt (lásd fent)."""
+    import time
+    from dataclasses import replace
+    from ..domain.pontozas import imp, pontszam
+    if dd_fv is None:
+        from ..solver.dds import lap_elemzes as dd_fv
+    if not p.lapok:
+        return None
+    t0 = time.time()
+    k = p.kontraktus
+    adu = None if k.szin == "NT" else k.szin
+    felvevo = k.felvevo
+    sor = [_lap(p.lapok[0])]                     # a valódi indulás
+    dd0 = _dd_szotar(dd_fv, p.leosztas, [str(sor[0])], k)
+    if not dd0:
+        return None
+    ul0 = ulesek_sorrendben(sor + [sor[0]], kovetkezo_ules(felvevo), adu)
+    fo0 = vonal(ul0[1]) == vonal(felvevo)
+    dd_ertek = (max if fo0 else min)(e.felvevo_osszesen for e in dd0.values())
+    hibak: list[dict] = []
+    while len(sor) < 52:
+        ules = ulesek_sorrendben(sor + [sor[0]], kovetkezo_ules(felvevo), adu)[len(sor)]
+        jatszott = [str(l) for l in sor]
+        dd = _dd_szotar(dd_fv, p.leosztas, jatszott, k)
+        fo = vonal(ules) == vonal(felvevo)
+        if len(dd) == 1:
+            lap = next(iter(dd))
+        elif fo or vedo_fv is not None:
+            p2 = replace(p, lapok=jatszott + [jatszott[0]])
+            keres = pozicio_keres(p2, len(sor), rendszer)
+            lap, _ = (dontes_fv if fo else vedo_fv)(keres)
+            lap = str(_lap(lap))
+            if lap not in dd:                    # nem lehet, de ne álljon meg
+                lap = max(dd, key=lambda x: dd[x].utesek)
+        else:
+            legj = max(e.utesek for e in dd.values())
+            lap = str(min((_lap(x) for x, e in dd.items() if e.utesek == legj),
+                          key=lambda l: (l.rang, l.szin)))
+        if fo and len(dd) > 1:
+            legjobb = max(e.felvevo_osszesen for e in dd.values())
+            if dd[lap].felvevo_osszesen < legjobb:
+                hibak.append({"utes": len(sor) // 4 + 1, "ules": ules, "lap": lap,
+                              "veszt": legjobb - dd[lap].felvevo_osszesen,
+                              "legjobb": sorted(x for x, e in dd.items()
+                                                if e.felvevo_osszesen == legjobb)})
+        sor.append(_lap(lap))
+    utes = 0
+    ulesek_ = ulesek_sorrendben(sor, kovetkezo_ules(felvevo), adu)
+    for t in range(13):
+        utes_ = list(zip(ulesek_[4 * t:4 * t + 4], sor[4 * t:4 * t + 4]))
+        if vonal(_nyertes(utes_, adu)) == vonal(felvevo):
+            utes += 1
+    cel = _cel(k)
+    beli = p.leosztas.beliallas
+    veszt = imp(pontszam(k, dd_ertek, beli) - pontszam(k, utes, beli)) if utes < dd_ertek else 0
+    return TeljesMeres(p.azonosito, str(k), felvevo, cel, utes, dd_ertek, utes >= cel,
+                       dd_ertek >= cel, veszt, hibak, int((time.time() - t0) * 1000))
+
+
 # --- Összesítés --------------------------------------------------------------------
 
 def osszesit(meresek: list[DontesMeres]) -> dict:
