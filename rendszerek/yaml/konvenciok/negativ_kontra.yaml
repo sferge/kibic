@@ -280,7 +280,10 @@ fejezetek:
           dubló dáma, üres király): fogást keres a partnernél, cél a 3NT;
         * „kínunkban” — ha semmi sem illik, akkor sem passz: a várhatóan
           legolcsóbb bukás (a partner hármas színe, a saját eredeti szín).
-      A pontsávok (12-14 / 15-17 / 18+) kieg., átnézendők.
+      A sávok a páros menetéi (a szerkesztő, 2026-10-31): saját szín 12-16
+      (rossz 17), ugrással 17-19; riverz / álriverz 18+; felüllicit 18+
+      fogás nélkül is. Kvázi gémforszban (a pontjaink + a kontra minimuma
+      legalább 25) passzolható licitet nem adunk.
     szabalyok:
       - {minta: "1A (nB) X (P) P", kulcs: NEG-X-BUNTETO-PASSZ, prioritas: 60, dontesi_mod: MERLEGELO,
          pont: 12-17, hossz: {B: 4+}, fohonor: {B: 2+},
@@ -295,10 +298,14 @@ fejezetek:
       - {minta: "1A (nB) X (P) 4M", kulcs: NEG-X-PARTNER-GEM, prioritas: 57, kulonbozo: [A, B, M],
          pont: 18+, hossz: {M: 4+}, magyarazat: "Gém a partner színében"}
       # a saját szín ismétlése
+      # a sávok a páros menetéi (1m-1M-2m / 1m-1M-3m; a szerkesztő, 2026-10-31)
       - {minta: "1A (nB) X (P) +A", kulcs: NEG-X-SAJAT, prioritas: 54,
-         pont: 12-14, hossz: {A: 6+}, magyarazat: "A saját szín ismétlése: plusz hossz"}
+         pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}], hossz: {A: 6+},
+         magyarazat: "A saját szín ismétlése: 6+ lap, 12-16 (rossz 17)"}
       - {minta: "1A (nB) X (P) 3A", kulcs: NEG-X-SAJAT-UGRO, prioritas: 55,
-         ha: {ugras: true}, pont: 15-17, hossz: {A: 6+}, magyarazat: "A saját szín ugrással: plusz hossz, plusz erő"}
+         ha: {ugras: true}, pont: 17-19, vagy: [{pont: 18-19}, {pont: 17, minoseg: nem_rossz}],
+         szin_vesztok: {A: 0-1}, hossz: {A: 6+}, forsz: EGY_MENET,
+         magyarazat: "A saját szín ugrással: jó 6+ lap, 17-19 (jó 17)"}
       # szan
       - {minta: "1A (nB) X (P) +NT", kulcs: NEG-X-SZAN, prioritas: 53,
          pont: 12-14, fogas: [B], magyarazat: "Szan: fogás az ellenfél színében, 3NT-hez kevés erő"}
@@ -306,18 +313,29 @@ fejezetek:
          pont: 15+, fogas: [B], magyarazat: "3NT: fogás az ellenfél színében, elég erővel"}
       # új szín (kétszínű)
       - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-UJ, prioritas: 52, kulonbozo: [A, B, E],
-         pont: 12-17, hossz: {A: 5+, E: 4+}, magyarazat: "Új szín: kétszínű lap"}
+         ha: {riverz: false}, pont: 12-17, hossz: {A: 5+, E: 4+}, magyarazat: "Új szín: kétszínű lap"}
+      # riverz (a 2-es szinten a nyitott színnél magasabb rangú új szín): 18+,
+      # a nyitott szín hosszabb; álriverz 3 lapos erős színnel, ha a második
+      # szín erősebb, vagy a nyitott szín csak ötös (a szerkesztő, 2026-10-31)
+      - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-RIVERZ, prioritas: 53, kulonbozo: [A, B, E],
+         ha: {riverz: true}, pont: 18+, forsz: EGY_MENET,
+         vagy: [{hossz: {A: 5, E: 4}}, {hossz: {A: 6+, E: 4-5}}],
+         alert: "Riverz: 18+, a nyitott szín hosszabb (5-4, 6-4, 6-5)"}
+      - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-ALRIVERZ, prioritas: 52, kulonbozo: [A, B, E],
+         ha: {riverz: true}, pont: 18+, hossz: {A: 5, E: 3}, fohonor: {E: 2+}, forsz: EGY_MENET,
+         alert: "Riverz (álriverz is lehet: 3 lapos erős szín), 18+"}
       - {minta: "1A (nB) X (P) 3E", kulcs: NEG-X-UJ-UGRO, prioritas: 53, kulonbozo: [A, B, E],
          ha: {ugras: true}, pont: 18+, hossz: {A: 5+, E: 4+}, forsz: GEMFORSZ,
          magyarazat: "Új szín ugrással: kétszínű lap, plusz erő"}
       # felüllicit: erős lap, félfogás
       - {minta: "1A (nB) X (P) +B", kulcs: NEG-X-FELUL, prioritas: 51,
-         pont: 15+, nincs_fogas: [B], vagy: [{lapok: [BK]}, {lapok: [BQ]}], forsz: GEMFORSZ,
-         alert: "Felüllicit: erős lap, nincs biztos fogás (félfogás) — fogást keres, cél a 3NT"}
+         pont: 15+, nincs_fogas: [B], vagy: [{pont: 18+}, {lapok: [BK]}, {lapok: [BQ]}], forsz: GEMFORSZ,
+         alert: "Felüllicit: erős lap, nincs biztos fogás — fogást keres, cél a 3NT"}
       # „kínunkban”: a büntető passz helyett a legolcsóbb bukás
       - {minta: "1A (nB) X (P) +M", kulcs: NEG-X-KIN-PARTNER, prioritas: 41, kulonbozo: [A, B, M],
          hossz: {M: 3+}, magyarazat: "Kényszerből: a partner színe 3 lappal (a passz büntető volna)"}
       - {minta: "1A (nB) X (P) +A", kulcs: NEG-X-KIN-SAJAT, prioritas: 40,
-         hossz: {A: 3+}, magyarazat: "Kényszerből: a saját színem (a passz büntető volna)"}
+         pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}],
+         hossz: {A: 3+}, magyarazat: "Kényszerből: a saját színem (a passz büntető volna), 12-16"}
       - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-KIN-UJ, prioritas: 39, kulonbozo: [A, B, E],
-         hossz: {E: 3+}, magyarazat: "Kényszerből: a legolcsóbb hármas szín (a passz büntető volna)"}
+         ha: {riverz: false}, pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}], hossz: {E: 3+}, magyarazat: "Kényszerből: a legolcsóbb hármas szín (a passz büntető volna)"}

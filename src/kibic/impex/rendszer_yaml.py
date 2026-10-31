@@ -922,6 +922,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
             if isinstance(v, dict) and "szint" in v:   # {szint: 3}: ezen a szinten
                 n["szint"] = int(v["szint"])
             gy.append(n if v else {"t": "NEM", "gy": [n]})
+        elif k == "riverz":                # a licit riverz-e (2-es szint, a nyitott színnél magasabb rangú)
+            n = {"t": "RIVERZ"}
+            gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "ugras":                 # a licit ugrás-e (nem a legolcsóbb szinten)
             n = {"t": "UGRAS"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
@@ -1078,6 +1081,8 @@ def _ha_szoveg(ha) -> str | None:
                        for sz_, db in parok]
         elif k == "ugras":
             reszek.append("ugrással" if v else "nem ugrással")
+        elif k == "riverz":
+            reszek.append("riverz" if v else "nem riverz")
         elif k == "partner_ugrott":
             reszek.append("a partner ugrott" if v else "a partner nem ugrott")
         elif k == "partner_kulcslicitelt":
