@@ -239,7 +239,7 @@ def _lepes_hivas(j: Jatek, kez: str, lp: Lepes):
     p = j.partner(kez)
     sz = lp.szin
     if lp.fajta == "KIADUZ":
-        if not j.adu or not j.kint(j.adu) or j.szamlalo >= 6:
+        if not j.adu or not j.kint(j.adu) or j.szamlalo >= (lp.db or 6):
             return ("KESZ",)
         sajat = j.szin(kez, j.adu)
         ny = j.nyerok(kez, j.adu)
@@ -505,6 +505,45 @@ def ertekel(tervek: list[Terv], vilagok, sulyok, felvevo, kontraktus, lejatszott
     return sorted(ki, key=lambda x: (-x.esely, -x.atlag))
 
 
+def kovetesi_valasztas(legalis: list[Lap], utes: list[tuple[str, Lap]], adu: str | None) -> list[Lap]:
+    """A követő lap valódi választásai: a legkisebb lap, amely NEM viszi az ütést
+    (kihagyás, kiengedés), és a legolcsóbb, amely viszi (fedés, megütés). Ha csak
+    az egyik fajta van, nincs ilyen választás (üres lista)."""
+    if not utes:
+        return []
+    hivott = utes[0][1].szin
+    nyl = utes[0][1]
+    for _, l in utes[1:]:
+        if (l.szin == nyl.szin and l.rang > nyl.rang) or (adu and l.szin == adu and nyl.szin != adu):
+            nyl = l
+    viszi = [l for l in legalis if (l.szin == nyl.szin and l.rang > nyl.rang)
+             or (adu and l.szin == adu and nyl.szin != adu)]
+    nem = [l for l in legalis if l not in viszi]
+    if not viszi or not nem:
+        return []
+    kicsi = min(nem, key=lambda l: (l.szin == adu, l.szin != hivott, l.rang))
+    olcso = min(viszi, key=lambda l: (l.szin == adu and hivott != adu, l.rang))
+    return [kicsi, olcso]
+
+
+def kovetes_tervvel(lapok: list[Lap], tervek: list[Terv], vilagok, sulyok, felvevo, kontraktus,
+                    lejatszott, u: str, dd_fv=None) -> tuple[Lap, list[tuple[str, float, float, str]]]:
+    """A követő lap a tervek szerint (nem DD-szavazással): minden jelölt lapot
+    letesz a világokon, és a folytatást a tervekkel értékeli (a felvevő ott sem
+    kukucskál). A lap értéke a legjobb terv esélye (egyenlőségnél az átlagos
+    ütésszám). Vissza: a választott lap és a napló (lap, esély, átlag, terv)."""
+    if dd_fv is None:
+        from ..solver.dds import lap_elemzes as dd_fv
+    naplo = []
+    for c in lapok:
+        tar = DDTar(dd_fv, kontraktus)
+        ert = ertekel(tervek, vilagok, sulyok, felvevo, kontraktus, list(lejatszott) + [(u, c)],
+                      dd_tar=tar)
+        naplo.append((str(c), ert[0].esely, ert[0].atlag, str(ert[0].terv)))
+    i = max(range(len(lapok)), key=lambda i: (naplo[i][1], naplo[i][2]))
+    return lapok[i], naplo
+
+
 def ertekel_lepcsos(tervek: list[Terv], vilagok, sulyok, felvevo, kontraktus, lejatszott,
                     dd_fv=None, elso: int = 4, marad: int = 8) -> list[TervErtek]:
     """Lépcsős értékelés: minden terv az első `elso` világon, a legjobb `marad`
@@ -564,7 +603,7 @@ def _szinkezelesek(d: set[Lap], y: set[Lap], sz: str, adu: str | None, kint: lis
 
 
 def jeloltek(d: set[Lap], y: set[Lap], adu: str | None, kint_fv, max_db: int = 80,
-             max_elter: int = 2) -> list[Terv]:
+             max_elter: int = 2, adu_kezeles: bool = False) -> list[Terv]:
     """Tervjelöltek. Színenként az alapkezelés a lehívás; a terv legfeljebb
     `max_elter` színben tér el tőle (impassz, kiadás, lopás…), ezek elöl állnak
     (minden sorrendben), a lehívások a végén. Színfelvételnél a kiaduzás helye:
@@ -574,12 +613,21 @@ def jeloltek(d: set[Lap], y: set[Lap], adu: str | None, kint_fv, max_db: int = 8
     alap = {sz: (k[0] if k and k[0] and k[0][0].fajta == "LEHIV" and len(k[0]) == 1 else ())
             for sz, k in kez.items()}
     elter = [(sz, t) for sz, k in kez.items() for t in k if t and t != alap[sz]]
+    if adu and adu_kezeles:
+        # az aduszín kezelése (impassz, kiadás) a kiaduzás helyén: a kezelés után
+        # a maradék kiaduzás (LEHIV helyett KIADUZ)
+        for t in _szinkezelesek(d, y, adu, adu, kint_fv(adu)):
+            if t and not (len(t) == 1 and t[0].fajta == "LEHIV") and all(l.fajta != "LOP" for l in t):
+                elter.append((adu, tuple(Lepes("KIADUZ", None, l.db) if l.fajta == "LEHIV" else l
+                                         for l in t)))
     tervek: list[Terv] = []
     lat = set()
 
     def hozzaad(lepesek: list[Lepes]):
         valtozatok = [lepesek]
-        if adu:
+        if adu and any(l.szin == adu for l in lepesek):
+            valtozatok = [lepesek]               # az adu kezelése már a tervben van
+        elif adu:
             lopas = [i for i, l in enumerate(lepesek) if l.fajta == "LOP"]
             valtozatok = [[Lepes("KIADUZ")] + lepesek]
             if lopas:

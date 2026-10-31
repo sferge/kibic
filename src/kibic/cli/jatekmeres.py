@@ -114,8 +114,10 @@ def fajlok_kibontasa(utak: list[str], kiterj: str) -> list[str]:
     return ki
 
 
-def partik_fajlbol(utak: list[str], pontozas: str):
-    """LIN- és PBN-fájlok (a kiterjesztés dönt) -> Parti."""
+def partik_fajlbol(utak: list[str], pontozas: str, min_lapok: int = 2):
+    """LIN- és PBN-fájlok (a kiterjesztés dönt) -> Parti. `min_lapok`: legalább
+    ennyi lejátszott lap kell (a teljes lejátszáshoz elég az indulás: 1 — pl. a
+    BBO „Hand of the Day” partik, ahol csak az indulás ismert)."""
     from ..domain import kovetkezo_ules
     from ..impex.lin import olvas_fajl
     from ..motor.lejatszas_meres import Parti
@@ -133,7 +135,7 @@ def partik_fajlbol(utak: list[str], pontozas: str):
                     j.felvevo = f_
                     if not j.kontraktus:
                         j.kontraktus = k_
-            if not j.leosztas or not j.kontraktus or not j.felvevo or len(j.lapok) < 2:
+            if not j.leosztas or not j.kontraktus or not j.felvevo or len(j.lapok) < min_lapok:
                 continue
             k = replace(j.kontraktus, felvevo=j.felvevo)
             ules, licit = j.leosztas.oszto, []
@@ -313,7 +315,7 @@ def main(argv=None) -> int:
             if not utak:
                 print("Nincs mérhető fájl a megadott helyen.", file=sys.stderr)
                 return 1
-            partik = partik_fajlbol(utak, a.pontozas)
+            partik = partik_fajlbol(utak, a.pontozas, 1 if a.teljes else 2)
         else:
             partik = partik_dbbol(a, a.pontozas)
         oldal = {"mind": None, "felvevo": True, "vedo": False}[a.oldal]
