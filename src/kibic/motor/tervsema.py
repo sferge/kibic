@@ -253,6 +253,8 @@ class TechnikaSema:
     hozam: int
     hasznal: list
     elfogyaszt: list
+    fajta: str = "kotta"        # kotta: a körök a sémában; elemzo: az egyszínű elemző kezelése
+    celok: dict = field(default_factory=dict)
 
 
 def _yaml(ut: Path):
@@ -286,7 +288,8 @@ def technikak_betoltese(konyvtar: Path = SEMA_KONYVTAR) -> dict[str, TechnikaSem
                                 d.get("alkalmazhato") or [], d.get("korok") or [],
                                 d.get("siker") or "False", int(d.get("kudarc_koltseg", 0)),
                                 int(d.get("hozam", 1)), d.get("hasznal") or [],
-                                d.get("elfogyaszt") or [])
+                                d.get("elfogyaszt") or [], d.get("fajta", "kotta"),
+                                d.get("celok") or {})
     return ki
 
 
@@ -333,6 +336,11 @@ class Peldany:
 
     @property
     def rovid(self) -> str:
+        if self.sema.fajta == "elemzo":
+            sz = self.szerepek
+            lop = sz.get("lop_x", 0) + sz.get("lop_y", 0)
+            return (f"{'♠♥♦♣'['SHDC'.index(self.szin)]} színkezelés ({sz['k']} ütés, ≤{sz['m']} vesztés"
+                    + (f", {lop} lopás" if lop else "") + ")")
         r = {"EJTES": "ejtés", "IMPASSZ_VILLA": "impassz", "IMPASSZ_ATENGEDES": "impassz",
              "IMPASSZ_ATENGEDES_FELSO_ELOBB": "impassz (felső előbb)",
              "LOPASOS_KIMAGASITAS": "lopásos kimagasítás"}.get(self.sema.azon, self.sema.azon)
@@ -355,6 +363,8 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
     fog = fogalmak(allas)
     ki = []
     for sema in technikak.values():
+        if sema.fajta != "kotta":
+            continue                           # az elemzős technikák példányait a tervező állítja
         for sz in SZINEK:
             kor = dict(fog, SZ=sz)
             try:

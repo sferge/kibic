@@ -116,3 +116,15 @@
   hozam: 1
   hasznal: [FELSO, "[M]"]
   elfogyaszt: [FELSO, "[M]"]
+
+- technika: SZINKEZELES
+  nev: "Színkezelés: az egyszínű elemző kezelése (k ütés legfeljebb m vesztéssel)"
+  # A kotta és a siker az egyszínű elemzőből jön (motor/tervszinkezeles.py): a
+  # felvevő a látott lapokon dönt, a védők a cél ellen játszanak. A tervező a
+  # színre a célokat a helyzetből állítja: k = a biztos ütések + 1 … (a hiányig),
+  # m = 0 … a tartalék; lopás a rövidebb, adus kezünkkel. A hozam tartásonként a
+  # szín ütései a biztoson felül, a költség a vesztett ütések. Az átmeneteket és
+  # a hívás helyét a tervező adja át (a védő a legrosszabb kezünkbe hív vissza).
+  fajta: elemzo
+  celok: {vesztes: tartalek, lopas: igen}
+
