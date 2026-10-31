@@ -555,7 +555,7 @@ használja belőle: `actor.acting_for_seat`, `state.contract`, `declarer`,
 
 **A döntés** (`motor/lejatszas.py`; részletesen: `rendszerek/jelzesek/README.md`):
 
-1. **Tények → minta.** A látható kezek, a lejátszott lapok, a renonszok és a
+1. **Tények → minta.** A látható kezek, a lejátszott lapok, a színhiányok és a
    licitmenet kényszertára alapján lehetséges teljes leosztások — amennyi az
    időkeretbe fér (legfeljebb 400); ha a lehetséges elosztások száma ≤ 600,
    mind (kimerítő elemzés, `meta.kibic.exhaustive`). Ha a kényszertár túl
@@ -739,7 +739,7 @@ asztalt és a terítő nyitott kezét látja, így a negyedik kéz kiszámolhat�
 2. **Biztos terv** (a felvevő terítésénél, ütés elején, ha a felvevő oldal
    hív): a föntről lefelé lehívás (5.3) eléri → elfogadás.
 3. **A terítő szemszögéből** (ő a saját kezét és az asztalt látja) a lapok
-   MINDEN lehetséges elhelyezkedésében — a megmutatott renonszokkal —
+   MINDEN lehetséges elhelyezkedésében — a megmutatott színhiányokkal —
    kijön-e (DD)? Igen → elfogadás; ha csak bizonyos elhelyezkedésben (pl. egy
    impasszon múlik): elutasítás. 2000 elosztásig mindet nézi, különben 300
    véletlent (determinisztikusan), legfeljebb `KIBIC_CLAIM_MS` (alap 20 000)
