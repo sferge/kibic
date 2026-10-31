@@ -201,7 +201,7 @@ def test_mag_mellett_nem_az_ido_dont(monkeypatch):
         jm._MUNKAS["fv"] = lambda k: (k["legal_actions"]["cards"][0], {"kibic": {"stopped": "BIZTOS",
                                                                                    "samples": 80}})
     monkeypatch.setattr(jm, "_munkas_init", init)
-    monkeypatch.setattr(jm, "partik_fajlbol", lambda utak, pont: iter([PARTI]))
+    monkeypatch.setattr(jm, "partik_fajlbol", lambda utak, pont, *_: iter([PARTI]))
     eredeti_dd = lm._dd_szotar
     monkeypatch.setattr(lm, "_dd_szotar", lambda *a, **k: {})      # nincs DD: nincs mérés
     jm.main(["--pbn", "x.pbn", "--mag", "1", "--max-dontes", "1"])
