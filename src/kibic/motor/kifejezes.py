@@ -855,7 +855,7 @@ _ERT_NEV = {"HCP": "figurapont", "ZAR": "Zar-pont", "LTC": "vesztőütés",
             "KONTROLL": "kontroll", "NANO": "nano-pont",
             "GYORSUTES": "gyorsütés", "EGYENLETES": "egyenletes",
             "LAPMINOSEG": "lapminőség", "AP_321": "asztali pont",
-            "AP_531": "asztali pont"}
+            "AP_531": "asztali pont", "HOSSZ_NT": "pont (hosszú szín a szan ellen)"}
 _SZIN_NEV = {"S": "pikk", "H": "kőr", "D": "káró", "C": "treff"}
 _LAP_NEV = {"A": "ásza", "K": "királya", "Q": "dámája", "J": "bubija"}
 
