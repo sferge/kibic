@@ -57,6 +57,10 @@ _SZIN_RANG = {"C": 0, "D": 1, "H": 2, "S": 3, "NT": 4, "N": 4}
 _HIVAS_RANG = {"P": -3, "X": -2, "XX": -1}
 
 
+# a kvázi gémforsz küszöbe: saját figurapont + a partner ígért minimuma
+KVAZI_GF = 25
+
+
 def licit_rang(licit: str | None) -> tuple:
     """Licitek sorrendje a Bánky-szabályhoz: P < X < XX < 1♣ < ... < 7NT."""
     if not licit:
@@ -84,6 +88,7 @@ class Dontes:
     indoklas: str = ""
     bizonytalan: bool = False       # egynél több jelölt volt
     elvre_esett: bool = False
+    kvazi_gf: bool = False          # a kvázi gémforsz elv szűrt (a szerkesztő, 2026-10-31)
     """Igaz, ha a döntés az ELVEK rétegéből jött, mert konkrét szabály
     nem illeszkedett. Ez a lefedettség őszinte mérőszáma: az elvvel
     "lefedett" helyzet nem ugyanaz, mint amire van megállapodásunk."""
@@ -409,6 +414,31 @@ class Licitmotor:
                     d.jeloltek, d.merlegelendo = regi_j, regi_m
         if konkret_ures and self.elvek:
             d.elvre_esett = bool(d.jeloltek or d.merlegelendo)
+
+        # KVÁZI GÉMFORSZ (a szerkesztő, 2026-10-31): ha a pontjaim és a partner
+        # ígért minimuma együtt legalább KVAZI_GF, passzolható licitet nem
+        # adunk (gém alatti, nem kényszerítő licit, passz) — ha van más jelölt:
+        # gém, riverz / álriverz, felüllicit, kényszerítő ugrás.
+        if len(d.jeloltek) > 1 and allas.kenyszertar:
+            p_ig = allas.kenyszertar.get(allas.partner)
+            from .hezag import _gem_alatt, _hcp
+            if p_ig is not None and p_ig.nyilatkozott and \
+                    _hcp(kez) + int(p_ig.pont_min) >= KVAZI_GF:
+
+                def _passzolhato(j_):
+                    if j_.licit == "P":
+                        return True
+                    # a kontra marad: a büntető kontra elfogadható végső
+                    # felvétel (kvázi gémforszban nem kell mérlegelni, hogy a
+                    # bukás jobb-e a gémnél), az értékkontra pedig választást ad
+                    if j_.licit in ("X", "XX"):
+                        return False
+                    forsz = getattr(j_.sor, "forsz", None) or "NEM"
+                    return forsz == "NEM" and _gem_alatt(j_.licit)
+                nem_p = [j_ for j_ in d.jeloltek if not _passzolhato(j_)]
+                if nem_p and len(nem_p) < len(d.jeloltek):
+                    d.jeloltek = nem_p
+                    d.kvazi_gf = True
 
         d.bizonytalan = len({j.licit for j in d.jeloltek}) > 1
         if not d.jeloltek:

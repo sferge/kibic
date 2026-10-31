@@ -1,0 +1,58 @@
+# MASODIK_SZANDEK — a 2. szándékú nyitás (a szerkesztő, 2026-10-31).
+#
+# Már passzoltam, a partnerem is, és az ellenfél most nyit (p (p) p (1x);
+# a mintában: első ülés, az ellenfél nyitása után):
+# a megszólalásom „majdnem nyitóerőt” és jó elosztást ígér. A partner tudja,
+# hogy legfeljebb 11 pontom van (erős változat nincs). Minél jobb az
+# elosztás, annál lejjebb megy a ponthatár: alapból 10, az ő színükben
+# szinglivel 9, renonsszal 8.
+#   * Kontra minorra: mindkét nemes (4-4, 5-4).
+#   * Kontra nemesre: a másik nemes és egy minor (4+, 4+). Egyszínű lappal
+#     nincs kontra.
+#   * 5-5-tel felüllicit (az ő színük), 4-6 vesztővel: minorra a két
+#     nemes, nemesre a másik nemes és egy minor.
+#   * Színlicit (a kétszínű konvenciók — 2NT, Michaels — után): 5+ lap, „figura vezetés” — 1-es szinten legalább 5
+#     figurapont a színben, köztük ász vagy király; 2-es szinten két
+#     fő-figura (A/K/D), és a pontok legalább fele a színben.
+rendszer:
+  kod: MASODIK_SZANDEK
+  nev: 2. szándékú nyitás
+  nev_en: Passed-hand re-entry
+  fajta: KONVENCIO
+  tema: "Passzolt lap: megszólalás az ellenfél nyitása után"
+  leiras: "p (p) p (1x) után a megszólalás majdnem nyitóerő (legfeljebb 11) jó elosztással: 10, szinglivel 9, renonsszal 8 ponttól. Kontra minorra két nemes, nemesre a másik nemes + minor; 5-5 felüllicit; színlicit figura vezetéssel."
+fejezetek:
+  - fejezet: "Kontra"
+    szabalyok:
+      - {minta: "(1m) X", kulcs: M2SZ-X-MINOR, ha: {ules: 1}, prioritas: 60, forsz: EGY_MENET, elvaras: VALASSZ,
+         pont: 8-11, hossz: {m: 0-2},
+         vagy: [{pont: 10-11, vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}]},
+                {pont: 9, hossz: {m: 0-1}, vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}]},
+                {pont: 8, hossz: {m: 0}, vagy: [{hossz: {H: 4, S: 4}}, {hossz: {H: 5, S: 4}}, {hossz: {H: 4, S: 5}}]}],
+         alert: "2. szándékú kontra: mindkét nemes, majdnem nyitóerő (passzolt lap, legfeljebb 11)"}
+      - {minta: "(1M) X", kulcs: M2SZ-X-NEMES, ha: {ules: 1}, prioritas: 60, forsz: EGY_MENET, elvaras: VALASSZ,
+         pont: 8-11, hossz: {M: 0-2, oM: 4-5},
+         vagy: [{pont: 10-11, vagy: [{hossz: {C: 4+}}, {hossz: {D: 4+}}]},
+                {pont: 9, hossz: {M: 0-1}, vagy: [{hossz: {C: 4+}}, {hossz: {D: 4+}}]},
+                {pont: 8, hossz: {M: 0}, vagy: [{hossz: {C: 4+}}, {hossz: {D: 4+}}]}],
+         alert: "2. szándékú kontra: a másik nemes és egy minor, majdnem nyitóerő (passzolt lap)"}
+  - fejezet: "Felüllicit 5-5-tel"
+    szabalyok:
+      - {minta: "(1m) 2m", kulcs: M2SZ-FELUL-MINOR, ha: {ules: 1}, prioritas: 61, forsz: EGY_MENET, elvaras: VALASSZ,
+         pont: 0-11, hossz: {H: 5+, S: 5+}, vesztok: 4-6,
+         alert: "2. szándékú felüllicit: 5-5 a nemesekben, 4-6 vesztő"}
+      - {minta: "(1M) 2M", kulcs: M2SZ-FELUL-NEMES, ha: {ules: 1}, prioritas: 61, forsz: EGY_MENET, elvaras: VALASSZ,
+         pont: 0-11, hossz: {oM: 5+}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}], vesztok: 4-6,
+         alert: "2. szándékú felüllicit: 5-5, a másik nemes és egy minor, 4-6 vesztő"}
+  - fejezet: "Színlicit figura vezetéssel"
+    szabalyok:
+      - {minta: "(1B) 1A", kulcs: M2SZ-SZIN-1, ha: {ules: 1}, prioritas: 57, kulonbozo: [A, B],
+         pont: 8-11, hossz: {A: 5+}, figura: {A: 5+},
+         vagy: [{pont: 10-11, vagy: [{lapok: [AA]}, {lapok: [AK]}]},
+                {pont: 9, hossz: {B: 0-1}, vagy: [{lapok: [AA]}, {lapok: [AK]}]},
+                {pont: 8, hossz: {B: 0}, vagy: [{lapok: [AA]}, {lapok: [AK]}]}],
+         magyarazat: "2. szándékú színlicit: 5+ lap, figurák a színben, majdnem nyitóerő (passzolt lap)"}
+      - {minta: "(1B) 2A", kulcs: M2SZ-SZIN-2, ha: {ules: 1, ugras: false}, prioritas: 57, kulonbozo: [A, B],
+         pont: 8-11, hossz: {A: 5+}, fohonor: {A: 2+}, fele_a_szinben: A,
+         vagy: [{pont: 10-11}, {pont: 9, hossz: {B: 0-1}}, {pont: 8, hossz: {B: 0}}],
+         magyarazat: "2. szándékú színlicit a 2-es szinten: 5+ jó szín, a pontok fele a színben (passzolt lap)"}
