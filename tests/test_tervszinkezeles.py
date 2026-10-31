@@ -26,5 +26,5 @@ def test_ejtes_es_impassz_egy_szinben_nem_kombinalhato():
 
 def test_impassz_a_dama_fele():
     k = _kinalat("AQ5", "763")
-    assert k.eselyek[2][0] == pytest.approx(0.522, abs=0.002)
-    assert k.eselyek[2][1].startswith("asztal hív")
+    assert k.eselyek[2][0] == pytest.approx(0.548, abs=0.002)   # = a mindent látó korlát (♠A előbb, aztán impassz)
+    assert k.eselyek[2][1].startswith("felvevő hív: A")   # a szingli K ellen előbb az A

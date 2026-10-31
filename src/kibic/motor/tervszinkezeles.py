@@ -166,11 +166,31 @@ def vedo_lap(kezek: dict, lop: dict, sorrend, utes, k: int, m: int):
     legjobb, lap = None, None
     for c in sorted(kezek[u]):
         uj = tuple(utes) + ((u, c),)
-        v = (_cel_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj, k, m),
+        cel = _cel_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj, k, m)
+        # ha a cél szempontjából mindegy: a mindent látó felvevőt minél több vesztésre kényszeríti
+        min_veszt = next((mm for mm in range(0, min(m, 13) + 1)
+                          if _cel_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj, k, mm)), 99) \
+            if cel else 99
+        v = (cel, -min_veszt,
+             # a negyedik kéz elviszi az ütést, ha teheti (és a fentiek szerint mindegy)
+             0 if len(uj) == 4 and _biztos_viszi(kezek, lop, sorrend, uj) else 1,
              _dd_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj))
         if legjobb is None or v < legjobb:
             legjobb, lap = v, c
     return lap
+
+
+def _biztos_viszi(kezek: dict, lop: dict, sorrend, utes) -> bool:
+    """A védők viszik-e biztosan ezt az ütést (a még hátralévő kezünk sem üti)?"""
+    gy = _gyoztes(list(utes))
+    if gy in MI:
+        return False
+    legn = max(l for _, l in utes if l is not None)
+    for u in sorrend[len(utes):]:
+        if u in MI:
+            if any(l > legn for l in kezek[u]) or (not kezek[u] and lop.get(u, 0) > 0):
+                return False
+    return True
 
 
 # --- 2. A felvevő a látott lapokon (információs halmaz) ------------------------------
@@ -218,7 +238,7 @@ class Elemzo:
     """Az információs halmazokon számoló felvevő. Állapot: a két kezünk lapjai,
     a lopások, az átmenetek, ki van hívásban; a még lehetséges tartások és a
     védők eddig lejátszott lapjai. Átmenetkorlát mellett ha a védő viszi az
-    ütést, a legrosszabb kezünkbe hív (ő választja, hova jön vissza a hívás)."""
+    ütést, ő hív: a következő hívásunk bármelyik kezünkből egy átmenetet visz."""
 
     def __init__(self, f: Feladat):
         self.f = f
@@ -344,7 +364,7 @@ class Elemzo:
             kezek0 = {"X": X, "Y": Y,
                       "V1": frozenset().union(*[maradek[j][0] for j in js]),
                       "V2": frozenset().union(*[maradek[j][1] for j in js])}
-            legjobb, c3_best = (0.0, frozenset()), None
+            legjobb, c3_best, volt = (0.0, frozenset()), None, False
             for c3 in _lehetosegek(kezek0, harmadik, lop):
                 csop4: dict = {}
                 for j in js:
@@ -366,13 +386,14 @@ class Elemzo:
                         vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
                                              idx2, l1, l2_, k2, m2)
                     else:
-                        # a védő viszi: ő választja, melyik kezünkbe hív vissza
-                        vw, vs = min((self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, h),
-                                                  idx2, l1, l2_, k2, m2) for h in MI), key=lambda x: x[0])
+                        # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
+                        # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
+                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
+                                             idx2, l1, l2_, k2, m2)
                     w += vw
                     s |= vs
-                if w > legjobb[0] or c3_best is None:
-                    legjobb, c3_best = (w, s), c3
+                if w > legjobb[0] or not volt:      # (a „dob” lehetőség lapja None)
+                    legjobb, c3_best, volt = (w, s), c3, True
             self.harmadik[(kulcs, hivo, c, l2)] = c3_best
             ossz_w += legjobb[0]
             ossz_s |= legjobb[1]
@@ -449,9 +470,7 @@ class Elemzo:
                     self._lejatszik((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
                                     idx2, l1, l2_, k2, m2, sz2, ki)
                 else:
-                    h = min(MI, key=lambda h: self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, h),
-                                                           idx2, l1, l2_, k2, m2)[0])
-                    self._lejatszik((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, h),
+                    self._lejatszik((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
                                     idx2, l1, l2_, k2, m2, sz2, ki)
 
 
