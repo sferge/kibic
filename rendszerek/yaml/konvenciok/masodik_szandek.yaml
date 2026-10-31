@@ -11,7 +11,7 @@
 #     nincs kontra.
 #   * 5-5-tel felüllicit (az ő színük), 4-6 vesztővel: minorra a két
 #     nemes, nemesre a másik nemes és egy minor.
-#   * Színlicit: 5+ lap, „figura vezetés” — 1-es szinten legalább 5
+#   * Színlicit (a kétszínű konvenciók — 2NT, Michaels — után): 5+ lap, „figura vezetés” — 1-es szinten legalább 5
 #     figurapont a színben, köztük ász vagy király; 2-es szinten két
 #     fő-figura (A/K/D), és a pontok legalább fele a színben.
 rendszer:
@@ -46,13 +46,13 @@ fejezetek:
          alert: "2. szándékú felüllicit: 5-5, a másik nemes és egy minor, 4-6 vesztő"}
   - fejezet: "Színlicit figura vezetéssel"
     szabalyok:
-      - {minta: "(1B) 1A", kulcs: M2SZ-SZIN-1, ha: {ules: 1}, prioritas: 59, kulonbozo: [A, B],
+      - {minta: "(1B) 1A", kulcs: M2SZ-SZIN-1, ha: {ules: 1}, prioritas: 57, kulonbozo: [A, B],
          pont: 8-11, hossz: {A: 5+}, figura: {A: 5+},
          vagy: [{pont: 10-11, vagy: [{lapok: [AA]}, {lapok: [AK]}]},
                 {pont: 9, hossz: {B: 0-1}, vagy: [{lapok: [AA]}, {lapok: [AK]}]},
                 {pont: 8, hossz: {B: 0}, vagy: [{lapok: [AA]}, {lapok: [AK]}]}],
          magyarazat: "2. szándékú színlicit: 5+ lap, figurák a színben, majdnem nyitóerő (passzolt lap)"}
-      - {minta: "(1B) 2A", kulcs: M2SZ-SZIN-2, ha: {ules: 1, ugras: false}, prioritas: 59, kulonbozo: [A, B],
+      - {minta: "(1B) 2A", kulcs: M2SZ-SZIN-2, ha: {ules: 1, ugras: false}, prioritas: 57, kulonbozo: [A, B],
          pont: 8-11, hossz: {A: 5+}, fohonor: {A: 2+}, fele_a_szinben: A,
          vagy: [{pont: 10-11}, {pont: 9, hossz: {B: 0-1}}, {pont: 8, hossz: {B: 0}}],
          magyarazat: "2. szándékú színlicit a 2-es szinten: 5+ jó szín, a pontok fele a színben (passzolt lap)"}
