@@ -428,7 +428,10 @@ class Licitmotor:
                 def _passzolhato(j_):
                     if j_.licit == "P":
                         return True
-                    if j_.licit in ("X", "XX"):   # a büntető kontra erős akció
+                    # a kontra marad: a büntető kontra elfogadható végső
+                    # felvétel (kvázi gémforszban nem kell mérlegelni, hogy a
+                    # bukás jobb-e a gémnél), az értékkontra pedig választást ad
+                    if j_.licit in ("X", "XX"):
                         return False
                     forsz = getattr(j_.sor, "forsz", None) or "NEM"
                     return forsz == "NEM" and _gem_alatt(j_.licit)

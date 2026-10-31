@@ -50,7 +50,9 @@ fejezetek:
       - minta: 1NT-2C
         vagy:
           - {pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 5}}]}
-          - {pont: 8+, vagy: [{hossz: {S: 4+}}, {hossz: {H: 4+}}]}
+          # pontosan 4-es nemessel (a 4-5 a Smolen); az 5+ / 6+ lapos nemes
+          # egyszínű lappal a transzferen megy (a szerkesztő, 2026-10-31)
+          - {pont: 8+, vagy: [{hossz: {S: 4, H: 0-5}}, {hossz: {H: 4, S: 0-5}}]}
           # 4-es nemes nélkül is (a szerkesztő, 2026-10-24): az egyenletes
           # invit a 2♣-n megy, mert a 2NT káró-transzfer (MOHA_1NT). 8 ponttal
           # 4-es nemes nélkül passz (rossz 8, 2026-10-23), így ez 9 pont.
