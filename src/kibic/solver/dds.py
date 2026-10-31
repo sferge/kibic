@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import functools
+import logging
+import os
 import threading
 
 from ..domain import Lap, Leosztas, SZINEK, ULESEK, kovetkezo_ules, vonal
@@ -51,6 +53,95 @@ def _zarral(fv):
         with ZAR:
             return fv(*a, **kw)
     return burok
+
+
+# PÁRHUZAMOS DDS (2026-10-31, freeze-szál). Több asztalnál a közös zár sorba
+# állítja a kibiceket: amíg az egyik mintát számol, a többi vár. Szálakkal nem
+# oldható fel — az endplay `solve_board` mindig a 0. DDS-szálat használja, és
+# saját szálindexszel (`_dds.SolveBoard(..., i)`) két szálon a könyvtár
+# összeomlik (double free / segfault, kimérve). Ezért KÜLÖN FOLYAMATOK: mindegyik
+# a saját DDS-példányát tölti be. `KIBIC_DDS_FOLYAMATOK=N` (alap 0 = a régi,
+# zárral sorba állított működés): a lejátszás lapelemzése (`lap_elemzes`, a
+# forró út) N munkafolyamatban fut, zár nélkül. A többi bejárat (tábla, par,
+# terítés) marad a zárral. Ha a készlet elromlik, visszaáll a záras útra.
+FOLYAMATOK = max(0, int(os.getenv("KIBIC_DDS_FOLYAMATOK", "0") or 0))
+_KESZLET = None
+_KESZLET_ZAR = threading.Lock()
+_FOLYAMATBAN = False          # a munkafolyamatban igaz: ott nincs további készlet
+_naplo = logging.getLogger("kibic.dds")
+
+
+def _munkas_indul() -> None:
+    global _FOLYAMATBAN
+    _FOLYAMATBAN = True
+
+
+def parhuzamos() -> bool:
+    """Igaz, ha a lapelemzés külön folyamatokban fut (nincs szükség a zárra)."""
+    return FOLYAMATOK > 0 and not _FOLYAMATBAN
+
+
+def _keszlet():
+    global _KESZLET
+    with _KESZLET_ZAR:
+        if _KESZLET is None:
+            import multiprocessing as mp
+            from concurrent.futures import ProcessPoolExecutor
+            # spawn: a többszálú szolgáltatásból fork-olni nem biztonságos
+            _KESZLET = ProcessPoolExecutor(FOLYAMATOK, mp_context=mp.get_context("spawn"),
+                                           initializer=_munkas_indul)
+        return _KESZLET
+
+
+def _bemelegito() -> bool:
+    _betolt()
+    return True
+
+
+def keszlet_bemelegit() -> None:
+    """A munkafolyamatok elindítása és az endplay betöltése előre (a szolgáltatás
+    indulásakor), hogy az első lapdöntés ne a folyamatindítással teljen."""
+    if not parhuzamos():
+        return
+    try:
+        k = _keszlet()
+        for f in [k.submit(_bemelegito) for _ in range(FOLYAMATOK)]:
+            f.result(timeout=120)
+    except Exception as e:                               # noqa: BLE001
+        _naplo.warning("A DDS-folyamatkészlet bemelegítése nem sikerült: %s", e)
+
+
+def keszlet_leallit() -> None:
+    global _KESZLET
+    with _KESZLET_ZAR:
+        if _KESZLET is not None:
+            _KESZLET.shutdown(wait=False, cancel_futures=True)
+            _KESZLET = None
+
+
+def _folyamatban_vagy_zarral(fv):
+    """Mint a `_zarral`, de párhuzamos módban a hívás a folyamatkészletbe megy."""
+    @functools.wraps(fv)
+    def burok(*a, **kw):
+        global FOLYAMATOK
+        if parhuzamos():
+            try:
+                return _keszlet().submit(_helyben, fv.__name__, a, kw).result()
+            except Exception as e:                       # noqa: BLE001
+                from concurrent.futures.process import BrokenProcessPool
+                if not isinstance(e, BrokenProcessPool):
+                    raise
+                _naplo.error("A DDS-folyamatkészlet elromlott (%s); vissza a záras útra.", e)
+                keszlet_leallit()
+                FOLYAMATOK = 0
+        with ZAR:
+            return fv(*a, **kw)
+    return burok
+
+
+def _helyben(nev: str, a, kw):
+    """A munkafolyamatban: a modul burkolatlan függvénye."""
+    return globals()[nev].__wrapped__(*a, **kw)
 
 
 def _betolt():
@@ -277,7 +368,7 @@ class LapErtekeles:
     veszteseg: int        # hány ütést ad fel a legjobbhoz képest
 
 
-@_zarral
+@_folyamatban_vagy_zarral
 def lap_elemzes(leosztas: Leosztas, lapok: list[str],
                 kontraktus: Kontraktus) -> list[LapErtekeles]:
     """

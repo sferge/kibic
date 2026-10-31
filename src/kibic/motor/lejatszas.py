@@ -2089,7 +2089,7 @@ class Eredmeny:
     kizart_jatek: int = 0
     leertekelt: dict = field(default_factory=dict)
     pontozas: str = "IMP"
-    megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT
+    megallt: str = ""               # BIZTOS / IDO / MAX / KIMERITO / ELFOGYOTT / SURGETES
     osszevont: bool = False         # kimerítő elemzés a kis lapok összevonásával
     igazitott: list[str] = field(default_factory=list)  # a licitjüket a lapokhoz igazítottuk
     lopasos_arany: float | None = None  # indulásnál: a minták hányadában épül a felvétel lopásra
@@ -2118,8 +2118,15 @@ ALFAMU_ELTERES = 0.05
 
 def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = None,
                  dd_fv=None, ido_keret_s: float = 6.0, db: int = 40,
-                 mag: int | None = None, valoszinu: dict | None = None) -> Eredmeny:
-    """A négy lépés egyben. Ha egyetlen szabályos lap van, nincs mit számolni."""
+                 mag: int | None = None, valoszinu: dict | None = None,
+                 megallito=None) -> Eredmeny:
+    """A négy lépés egyben. Ha egyetlen szabályos lap van, nincs mit számolni.
+
+    `megallito()`: ha igazat ad, a mintavétel a következő mintánál megáll (de
+    legalább 6 mintát megnéz), és az addigiak alapján dönt; az előrelátás
+    kimarad. Az átjáró sürgetése (`/v1/bridge/urge` expedite) használja;
+    a `megallt` ilyenkor SURGETES.
+    """
     start = time.time()
     if len(allas.legalis) == 1:
         lap = next(iter(allas.legalis))
@@ -2185,6 +2192,9 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                 if gy.n >= 6 and time.time() - start > ido_minta:
                     ido_le = True
                     break
+                if gy.n >= 6 and megallito is not None and megallito():
+                    megallt = "SURGETES"
+                    break
                 ered = dd_fv(lo, jatszott, allas.kontraktus)
                 if alfamu_aktiv and len(vilag_tar) < ALFAMU_VILAG:
                     vilag_tar.append((lo, w))
@@ -2204,6 +2214,10 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
                     megallt = "BIZTOS"
                     break
             k += 1
+            if megallt == "SURGETES":
+                if kimerito:
+                    tures = JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
+                break
             if kimerito:
                 if gy.n < len(m.leosztasok):        # nem nézte meg mindet: van minta-zaj
                     tures = JO_TURES * min(1.0, ismeretlen / TURES_TELJES_ISMERETLEN)
@@ -2235,7 +2249,8 @@ def jatek_dontes(allas: JatekAllas, jelzesek=None, kenyszertar: dict | None = No
         allas.lopasos_arany = jelleg[1] / jelleg[0]
     d = dontes(allas, jelzesek, stat)
     am = None
-    if alfamu_aktiv and stat and len(vilag_tar) >= 2:
+    if alfamu_aktiv and stat and len(vilag_tar) >= 2 and \
+            not (megallito is not None and megallito()):
         d, am = _alfamu_dontes(allas, d, stat, vilag_tar, dd_fv, start + ido_keret_s)
     # részleges terítés: ha egyik mintában sem lenne több ütés, mint a biztos terv
     if tr is not None and stat and \
