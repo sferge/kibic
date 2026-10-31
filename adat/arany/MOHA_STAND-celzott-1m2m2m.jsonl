@@ -1,4 +1,4 @@
-{"_fej": true, "rendszer": "MOHA_STAND", "mag": 7, "leosztas": 30000, "kovetkeztetes": false, "elotag": "1H|1S,P,2C|2D,P,2H|2S,P", "egyezo": "0,4", "min_hcp": "N:11,S:11", "rogzitve": "2026-10-31T23:51:26"}
+{"_fej": true, "rendszer": "MOHA_STAND", "mag": 7, "leosztas": 30000, "kovetkeztetes": false, "elotag": "1H|1S,P,2C|2D,P,2H|2S,P", "egyezo": "0,4", "min_hcp": "N:11,S:11", "rogzitve": "2026-11-01T00:44:59"}
 {"deal": 287, "dealer": "N", "vul": "ew", "seat": "N", "hand": "AKJ.KQJT53.74.52", "auction": [], "call": "1H", "source": "SZABALY", "explanation": "1H — 11-21 FP, 5+ kőr, legfeljebb 4 pikk"}
 {"deal": 287, "dealer": "N", "vul": "ew", "seat": "E", "hand": "QT632.42.Q2.J987", "auction": ["1H"], "call": "P", "source": "ELV", "explanation": "P — Nincs konkrét megállapodás, és nem kötelező licitálni: passz  [ELV — nincs rá konkrét megállapodás]"}
 {"deal": 287, "dealer": "N", "vul": "ew", "seat": "S", "hand": "985.A6.A9853.AK3", "auction": ["1H", "P"], "call": "2D", "source": "SZABALY", "explanation": "2D — 2/1: gémforsz, 5+ káró  (jelöltek voltak még: 2C, 3NT)"}
