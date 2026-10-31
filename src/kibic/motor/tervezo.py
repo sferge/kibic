@@ -138,6 +138,7 @@ class Ertekelo:
         kint_adu = self.a.kint_szin(self.a.adu) if self.a.adu else []
         self.kint_adu_max = kint_adu[0].rang if kint_adu else 0
         self.kint_adu_db = len(kint_adu)
+        self.vedok = self.a.vedok
         self.politika: dict = {}              # (technika, kör, állapot, megfigyelés) → tovabb / valt
         self.politika_rogzitett: dict | None = None
         self.ut: list | None = None           # egyetlen eset útja (a végrehajtás-ellenőrzéshez)
@@ -210,7 +211,7 @@ class Ertekelo:
         r = st.kor(sz) + 1
         sorrend = [kovetkezo_ules(hivo, i) for i in range(4)]
         for i, x in enumerate(sorrend):
-            if x not in ("E", "W"):
+            if x not in self.vedok:
                 continue
             if e.o.kezhossz(x, sz) >= r or self.adu_maradek(e.o, x, st) <= 0:
                 continue
@@ -220,7 +221,7 @@ class Ertekelo:
                     continue                    # a lopásunk elég magas: sem előtte, sem utána nem üt
                 return True
             utana = sorrend[i + 1:]
-            ment = any(m not in ("E", "W") and lapok.get(m) is not None
+            ment = any(m not in self.vedok and lapok.get(m) is not None
                        and lapok[m].szin == self.a.adu and lapok[m].rang > self.kint_adu_max
                        for m in utana)
             if not ment:
@@ -292,7 +293,7 @@ class Ertekelo:
         for sz, r in st.korok:
             if r <= 0:
                 continue
-            ki.append((sz, min(e.o.kezhossz("E", sz), r), min(e.o.kezhossz("W", sz), r)))
+            ki.append((sz,) + tuple(min(e.o.kezhossz(v, sz), r) for v in self.vedok))
         les = tuple(sorted((str(l), k) for l, k in e.o.birtokos.items()
                            if e.o.kezhossz(k, l.szin) <= st.kor(l.szin)))
         return tuple(ki), les, e.tartalek
@@ -338,7 +339,7 @@ class Ertekelo:
             if h is not None:                 # BEGYUJTES: a kiaduzás utánra
                 st_h, kapacitas = h
                 # csak ott, ahol a kiaduzó kéz aduja elég a védőknél maradt adukhoz
-                jo = [e for e in esetek if max(self.adu_maradek(e.o, x, st) for x in ("E", "W")) <= kapacitas]
+                jo = [e for e in esetek if max(self.adu_maradek(e.o, x, st) for x in self.vedok) <= kapacitas]
                 rossz = [e for e in esetek if e not in jo]
                 if self.naplo is not None:
                     self.naplo.append(f"begyűjtés halasztva ({p.rovid})")
@@ -382,7 +383,7 @@ class Ertekelo:
         adu = self.a.adu
         if not adu or st.kiaduzva or not self.kockazat:
             return True
-        marad = max(self.adu_maradek(e.o, x, st) for x in ("E", "W"))
+        marad = max(self.adu_maradek(e.o, x, st) for x in self.vedok)
         if marad <= 0:
             return True
         T = max(dict(st.kezek), key=lambda k: sum(1 for l in st.kez(k) if l.szin == adu))
@@ -399,7 +400,7 @@ class Ertekelo:
             if not any(l.szin == sz and (not kint or l.rang > kint[0].rang) for l in st.kez(T)):
                 continue
             r = st.kor(sz) + 1
-            if all(e.o.kezhossz(x, sz) >= r or self.adu_maradek(e.o, x, st) <= 0 for x in ("E", "W")):
+            if all(e.o.kezhossz(x, sz) >= r or self.adu_maradek(e.o, x, st) <= 0 for x in self.vedok):
                 return magas >= marad
         return False
 
@@ -563,7 +564,7 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None) -
     ures = {}
     kint_db = len(allas.kint)
     # a védők kint lévő lapjainak száma: a hátralévő ütések (ütés elején)
-    ures = {"E": allas.hatra, "W": allas.hatra}
+    ures = {v: allas.hatra for v in allas.vedok}
     assert kint_db == 2 * allas.hatra, "a tervező ütés elején dolgozik"
     oszt = osztalyok(allas.kint, ures, relevans, list(korlatok))
     W = sum(o.suly for o in oszt)

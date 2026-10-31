@@ -123,6 +123,10 @@ class Allas:
     def asztal(self) -> str:
         return kovetkezo_ules(self.felvevo, 2)
 
+    @property
+    def vedok(self) -> tuple[str, str]:
+        return (kovetkezo_ules(self.felvevo, 1), kovetkezo_ules(self.felvevo, 3))
+
     def szin(self, kez: str, sz: str) -> list[Lap]:
         return sorted((l for l in self.kezek[kez] if l.szin == sz), key=lambda l: -l.rang)
 

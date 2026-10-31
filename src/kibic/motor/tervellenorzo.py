@@ -48,13 +48,14 @@ class Ellenorzes:
 
 
 def vilagok(leosztas: Leosztas, jatszott: list[tuple[str, Lap]], kint: set[Lap], db: int,
-            korlatok: list[Korlat] = (), mag: int = 1) -> list[Leosztas]:
+            korlatok: list[Korlat] = (), mag: int = 1, vedok: tuple = ("E", "W")) -> list[Leosztas]:
     """Sorsolt világok: a kint lévő lapok véletlen elosztása a két védő között
     (egyenletesen, a korlátok mellett)."""
     rnd = random.Random(mag)
     lejatszott = {u: {l for uu, l in jatszott if uu == u} for u in "NESW"}
     kint_l = sorted(kint, key=str)
-    n_e = 13 - len(lejatszott["E"])
+    v1, v2 = vedok
+    n_e = 13 - len(lejatszott[v1])
     ki = []
     probak = 0
     while len(ki) < db and probak < db * 200:
@@ -63,15 +64,15 @@ def vilagok(leosztas: Leosztas, jatszott: list[tuple[str, Lap]], kint: set[Lap],
         w = set(kint_l) - e
         jo = True
         for k in korlatok:
-            h = sum(1 for l in (e if k.kez == "E" else w) if l.szin == k.szin)
+            h = sum(1 for l in (e if k.kez == v1 else w) if l.szin == k.szin)
             if not (k.min <= h <= k.max):
                 jo = False
         if not jo:
             continue
-        ki.append(Leosztas({"N": leosztas.kezek["N"], "S": leosztas.kezek["S"],
-                            "E": Kez(frozenset(e | lejatszott["E"])),
-                            "W": Kez(frozenset(w | lejatszott["W"]))},
-                           leosztas.oszto, leosztas.beliallas))
+        kezek = {u: leosztas.kezek[u] for u in "NESW" if u not in vedok}
+        kezek[v1] = Kez(frozenset(e | lejatszott[v1]))
+        kezek[v2] = Kez(frozenset(w | lejatszott[v2]))
+        ki.append(Leosztas(kezek, leosztas.oszto, leosztas.beliallas))
     return ki
 
 
@@ -82,9 +83,10 @@ def _ut(l: Lap, nyl: Lap, hivott: str, adu: str | None) -> bool:
     return bool(adu) and l.szin == adu and nyl.szin != adu
 
 
-def _osztaly(vilag: Leosztas, kint: set[Lap], relevans: set[Lap], azon: int) -> Osztaly:
+def _osztaly(vilag: Leosztas, kint: set[Lap], relevans: set[Lap], azon: int,
+             vedok: tuple = ("E", "W")) -> Osztaly:
     hossz, birt = {}, {}
-    for u in ("E", "W"):
+    for u in vedok:
         lapok = set(vilag.kezek[u].lapok) & kint
         for sz in "SHDC":
             hossz[(u, sz)] = sum(1 for l in lapok if l.szin == sz)
@@ -106,7 +108,7 @@ def ellenoriz(helyzet: Helyzet, terv: Terv, politika: dict, vilaglista: list[Leo
         kezdo = kezdo_allapot(a)
     ki = Ellenorzes()
     for i, lo in enumerate(vilaglista):
-        o = _osztaly(lo, a.kint, relevans, 100000 + i)
+        o = _osztaly(lo, a.kint, relevans, 100000 + i, a.vedok)
         ert = Ertekelo(helyzet, terv, kockazat=True)
         ert.politika_rogzitett = politika
         ert.ut = []
@@ -159,7 +161,7 @@ def ellenoriz(helyzet: Helyzet, terv: Terv, politika: dict, vilaglista: list[Leo
             return True
 
         def kint_adu() -> int:
-            return sum(1 for u in ("E", "W") for l in g.kezek[u] if l.szin == adu) if adu else 0
+            return sum(1 for u in a.vedok for l in g.kezek[u] if l.szin == adu) if adu else 0
 
         for e in ut:
             if elter:
@@ -170,7 +172,7 @@ def ellenoriz(helyzet: Helyzet, terv: Terv, politika: dict, vilaglista: list[Leo
             elif e[0] == "adu_vegig":
                 # „mind”: amíg a védőknél adu van (a modell a legvalószínűbb körszámig ment)
                 while kint_adu() > 0 and not elter:
-                    T = max(("N", "S") if a.felvevo in "NS" else ("E", "W"),
+                    T = max((a.felvevo, a.asztal),
                             key=lambda k: sum(1 for l in g.kezek[k] if l.szin == adu))
                     sajat = sorted((l for l in g.kezek[T] if l.szin == adu), key=lambda l: -l.rang)
                     if not sajat or g.soron() != T:
@@ -204,6 +206,6 @@ def ellenoriz(helyzet: Helyzet, terv: Terv, politika: dict, vilaglista: list[Leo
         ki.elteres += elter
         ki.egyezik += (tel == modell)
         if tel != modell and len(ki.peldak) < 8:
-            e_lapok = " ".join(sorted(str(l) for l in lo.kezek["E"].lapok if l in a.kint))
+            e_lapok = " ".join(sorted(str(l) for l in lo.kezek[a.vedok[0]].lapok if l in a.kint))
             ki.peldak.append((int(modell), int(tel), "eltérés" if elter else "", e_lapok))
     return ki

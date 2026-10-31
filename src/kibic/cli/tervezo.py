@@ -41,8 +41,9 @@ def allas_partibol(p, utes: int) -> tuple[Allas, dict]:
     if vonal(soron) != vonal(k.felvevo):
         raise SystemExit("a védők vannak hívásban — a tervező a mi hívásunkra dolgozik")
     allas = Allas(k.felvevo, adu, {u: set(g.kezek[u]) for u in (k.felvevo, asztal)},
-                  set(g.kezek["E"]) | set(g.kezek["W"]), 6 + k.szint - nyert, hatra, soron)
-    jatszott = {u: [l for uu, l in g.lapok if uu == u] for u in ("E", "W")}
+                  set(g.kezek[kovetkezo_ules(k.felvevo, 1)]) | set(g.kezek[kovetkezo_ules(k.felvevo, 3)]),
+                  6 + k.szint - nyert, hatra, soron)
+    jatszott = {u: [l for uu, l in g.lapok if uu == u] for u in allas.vedok}
     return allas, jatszott, list(g.lapok)
 
 
@@ -50,7 +51,7 @@ def feltevesek(szovegek: list[str], jatszott: dict) -> list[Korlat]:
     """„E:S:5+” → Kelet legalább 5 pikk (a már lejátszottakkal együtt)."""
     ki = []
     for s in szovegek or []:
-        m = re.fullmatch(r"([EW]):([SHDC]):(\d+)(\+|-)?", s.strip())
+        m = re.fullmatch(r"([NESW]):([SHDC]):(\d+)(\+|-)?", s.strip())
         if not m:
             raise SystemExit(f"rossz feltevés: {s}")
         kez, sz, n, jel = m.group(1), m.group(2), int(m.group(3)), m.group(4)
@@ -98,7 +99,7 @@ def main(argv=None) -> int:
     if a.ellenorzes:
         from ..motor.tervellenorzo import ellenoriz, vilagok
         rel = {l for pp in peldanyok(allas, technikak_betoltese()) for l in pp.relevans}
-        vl = vilagok(p.leosztas, sor, allas.kint, a.ellenorzes, korl)
+        vl = vilagok(p.leosztas, sor, allas.kint, a.ellenorzes, korl, vedok=allas.vedok)
         print(f"\nDD-ellenőrzés ({len(vl)} sorsolt világ, DD-védők ellen):")
         print(f"{'modell':>7} {'DD':>6} {'eltér':>6}  terv")
         for e in ert[:a.ellenorzott]:
