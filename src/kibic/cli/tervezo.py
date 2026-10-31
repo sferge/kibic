@@ -57,11 +57,23 @@ def feltevesek(szovegek: list[str], jatszott: dict) -> list[Korlat]:
         kez, sz, n, jel = m.group(1), m.group(2), int(m.group(3)), m.group(4)
         volt = sum(1 for l in jatszott[kez] if l.szin == sz)
         if jel == "-":
-            ki.append(Korlat(kez, sz, 0, max(0, n - volt)))
+            ki.append(Korlat(kez, sz, 0, max(0, n - volt), "feltetelezett"))
         elif jel == "+":
-            ki.append(Korlat(kez, sz, max(0, n - volt), 13))
+            ki.append(Korlat(kez, sz, max(0, n - volt), 13, "feltetelezett"))
         else:
-            ki.append(Korlat(kez, sz, max(0, n - volt), max(0, n - volt)))
+            ki.append(Korlat(kez, sz, max(0, n - volt), max(0, n - volt), "feltetelezett"))
+    return ki
+
+
+def szinhianyok(sor: list, vedok: tuple) -> list[Korlat]:
+    """Megfigyelt színhiány: a védő nem adott színt, amikor a színt hívták."""
+    ki = []
+    for t in range(0, len(sor) - 3, 4):
+        utes = sor[t:t + 4]
+        hivott = utes[0][1].szin
+        for u, l in utes[1:]:
+            if u in vedok and l.szin != hivott:
+                ki.append(Korlat(u, hivott, 0, 0, "megfigyelt"))
     return ki
 
 
@@ -73,6 +85,8 @@ def main(argv=None) -> int:
     ap.add_argument("--feltevés", "--felteves", dest="felteves", action="append",
                     help="pl. E:S:5+ (Kelet legalább 5 pikk); többször is")
     ap.add_argument("--db", type=int, default=15, help="ennyi tervet ír ki")
+    ap.add_argument("--szabad-helyek-feltevesbol", action="store_true",
+                    help="a feltételezett hossz is súlyozza az elosztásokat (alapból csak az ismert)")
     ap.add_argument("--ellenorzes", type=int, default=0,
                     help="ennyi sorsolt világon DD-védők ellen is lejátssza a legjobb tervek kottáját")
     ap.add_argument("--ellenorzott", type=int, default=5, help="ennyi tervet ellenőriz")
@@ -84,13 +98,15 @@ def main(argv=None) -> int:
         return 1
     p = partik[0]
     allas, jatszott, sor = allas_partibol(p, a.utes)
-    korl = feltevesek(a.felteves, jatszott)
+    korl = feltevesek(a.felteves, jatszott) + szinhianyok(sor, allas.vedok)
     h = helyzetelemzes(allas)
     print(f"{p.azonosito} {p.kontraktus}, a {a.utes + 1}. ütéstől; {h.szoveg()}")
     if korl:
         print("feltevés: " + "; ".join(f"{k.kez} {k.szin} a kint lévők közül {k.min}..{k.max}" for k in korl))
     print("technikák a lapokon: " + ", ".join(pp.rovid for pp in peldanyok(allas, technikak_betoltese())))
-    _, ert = tervez(allas, korl)
+    _, ert = tervez(allas, korl, feltevesbol=a.szabad_helyek_feltevesbol)
+    if any(k.tudas == "feltetelezett" for k in korl) and not a.szabad_helyek_feltevesbol:
+        print("(a feltevés a SZABAD_HELYEK szabály szerint nem súlyoz — csak az ismert hossz)")
     print(f"\n{'elvi':>6} {'kockázattal':>11} {'adu előbb':>9}  terv")
     kdsz = lambda n: "mind" if n >= 13 else str(n)
     for e in ert[:a.db]:

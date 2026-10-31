@@ -31,6 +31,7 @@ class Korlat:
     szin: str
     min: int = 0
     max: int = 13
+    tudas: str = "megfigyelt"     # megfigyelt / bizonyitott / feltetelezett (pl. a licitből)
 
 
 @dataclass

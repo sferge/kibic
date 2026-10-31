@@ -552,7 +552,8 @@ def kezdo_allapot(allas: Allas) -> Allapot:
     return Allapot(tuple(sorted((k, frozenset(v)) for k, v in allas.kezek.items())), (), allas.soron)
 
 
-def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None) -> tuple[Helyzet, list[TervErtek]]:
+def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
+           feltevesbol: bool = False) -> tuple[Helyzet, list[TervErtek]]:
     helyzet = helyzetelemzes(allas)
     technikak = technikak_betoltese()
     strategiak, szabalyok = strategiak_betoltese()
@@ -566,6 +567,14 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None) -
     # a védők kint lévő lapjainak száma: a hátralévő ütések (ütés elején)
     ures = {v: allas.hatra for v in allas.vedok}
     assert kint_db == 2 * allas.hatra, "a tervező ütés elején dolgozik"
+    # SZABAD_HELYEK: a hosszakból következő súlyozás (pl. az impassz esélye) csak
+    # ismert (megfigyelt vagy bizonyított) hosszkülönbségből; a feltételezett hossz
+    # (a licitből) a szabály engedélyével
+    szh = next((s for s in szabalyok if s.get("szabaly") == "SZABAD_HELYEK"), {})
+    engedett = set(szh.get("tudas", ["megfigyelt", "bizonyitott"]))
+    if feltevesbol:
+        engedett.add("feltetelezett")
+    korlatok = [k for k in korlatok if k.tudas in engedett]
     oszt = osztalyok(allas.kint, ures, relevans, list(korlatok))
     W = sum(o.suly for o in oszt)
     kezdo = kezdo_allapot(allas)

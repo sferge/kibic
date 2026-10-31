@@ -53,7 +53,11 @@ def test_valasztas_licit_nelkul(allas):
 
 
 def test_valasztas_kelet_5_pikkel(allas):
-    _, ert = tervez(allas, [Korlat("E", "S", 2)])
+    feltetel = [Korlat("E", "S", 2, tudas="feltetelezett")]
+    # a SZABAD_HELYEK szabály: a feltételezett hossz alapból nem súlyoz
+    _, ert = tervez(allas, feltetel)
+    assert ert[0].terv.nev == "♦ ejtés → ♥ impassz"
+    _, ert = tervez(allas, feltetel, feltevesbol=True)
     assert ert[0].terv.nev == "♥ ejtés → ♦ impassz"
 
 

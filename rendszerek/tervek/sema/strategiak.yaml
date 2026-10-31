@@ -51,3 +51,10 @@
       # halasztjuk, ha a kiaduzó kéz elérhető (hívásban van, vagy lopással), az
       # adukontroll elég, és utána a begyűjtő lapok keze is elérhető. Ilyenkor a
       # begyűjtésnek nincs ellopási kockázata; ha nem halasztható, most játsszuk.
+    - szabaly: SZABAD_HELYEK
+      nev: "A szabad helyek elve (a hosszakból következő súlyozás)"
+      # Egy védőnél annál valószínűbb egy lap, minél több szabad helye van. A
+      # súlyozás egyelőre csak ISMERT hosszkülönbségből (megfigyelt: lejátszott
+      # lapok, színhiány; bizonyított); a licitből feltételezett hosszból nem
+      # (a szerkesztő döntése, 2026-10-31: sok parti statisztikája után oldható).
+      tudas: [megfigyelt, bizonyitott]
