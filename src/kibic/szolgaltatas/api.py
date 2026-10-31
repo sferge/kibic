@@ -28,6 +28,7 @@ except ImportError as e:      # pragma: no cover
 from .atjaro import (PROTOKOLL, TAR as _IDEM, AtjaroHiba, Utkozes,
                      bid_dontes, claim_dontes, play_dontes)
 from .dd import DdHiba, dd_elemzes
+from . import surgetes as _surg
 from .licit import LicitHiba, licit_elemzes
 
 # Titkok. Az ajánlott beállítás EGY érték: KIBIC_SHARED_SECRET = az MB
@@ -49,6 +50,21 @@ from ..solver.dds import ZAR as _DDS_ZAR        # noqa: E402 — a DDS közös z
 
 app = FastAPI(title="kibic", version="0.2.0",
               description="Bridzs: double dummy elemzés és licitmagyarázat")
+
+
+@app.on_event("startup")
+def _indulas() -> None:
+    # KIBIC_DDS_FOLYAMATOK > 0: a DDS-munkafolyamatok a háttérben előre indulnak
+    from ..solver import dds
+    if dds.parhuzamos():
+        threading.Thread(target=dds.keszlet_bemelegit, daemon=True,
+                         name="dds-bemelegites").start()
+
+
+@app.on_event("shutdown")
+def _leallas() -> None:
+    from ..solver import dds
+    dds.keszlet_leallit()
 
 # --- Rendszer-gyorsítótár --------------------------------------------
 # Egy rendszer feloldása (öröklés + paraméterek) drága: kérésenként
@@ -244,12 +260,38 @@ def bridge_bid(
     kesz = _idempotencia(keres, idempotency_key)
     if kesz is not None:
         return kesz
+    feladat, uj = _surg.FELADATOK.indul(keres, "bid", _IDEM.lenyomat(keres))
+    if feladat is not None and not uj:
+        return _ugyanaz_mar_fut(feladat, keres)
     try:
         valasz = bid_dontes(keres, _rendszer_betolto)
     except AtjaroHiba as e:
+        if feladat is not None:
+            feladat.hibas("értelmezhetetlen kérés")
         raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception:
+        if feladat is not None:
+            feladat.hibas("belső hiba")
+        raise
+    if feladat is not None:
+        feladat.kesz(valasz)
     _IDEM.ir(idempotency_key, keres, valasz)
     return valasz
+
+
+def _ugyanaz_mar_fut(feladat, keres: dict, varakozas_s: float = 120.0) -> dict:
+    """
+    Ugyanaz a request_id már dolgozik (az MB újraküldte, mielőtt az első válasz
+    megjött): nem számolunk kétszer, megvárjuk az elsőt. Más törzzsel 409.
+    Szálkészletben fut (blokkol).
+    """
+    if feladat.lenyomat and feladat.lenyomat != _IDEM.lenyomat(keres):
+        raise HTTPException(status_code=409,
+                            detail=f"A request_id ({feladat.request_id}) már más kéréstörzzsel fut")
+    feladat.kesz_esemeny.wait(varakozas_s)
+    if feladat.valasz is not None:
+        return feladat.valasz
+    raise HTTPException(status_code=503, detail="Az ugyanilyen azonosítójú döntés nem készült el")
 
 
 @app.post("/v1/bridge/explain", dependencies=[Depends(_jogosultsag_atjaro)])
@@ -433,6 +475,11 @@ def bridge_kepessegek() -> dict:
     from .kiosztas import PROTOKOLL as _DD_PROT
     # 1.1: a kibic a licitdöntés előtt magyarázatot kérhet (request_information)
     ki["request_information"] = True
+    # MB 1.1.76: életjel és sürgetés; a `cancel` és a `progress` kibic-bővítés
+    ki.setdefault("endpoints", {})["urge"] = True
+    ki.setdefault("services", {})["urge"] = {
+        "path": "/v1/bridge/urge", "commands": list(_surg.PARANCSOK),
+        "progress": True, "expedite_returns_best_so_far": ["play"]}
     ki["deal_design"] = {"protocol": _DD_PROT, "endpoint": "/v1/kibic/kiosztas",
                          "capabilities": "/v1/kibic/kiosztas/kepessegek"}
     return ki
@@ -493,14 +540,42 @@ async def bridge_play(
     kesz = _idempotencia(keres, idempotency_key)
     if kesz is not None:
         return kesz
+    # az életjel-nyilvántartásba MÉG az eseményhurkon kerül be: ha a szálkészlet
+    # foglalt, a /urge akkor is látja („sorra vár”)
+    feladat, uj = _surg.FELADATOK.indul(keres, "play", _IDEM.lenyomat(keres))
+    if feladat is not None and not uj:
+        return await run_in_threadpool(_ugyanaz_mar_fut, feladat, keres)
     try:
         # a mintavétel és a DD másodpercekig is tarthat: ne az eseményhurkon fusson
         valasz = await run_in_threadpool(play_dontes, keres, _rendszer_betolto,
-                                         _jelzesek_rendszerhez, _DDS_ZAR)
+                                         _jelzesek_rendszerhez, _DDS_ZAR, feladat)
     except AtjaroHiba as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     _IDEM.ir(idempotency_key, keres, valasz)
     return valasz
+
+
+@app.post("/v1/bridge/urge", dependencies=[Depends(_jogosultsag_atjaro)])
+async def bridge_urge(keres: dict) -> dict:
+    """
+    Életjel és sürgetés (MB 1.1.76): egy futó /bid vagy /play kérés állapota
+    (`status`), „siess” (`expedite`: a mintavétel megáll, a pillanatnyi legjobb
+    lap megy), és kibic-bővítésként `cancel`. Szándékosan az eseményhurkon fut,
+    és csak memóriát olvas: a foglalt szálkészlet nem akaszthatja meg.
+    """
+    import asyncio
+    try:
+        rid, eredeti, parancs = _surg.ellenoriz(keres)
+    except _surg.UrgeHiba as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    feladat = _surg.FELADATOK.keres(eredeti)
+    _surg.parancs_vegrehajt(feladat, parancs)
+    if parancs == "expedite" and feladat is not None:
+        hatar = asyncio.get_running_loop().time() + _surg.VARAKOZAS_S
+        while feladat.allapot == "working" and asyncio.get_running_loop().time() < hatar:
+            await asyncio.sleep(0.05)
+    tarolt = None if feladat is not None else _IDEM.kesz_valasz(eredeti)
+    return _surg.valasz(keres, feladat, tarolt)
 
 
 @app.post("/v1/bridge/claim", dependencies=[Depends(_jogosultsag_atjaro)])

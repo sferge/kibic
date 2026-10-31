@@ -350,6 +350,14 @@ class Idempotenciatar:
             self._tar.clear()
         return db
 
+    def kesz_valasz(self, kulcs: str | None) -> dict | None:
+        """A kulcshoz tárolt kész válasz törzs-ellenőrzés nélkül (az életjelnek)."""
+        if not kulcs:
+            return None
+        with self._zar:
+            tetel = self._tar.get(kulcs)
+        return tetel[1] if tetel else None
+
 
 TAR = Idempotenciatar()
 
@@ -647,17 +655,36 @@ def gondolkodasi_ido(keres: dict, start: float, rng=None) -> int:
     return max(0, cel - int((time.time() - start) * 1000))
 
 
-def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
-    """`POST /v1/bridge/play` — a döntés (`_play_dontes`) és a gondolkodási idő."""
+def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
+                feladat=None) -> dict:
+    """
+    `POST /v1/bridge/play` — a döntés (`_play_dontes`) és a gondolkodási idő.
+
+    `feladat` (surgetes.Feladat): az életjel-nyilvántartás bejegyzése. A döntés
+    ide jelenti az előrehaladást, sürgetésre (`feladat.siess`) a mintavétel
+    megáll; a kész döntés a gondolkodási idő ELŐTT bekerül, így a sürgetés
+    azonnal megkapja, és a várakozás is megszakad.
+    """
     start = time.time()
-    valasz = _play_dontes(keres, betolto, jelzes_fv, dd_zar)
+    try:
+        valasz = _play_dontes(keres, betolto, jelzes_fv, dd_zar, feladat)
+    except Exception as e:                       # noqa: BLE001 — az életjel lássa
+        if feladat is not None:
+            feladat.hibas(type(e).__name__)
+        raise
+    if feladat is not None:
+        feladat.kesz(valasz)
     var_ms = gondolkodasi_ido(keres, start)
     if var_ms > 0:
-        time.sleep(var_ms / 1000)
+        if feladat is not None:
+            feladat.siess.wait(var_ms / 1000)
+        else:
+            time.sleep(var_ms / 1000)
     return valasz
 
 
-def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict:
+def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
+                 feladat=None) -> dict:
     """
     `POST /v1/bridge/play` — a lejátszó réteg (motor/lejatszas.py):
 
@@ -713,6 +740,8 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict
 
     tar, valoszinu = None, {}
     hatarido = int(keres.get("deadline_ms") or 20000)
+    if feladat is not None:
+        feladat.szakaszba("kovetkeztetes")
     if betolto and rendszer:
         try:
             st = keres.get("state") or {}
@@ -730,22 +759,44 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None) -> dict
             figyelem.append(f"kényszertár: {type(e).__name__}")
 
     def dd_fv(lo, jatszott, k):
-        from ..solver.dds import lap_elemzes
-        if dd_zar is None:
-            return lap_elemzes(lo, jatszott, k)
-        with dd_zar:
-            return lap_elemzes(lo, jatszott, k)
+        from ..solver import dds
+        if dd_zar is None or dds.parhuzamos():
+            # nincs zár, vagy a DDS külön folyamatokban fut (KIBIC_DDS_FOLYAMATOK)
+            ered = dds.lap_elemzes(lo, jatszott, k)
+            if feladat is not None:
+                feladat.dd_eredmeny(ered, 0.0, szamit=k is allas.kontraktus)
+            return ered
+        t0 = time.time()
+        if feladat is not None and not dd_zar.acquire(blocking=False):
+            feladat.szakaszba("dds_var")     # más asztal számol: sorban állunk
+            dd_zar.acquire()
+            feladat.szakaszba("mintavetel")
+        elif feladat is None:
+            dd_zar.acquire()
+        var = time.time() - t0
+        try:
+            ered = dds.lap_elemzes(lo, jatszott, k)
+        finally:
+            dd_zar.release()
+        if feladat is not None:
+            feladat.dd_eredmeny(ered, var, szamit=k is allas.kontraktus)
+        return ered
 
     keret_s = min(LEJATSZAS_MS, max(1000, int(hatarido * LEJATSZAS_ARANY))) / 1000
     keret_s = max(1.0, keret_s - (time.time() - start))     # a következtetés ideje levonva
+    if feladat is not None:
+        feladat.keret(keret_s, LEJATSZAS_MINTA)
     try:
         e = lj.jatek_dontes(allas, jelz, tar, dd_fv, ido_keret_s=keret_s, db=LEJATSZAS_MINTA,
-                            valoszinu=valoszinu)
+                            valoszinu=valoszinu,
+                            megallito=feladat.megallito if feladat is not None else None)
     except Exception as ex:                      # noqa: BLE001 — a parti nem állhat meg
         valasz = _tartalek_play(keres, lapok, f"belső hiba: {type(ex).__name__}", start)
         naploz(keres, None, valasz)
         return valasz
 
+    if feladat is not None:
+        feladat.szakaszba("dontes")
     lap = allas.legalis[e.dontes.lap]
     if e.stat:
         s = e.stat.get(e.dontes.lap)
