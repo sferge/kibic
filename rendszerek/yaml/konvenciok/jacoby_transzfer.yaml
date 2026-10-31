@@ -48,9 +48,9 @@ fejezetek:
          magyarazat: "Invit, pontosan 5-ös kőr", nyers: "2nt | Invit pontosan ötös majorral"}
       - {minta: 1NT-2H-2S-2NT, pont: 8-9, hossz: {S: 5, H: 0-3}, prioritas: 50,
          magyarazat: "Invit, pontosan 5-ös pikk"}
-      - {minta: 1NT-2D-2H-3H, pont: 8-9, hossz: {H: 6+}, prioritas: 51,
+      - {minta: 1NT-2D-2H-3H, pont: 5-9, nt_pont: 8-9, hossz: {H: 6+}, prioritas: 51,
          magyarazat: "Invit, 6-os kőr", nyers: "3M | Invit hatos színnel"}
-      - {minta: 1NT-2H-2S-3S, pont: 8-9, hossz: {S: 6+}, prioritas: 51,
+      - {minta: 1NT-2H-2S-3S, pont: 5-9, nt_pont: 8-9, hossz: {S: 6+}, prioritas: 51,
          magyarazat: "Invit, 6-os pikk"}
       - {minta: 1NT-2D-2H-3NT, pont: 10-13, hossz: {H: 5},
          vagy: [{elosztas: ["5332"]}, {elosztas: ["5422"], hossz: {C: 4}, figura: {C: 0}},
@@ -77,9 +77,9 @@ fejezetek:
          alert: "Splinter: 5-ös pikk, 0-1 káró, szleminvit"}
       - {minta: 1NT-2H-2S-4H, pont: 14-16, hossz: {S: 5, H: 0-1}, forsz: GEMFORSZ, prioritas: 53,
          alert: "Splinter: 5-ös pikk, 0-1 kőr, szleminvit"}
-      - {minta: 1NT-2D-2H-4H, pont: 14-16, hossz: {H: 6+}, prioritas: 53,
+      - {minta: 1NT-2D-2H-4H, pont: 11-16, nt_pont: 14-16, hossz: {H: 6+}, prioritas: 53,
          magyarazat: "Szleminvit (erősebb, mint a Texas)", nyers: "4M | Szleminvit, erősebb, mintha egyből Texas-tf mondott volna"}
-      - {minta: 1NT-2H-2S-4S, pont: 14-16, hossz: {S: 6+}, prioritas: 53,
+      - {minta: 1NT-2H-2S-4S, pont: 11-16, nt_pont: 14-16, hossz: {S: 6+}, prioritas: 53,
          magyarazat: "Szleminvit (erősebb, mint a Texas)"}
       - {minta: 1NT-2D-2H-3C, pont: 10+, hossz: {H: 5+, C: 4+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 51,
          magyarazat: "Természetes, gémforsz, 5-4+", nyers: "Új szín | NAT; GF; 5-4 +"}
@@ -104,5 +104,5 @@ fejezetek:
       - {minta: 2NT-3H-3S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
       - {minta: 2NT-3D-3H-3NT, pont: 4-10, hossz: {H: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♥ között"}
       - {minta: 2NT-3H-3S-3NT, pont: 4-10, hossz: {S: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♠ között"}
-      - {minta: 2NT-3D-3H-4H, pont: 4-10, hossz: {H: 6+}, prioritas: 51, magyarazat: "Leállás"}
-      - {minta: 2NT-3H-3S-4S, pont: 4-10, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2NT-3D-3H-4H, pont: 1-10, nt_pont: 4-10, hossz: {H: 6+}, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2NT-3H-3S-4S, pont: 1-10, nt_pont: 4-10, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás"}

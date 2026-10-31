@@ -36,10 +36,16 @@ def test_masodik_szandek_hatos_szin_nem_kontra():
     assert _h("75.AKJ953.7.QT43", "P P P 1S", "W") == "2H"
 
 
+def test_1nt_hatos_kor_texas():
+    # 2. parti: ♠2 ♥K98654 ♦763 ♣KQ6 — 8 pont + szingli 1 + a ♥K 1 = 10:
+    # nem 2♣, hanem Texas (a szerkesztő, 2026-11-01)
+    assert _h("2.K98654.763.KQ6", "P 1NT P", "S") == "4D"
+
+
 def test_1nt_hatos_kor_transzfer_invit():
-    # 2. parti: ♠2 ♥K98654 ♦763 ♣KQ6 — nem 2♣, hanem 2♦, majd 3♥
-    assert _h("2.K98654.763.KQ6", "P 1NT P", "S") == "2D"
-    assert _h("2.K98654.763.KQ6", "P 1NT P 2D P 2H P", "S") == "3H"
+    # a dáma nem számít: 8 + szingli 1 = 9 — transzfer, majd 3♥
+    assert _h("2.Q98654.763.KQ6", "P 1NT P", "S") == "2D"
+    assert _h("2.Q98654.763.KQ6", "P 1NT P 2D P 2H P", "S") == "3H"
 
 
 def test_1nt_otos_nemes_gemforsz_3nt():

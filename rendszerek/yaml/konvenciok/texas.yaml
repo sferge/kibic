@@ -8,15 +8,17 @@ rendszer:
 fejezetek:
   - fejezet: Texas
     szabalyok:
-      - {minta: 1NT-4D, pont: 10-13, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 59,
+      # a 6+ lapos nemes pontja a szan ellen: + szingli 1 / renonsz 2, + 1 az
+      # A/K-ért a színben (nt_pont; a szerkesztő, 2026-10-31)
+      - {minta: 1NT-4D, pont: 7-13, nt_pont: 10-13, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 59,
          alert: "Texas-transzfer: 6+ kőr, gém", nyers: "4♦! | Texas transzfer; 6+ kőr; GF"}
-      - {minta: 1NT-4H, pont: 10-13, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 59,
+      - {minta: 1NT-4H, pont: 7-13, nt_pont: 10-13, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 59,
          alert: "Texas-transzfer: 6+ pikk, gém", nyers: "4♥! | Texas transzfer; 6+ (pikk)"}
       - {minta: 1NT-4D-4H, prioritas: 50, magyarazat: "Kötelező teljesítés"}
       - {minta: 1NT-4H-4S, prioritas: 50, magyarazat: "Kötelező teljesítés"}
-      - {minta: 2NT-4D, pont: 5-10, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 58,
+      - {minta: 2NT-4D, pont: 2-10, nt_pont: 5-10, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 58,
          alert: "Texas-transzfer: 6+ kőr", nyers: "2N – (P) – 4♦ és 4♥! Texas transzfer"}
-      - {minta: 2NT-4H, pont: 5-10, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 58,
+      - {minta: 2NT-4H, pont: 2-10, nt_pont: 5-10, hossz: {S: 6+}, forsz: EGY_MENET, prioritas: 58,
          alert: "Texas-transzfer: 6+ pikk"}
       - {minta: 2NT-4D-4H, prioritas: 50, magyarazat: "Kötelező teljesítés",
          nyers: "Kötelező válasz a TRF fogadása."}

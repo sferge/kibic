@@ -299,7 +299,9 @@ def egyesit(valtozatok: list[Igeret]) -> Igeret:
 # többlet). Ezeknél a felső korlát HCP-re is igaz, az alsó nem.
 _HCP_FELETTI = {"P_HOSSZ", "P_HOSSZ5", "P_AP321", "P_AP531", "TOTAL_POINTS",
                 "ZAR", "HCP_DIST", "AP_321", "AP_531"}
-_HCP_PONTOS = {"HCP", "P_HCP"}
+# a HOSSZ_NT (hosszú szín a szan ellen) a partner felé PONTKÉNT ígér: a
+# sávja a megértésben a pontsáv (a többlet a lap értéke, nem tévedés)
+_HCP_PONTOS = {"HCP", "P_HCP", "HOSSZ_NT"}
 _MEGFORDIT = {">": "<", "<": ">", ">=": "<=", "<=": ">=", "=": "="}
 
 
