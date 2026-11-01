@@ -35,3 +35,36 @@ def test_vedo_nem_tervez():
                     lathato={"W": _l("SK"), "N": _l("S8")}, lejatszott=[],
                     legalis={Lap.parse("SK"): "SK"})
     assert td.dontes(ja, "teszt") is None
+
+
+def test_hatarido_utan_a_hatterben_folytatja(monkeypatch):
+    import threading
+    import time
+    kesz = threading.Event()
+
+    def lassu(ja, kulcs, megallito=None, naplo=None):
+        time.sleep(0.5)
+        kesz.set()
+        return "eredmeny"
+    monkeypatch.setattr(td, "dontes", lassu)
+
+    class JA:
+        lejatszott = []
+        ules = "S"
+    d, ok = td.dontes_hataridovel(JA(), "k", 0.05)
+    assert (d, ok) == (None, False)
+    # ugyanarra a pozícióra nem indul új tervezés; a futó eredményét kapja meg
+    d, ok = td.dontes_hataridovel(JA(), "k", 2.0)
+    assert (d, ok) == ("eredmeny", True) and kesz.is_set()
+
+
+def test_tervnaplo_ment_betolt(tmp_path, monkeypatch):
+    from kibic.motor import tervnaplo as tn
+    monkeypatch.setenv("KIBIC_TERVNAPLO", str(tmp_path))
+    n = tn.Naplo(allas={"x": 1}, korlatok=[], terv="terv", lapok_szama=5, relevans={1})
+    tn.ment("bridge:m:0:1:S", n)
+    b = tn.betolt("bridge:m:0:1:S")
+    assert b.terv == "terv" and b.lapok_szama == 5
+    assert tn.betolt("masik") is None
+    monkeypatch.setenv("KIBIC_TERVNAPLO", "ki")
+    assert tn.betolt("bridge:m:0:1:S") is None
