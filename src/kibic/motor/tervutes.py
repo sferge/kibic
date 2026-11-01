@@ -71,7 +71,13 @@ class JeloltErtek:
     ertek: float
     csoportok: list = field(default_factory=list)    # (súly, leírás, érték)
 
+    politika: dict = field(default_factory=dict)    # a 4. kéz: a 3. lap → lépés
+
     def szoveg(self) -> str:
+        if len(set(self.politika.values())) > 1:
+            k2, k4 = list(self.lepesek)
+            return (f"{k2}: {self.lepesek[k2].szoveg()}, {k4}: a 3. kéz lapja szerint ("
+                    + "; ".join(f"{l}-re {p.szoveg()}" for l, p in self.politika.items()) + ")")
         return ", ".join(f"{k}: {l.szoveg()}" for k, l in self.lepesek.items())
 
 
@@ -285,8 +291,9 @@ class UtesTervezo:
                 k, v = _allas_tervezese(f)
                 self.tar[k] = v
             return
+        belso = max(1, szalak_szama() // n)
         with ProcessPoolExecutor(max_workers=n, mp_context=mp.get_context("fork"),
-                                 initializer=_egy_szal) as pool:
+                                 initializer=_szalak, initargs=(belso,)) as pool:
             for k, v in pool.map(_allas_tervezese, feladat):
                 self.tar[k] = v
 
@@ -416,20 +423,50 @@ class UtesTervezo:
         if self.naplo is not None:
             self.naplo(f"   {len(self.gyujt)} állás tervezése az ütés után")
         self._szamol_gyujtottek()
-        ki = []
+        # a második helyen ülő kezünk lapja most dől el; a negyedik kéz a harmadik
+        # (védői) lap láttán dönt: megfigyelésenként a legjobb politikája számít
+        sor = a.sorrend()
+        csoport: dict = defaultdict(list)
         for lep in jeloltek(a):
-            v, cs = self._ertekel_utes(a.kezek, a.kint | {a.hivott}, a.cel, a.hatra, a.korlatok,
-                                       a.hivo, vil, lambda w: a.hivott, lep, self.melyseg)
-            ki.append(JeloltErtek(lep, v, cs))
+            csoport[lep[sor[1]]].append(lep)
+        ki = []
+        for l2, lepesek in csoport.items():
+            per = []
+            for lep in lepesek:
+                ve: dict = {}
+                v, cs = self._ertekel_utes(a.kezek, a.kint | {a.hivott}, a.cel, a.hatra, a.korlatok,
+                                           a.hivo, vil, lambda w: a.hivott, lep, self.melyseg, ve)
+                per.append((lep, ve, cs, v))
+            # megfigyelés világonként: a harmadik helyen ülő védő lapja
+            megf = defaultdict(list)
+            for i, w in enumerate(vil):
+                w2 = {u: set(x) - {a.hivott} for u, x in w.items()}
+                utes, _ = self._utes(a.kezek, w2, sor, a.hivott, per[0][0])
+                megf[utes[2][1]].append(i)
+            ossz, politika = 0.0, {}
+            for lap3, idx in megf.items():
+                legjobb = max(per, key=lambda x: sum(x[1].get(i, 0.0) for i in idx))
+                politika[lap3] = legjobb[0][sor[3]]
+                ossz += sum(legjobb[1].get(i, 0.0) for i in idx)
+            v = ossz / len(vil) if vil else 0.0
+            pol = sorted(set(politika.values()), key=lambda x: x.szoveg())
+            lep = {sor[1]: l2, sor[3]: pol[0] if len(pol) == 1 else Lepes("kicsi")}
+            je = JeloltErtek(lep, v, max(per, key=lambda x: x[3])[2])
+            je.politika = politika
+            ki.append(je)
             if self.naplo is not None:
-                self.naplo(f"   jelölt {JeloltErtek(lep, v).szoveg()}: {v:.1%}")
+                p4 = (pol[0].szoveg() if len(pol) == 1 else
+                      "; ".join(f"{l}-re {politika[l].szoveg()}" for l in sorted(politika, key=lambda l: -l.rang)))
+                self.naplo(f"   jelölt {sor[1]}: {l2.szoveg()}  ({sor[3]}: {p4}): {v:.1%}")
         ki.sort(key=lambda x: -x.ertek)
         return ki
 
 
-def _egy_szal() -> None:
+def _szalak(n: int) -> None:
+    """A folyamaton belüli elemzések szálai: a gép szálai elosztva a párhuzamosan
+    tervezett állások közt (4 állás 32 szálon: 8-8)."""
     import os
-    os.environ["KIBIC_SZALAK"] = "1"       # a folyamaton belül nincs további párhuzamosság
+    os.environ["KIBIC_SZALAK"] = str(n)
 
 
 def _allas_tervezese(f) -> tuple:
