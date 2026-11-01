@@ -218,6 +218,8 @@ class Ertekelo:
 
     def _dobas(self, st: Allapot, k: str, foglalt: set[Lap]) -> Lap:
         lapok = list(st.kez(k))
+        if not lapok:          # a modell állapotában elfogyott a kéz: a kör nem játszható
+            return None
         szabad = [l for l in lapok if l not in foglalt and l.szin != self.a.adu]
         jelolt = szabad or [l for l in lapok if l not in foglalt] or lapok
         hossz = {sz: sum(1 for l in jelolt if l.szin == sz) for sz in SZINEK}
