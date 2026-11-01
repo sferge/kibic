@@ -890,6 +890,7 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     from . import tervparhuzam as tp
     t0 = time.time()
     stat = stat if stat is not None else {}
+    tp.MEMORIA.clear()                 # a fő folyamat csak az aktuális tervezés elemzéseit tartja
     szamolt0 = tp.STATISZTIKA["szamolt"]
     helyzet = helyzetelemzes(allas)
     technikak = technikak_betoltese()
