@@ -336,6 +336,10 @@ class Peldany:
 
     @property
     def rovid(self) -> str:
+        if self.sema.fajta == "elemzo" and self.szerepek.get("aduval"):
+            sz = self.szerepek
+            return (f"♥♠♦♣ adu + {'♠♥♦♣'['SHDC'.index(self.szin)]} együtt "
+                    f"({sz['k']} ütés, ≤{sz['m']} vesztés)").replace("♥♠♦♣ ", "")
         if self.sema.fajta == "elemzo":
             sz = self.szerepek
             lop = sz.get("lop_x", 0) + sz.get("lop_y", 0)
