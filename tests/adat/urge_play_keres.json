@@ -1,0 +1,223 @@
+{
+ "protocol": "mohabridzs-ai/1.1",
+ "test_mode": true,
+ "request_id": "18e22e62-20a8-4fef-851e-bf98e68e3def:1362:0:1:play:8",
+ "decision": "play",
+ "deadline_ms": 60000,
+ "game": {
+  "scoring": "IMP",
+  "match_id": "18e22e62-20a8-4fef-851e-bf98e68e3def",
+  "state_version": 1362,
+  "round_number": 1,
+  "board_number": 14,
+  "table_index": 0,
+  "vulnerability": "ns",
+  "systems": {
+   "NS": "MOHA_STAND",
+   "EW": "MOHA_STAND"
+  }
+ },
+ "actor": {
+  "player_index": 1,
+  "seat": "E",
+  "acting_for_seat": "E",
+  "is_declarer": true,
+  "controls_dummy": false,
+  "profile_code": "kibic"
+ },
+ "state": {
+  "phase": "play",
+  "dealer": "E",
+  "current_seat": "E",
+  "contract": {
+   "level": 4,
+   "strain": "H",
+   "multiplier": 1
+  },
+  "declarer": "E",
+  "dummy": "W",
+  "visible_hands": {
+   "E": [
+    "S3",
+    "S2",
+    "HA",
+    "HT",
+    "H8",
+    "H2",
+    "DK",
+    "D8",
+    "D2",
+    "C3",
+    "C2"
+   ],
+   "W": [
+    "SK",
+    "ST",
+    "S9",
+    "S4",
+    "HJ",
+    "H5",
+    "DA",
+    "DT",
+    "D4",
+    "CA",
+    "C5"
+   ]
+  },
+  "current_trick": [],
+  "completed_tricks": [
+   {
+    "cards": [
+     {
+      "seat": "S",
+      "card": "CQ"
+     },
+     {
+      "seat": "W",
+      "card": "C4"
+     },
+     {
+      "seat": "N",
+      "card": "C8"
+     },
+     {
+      "seat": "E",
+      "card": "CK"
+     }
+    ],
+    "winner": "E"
+   },
+   {
+    "cards": [
+     {
+      "seat": "E",
+      "card": "HK"
+     },
+     {
+      "seat": "S",
+      "card": "H3"
+     },
+     {
+      "seat": "W",
+      "card": "H4"
+     },
+     {
+      "seat": "N",
+      "card": "H6"
+     }
+    ],
+    "winner": "E"
+   }
+  ],
+  "ns_tricks": 0
+ },
+ "history": {
+  "auction": [
+   {
+    "seat": "E",
+    "call": "1H"
+   },
+   {
+    "seat": "S",
+    "call": "P"
+   },
+   {
+    "seat": "W",
+    "call": "1S"
+   },
+   {
+    "seat": "N",
+    "call": "P"
+   },
+   {
+    "seat": "E",
+    "call": "1N"
+   },
+   {
+    "seat": "S",
+    "call": "P"
+   },
+   {
+    "seat": "W",
+    "call": "2N"
+   },
+   {
+    "seat": "N",
+    "call": "P"
+   },
+   {
+    "seat": "E",
+    "call": "3N"
+   },
+   {
+    "seat": "S",
+    "call": "P"
+   },
+   {
+    "seat": "W",
+    "call": "4H"
+   },
+   {
+    "seat": "N",
+    "call": "P"
+   },
+   {
+    "seat": "E",
+    "call": "P"
+   },
+   {
+    "seat": "S",
+    "call": "P"
+   }
+  ],
+  "play": [
+   {
+    "seat": "S",
+    "card": "CQ"
+   },
+   {
+    "seat": "W",
+    "card": "C4"
+   },
+   {
+    "seat": "N",
+    "card": "C8"
+   },
+   {
+    "seat": "E",
+    "card": "CK"
+   },
+   {
+    "seat": "E",
+    "card": "HK"
+   },
+   {
+    "seat": "S",
+    "card": "H3"
+   },
+   {
+    "seat": "W",
+    "card": "H4"
+   },
+   {
+    "seat": "N",
+    "card": "H6"
+   }
+  ]
+ },
+ "legal_actions": {
+  "cards": [
+   "S3",
+   "S2",
+   "HA",
+   "HT",
+   "H8",
+   "H2",
+   "DK",
+   "D8",
+   "D2",
+   "C3",
+   "C2"
+  ]
+ }
+}

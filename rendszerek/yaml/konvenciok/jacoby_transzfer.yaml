@@ -39,21 +39,47 @@ fejezetek:
       - {minta: 1NT-2H-3H, pont: 17, hossz: {S: 4+, H: 2}, figura: {H: 0}, prioritas: 56,
          alert: "Maximum, 4-es adu, figura nélküli kőr dubló"}
       # a válaszoló a teljesítés után (M = a transzferált nemes)
-      - {minta: 1NT-2D-2H-2NT, pont: 8-9, hossz: {H: 5}, elosztas: ["5332"], prioritas: 50,
-         magyarazat: "Invit, pontosan 5-ös kőr, 5332", nyers: "2nt | Invit pontosan ötös majorral; 5332-vel"}
-      - {minta: 1NT-2H-2S-2NT, pont: 8-9, hossz: {S: 5}, elosztas: ["5332"], prioritas: 50,
-         magyarazat: "Invit, pontosan 5-ös pikk, 5332"}
-      - {minta: 1NT-2D-2H-3H, pont: 8-9, hossz: {H: 6+}, prioritas: 51,
+      # a válaszoló sávjai (a szerkesztő, 2026-10-31): invit 8-9, gémforsz
+      # 10-13, szleminvit 14-16 — 5-ös nemessel invit 2NT, gémforsz 3NT
+      # (5332, vagy 5422 üres 4-es minorral), 5-4-gyel új szín, szleminvit
+      # új szín / splinter / 4NT; 6-os nemessel invit 3M, gémforsz Texas,
+      # szleminvit 4M
+      - {minta: 1NT-2D-2H-2NT, pont: 8-9, hossz: {H: 5, S: 0-3}, prioritas: 50,
+         magyarazat: "Invit, pontosan 5-ös kőr", nyers: "2nt | Invit pontosan ötös majorral"}
+      - {minta: 1NT-2H-2S-2NT, pont: 8-9, hossz: {S: 5, H: 0-3}, prioritas: 50,
+         magyarazat: "Invit, pontosan 5-ös pikk"}
+      - {minta: 1NT-2D-2H-3H, pont: 5-9, nt_pont: 8-9, hossz: {H: 6+}, prioritas: 51,
          magyarazat: "Invit, 6-os kőr", nyers: "3M | Invit hatos színnel"}
-      - {minta: 1NT-2H-2S-3S, pont: 8-9, hossz: {S: 6+}, prioritas: 51,
+      - {minta: 1NT-2H-2S-3S, pont: 5-9, nt_pont: 8-9, hossz: {S: 6+}, prioritas: 51,
          magyarazat: "Invit, 6-os pikk"}
-      - {minta: 1NT-2D-2H-3NT, pont: 10-15, hossz: {H: 5}, elosztas: ["5332"], prioritas: 50,
-         magyarazat: "Leállás, 5332 (választás a 3NT és a 4♥ között)", nyers: "3nt | To play; 5332"}
-      - {minta: 1NT-2H-2S-3NT, pont: 10-15, hossz: {S: 5}, elosztas: ["5332"], prioritas: 50,
-         magyarazat: "Leállás, 5332"}
-      - {minta: 1NT-2D-2H-4H, pont: 14-16, hossz: {H: 6+}, prioritas: 53,
+      - {minta: 1NT-2D-2H-3NT, pont: 10-13, hossz: {H: 5},
+         vagy: [{elosztas: ["5332"]}, {elosztas: ["5422"], hossz: {C: 4}, figura: {C: 0}},
+                {elosztas: ["5422"], hossz: {D: 4}, figura: {D: 0}}], prioritas: 52,
+         magyarazat: "Gém: 5332 (vagy üres 4-es minor) — választás a 3NT és a 4♥ között", nyers: "3nt | To play; 5332"}
+      - {minta: 1NT-2H-2S-3NT, pont: 10-13, hossz: {S: 5},
+         vagy: [{elosztas: ["5332"]}, {elosztas: ["5422"], hossz: {C: 4}, figura: {C: 0}},
+                {elosztas: ["5422"], hossz: {D: 4}, figura: {D: 0}}], prioritas: 52,
+         magyarazat: "Gém: 5332 (vagy üres 4-es minor) — választás a 3NT és a 4♠ között"}
+      - {minta: 1NT-2D-2H-4NT, pont: 14-16, hossz: {H: 5}, elosztas: ["5332"], prioritas: 52,
+         alert: "Kvantitatív szleminvit, 5-ös kőr (maximummal szlem)"}
+      - {minta: 1NT-2H-2S-4NT, pont: 14-16, hossz: {S: 5}, elosztas: ["5332"], prioritas: 52,
+         alert: "Kvantitatív szleminvit, 5-ös pikk (maximummal szlem)"}
+      # splinter: ugrás új színben = 0-1 lap, szleminvit 5-ös nemessel
+      - {minta: 1NT-2D-2H-3S, pont: 14-16, hossz: {H: 5, S: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös kőr, 0-1 pikk, szleminvit"}
+      - {minta: 1NT-2D-2H-4C, pont: 14-16, hossz: {H: 5, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös kőr, 0-1 treff, szleminvit"}
+      - {minta: 1NT-2D-2H-4D, pont: 14-16, hossz: {H: 5, D: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös kőr, 0-1 káró, szleminvit"}
+      - {minta: 1NT-2H-2S-4C, pont: 14-16, hossz: {S: 5, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös pikk, 0-1 treff, szleminvit"}
+      - {minta: 1NT-2H-2S-4D, pont: 14-16, hossz: {S: 5, D: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös pikk, 0-1 káró, szleminvit"}
+      - {minta: 1NT-2H-2S-4H, pont: 14-16, hossz: {S: 5, H: 0-1}, forsz: GEMFORSZ, prioritas: 53,
+         alert: "Splinter: 5-ös pikk, 0-1 kőr, szleminvit"}
+      - {minta: 1NT-2D-2H-4H, pont: 11-16, nt_pont: 14-16, hossz: {H: 6+}, prioritas: 53,
          magyarazat: "Szleminvit (erősebb, mint a Texas)", nyers: "4M | Szleminvit, erősebb, mintha egyből Texas-tf mondott volna"}
-      - {minta: 1NT-2H-2S-4S, pont: 14-16, hossz: {S: 6+}, prioritas: 53,
+      - {minta: 1NT-2H-2S-4S, pont: 11-16, nt_pont: 14-16, hossz: {S: 6+}, prioritas: 53,
          magyarazat: "Szleminvit (erősebb, mint a Texas)"}
       - {minta: 1NT-2D-2H-3C, pont: 10+, hossz: {H: 5+, C: 4+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 51,
          magyarazat: "Természetes, gémforsz, 5-4+", nyers: "Új szín | NAT; GF; 5-4 +"}
@@ -78,5 +104,5 @@ fejezetek:
       - {minta: 2NT-3H-3S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
       - {minta: 2NT-3D-3H-3NT, pont: 4-10, hossz: {H: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♥ között"}
       - {minta: 2NT-3H-3S-3NT, pont: 4-10, hossz: {S: 5}, prioritas: 50, magyarazat: "Választás a 3NT és a 4♠ között"}
-      - {minta: 2NT-3D-3H-4H, pont: 4-10, hossz: {H: 6+}, prioritas: 51, magyarazat: "Leállás"}
-      - {minta: 2NT-3H-3S-4S, pont: 4-10, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2NT-3D-3H-4H, pont: 1-10, nt_pont: 4-10, hossz: {H: 6+}, prioritas: 51, magyarazat: "Leállás"}
+      - {minta: 2NT-3H-3S-4S, pont: 1-10, nt_pont: 4-10, hossz: {S: 6+}, prioritas: 51, magyarazat: "Leállás"}

@@ -822,6 +822,19 @@ def kiertekel(csp: dict, allas: Allas,
         v = allas.valodi_szinek("mi")
         return len(v) == 3 and sz not in v and not allas.mondta(sz, "ok")
 
+    if t == "RIVERZ":
+        # a most definiált licit riverz-e: a 2-es szinten, a saját első
+        # színemnél magasabb rangú (új) szín (a szerkesztő, 2026-10-31)
+        licit = (kotesek or {}).get("_licit")
+        if not licit or not licit[0].isdigit() or licit[0] != "2" or licit[1:] == "NT":
+            return False
+        rang = "CDHS"
+        elso = next((e["licit"] for e in allas.licitek
+                     if e.get("ules") == allas.ules and e.get("licit", "")[:1].isdigit()), None)
+        if elso is None or elso[1:] not in rang:
+            return False
+        return rang.index(licit[1:]) > rang.index(elso[1:])
+
     if t == "UGRAS":
         # a most definiált színlicit / szan ugrás-e (magasabb a legolcsóbb szintnél)
         licit = (kotesek or {}).get("_licit")
@@ -1342,6 +1355,8 @@ def leiras(csp: dict) -> str:
         return "a licit a negyedik szín (a vonal három igazi színe után, a legolcsóbb)"
     if t == "PARTNER_NEGYEDIK":
         return "a partner a negyedik színt licitálta"
+    if t == "RIVERZ":
+        return "riverz (2-es szinten a saját első színemnél magasabb rangú szín)"
     if t == "UGRAS":
         return "ugrás (nem a legolcsóbb szinten)"
     if t == "PARTNER_KULCSLICIT":

@@ -33,6 +33,7 @@ hivatkozasok:
   - GYENGE_UGRO_VALASZ          # a gyenge ugró válasz folytatásai (nyitó, 2NT-kérdés)
   - POZITIV_SZABAD_LICIT        # a küzdelmi rész ELŐTT: a 2-es szintű új szín pozitív (SZABAD_LICIT_MIN)
   - KOZBESZOLAS_NYITAS          # a KÜZDELMI ELŐTT: a közbeszólás egyenértékű a nyitással (2026-10-21)
+  - MASODIK_SZANDEK             # a KÜZDELMI ELŐTT: passzolt lap megszólalása p (p) p (1x) után (2026-10-31)
   - KIBICEGY_KUZDELMI
   - NEGATIV_KONTRA
   - SUPPORT_KONTRA

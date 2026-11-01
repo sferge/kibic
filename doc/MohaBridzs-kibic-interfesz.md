@@ -64,6 +64,7 @@ asztalt és sok AI-játékost szolgálhat ki párhuzamosan.
 | `/v1/bridge/play` | POST | AI | lapválasztás: minta a rejtett kezekből, DD-szűrő, a jelzésrendszer a jó lapok közül | a kérés igen; a válasz nem (teszt módban: `meta.kibic.debug` igen) | ✅ 2026-10-21 |
 | `/v1/bridge/explain` | POST | AI | egy elhangzott licit jelentése (a megállapodás) | **nem** | ✅ |
 | `/v1/bridge/card` | POST | AI | konvenciókártya (JSON + nyomtatható HTML) | **nem** | ✅ |
+| `/v1/bridge/urge` | POST | AI | életjel és sürgetés egy futó `bid`/`play` döntésre (MB 1.1.76) | **nem** (a `ready` válaszban a kész döntés) | ✅ 2026-10-31 |
 | `/v1/kibic/dd` | POST | kibic | double dummy egy játékállásra, laponként | igen (mind a négy kéz) | ✅ |
 | `/v1/kibic/dd-tabla` | POST | kibic | DD-tábla, par, eltérés a partól — leosztásonként | igen | ✅ |
 | `/v1/kibic/kiosztas` | POST | AI | kiosztássor: generált (célzott licit- / lejátszási helyzet), verseny-PBN, kész kiosztások ellenőrzése | igen (ez a lényege) | ✅ 2026-10-03 |
@@ -765,6 +766,55 @@ terítőnek információ volna). Az ok (`DD_KEVES`, `NEM_BIZTOS`, `BIZTOS`,
 Értelmezhetetlen állásnál, DDS nélkül vagy belső hibánál `source:
 fallback` (az MB ezt elutasításnak veszi).
 
+### 5.7 `POST /v1/bridge/urge` ✅ (2026-10-31) — életjel és sürgetés
+
+Az MB 1.1.76 opcionális interfésze (`AI_URGE_INTERFACE_1.1.76.md`): egy már
+futó `/bid` vagy `/play` kérésre kérdez rá (`original_request_id`). A
+`capabilities`:
+
+```json
+"endpoints": {"urge": true, …},
+"services": {"urge": {"path": "/v1/bridge/urge",
+                      "commands": ["status", "expedite", "cancel"],
+                      "progress": true, "expedite_returns_best_so_far": ["play"]}}
+```
+
+**Hogyan működik.** A gateway a `bid` és a `play` döntéseket request_id
+szerint nyilvántartja (`szolgaltatas/surgetes.py`, `FELADATOK`) — a `play`-t
+még az eseményhurkon, mielőtt a szálkészletbe kerülne, így a foglalt
+szálkészlet mellett is látszik. A kész döntés `KIBIC_URGE_MEGORZES_S`-ig
+(alap 600) kérdezhető; ha már nincs a nyilvántartásban, de az
+idempotencia-tárban megvan (az MB ugyanazt a request_id-t kérte), az is
+`ready`. A végpont az eseményhurkon fut és csak memóriát olvas.
+
+| `command` | A kibic |
+|---|---|
+| `status` | `working` (előrehaladással), `ready` (a teljes döntéssel), `failed`, vagy `unknown` |
+| `expedite` | **kijátszásnál a mintavétel a következő mintánál megáll** (legalább 6 minta), és a pillanatnyi legjobb lap megy ki — nem tartalék: ugyanaz a döntési lánc, kevesebb mintán (`meta.kibic.stopped: "SURGETES"`); a gondolkodási idő is megszakad. A végpont legfeljebb `KIBIC_URGE_VARAKOZAS_MS`-ig (alap 2000) vár, és ha addig kész, már `ready`-t ad. Licitnél a futó elemzés nem rövidül (csak `status`). |
+| `cancel` | **kibic-bővítés** (az MB 1.1.76 nem küldi): mint az `expedite`, de a döntés eredménye nem kell — a DDS hamarabb felszabadul a többi asztalnak. A válaszban `cancelled: true`. |
+
+Ugyanarra a még dolgozó request_id-ra érkező MÁSODIK `/play` vagy `/bid` nem
+számol újra: megvárja az elsőt (más törzzsel 409).
+
+**`working` válasz** (a `message` lapot, kezet, elemzést nem tartalmaz):
+
+```json
+{"request_id": "…:urge:…", "original_request_id": "…:play:16", "status": "working",
+ "message": "Elemzem az állást: eddig 180 lehetséges leosztást néztem meg (6 mp). A legjobbnak látszó lap a leosztások 64%-ában a legjobb. Most 3 döntésen dolgozom egyszerre.",
+ "retry_after_ms": 5000,
+ "progress": {"phase": "mintavetel", "elapsed_ms": 6120, "phase_elapsed_ms": 4410,
+              "samples": 180, "samples_target": 3000, "leader_confidence": 0.64,
+              "dds_wait_ms": 2300, "eta_ms": 4100, "expedite_requested": false}}
+```
+
+`progress` (kibic-bővítés; az MB 1.1.76 nem olvassa): `phase` = `sorban` /
+`kovetkeztetes` (a licitből a rejtett lapokra) / `mintavetel` / `dds_var` (más
+asztal számol a DDS-en) / `dontes`; `leader_confidence` = a minták hányadában
+a legjobb (az egyik legjobb) a jelenleg vezető lap; `dds_wait_ms` = eddig
+összesen ennyit várt a DDS-re; `eta_ms` = becsült hátralévő idő.
+
+**`ready`**: `response` = a `/play` (`/bid`) teljes, változatlan válasza.
+
 ## 6. Az MB oldaláról: mit, mikor, melyik hívásban
 
 | Mikor | Hívás | Mit küld az MB |
@@ -775,6 +825,7 @@ fallback` (az MB ezt elutasításnak veszi).
 | Párok beállításakor | — | páronként: ismert rendszer kódja, vagy családja, vagy kód + család |
 | Minden licitnél | `POST /v1/bridge/bid` | **`game.systems` (MUST az 1.2-ben)**; `auction[].alert` (SHOULD); a `meta.kibic.explain_requests`-re a magyarázat a következő kérésekben (SHOULD) |
 | Minden lapnál | `POST /v1/bridge/play` | **`game.systems`** |
+| Ha egy AI-döntés soká tart (kézi gomb) | `POST /v1/bridge/urge` | `original_request_id`, `command` (`status` / `expedite`) |
 | Ha valaki megkérdez egy licitet | `POST /v1/bridge/explain` | **`game.systems`**; a licitáló vonalán ülő AI kapja |
 | „Mutasd a kártyádat” | `POST /v1/bridge/card` | `system` nélkül (a saját vonal rendszere a `game.systems`-ből, ha küldik) |
 | Leosztás végén (elemzés) | `POST /v1/kibic/dd-tabla` (és állásonként `/v1/kibic/dd`) | a négy kéz, kontraktus, felvevő, beli |
@@ -969,6 +1020,9 @@ leírás, HTML / Markdown) alakja — ezekhez titok nem kell.
 | `KIBIC_LEJATSZAS_KOVETKEZTETES_MS` | a licit kizárásos következtetése a lejátszásban (leosztásonként egyszer; alap 15000, legfeljebb a `deadline_ms` 30%-a; utána gyorsítótár) |
 | `KIBIC_GONDOLKODAS_MS` | a kijátszás legrövidebb válaszideje: `1500-3000` (véletlen a tartományból, ez az alap), `2000` (fix), `0` (ki). Ha a döntés tovább tartott, nincs várakozás; legfeljebb a `deadline_ms` 30%-a; az utolsó ütésben nincs |
 | `KIBIC_MUHELY_KOVETKEZTETES_MS` | a `/v1/kibic/magyaraz` (tanári részlet) kizárásos következtetésének időkerete (alap 3000; kérésenként `inference_ms`). A tanári asztal minden döntéshez kér ilyet. |
+| `KIBIC_URGE_MEGORZES_S` | a kész döntés ennyi másodpercig kérdezhető le a `/v1/bridge/urge`-en (alap 600) |
+| `KIBIC_URGE_VARAKOZAS_MS` | `expedite`-nál a végpont legfeljebb ennyit vár a kész döntésre (alap 2000; az MB 3 mp-ig vár) |
+| `KIBIC_DDS_FOLYAMATOK` | a lejátszás lapelemzése ennyi külön DDS-folyamatban fut, zár nélkül (alap `0` = a közös zár, sorban). Több asztalhoz: a magok száma vagy kevesebb (folyamatonként ~50–100 MB). Szálakkal nem megy: az endplay DDS két szálon összeomlik. |
 | `KIBIC_CLAIM_MS` | a terítés elbírálásának időkerete (alap 20000; legfeljebb a `deadline_ms` fele; 5.6) |
 | `KIBIC_LICIT_LAZA` | puha licitkorlát a lejátszás mintavételében: a minta legfeljebb ennyi része jöhet a licitnek NEM megfelelő kezekből, a távolsággal csökkenő súllyal (alap 0.15; `0`: kemény korlát, a régi viselkedés) |
 | `KIBIC_VALASZTAS_KORLAT` | `0`: nincs korlátozott választás (restricted choice) a mintában (alap: be) |
@@ -1062,3 +1116,4 @@ Az adatbázis vagy a YAML-rendszerek módosítása után: `POST /v1/kibic/ujrato
 | 2026-10-25 | Játék-szál, az első éjszakai négykibices futás után. **A nehéz végpontok nem az eseményhurkon futnak** (`/v1/bridge/bid`, `/explain`, `/card`, `/v1/kibic/magyaraz`, `/licit`, `/dd`, `/dd-tabla`): eddig egy hosszú tanári magyarázat (a szerveren akár 90 s következtetés) alatt minden más kérés — a játék licitje és lapja is — várt. **A DDS közös zárja a könyvtár bejáratánál** (`solver/dds.ZAR`, újrabelépős): a licit-szimuláció eddig zár nélkül hívta. Új: `KIBIC_MUHELY_KOVETKEZTETES_MS` (alap 3000). |
 | 2026-10-25 (2.) | Játék-szál, a Pavlicek felvevő-partik diagnózisa után. **Puha licitkorlát** a lejátszás mintavételében (`KIBIC_LICIT_LAZA`, alap 0.15): a licitnek nem megfelelő kéz is bekerülhet, kisebb súllyal — eddig a könnyű közbeszólás, a 3 lapos emelés versenyben, a 4 lapos „szín” nyomás alatt a valódi elosztást kizárta. Kísérleti: `KIBIC_ALFAMU=1` (a felvevő következő döntésénél ugyanaz a lap a megkülönböztethetetlen világokban); a 145 döntéses próbán nem javított (2 jobb, 3 rosszabb), ezért alapból ki. A meta új mezői: `lookahead` (ha be van kapcsolva). |
 | 2026-10-25 (3.) | Játék-szál, a Pavlicek-asztal 8. partija után. **Korlátozott választás** (restricted choice): ha egy rejtett kéz egy figurát (10-estől) tett, és az elosztásban egyenértékű lapja is volt (DB-ből a B), az elosztás súlya 1/(egyenértékű lapok száma) — eddig a kibic úgy vette, hogy a védő mindig a legkisebbet teszi. **A második kéz szabálya** (`MASODIK_KEZ`) az EREDETI holdingra illeszt: a D107-ből a 7 után maradt D10 nem „dubló figura”. Az előrelátás (kísérleti) jelöltjei egy színen belül is lehetnek (♠K vagy ♠10). |
+| 2026-10-31 | Freeze-szál. **Életjel és sürgetés**: `POST /v1/bridge/urge` (MB 1.1.76; 5.7) — `status`, `expedite` (kijátszásnál a pillanatnyi legjobb lap, `meta.kibic.stopped: SURGETES`), kibic-bővítésként `cancel` és `progress`. A döntések request_id szerinti nyilvántartása; a már futó request_id-t nem számolja kétszer. **Párhuzamos DDS**: `KIBIC_DDS_FOLYAMATOK=N` — a lapelemzés N külön folyamatban (alap 0: a régi közös zár). Új beállítások: `KIBIC_URGE_MEGORZES_S`, `KIBIC_URGE_VARAKOZAS_MS`, `KIBIC_DDS_FOLYAMATOK`. |

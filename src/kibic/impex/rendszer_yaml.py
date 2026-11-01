@@ -183,6 +183,7 @@ _SZABALY_KULCSOK = {
     "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
     "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "gyenge_fogas", "help_fogas",
     "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit", "menekulo",
+    "nt_pont",
 }
 _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "feltetel", "lapok", "nincs", "fohonor", "figura", "fogas",
@@ -195,7 +196,7 @@ _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
                 "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont",
                 "gyenge_fogas", "help_fogas", "gem_eselytelen", "eros_fogas",
-                "leghosszabb_partner_szin", "misfit", "menekulo"}
+                "leghosszabb_partner_szin", "misfit", "menekulo", "nt_pont"}
 
 # A lap minősége (LAPMINOSEG = jó jelek − rossz jelek, lásd 023_lapminoseg.sql)
 _MINOSEG = {"jo": (">=", 2), "rossz": ("<=", -2),
@@ -432,6 +433,8 @@ def _kez_fa(spec: dict, hely: str) -> dict:
         gy.append(_pont_fa(spec["pont"], {"t": "ERT", "kod": "HCP"}, hely))
     if "ap" in spec:
         gy.append(_pont_fa(spec["ap"], {"t": "ERT", "kod": _ap_kod(spec)}, hely))
+    if "nt_pont" in spec:                        # hosszú szín a szan ellen (HOSSZ_NT)
+        gy.append(_pont_fa(spec["nt_pont"], {"t": "ERT", "kod": "HOSSZ_NT"}, hely))
     for nev, s in (spec.get("hossz") or {}).items():
         lo, hi = sav(s)
         gy += _sav_fa({"t": "SZIN", "szin": _szin_kod(str(nev))}, lo, hi)
@@ -819,6 +822,17 @@ def _kez_jelentes(spec: dict) -> dict:
             p["max"] = _szam(hi)
         if p:
             j["pont"] = p
+    if "nt_pont" in spec:
+        # a hosszú szín pontja a szan ellen PONTKÉNT ígér (a partner ezzel
+        # számol; a szerkesztő, 2026-11-01): a pontsáv ez
+        lo, hi = _pont_hatarok(spec["nt_pont"])
+        p = {}
+        if lo is not None:
+            p["min"] = _szam(lo)
+        if hi is not None:
+            p["max"] = _szam(hi)
+        if p:
+            j["pont"] = p
     for _, s_ in (spec.get("fedoutes") or {}).items():   # a fedőütés is ígéret
         lo, hi = sav(s_)
         fd = {}
@@ -921,6 +935,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
             n = {"t": "PARTNER_NEGYEDIK"}
             if isinstance(v, dict) and "szint" in v:   # {szint: 3}: ezen a szinten
                 n["szint"] = int(v["szint"])
+            gy.append(n if v else {"t": "NEM", "gy": [n]})
+        elif k == "riverz":                # a licit riverz-e (2-es szint, a nyitott színnél magasabb rangú)
+            n = {"t": "RIVERZ"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "ugras":                 # a licit ugrás-e (nem a legolcsóbb szinten)
             n = {"t": "UGRAS"}
@@ -1078,6 +1095,8 @@ def _ha_szoveg(ha) -> str | None:
                        for sz_, db in parok]
         elif k == "ugras":
             reszek.append("ugrással" if v else "nem ugrással")
+        elif k == "riverz":
+            reszek.append("riverz" if v else "nem riverz")
         elif k == "partner_ugrott":
             reszek.append("a partner ugrott" if v else "a partner nem ugrott")
         elif k == "partner_kulcslicitelt":

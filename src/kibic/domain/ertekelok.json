@@ -203,6 +203,39 @@
    }
   ]
  },
+ "HOSSZ_NT": {
+  "kontextus": "SZINTALALKOZAS",
+  "leiras": "Hosszú (6+) szín a partner szanja ellen: HCP + szingli 1 / renonsz 2 + 1, ha a leghosszabb, legalább 6 lapos színben ász vagy király van (a dáma nem számít)",
+  "nev": "Hosszú szín a szan ellen",
+  "tagok": [
+   {
+    "egyutthato": 1,
+    "kod": "HCP",
+    "tipus": "ERTEKELO"
+   },
+   {
+    "sulyok": {
+     "0": 2,
+     "1": 1
+    },
+    "tipus": "HOSSZ_SULY"
+   },
+   {
+    "bal": {
+     "min_hossz": 6,
+     "sulyok": {
+      "A": 1,
+      "K": 1
+     },
+     "szin_rang": 1,
+     "tipus": "LAP_SULY"
+    },
+    "jobb": 1,
+    "op": ">=",
+    "tipus": "FELTETEL"
+   }
+  ]
+ },
  "J_HOSSZ": {
   "kontextus": "ABSZOLUT",
   "leiras": "JÁTÉKÜTÉS-jelölt: gátló nyitásoknál szokásos becslés.",
