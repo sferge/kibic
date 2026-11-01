@@ -63,11 +63,12 @@ def main(argv=None) -> int:
     sorok = []
     fej = ["tabla", "kontraktus", "pont", "relevans_vedoi", "valasztas", "esely", "tervek",
            "draga", "draga_pontos", "elemzes", "ido_s", "olcso_s", "becsles_s", "pontos_s",
-           "teljes_valasztas", "teljes_esely", "teljes_ido_s", "egyezik", "hiba"]
+           "teljes_valasztas", "teljes_esely", "teljes_ido_s", "egyezik", "fal_s", "hiba"]
     for p in partik:
         r = {k: "" for k in fej}
         r["tabla"], r["kontraktus"] = tabla_szam(p.azonosito), str(p.kontraktus)
         print(f"\n== {p.azonosito} {p.kontraktus}", flush=True)
+        t_parti = time.time()
         try:
             pont, naplo = tervezesi_pont(p)
             for t, l, rel, miert in naplo:
@@ -110,15 +111,21 @@ def main(argv=None) -> int:
             print("   HIBA: " + r["hiba"], flush=True)
             if os.environ.get("KIBIC_HIBA_RESZLET"):
                 traceback.print_exc()
+        r["fal_s"] = f"{time.time() - t_parti:.1f}"
+        print(f"   parti ideje: {float(r['fal_s']):.0f} s", flush=True)
         sorok.append(r)
         with open(a.kimenet, "w", encoding="utf-8") as f:
             f.write("\t".join(fej) + "\n")
             for x in sorok:
                 f.write("\t".join(str(x[k]) for k in fej) + "\n")
+    print(f"\n{'tábla':>5} {'kontr.':>6} {'ütés':>4} {'esély':>6} {'idő s':>6}  választás / hiba")
+    for x in sorok:
+        print(f"{x['tabla']:>5} {x['kontraktus']:>6} {str(x['pont']):>4} {x['esely'] or '-':>6} "
+              f"{float(x['fal_s']):6.0f}  {x['hiba'] or x['valasztas']}")
     ok = [x for x in sorok if not x["hiba"]]
-    ido = sum(float(x["ido_s"]) for x in ok)
+    ido = sum(float(x["fal_s"]) for x in sorok)
     print(f"\nösszesen {len(sorok)} parti, {len(ok)} tervezve, {len(sorok) - len(ok)} hiba; "
-          f"tervezési idő {ido:.0f} s; eredmény: {a.kimenet}")
+          f"összes idő {ido:.0f} s; eredmény: {a.kimenet}")
     if a.teljes:
         nem = [x["tabla"] for x in ok if x["egyezik"] == "NEM"]
         print("a lépcsők más tervet választottak: " + (", ".join(map(str, nem)) if nem else "egyik partin sem"))
