@@ -147,6 +147,21 @@ def _hivas(ja, X, Y, kint, cel, hatra, korl, kulcs, utesszam, megallito, naplo):
     felv, aszt = ja.felvevo, ja.asztal
     from .tervutes import TERV_TAR, allas_kulcs
     from .tervezo import helyzetelemzes
+    from . import tervnaplo as tn
+    nap = tn.betolt(kulcs)
+    if nap is not None:
+        try:
+            r = tn.kovetkezo_lap(nap, ja.lejatszott, ja.ules)
+        except Exception:                      # noqa: BLE001 — a napló csak gyorsítás
+            r = None
+        if r is not None and r[0] in ja.legalis:
+            lap, lapok = r
+            _KOR_TAR[(kulcs, utesszam)] = {"lapok": dict(lapok), "elso": lap}
+            v = nap.terv
+            return TervDontes(lap, f"A terv folytatódik: {v.terv.nev} ({v.kockazattal:.0%}).",
+                              0.5 + 0.45 * v.kockazattal,
+                              {"plan": v.terv.nev, "chance": round(v.kockazattal, 3),
+                               "continued_from_log": True})
     allas = Allas(felv, ja.adu, {felv: set(X), aszt: set(Y)}, set(kint), cel, hatra, ja.ules)
     stat: dict = {}
     korabbi = TERV_TAR.get(allas_kulcs(allas.kezek, kint, cel, hatra, ja.ules,
@@ -167,6 +182,10 @@ def _hivas(ja, X, Y, kint, cel, hatra, korl, kulcs, utesszam, megallito, naplo):
     oszt = osztalyok(allas.kint, {u: hatra for u in allas.vedok}, relevans,
                      [k for k in korl if k.tudas == "megfigyelt"])
     o = max(oszt, key=lambda x: x.suly)
+    try:
+        tn.ment(kulcs, tn.Naplo(allas, list(korl), v, len(ja.lejatszott), relevans))
+    except Exception:                          # noqa: BLE001 — a napló csak gyorsítás
+        pass
     e = Ertekelo(h, v.terv, kockazat=True)
     e.politika_rogzitett = v.politika
     e.ut = []
@@ -219,6 +238,17 @@ def _harmadik(ja, akt, kulcs, utesszam):
     """A mi hívásunk után a 3. kéz: a megjegyzett kör."""
     from .tervutes import _nyero, _ut
     kor = _KOR_TAR.get((kulcs, utesszam))
+    if (not kor or akt[0][1] != kor.get("elso")) and len(akt) == 2:
+        # nincs a memóriában (újraindítás, másik folyamat): a tervnaplóból
+        from . import tervnaplo as tn
+        nap = tn.betolt(kulcs)
+        r = None
+        if nap is not None:
+            try:
+                r = tn.kovetkezo_lap(nap, ja.lejatszott, ja.ules)
+            except Exception:                  # noqa: BLE001
+                r = None
+        kor = {"lapok": dict(r[1]), "elso": akt[0][1]} if r is not None else None
     if not kor or len(akt) != 2 or akt[0][1] != kor.get("elso"):
         return None
     hivott = akt[0][1].szin
