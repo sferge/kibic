@@ -58,6 +58,16 @@
       # lapok, színhiány; bizonyított); a licitből feltételezett hosszból nem
       # (a szerkesztő döntése, 2026-10-31: sok parti statisztikája után oldható).
       tudas: [megfigyelt, bizonyitott]
+    - szabaly: VEDOI_UTESEK
+      nev: "A védők ütései, amikor hívásba jutnak"
+      # Minden elvesztett ütés egy bejutás. Bejutáskor a védők a terv technikáinak
+      # színein kívül (aduban az adun kívül) leviszik a mostani nyerőiket, és egy
+      # színt — a versenyszínt — minden bejutáskor tovább hívnak: kiütik a
+      # megállítónkat, a következő bejutáskor leviszik a színt. A plusz ütéseik a
+      # tartalékot fogyasztják (a szükséges ütés a hátralévőkből: a vesztés összesen
+      # legfeljebb a tartalék). Egyszerűsítés: a védők lapjai a színben közösen
+      # (a nagy lapok a hívó kézben), a hosszuk az osztályé; a mi kezünk lopással
+      # megállítja a színt. Csak a kockázattal számolt értékben.
     - szabaly: TERVEZES
       nev: "A tervezés lépcsői: felismerés, becslés, pontos számítás"
       # 1. felismerés: a technikák `felismeres` feltételei (olcsó jellemzők) szűrik,
@@ -82,5 +92,10 @@
       # tervekkel együtt értékeli. Ha utána a védők hívnak, a következő hívásuk a
       # számunkra legrosszabb szín (sorsolt világokon, `visszahivas_melyseg`
       # mélységig; alatta úgy számolunk, mintha mi hívnánk).
+      # Folytatólagosan: a második helyen ülő kezünk lapját az alap folytatással
+      # (a 4. kéz üt, ha kell) értékeljük — ez a lap értékének alsó korlátja; a 4.
+      # kéz többi lehetőségét csak a legjobbtól `folytatas_sav`-on belüli lapokra
+      # számoljuk (a 4. kéz úgyis a 3. lap láttán dönt). 100%-os lap után nincs több.
+      folytatas_sav: 0.10
       visszahivas_melyseg: 1
-      vilagok: 120
+      vilagok: 300
