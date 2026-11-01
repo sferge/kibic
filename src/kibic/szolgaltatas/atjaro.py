@@ -683,6 +683,37 @@ def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
     return valasz
 
 
+def _terv_play(keres: dict, allas, start: float, feladat, figyelem: list) -> dict | None:
+    """A felvevő tervező lapja (motor/tervdontes.py), ha be van kapcsolva és ad
+    lapot; különben None (a régi lejátszó dönt). A sürgetés a tervezés lépcsői
+    között megállítja: az addigi legjobb megy, ha már van."""
+    from ..motor import tervdontes as td
+    if allas.vedo or not td.bekapcsolva(keres):
+        return None
+    # a többszálú szolgáltatásban a folyamatok forkserverrel indulnak
+    os.environ.setdefault("KIBIC_MP", "forkserver")
+    if feladat is not None:
+        feladat.szakaszba("tervezes")
+    try:
+        d = td.dontes(allas, munkamenet_kulcs(keres),
+                      megallito=feladat.megallito if feladat is not None else None)
+    except Exception as e:                       # noqa: BLE001 — a régi lejátszó a tartalék
+        figyelem.append(f"tervező: {type(e).__name__}: {e}"[:200])
+        return None
+    if d is None or d.lap not in allas.legalis:
+        figyelem.append("tervező: nincs lapja ebben a helyzetben (a régi lejátszó dönt)")
+        return None
+    meta = {"source": "model", "pipeline": "kibic_terv",
+            "elapsed_ms": int((time.time() - start) * 1000),
+            "fallback_reason": None, "kibic": {"planner": d.meta}}
+    if figyelem:
+        meta["kibic"]["warnings"] = list(figyelem)
+    valasz = _valasz(keres, "play", {"card": allas.legalis[d.lap]}, d.magyarazat,
+                     d.bizonyossag, meta)
+    naploz(keres, None, valasz)
+    return valasz
+
+
 def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
                  feladat=None) -> dict:
     """
@@ -723,6 +754,11 @@ def _play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
     eldobott = lj.lathato_szures(allas, str(szereplo.get("seat") or "").upper() or None)
     if eldobott:
         figyelem.append(f"nem látható kezek figyelmen kívül: {','.join(eldobott)}")
+
+    # a sémákból dolgozó felvevő tervező (KIBIC_TERVEZO / KIBIC_TERVEZO_PROFILOK)
+    terv_valasz = _terv_play(keres, allas, start, feladat, figyelem)
+    if terv_valasz is not None:
+        return terv_valasz
     rendszer = par = None
     vf: dict = {}
     try:

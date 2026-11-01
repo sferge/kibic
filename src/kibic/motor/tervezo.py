@@ -182,6 +182,7 @@ class Ertekelo:
         self.politika_rogzitett: dict | None = None
         self.ut: list | None = None           # egyetlen eset útja (a végrehajtás-ellenőrzéshez)
         self._vedoi_tar: dict = {}
+        self._utolso_elemzes = None
         # VEDOI_UTESEK: a terv technikáinak színein kívüli színek (azok vesztéseit a
         # technika maga számolja); adu-felvételben az adu sem (a kiaduzás kezeli)
         self.vedoi_szinek = [sz for sz in SZINEK
@@ -526,6 +527,7 @@ class Ertekelo:
     def _elemzes(self, e, regi_kulcs=None):
         """Az elemzés a tárból; ha nincs: gyűjtő módban jelzi, különben kiszámolja."""
         from . import tervparhuzam as tp
+        self._utolso_elemzes = e
         ertek = tp.tarbol(e.kulcs)
         if ertek is None and regi_kulcs is not None:
             ertek = _lemez_tar(regi_kulcs)          # a 2026-10-31-i tár kulcsa
@@ -645,7 +647,9 @@ class Ertekelo:
 
     def _elemzos(self, esetek: list[Eset], ti: int, st: Allapot) -> float:
         p = self.terv.lepesek[ti]
-        tart, kim = self._szk_futas(p, st)
+        tart, kim = self._szk_futas(p, st)[:2]
+        if self.ut is not None:
+            self.ut.append(("elemzo", p, self._utolso_elemzes))
         sz = p.szin
         # az állapot utána: a szín lapjaink elfogynak; a lopások és az átmenetek
         # (a legrosszabb tartás szerint) a legkisebb adut / a legolcsóbb nyerőt viszik
@@ -989,7 +993,7 @@ def _helyettesitok(p: Peldany, pld: list[Peldany], adu: str) -> list[list[Peldan
 
 def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
            feltevesbol: bool = False, teljes: bool = False,
-           stat: dict | None = None, draga_pontos: bool = True) -> tuple[Helyzet, list[TervErtek]]:
+           stat: dict | None = None, draga_pontos: bool = True, megallito=None) -> tuple[Helyzet, list[TervErtek]]:
     """A tervek értékelése három lépcsőben (TERVEZES szabály): felismerés (a sémák
     `felismeres` feltételei), az olcsó tervek pontosan, a drága (többszínű
     elemzést kívánó) tervek becsléssel, és pontosan csak a legjobb jelöltek.
@@ -1034,7 +1038,11 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     t1 = time.time()
     ki = tp.ertekel_mind(olcso, lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))
     stat["olcso_s"] = time.time() - t1
-    # ha egy olcsó terv már 100%-os, drága tervet nem érdemes vizsgálni
+    # ha egy olcsó terv már 100%-os, drága tervet nem érdemes vizsgálni; sürgetésre
+    # (megallito) sem: az eddigi legjobb megy
+    if megallito is not None and megallito():
+        stat["megszakitva"] = True
+        draga = []
     if not teljes and any(e.kockazattal >= 1 - 1e-9 for e in ki):
         stat["draga_kihagyva"] = len(draga)
         draga = []
@@ -1072,6 +1080,8 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     else:
         valasztott = [i for i in sorrend if becsult[i] >= legjobb - float(tz.get("sav", 0.05))]
         valasztott = valasztott[:int(tz.get("pontos", 3))]
+    if megallito is not None and megallito():
+        valasztott = []
     pontos = dict(zip(valasztott, tp.ertekel_mind(
         [draga[i] for i in valasztott],
         lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))))
