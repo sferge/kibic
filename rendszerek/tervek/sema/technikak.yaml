@@ -1,0 +1,139 @@
+# Technikasémák — a felvevő tervező adatai (tervezet: claude/terv-sematar-2026-10-31.md)
+#
+# Egy technika: egy (ritkán két) színben végrehajtható elemi eljárás. A sor
+# felépítése:
+#   szerepek      a szín lapjainak és kezeinek szerepe; a LÁTOTT lapokból számolt
+#                 kifejezések (a fogalmak: motor/tervsema.py FOGALMAK), sorrendben
+#   alkalmazhato  a látott lapokra vonatkozó feltételek (mind igaz → a technika
+#                 erre a színre alkalmazható)
+#   korok         a kotta: körönként a kör fajtája (lehiv / impassz / lop), a hívó
+#                 kéz és a lap; `ismetles`: ennyiszer (a lista lapjain sorban);
+#                 `csak_ha: siker` — a kört csak akkor játsszuk, ha a technika
+#                 sikerült (ez a megfigyelésből látszik); `begyujtes: igen` — a
+#                 biztos nyerők lehívása: a kiaduzás utánra halasztható, ha a
+#                 kiaduzó kéz és utána a lapok keze is elérhető (BEGYUJTES szabály)
+#   siker         REJTETT feltétel: csak a valószínűség-számoló értékeli (a
+#                 végrehajtás sosem ágazik el rá közvetlenül)
+#   kudarc_koltseg  ennyi ütést ad ki a kudarc (0: próba, ha a tartalék engedi)
+#   hozam         ennyi ütéssel csökkenti a hiányt, ha sikerült
+#   hasznal       a lapjaink, amelyekre a technikának szüksége van (ezeket más
+#                 technika nem fogyaszthatja el előtte, és átmenetnek sem adjuk)
+#   elfogyaszt    a lapjaink, amelyeket a technika elhasznál
+#
+# A kockázatokat (ellopás, felüllopás) NEM a technika írja le: az ELLOPÁS
+# általános szabály minden mellékszínkörre érvényes, amíg a védőknél adu van
+# (strategiak.yaml).
+#
+# Öröklés: `valtozat` + `alap` (a tervtár szokása); `felulir` a megadott mezőket
+# cseréli.
+
+- technika: EJTES
+  nev: "Ejtés: a hiányzó figura leejtése a felső lapokkal"
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    FELSO: "felettunk(SZ, F)"
+    M: "kozvetlen_alatta(SZ, F)"
+    N: "hossz(FELSO)"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(M)", "N >= 1", "kezhossz(keze(M), SZ) >= N + 1"]
+  korok:
+    - {ismetles: "N", fajta: lehiv, lap: FELSO}
+    - {fajta: lehiv, lap: "[M]", csak_ha: siker, begyujtes: igen}
+  siker: "figura_hossz(F) <= N"
+  kudarc_koltseg: 0
+  hozam: 1
+  hasznal: [FELSO, "[M]"]
+  elfogyaszt: [FELSO, "[M]"]
+
+- technika: IMPASSZ_VILLA
+  nev: "Impassz a villa felé (a villa alsó lapja üt, ha a figura a második kéznél van)"
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    V: "kozvetlen_alatta(SZ, F)"
+    VK: "keze(V)"
+    HK: "partner(VK)"
+    FELETTE: "felettunk_kezben(VK, SZ, F)"
+    DEBLOKK: "felettunk_kezben(HK, SZ, F)"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(FELETTE) >= 1",
+                 "kezhossz(HK, SZ) > hossz(DEBLOKK)"]
+  korok:
+    - {ismetles: "hossz(DEBLOKK)", fajta: lehiv, lap: DEBLOKK}
+    - {fajta: impassz, hivo: HK, lap: V}
+    - {ismetles: "hossz(FELETTE)", fajta: lehiv, lap: FELETTE, begyujtes: igen}
+  siker: "birtokos(F) == bal(HK) or figura_hossz(F) <= hossz(DEBLOKK)"
+  kudarc_koltseg: 1
+  hozam: 1
+  hasznal: ["[V]", FELETTE, DEBLOKK]
+  elfogyaszt: ["[V]", FELETTE, DEBLOKK]
+
+- technika: IMPASSZ_ATENGEDES
+  nev: "Impassz a sorozat hívásával és átengedésével (a figura a második kéznél)"
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    V: "kozvetlen_alatta(SZ, F)"
+    VK: "keze(V)"
+    SOR: "sorozat_lefele(V)"
+    FELETTE: "felettunk_kezben(partner(VK), SZ, F)"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(SOR) >= 2", "hossz(FELETTE) >= 1",
+                 "hossz(felettunk_kezben(VK, SZ, F)) == 0"]
+  korok:
+    - {fajta: impassz, hivo: VK, lap: V}
+    - {ismetles: "hossz(FELETTE)", fajta: lehiv, lap: FELETTE, begyujtes: igen}
+  siker: "birtokos(F) == bal(VK)"
+  kudarc_koltseg: 1
+  hozam: 1
+  hasznal: [SOR, FELETTE]            # a sorozat lapjai is kellenek (ismételt átengedés, kimagasodás)
+  elfogyaszt: ["[V]", FELETTE]
+
+- valtozat: IMPASSZ_ATENGEDES_FELSO_ELOBB
+  alap: IMPASSZ_ATENGEDES
+  nev: "Impassz átengedéssel, előbb egy felső lap (a szingli figura ellen)"
+  felulir:
+    korok:
+      - {fajta: lehiv, lap: "elso(FELETTE)"}
+      - {fajta: impassz, hivo: VK, lap: V}
+      - {ismetles: "hossz(FELETTE) - 1", fajta: lehiv, lap: "tobbi(FELETTE)", begyujtes: igen}
+    siker: "birtokos(F) == bal(VK) or figura_hossz(F) == 1"
+
+- technika: LOPASOS_KIMAGASITAS
+  nev: "Lopásos kimagasítás: egy lap kimagasítása a szín ellopásával (ruff out)"
+  # Nem „lopással szerzett plusz ütés”: ha a hosszú aduból lopunk, az aduütések
+  # száma nem nő; az ütés a kimagasított lapból (M) jön.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    L: "rovidebb_adus_kez(SZ)"
+    MK: "partner(L)"
+    M: "legnagyobb_alatta_kezben(MK, SZ, F)"
+    FELSO: "felettunk(SZ, F)"
+    N: "kezhossz(L, SZ) + 1"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(L)", "van(M)", "hossz(FELSO) >= N - 1",
+                 "kezhossz(MK, SZ) >= N + 1", "adu_kezben(L) >= 1"]
+  korok:
+    - {ismetles: "N - 1", fajta: lehiv, lap: FELSO}
+    - {fajta: lop, hivo: MK, lopo: L}
+    - {fajta: lehiv, hivo: MK, lap: "[M]", csak_ha: siker, begyujtes: igen}
+  siker: "figura_hossz(F) <= N"
+  kudarc_koltseg: 0
+  hozam: 1
+  hasznal: [FELSO, "[M]"]
+  elfogyaszt: [FELSO, "[M]"]
+
+- technika: SZINKEZELES
+  nev: "Színkezelés: az egyszínű elemző kezelése (k ütés legfeljebb m vesztéssel)"
+  # A kotta és a siker az egyszínű elemzőből jön (motor/tervszinkezeles.py): a
+  # felvevő a látott lapokon dönt, a védők a cél ellen játszanak. A tervező a
+  # színre a célokat a helyzetből állítja: k = a biztos ütések + 1 … (a hiányig),
+  # m = 0 … a tartalék; lopás a rövidebb, adus kezünkkel. A hozam tartásonként a
+  # szín ütései a biztoson felül, a költség a vesztett ütések. Az átmeneteket és
+  # a hívás helyét a tervező adja át (a védő a legrosszabb kezünkbe hív vissza).
+  fajta: elemzo
+  celok:
+    egyszin: {vesztes: tartalek, lopas: igen}
+    # Az adu és egy mellékszín együtt (többszínű elemző): az adu körei átmenetek,
+    # a lopások ideje a kiaduzáshoz képest. Drága (percek), ezért:
+    aduval:
+      # felismerés: csak ahol a rövidebb kezünk lophat a színben
+      felismeres: ["nem_adu(SZ)", "lophat(SZ)"]
+      # becslés (a tervek rangsorához): a két szín külön, az egyszínű elemzővel,
+      # korlátlan átmenettel; a pontos elemzés csak a legjobb jelöltekre (TERVEZES)
+      becsles: kulon_szinek
+

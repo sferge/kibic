@@ -1,0 +1,79 @@
+# Stratégiasémák és általános szabályok — a felvevő tervező adatai
+# (tervezet: claude/terv-sematar-2026-10-31.md)
+
+- strategia: EGYETLEN_ESELY
+  nev: "Egyetlen esély: egy technika a hiányzó ütésre"
+  alkalmazhato: ["hiany >= 1"]
+  technikak: {min: 1, max: 1}
+
+- strategia: ESELYEK_KOMBINACIOJA
+  nev: "Az esélyek kombinációja"
+  alkalmazhato: ["hiany >= 1"]
+  technikak: {min: 2, max: 3}
+  minosites:
+    # a felhasználó definíciója: próba, ha a kudarca még nem bukás
+    proba: "kudarc_koltseg <= tartalek"
+  kombinalas:
+    # két vagy több technika egymás után csak akkor, ha az előzők kudarca még nem bukás
+    - "elozok_probak"
+    # egy korábbi technika nem fogyaszthatja el egy későbbi lapjait
+    - "nincs_elfogyasztas"
+  agak:
+    # minden kör előtt (a technika első köre után) a tervező megfigyelésenként
+    # dönthet: folytatja a technikát, vagy a következőre vált (a feltételes
+    # esélyek összevetésével)
+    valtas: igen
+
+# --- Általános szabályok (minden technika minden körére) ------------------------
+
+- szabalyok:
+    - szabaly: ELLOPAS
+      nev: "Ellopás: a mellékszín körét ellopja egy védő"
+      # A kör r-edik a színben; a védő színhiányos (kezhossz < r), és van még adója
+      # (az eddig lehúzott adukörök után). Felüllopni csak az a kezünk tudja, amely
+      # utána jön, színhiányos, és minden kint lévő adunál nagyobb adója van.
+      koltseg: 1
+    - szabaly: KIADUZAS
+      nev: "A kiaduzás helye"
+      # A tervező a kiaduzás köreinek számát a technikák előtt választja meg (0..mind);
+      # az adukör a kiaduzó kéz partneréből a legkisebb adut viszi, ezért elfogyaszthat
+      # egy átmenetet (pl. az asztal ♣Q-ját).
+      valasztek: [mind, 0, 1, 2, 3]
+    - szabaly: ATMENET
+      nev: "Átmenet a hívó kézbe"
+      # Ha egy kört a másik kézből kell hívni: a cél kéz egy nyerő lapja, amely alá
+      # a mostani kéz hívni tud; nem lehet a terv későbbi `hasznal` lapja. Az átmenet
+      # maga is egy kör a színében (ELLOPÁS; aduban adukör).
+      elonyben: nem_adu
+    - szabaly: BEGYUJTES
+      nev: "A begyűjtés halasztása"
+      # A technika `begyujtes` köreit (biztos nyerők lehívása) a kiaduzás utánra
+      # halasztjuk, ha a kiaduzó kéz elérhető (hívásban van, vagy lopással), az
+      # adukontroll elég, és utána a begyűjtő lapok keze is elérhető. Ilyenkor a
+      # begyűjtésnek nincs ellopási kockázata; ha nem halasztható, most játsszuk.
+    - szabaly: SZABAD_HELYEK
+      nev: "A szabad helyek elve (a hosszakból következő súlyozás)"
+      # Egy védőnél annál valószínűbb egy lap, minél több szabad helye van. A
+      # súlyozás egyelőre csak ISMERT hosszkülönbségből (megfigyelt: lejátszott
+      # lapok, színhiány; bizonyított); a licitből feltételezett hosszból nem
+      # (a szerkesztő döntése, 2026-10-31: sok parti statisztikája után oldható).
+      tudas: [megfigyelt, bizonyitott]
+    - szabaly: TERVEZES
+      nev: "A tervezés lépcsői: felismerés, becslés, pontos számítás"
+      # 1. felismerés: a technikák `felismeres` feltételei (olcsó jellemzők) szűrik,
+      #    mivel érdemes számolni; 2. becslés: a drága (elemzős, többszínű) lépést
+      #    tartalmazó tervek olcsó becslése (a technika `becsles` módja); 3. pontos
+      #    számítás: a becslés szerinti legjobb `pontos` drága tervre, ha a becslése a
+      #    legjobb ismert értéktől legfeljebb `sav`-val marad el. Ha így a legjobb terv
+      #    `kiterjesztes_alatt` alatt marad, minden drága tervet pontosan számolunk.
+      pontos: 3
+      sav: 0.05
+      kiterjesztes_alatt: 0.5
+    - szabaly: RELEVANS_UTES
+      nev: "Releváns ütés: mikor kell tervezni"
+      # Egy védői hívás NEM releváns (a legkisebb lapokat tesszük, tervezés nélkül), ha
+      # mindkét kezünkben van a hívott színből, egyik lapunk sem nagyobb a hívottnál,
+      # és egyik lapunk sem válhat magassá a szín `menetek` menete után (a kint lévő,
+      # nála nagyobb lapok száma — a hívott lapon kívül — több, mint `menetek`).
+      # A saját hívásunk mindig releváns. (A szerkesztő szabálya, 2026-11-01.)
+      menetek: 2
