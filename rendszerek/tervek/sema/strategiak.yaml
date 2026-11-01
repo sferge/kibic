@@ -58,3 +58,22 @@
       # lapok, színhiány; bizonyított); a licitből feltételezett hosszból nem
       # (a szerkesztő döntése, 2026-10-31: sok parti statisztikája után oldható).
       tudas: [megfigyelt, bizonyitott]
+    - szabaly: TERVEZES
+      nev: "A tervezés lépcsői: felismerés, becslés, pontos számítás"
+      # 1. felismerés: a technikák `felismeres` feltételei (olcsó jellemzők) szűrik,
+      #    mivel érdemes számolni; 2. becslés: a drága (elemzős, többszínű) lépést
+      #    tartalmazó tervek olcsó becslése (a technika `becsles` módja); 3. pontos
+      #    számítás: a becslés szerinti legjobb `pontos` drága tervre, ha a becslése a
+      #    legjobb ismert értéktől legfeljebb `sav`-val marad el. Ha így a legjobb terv
+      #    `kiterjesztes_alatt` alatt marad, minden drága tervet pontosan számolunk.
+      pontos: 3
+      sav: 0.05
+      kiterjesztes_alatt: 0.5
+    - szabaly: RELEVANS_UTES
+      nev: "Releváns ütés: mikor kell tervezni"
+      # Egy védői hívás NEM releváns (a legkisebb lapokat tesszük, tervezés nélkül), ha
+      # mindkét kezünkben van a hívott színből, egyik lapunk sem nagyobb a hívottnál,
+      # és egyik lapunk sem válhat magassá a szín `menetek` menete után (a kint lévő,
+      # nála nagyobb lapok száma — a hívott lapon kívül — több, mint `menetek`).
+      # A saját hívásunk mindig releváns. (A szerkesztő szabálya, 2026-11-01.)
+      menetek: 2

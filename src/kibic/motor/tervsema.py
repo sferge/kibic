@@ -233,10 +233,41 @@ def fogalmak(allas: Allas) -> dict:
         "kezhossz": lambda k, sz: len(a.szin(k, sz)) if k else 0,
         "adu_kezben": lambda k: len(a.szin(k, a.adu)) if (k and a.adu) else 0,
         "nem_adu": lambda sz: sz != a.adu,
+        # a rövidebb kezünk (a színben) lophat: van adója
+        "lophat": lambda sz: bool(a.adu) and sz != a.adu and any(
+            len(a.szin(k, sz)) < len(a.szin(kovetkezo_ules(k, 2), sz)) and a.szin(k, a.adu)
+            for k in a.kezek),
         "van": lambda x: x is not None and x != [],
         "elso": lambda xs: xs[:1],
         "tobbi": lambda xs: xs[1:],
     }
+
+
+def jellemzok(allas: Allas) -> dict[str, dict]:
+    """A felismerés jellemzői színenként (olcsó, a látott lapokból): a hosszak, a
+    biztos ütések, a szín legfeljebb hány ütést adhat, lophat-e a rövid kéz."""
+    fog = fogalmak(allas)
+    ki = {}
+    for sz in SZINEK:
+        hx = len(allas.szin(allas.felvevo, sz))
+        hy = len(allas.szin(allas.asztal, sz))
+        if not hx and not hy:
+            continue
+        ki[sz] = {"hossz": (hx, hy), "biztos": allas.biztos_utesek(sz),
+                  "legfeljebb": max(hx, hy), "lophat": fog["lophat"](sz),
+                  "adu": sz == allas.adu}
+    return ki
+
+
+def problemakep(allas: Allas, hiany: int, tartalek: int) -> str:
+    """Egy sor: a hiány és a színek, ahonnan a hiányzó ütés jöhet."""
+    jel = jellemzok(allas)
+    forras = [f"{'♠♥♦♣'['SHDC'.index(sz)]}" + (" (adu)" if j["adu"] else "")
+              + (" lophat" if j["lophat"] else "")
+              + f" +{j['legfeljebb'] - j['biztos']}"
+              for sz, j in jel.items() if j["legfeljebb"] > j["biztos"]]
+    return (f"hiány {hiany}, tartalék {tartalek}; ahonnan jöhet: "
+            + (", ".join(forras) if forras else "sehonnan"))
 
 
 # --- 3. A sémák betöltése -------------------------------------------------------------
@@ -255,6 +286,9 @@ class TechnikaSema:
     elfogyaszt: list
     fajta: str = "kotta"        # kotta: a körök a sémában; elemzo: az egyszínű elemző kezelése
     celok: dict = field(default_factory=dict)
+    # felismerés: a helyzetben érdemes-e egyáltalán számolni vele (az alkalmazhatóság
+    # azt mondja meg, hogy a lapokon lehetséges-e)
+    felismeres: list = field(default_factory=list)
 
 
 def _yaml(ut: Path):
@@ -289,7 +323,7 @@ def technikak_betoltese(konyvtar: Path = SEMA_KONYVTAR) -> dict[str, TechnikaSem
                                 d.get("siker") or "False", int(d.get("kudarc_koltseg", 0)),
                                 int(d.get("hozam", 1)), d.get("hasznal") or [],
                                 d.get("elfogyaszt") or [], d.get("fajta", "kotta"),
-                                d.get("celok") or {})
+                                d.get("celok") or {}, d.get("felismeres") or [])
     return ki
 
 
@@ -375,6 +409,8 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
                 for nev, kif in sema.szerepek.items():
                     kor[nev] = kifejezes(kif, kor)
                 if not all(kifejezes(f, kor) for f in sema.alkalmazhato):
+                    continue
+                if not all(kifejezes(f, kor) for f in sema.felismeres):
                     continue
                 korok = []
                 for k in sema.korok:

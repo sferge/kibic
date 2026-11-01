@@ -2,7 +2,10 @@
 A sémákból dolgozó felvevő tervező egy állásra (2026-10-31, Felvevő tervjáték).
 
     PYTHONPATH=src python -m kibic.cli.tervezo --pbn tanpartik/Pavlicek_felvevo/4Q01.pbn \\
-        --tabla 1 --utes 3 [--feltevés E:S:5+]
+        --tabla 1 [--utes 3] [--feltevés E:S:5+] [--teljes]
+
+Az `--utes` nélkül a tervezés pillanata az első saját hívás (RELEVANS_UTES).
+A szálak száma: KIBIC_SZALAK (alapból a gép logikai processzorai).
 
 Az állás: a PBN valódi lejátszása az `--utes`-edik ütés végéig. A kimenet: a
 helyzetelemzés, a technikák a lapokon, és a tervek táblázata (elvi esély: csak
@@ -17,7 +20,7 @@ import sys
 
 from ..domain import Lap, kovetkezo_ules, vonal
 from ..motor import tervjatszo as tj
-from ..motor.tervsema import Allas, peldanyok, technikak_betoltese
+from ..motor.tervsema import Allas, peldanyok, problemakep, technikak_betoltese
 from ..motor.tervszamolo import Korlat
 from ..motor.tervezo import tervez, helyzetelemzes
 from .jatekmeres import fajlok_kibontasa, partik_fajlbol
@@ -45,6 +48,34 @@ def allas_partibol(p, utes: int) -> tuple[Allas, dict]:
                   6 + k.szint - nyert, hatra, soron)
     jatszott = {u: [l for uu, l in g.lapok if uu == u] for u in allas.vedok}
     return allas, jatszott, list(g.lapok)
+
+
+def tervezesi_pont(p) -> tuple[int | None, list]:
+    """Az első ütés, amelynek elején mi hívunk (RELEVANS_UTES): addig a védői
+    hívásokat vizsgáljuk; a naplóban: (ütés, hívott lap, releváns-e, miért). A
+    releváns védői hívásra a tervező még nem tervez (ott ma a lapjátszó dönt)."""
+    from ..motor.tervpont import relevans_vedoi_hivas, menetek_szama
+    k = p.kontraktus
+    adu = None if k.szin == "NT" else k.szin
+    asztal = kovetkezo_ules(k.felvevo, 2)
+    v1, v2 = kovetkezo_ules(k.felvevo, 1), kovetkezo_ules(k.felvevo, 3)
+    kezek = {u: set(p.leosztas.kezek[u].lapok) for u in "NESW"}
+    g = tj.Jatek(kezek, k.felvevo, adu, [], tj.Terv(()))
+    menetek = menetek_szama()
+    naplo = []
+    lapok = [Lap.parse(str(c)) for c in p.lapok]
+    for t in range(13):
+        hivo = v1 if t == 0 else g.soron()
+        if vonal(hivo) == vonal(k.felvevo):
+            return t, naplo
+        if 4 * t >= len(lapok):
+            break
+        rel, miert = relevans_vedoi_hivas(g.kezek[k.felvevo], g.kezek[asztal], lapok[4 * t],
+                                          g.kezek[v1] | g.kezek[v2], menetek)
+        naplo.append((t + 1, lapok[4 * t], rel, miert))
+        for i, c in enumerate(lapok[4 * t:4 * t + 4]):
+            g.tesz(hivo if (t == 0 and i == 0) else g.soron(), c)
+    return None, naplo
 
 
 def feltevesek(szovegek: list[str], jatszott: dict) -> list[Korlat]:
@@ -81,7 +112,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="A sémákból dolgozó felvevő tervező egy állásra")
     ap.add_argument("--pbn", required=True)
     ap.add_argument("--tabla", type=int, required=True)
-    ap.add_argument("--utes", type=int, default=0, help="a valódi lejátszás ennyi ütése után")
+    ap.add_argument("--utes", type=int, default=None,
+                    help="a valódi lejátszás ennyi ütése után (alapból: az első saját hívásnál)")
+    ap.add_argument("--teljes", action="store_true",
+                    help="minden drága tervet pontosan számol (a lépcsők ellenőrzéséhez)")
     ap.add_argument("--feltevés", "--felteves", dest="felteves", action="append",
                     help="pl. E:S:5+ (Kelet legalább 5 pikk); többször is")
     ap.add_argument("--db", type=int, default=15, help="ennyi tervet ír ki")
@@ -97,6 +131,13 @@ def main(argv=None) -> int:
         print("nincs ilyen tábla", file=sys.stderr)
         return 1
     p = partik[0]
+    if a.utes is None:
+        a.utes, naplo = tervezesi_pont(p)
+        for t, l, rel, miert in naplo:
+            print(f"{t}. ütés: a védők hívása {l} — {'RELEVÁNS' if rel else 'nem releváns'} ({miert})")
+        if a.utes is None:
+            print("nincs saját hívásunk a lejátszásban", file=sys.stderr)
+            return 1
     allas, jatszott, sor = allas_partibol(p, a.utes)
     korl = feltevesek(a.felteves, jatszott) + szinhianyok(sor, allas.vedok)
     h = helyzetelemzes(allas)
@@ -104,21 +145,30 @@ def main(argv=None) -> int:
     if korl:
         print("feltevés: " + "; ".join(f"{k.kez} {k.szin} a kint lévők közül {k.min}..{k.max}" for k in korl))
     print("technikák a lapokon: " + ", ".join(pp.rovid for pp in peldanyok(allas, technikak_betoltese())))
-    _, ert = tervez(allas, korl, feltevesbol=a.szabad_helyek_feltevesbol)
+    print("felismerés: " + problemakep(allas, h.hiany, h.tartalek))
+    stat = {}
+    _, ert = tervez(allas, korl, feltevesbol=a.szabad_helyek_feltevesbol, teljes=a.teljes, stat=stat)
+    print(f"tervek: {stat['tervek']} (olcsó {stat['olcso']}, drága {stat['draga']}, ebből pontosan "
+          f"{stat['draga_pontos']}); elemzés számolva {stat['elemzes_szamolt']}; idő {stat['ossz_s']:.0f} s "
+          f"(olcsó {stat['olcso_s']:.0f}, becslés {stat['becsles_s']:.0f}, pontos {stat['pontos_s']:.0f})")
     if any(k.tudas == "feltetelezett" for k in korl) and not a.szabad_helyek_feltevesbol:
         print("(a feltevés a SZABAD_HELYEK szabály szerint nem súlyoz — csak az ismert hossz)")
     print(f"\n{'elvi':>6} {'kockázattal':>11} {'adu előbb':>9}  terv")
     kdsz = lambda n: "mind" if n >= 13 else str(n)
     for e in ert[:a.db]:
+        if e.becsult:
+            print(f"{'':>6} {e.kockazattal:10.1%}~ {'':>9}  {e.terv.nev}  [becslés]")
+            continue
         print(f"{e.elvi:6.1%} {e.kockazattal:11.1%} {kdsz(e.terv.kiaduzas):>9}  {e.terv.nev}  [{e.terv.strategia}]")
-    print("adu előbb: ennyi adukör a technikák előtt („mind”: végig)")
+    print("adu előbb: ennyi adukör a technikák előtt („mind”: végig); ~: becslés (a drága lépés "
+          "a két szín külön, korlátlan átmenettel)")
     if a.ellenorzes:
         from ..motor.tervellenorzo import ellenoriz, vilagok
         rel = {l for pp in peldanyok(allas, technikak_betoltese()) for l in pp.relevans}
         vl = vilagok(p.leosztas, sor, allas.kint, a.ellenorzes, korl, vedok=allas.vedok)
         print(f"\nDD-ellenőrzés ({len(vl)} sorsolt világ, DD-védők ellen):")
         print(f"{'modell':>7} {'DD':>6} {'eltér':>6}  terv")
-        for e in ert[:a.ellenorzott]:
+        for e in [x for x in ert if not x.becsult][:a.ellenorzott]:
             r = ellenoriz(h, e.terv, e.politika, vl, p.kontraktus, sor, rel)
             print(f"{r.modell_esely:7.1%} {r.esely:6.1%} {r.n - r.egyezik:6d}  {e.terv.nev}", flush=True)
             for pe in r.peldak[:4]:

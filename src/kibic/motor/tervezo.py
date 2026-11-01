@@ -159,8 +159,14 @@ class Eset:
 
 class Ertekelo:
     def __init__(self, helyzet: Helyzet, terv: Terv, kockazat: bool = True,
-                 naplo: list | None = None):
+                 naplo: list | None = None, gyujto: bool = False, becsles: bool = False):
         self.h = helyzet
+        # gyujto: a hiányzó elemzést nem számolja, hanem jelzi (HianyzoElemzes) — a
+        # tervező a hiányzókat egyszerre, párhuzamosan számolja
+        self.gyujto = gyujto
+        # becsles: az egyszínű elemzés korlátlan átmenettel, mindegy, ki hív (olcsó,
+        # általában optimista) — a drága tervek rangsorához
+        self.becsles = becsles
         self.a = helyzet.allas
         self.terv = terv
         self.kockazat = kockazat
@@ -410,37 +416,49 @@ class Ertekelo:
         return extra + self.kor(esetek, ti, ri, st, hivo, nyero)
 
     # -- az elemzős technika (SZINKEZELES): az egyszínű elemző kezelése --
+    def _elemzes(self, e, regi_kulcs=None):
+        """Az elemzés a tárból; ha nincs: gyűjtő módban jelzi, különben kiszámolja."""
+        from . import tervparhuzam as tp
+        ertek = tp.tarbol(e.kulcs)
+        if ertek is None and regi_kulcs is not None:
+            ertek = _lemez_tar(regi_kulcs)          # a 2026-10-31-i tár kulcsa
+            if ertek is not None:
+                tp.tarba(e.kulcs, ertek)
+        if ertek is None:
+            if self.gyujto:
+                raise tp.HianyzoElemzes(e)
+            ertek = tp.tarba(e.kulcs, tp.kiszamol(e))
+        return ertek
+
     def _szk_futas(self, p: Peldany, st: Allapot):
-        """Az elemző a mostani lapjainkkal, átmenetekkel és hívással; gyorsítótárral."""
+        """Az elemző a mostani lapjainkkal, átmenetekkel és hívással (a tárból)."""
         if p.szerepek.get("aduval"):
             return self._szk_futas_aduval(p, st)
-        from .tervszinkezeles import Elemzo, Feladat, RANG
+        from .tervszinkezeles import Feladat
+        from .tervparhuzam import Elemzes
         sz = p.szin
         X, Y = self.a.felvevo, self.a.asztal
         rang = lambda ls: frozenset(l.rang for l in ls)
         xr = rang(l for l in st.kez(X) if l.szin == sz)
         yr = rang(l for l in st.kez(Y) if l.szin == sz)
         kint = rang(l for l in self.a.kint if l.szin == sz)
-        foglalt = self._foglalt(self.terv.lepesek.index(p), 0) - p.hasznal
-        bx = self._atmenetek(st, X, sz, foglalt)
-        by = self._atmenetek(st, Y, sz, foglalt)
-        kulcs = (sz, xr, yr, p.szerepek["k"], p.szerepek["m"], p.szerepek.get("lop_x", 0),
-                 p.szerepek.get("lop_y", 0), bx, by, "X" if st.soron == X else "Y")
-        tar = SZK_TAR.get(kulcs)
-        if tar is None:
-            f = Feladat(xr, yr, kint, self.a.hatra, self.a.hatra,
-                        p.szerepek.get("lop_x", 0), p.szerepek.get("lop_y", 0), bx, by,
-                        "X" if st.soron == X else "Y", sz == self.a.adu)
-            e = Elemzo(f)
-            kim = e.kimenetek(p.szerepek["k"], p.szerepek["m"])
-            tar = (e.tart, kim)
-            SZK_TAR[kulcs] = tar
-        return tar
+        if self.becsles:
+            bx = by = hivas = None
+        else:
+            foglalt = self._foglalt(self.terv.lepesek.index(p), 0) - p.hasznal
+            bx = self._atmenetek(st, X, sz, foglalt)
+            by = self._atmenetek(st, Y, sz, foglalt)
+            hivas = "X" if st.soron == X else "Y"
+        f = Feladat(xr, yr, kint, self.a.hatra, self.a.hatra,
+                    p.szerepek.get("lop_x", 0), p.szerepek.get("lop_y", 0), bx, by,
+                    hivas, sz == self.a.adu)
+        return self._elemzes(Elemzes("egy", f, p.szerepek["k"], p.szerepek["m"]))
 
     def _szk_futas_aduval(self, p: Peldany, st: Allapot):
         """Az adu és a mellékszín együtt (többszínű elemző): az adu körei átmenetek,
         a lopások és a védők lopásai a játék részei."""
         from . import tervtobbszin as tt
+        from .tervparhuzam import Elemzes
         sz, adu = p.szin, self.a.adu
         szinek = tuple(sorted({"SHDC".index(adu), "SHDC".index(sz)}))
         X, Y = self.a.felvevo, self.a.asztal
@@ -452,19 +470,10 @@ class Ertekelo:
         bx = self._atmenetek(st, X, (sz, adu), foglalt)
         by = self._atmenetek(st, Y, (sz, adu), foglalt)
         hivas = "X" if st.soron == X else "Y"
-        kulcs = ("aduval", sz, xk, yk, kint, p.szerepek["k"], p.szerepek["m"], bx, by, hivas)
-        tar = SZK_TAR.get(kulcs)
-        if tar is None:
-            tar = _lemez_tar(kulcs)
-        if tar is None:
-            f = tt.Feladat(xk, yk, kint, szinek, "SHDC".index(adu), self.a.hatra, self.a.hatra,
-                           bx, by, hivas)
-            e = tt.Elemzo(f)
-            kim = e.kimenetek(p.szerepek["k"], p.szerepek["m"])
-            tar = (e.tart, kim)
-            _lemez_tar(kulcs, tar)
-        SZK_TAR[kulcs] = tar
-        return tar
+        f = tt.Feladat(xk, yk, kint, szinek, "SHDC".index(adu), self.a.hatra, self.a.hatra,
+                       bx, by, hivas)
+        regi = ("aduval", sz, xk, yk, kint, p.szerepek["k"], p.szerepek["m"], bx, by, hivas)
+        return self._elemzes(Elemzes("tobb", f, p.szerepek["k"], p.szerepek["m"]), regi)
 
     def _atmenetek(self, st: Allapot, kez: str, sz, foglalt: set) -> int:
         """Átmenetek a kézbe más színben: a nyerő lapjai (a kint lévő legnagyobbnál
@@ -750,10 +759,11 @@ def szinkezeles_peldanyok(allas: Allas, helyzet: Helyzet, sema) -> list[Peldany]
     """A SZINKEZELES (elemzős) technika példányai: színenként a célok (k ütés,
     legfeljebb m vesztés, lopással), amelyeknek van esélye; az azonos kimenetet
     adó célok közül csak az első."""
-    from .tervszinkezeles import Elemzo, Feladat
-    from collections import Counter
+    from .tervszinkezeles import Feladat
+    from . import tervparhuzam as tp
     ki = []
     X, Y = allas.felvevo, allas.asztal
+    feladatok = []            # (szín, lop_x, lop_y, elemzés)
     for sz in SZINEK:
         xs = [l for l in allas.kezek[X] if l.szin == sz]
         ys = [l for l in allas.kezek[Y] if l.szin == sz]
@@ -771,34 +781,37 @@ def szinkezeles_peldanyok(allas: Allas, helyzet: Helyzet, sema) -> list[Peldany]
                     r = min(adu, len(masik) - len(sajat))
                     valt.append((r, 0) if hely == 0 else (0, r))
         kint = frozenset(l.rang for l in allas.kint if l.szin == sz)
-        latott = set()
+        celok = tuple((k, m) for k in range(b + 1, kmax + 1) for m in range(0, helyzet.tartalek + 1))
         for lx, ly in valt:
-            e = Elemzo(Feladat(frozenset(l.rang for l in xs), frozenset(l.rang for l in ys), kint,
-                               allas.hatra, allas.hatra, lx, ly, adu=(sz == allas.adu)))
-            for k in range(b + 1, kmax + 1):
-                for m in range(0, helyzet.tartalek + 1):
-                    if e.megold(k, m)[0] <= 0:
-                        continue
-                    kim = e.kimenetek(k, m)
-                    elo = tuple(sorted(Counter((km.utes, km.vesztes, km.lopas) for km in kim.values()).items()))
-                    if elo in latott:
-                        continue
-                    latott.add(elo)
-                    lapok = set(xs) | set(ys)
-                    ki.append(Peldany(sema, sz, {"k": k, "m": m, "lop_x": lx, "lop_y": ly},
-                                      [], lapok, lapok, set()))
-    # az adu és egy mellékszín együtt (többszínű elemző): ahol a rövidebb kezünk
-    # lophat a színben — itt számít az adu körei mint átmenetek és a lopások ideje
-    if allas.adu:
+            f = Feladat(frozenset(l.rang for l in xs), frozenset(l.rang for l in ys), kint,
+                        allas.hatra, allas.hatra, lx, ly, adu=(sz == allas.adu))
+            feladatok.append((sz, lx, ly, tp.Elemzes("celok", f, celok=celok)))
+    tp.szamol_mind([e for *_, e in feladatok])          # párhuzamosan, a tárba
+    latott: dict = {}
+    for sz, lx, ly, e in feladatok:
+        eredm = tp.tarbol(e.kulcs)
+        lapok = {l for kk in (X, Y) for l in allas.kezek[kk] if l.szin == sz}
+        for k, m in e.celok:
+            p, elo = eredm[(k, m)]
+            if p <= 0 or elo in latott.setdefault(sz, set()):
+                continue
+            latott[sz].add(elo)
+            ki.append(Peldany(sema, sz, {"k": k, "m": m, "lop_x": lx, "lop_y": ly},
+                              [], lapok, lapok, set()))
+    # az adu és egy mellékszín együtt (többszínű elemző): ahol a séma felismerése
+    # engedi (a rövidebb kezünk lophat a színben) — itt számít az adu körei mint
+    # átmenetek és a lopások ideje
+    aduval = (sema.celok or {}).get("aduval")
+    if allas.adu and aduval is not None:
+        from .tervsema import fogalmak
+        fog = fogalmak(allas)
         ba = helyzet.biztos.get(allas.adu, 0)
         for sz in SZINEK:
-            if sz == allas.adu:
+            if not all(kifejezes(f, dict(fog, SZ=sz)) for f in aduval.get("felismeres", [])):
                 continue
             xs = [l for l in allas.kezek[X] if l.szin == sz]
             ys = [l for l in allas.kezek[Y] if l.szin == sz]
-            lophat = any(len(sajat) < len(masik) and any(l.szin == allas.adu for l in allas.kezek[kez])
-                         for kez, sajat, masik in ((X, xs, ys), (Y, ys, xs)))
-            if not (xs or ys) or not lophat:
+            if not (xs or ys):
                 continue
             k = ba + helyzet.biztos.get(sz, 0) + helyzet.hiany
             lapok = set(xs) | set(ys) | {l for kk in (X, Y) for l in allas.kezek[kk] if l.szin == allas.adu}
@@ -816,61 +829,150 @@ class TervErtek:
     kockazattal: float         # az általános szabályokkal (ELLOPÁS, ÁTMENET, BEGYŰJTÉS)
     elvi_kiaduzas: int = 0
     politika: dict = field(default_factory=dict)   # a megfigyelésen múló döntések
+    becsult: bool = False      # csak becslés (a drága lépés pontos elemzése nélkül)
 
 
 def kezdo_allapot(allas: Allas) -> Allapot:
     return Allapot(tuple(sorted((k, frozenset(v)) for k, v in allas.kezek.items())), (), allas.soron)
 
 
+def _draga(p: Peldany) -> bool:
+    """Drága lépés: a többszínű elemzés (percekig tarthat)."""
+    return p.sema.fajta == "elemzo" and bool(p.szerepek.get("aduval"))
+
+
+def _terv_ertek(helyzet: Helyzet, strat: str, sor: list[Peldany], oszt, W, valasztek,
+                gyujto: bool = True, becsles: bool = False) -> TervErtek:
+    """Egy technikasor értéke: minden kiaduzás-változat; a terv „szándék szerinti”
+    változatai azok, amelyekben az elvi esélye a legnagyobb (pl. a lopásos
+    kimagasításhoz meg kell őrizni az átmenetet) — ezek közül a kockázattal
+    legjobb a terv értéke."""
+    allas = helyzet.allas
+    kezdo = kezdo_allapot(allas)
+    valtozatok = []
+    adu_szk = any(p.sema.fajta == "elemzo" and (p.szin == allas.adu or p.szerepek.get("aduval"))
+                  for p in sor)
+    for kd in ([0] if adu_szk else valasztek):     # az adu kezelése maga a technika
+        n = "mind" if kd == "mind" else int(kd)
+        terv = Terv(strat, list(sor), 13 if n == "mind" else n)
+        ertekek, pol = [], {}
+        for kock in (False, True):
+            ert = Ertekelo(helyzet, terv, kockazat=kock, gyujto=gyujto, becsles=becsles)
+            st = ert.kiaduzas(kezdo, n)
+            esetek = [Eset(o, o.suly, helyzet.tartalek, helyzet.hiany) for o in oszt]
+            ertekek.append(ert.futtat(esetek, 0, 0, st) / W)
+            pol = ert.politika
+        valtozatok.append((terv, *ertekek, pol))
+    elvi = max(v[1] for v in valtozatok)
+    terv, _, k_, pol = max((v for v in valtozatok if v[1] >= elvi - 1e-9), key=lambda v: v[2])
+    return TervErtek(terv, elvi, k_, terv.kiaduzas, pol)
+
+
+def _helyettesitok(p: Peldany, pld: list[Peldany], adu: str) -> list[list[Peldany]]:
+    """A drága lépés (adu + szín együtt) becsléséhez: a két szín külön, az egyszínű
+    elemző példányaival (`becsles: kulon_szinek`), mindkét sorrendben."""
+    egy = [q for q in pld if q.sema.fajta == "elemzo" and not q.szerepek.get("aduval")]
+    t = [q for q in egy if q.szin == adu]
+    s = [q for q in egy if q.szin == p.szin]
+    ki = [[x] for x in t + s]
+    ki += [[a, b] for a in t for b in s] + [[b, a] for a in t for b in s]
+    return ki
+
+
 def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
-           feltevesbol: bool = False) -> tuple[Helyzet, list[TervErtek]]:
+           feltevesbol: bool = False, teljes: bool = False,
+           stat: dict | None = None) -> tuple[Helyzet, list[TervErtek]]:
+    """A tervek értékelése három lépcsőben (TERVEZES szabály): felismerés (a sémák
+    `felismeres` feltételei), az olcsó tervek pontosan, a drága (többszínű
+    elemzést kívánó) tervek becsléssel, és pontosan csak a legjobb jelöltek.
+    `teljes`: minden drága tervet pontosan (a lépcsők ellenőrzéséhez)."""
+    import time
+    from . import tervparhuzam as tp
+    t0 = time.time()
+    stat = stat if stat is not None else {}
+    szamolt0 = tp.STATISZTIKA["szamolt"]
     helyzet = helyzetelemzes(allas)
     technikak = technikak_betoltese()
     strategiak, szabalyok = strategiak_betoltese()
+    szabaly = lambda nev: next((s for s in szabalyok if s.get("szabaly") == nev), {})
     if kiaduzas_valasztek is None:
-        kiaduzas_valasztek = next((s.get("valasztek") for s in szabalyok if s.get("szabaly") == "KIADUZAS"),
-                                  ["mind", 0])
+        kiaduzas_valasztek = szabaly("KIADUZAS").get("valasztek", ["mind", 0])
+    tz = szabaly("TERVEZES")
     pld = peldanyok(allas, technikak)
     if "SZINKEZELES" in technikak:
         pld += szinkezeles_peldanyok(allas, helyzet, technikak["SZINKEZELES"])
     relevans = {l for p in pld for l in p.relevans}
-    ures = {}
-    kint_db = len(allas.kint)
     # a védők kint lévő lapjainak száma: a hátralévő ütések (ütés elején)
     ures = {v: allas.hatra for v in allas.vedok}
-    assert kint_db == 2 * allas.hatra, "a tervező ütés elején dolgozik"
+    assert len(allas.kint) == 2 * allas.hatra, "a tervező ütés elején dolgozik"
     # SZABAD_HELYEK: a hosszakból következő súlyozás (pl. az impassz esélye) csak
     # ismert (megfigyelt vagy bizonyított) hosszkülönbségből; a feltételezett hossz
     # (a licitből) a szabály engedélyével
-    szh = next((s for s in szabalyok if s.get("szabaly") == "SZABAD_HELYEK"), {})
-    engedett = set(szh.get("tudas", ["megfigyelt", "bizonyitott"]))
+    engedett = set(szabaly("SZABAD_HELYEK").get("tudas", ["megfigyelt", "bizonyitott"]))
     if feltevesbol:
         engedett.add("feltetelezett")
     korlatok = [k for k in korlatok if k.tudas in engedett]
     oszt = osztalyok(allas.kint, ures, relevans, list(korlatok))
     W = sum(o.suly for o in oszt)
-    kezdo = kezdo_allapot(allas)
-    ki = []
-    for strat, sor in jeloltek(helyzet, pld, strategiak):
-        # minden kiaduzás-változat; a terv „szándék szerinti” változatai azok, amelyekben
-        # az elvi esélye a legnagyobb (pl. a lopásos kimagasításhoz meg kell őrizni az
-        # átmenetet) — ezek közül a kockázattal legjobb a terv értéke
-        valtozatok = []
-        adu_szk = any(p.sema.fajta == "elemzo" and (p.szin == allas.adu or p.szerepek.get("aduval"))
-                      for p in sor)
-        for kd in ([0] if adu_szk else kiaduzas_valasztek):     # az adu kezelése maga a technika
-            n = "mind" if kd == "mind" else int(kd)
-            terv = Terv(strat, sor, 13 if n == "mind" else n)
-            ertekek, pol = [], {}
-            for kock in (False, True):
-                ert = Ertekelo(helyzet, terv, kockazat=kock)
-                st = ert.kiaduzas(kezdo, n)
-                esetek = [Eset(o, o.suly, helyzet.tartalek, helyzet.hiany) for o in oszt]
-                ertekek.append(ert.futtat(esetek, 0, 0, st) / W)
-                pol = ert.politika
-            valtozatok.append((terv, *ertekek, pol))
-        elvi = max(v[1] for v in valtozatok)
-        terv, e_, k_, pol = max((v for v in valtozatok if v[1] >= elvi - 1e-9), key=lambda v: v[2])
-        ki.append(TervErtek(terv, elvi, k_, terv.kiaduzas, pol))
-    ki.sort(key=lambda x: (-x.kockazattal, -x.elvi))
+    jel = jeloltek(helyzet, pld, strategiak)
+    olcso = [(st, sor) for st, sor in jel if not any(_draga(p) for p in sor)]
+    draga = [(st, sor) for st, sor in jel if any(_draga(p) for p in sor)]
+    stat["felismeres_s"] = time.time() - t0
+
+    # 1. az olcsó tervek pontosan (a hiányzó egyszínű elemzések párhuzamosan)
+    t1 = time.time()
+    ki = tp.ertekel_mind(olcso, lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))
+    stat["olcso_s"] = time.time() - t1
+
+    # 2. a drága tervek becslése: a drága lépés helyett a két szín külön
+    t2 = time.time()
+    memo: dict = {}
+
+    def becsles(x):
+        strat, sor = x
+        valtozat = [[]]
+        for p in sor:
+            alt = _helyettesitok(p, pld, allas.adu) if _draga(p) else [[p]]
+            valtozat = [v + a for v in valtozat for a in alt] if alt else valtozat
+        legjobb = 0.0
+        for v in valtozat:
+            kulcs = tuple(id(p) for p in v)
+            if kulcs not in memo:
+                memo[kulcs] = _terv_ertek(helyzet, strat, v, oszt, W, kiaduzas_valasztek,
+                                          becsles=True).kockazattal if v else 0.0
+            legjobb = max(legjobb, memo[kulcs])
+        return legjobb
+
+    becsult = tp.ertekel_mind(draga, becsles)
+    stat["becsles_s"] = time.time() - t2
+
+    # 3. pontos számítás a legjobb drága jelöltekre
+    t3 = time.time()
+    legjobb = max((e.kockazattal for e in ki), default=0.0)
+    sorrend = sorted(range(len(draga)), key=lambda i: -becsult[i])
+    if teljes:
+        valasztott = sorrend
+    else:
+        valasztott = [i for i in sorrend if becsult[i] >= legjobb - float(tz.get("sav", 0.05))]
+        valasztott = valasztott[:int(tz.get("pontos", 3))]
+    pontos = dict(zip(valasztott, tp.ertekel_mind(
+        [draga[i] for i in valasztott],
+        lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))))
+    legjobb = max([legjobb] + [e.kockazattal for e in pontos.values()])
+    if legjobb < float(tz.get("kiterjesztes_alatt", 0.5)):
+        maradek = [i for i in sorrend if i not in pontos]
+        pontos.update(zip(maradek, tp.ertekel_mind(
+            [draga[i] for i in maradek],
+            lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))))
+        stat["kiterjesztes"] = True
+    stat["pontos_s"] = time.time() - t3
+    for i, (strat, sor) in enumerate(draga):
+        if i in pontos:
+            ki.append(pontos[i])
+        else:
+            ki.append(TervErtek(Terv(strat, list(sor), 0), becsult[i], becsult[i], becsult=True))
+    ki.sort(key=lambda x: (x.becsult, -x.kockazattal, -x.elvi))
+    stat.update(tervek=len(jel), olcso=len(olcso), draga=len(draga),
+                draga_pontos=len(pontos), elemzes_szamolt=tp.STATISZTIKA["szamolt"] - szamolt0,
+                ossz_s=time.time() - t0)
     return helyzet, ki

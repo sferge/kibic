@@ -126,5 +126,14 @@
   # szín ütései a biztoson felül, a költség a vesztett ütések. Az átmeneteket és
   # a hívás helyét a tervező adja át (a védő a legrosszabb kezünkbe hív vissza).
   fajta: elemzo
-  celok: {vesztes: tartalek, lopas: igen}
+  celok:
+    egyszin: {vesztes: tartalek, lopas: igen}
+    # Az adu és egy mellékszín együtt (többszínű elemző): az adu körei átmenetek,
+    # a lopások ideje a kiaduzáshoz képest. Drága (percek), ezért:
+    aduval:
+      # felismerés: csak ahol a rövidebb kezünk lophat a színben
+      felismeres: ["nem_adu(SZ)", "lophat(SZ)"]
+      # becslés (a tervek rangsorához): a két szín külön, az egyszínű elemzővel,
+      # korlátlan átmenettel; a pontos elemzés csak a legjobb jelöltekre (TERVEZES)
+      becsles: kulon_szinek
 
