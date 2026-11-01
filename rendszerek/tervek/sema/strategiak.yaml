@@ -71,9 +71,16 @@
       kiterjesztes_alatt: 0.5
     - szabaly: RELEVANS_UTES
       nev: "Releváns ütés: mikor kell tervezni"
-      # Egy védői hívás NEM releváns (a legkisebb lapokat tesszük, tervezés nélkül), ha
-      # mindkét kezünkben van a hívott színből, egyik lapunk sem nagyobb a hívottnál,
-      # és egyik lapunk sem válhat magassá a szín `menetek` menete után (a kint lévő,
-      # nála nagyobb lapok száma — a hívott lapon kívül — több, mint `menetek`).
-      # A saját hívásunk mindig releváns. (A szerkesztő szabálya, 2026-11-01.)
-      menetek: 2
+      # Nem az dönti el, ki hív, hanem hogy van-e döntésünk (a szerkesztő szabálya,
+      # 2026-11-01). Védői hívásnál:
+      #   1. nincs döntés — mindkét kezünk színt ad, egyik lapunk sem üti a hívottat:
+      #      a legkisebb lapok (a magassá válható lap így megmarad);
+      #   2. dobás — a védők viszik, de egyik kezünk színhiányos és nem lophat;
+      #   3. ütés-döntés — üthetnénk vagy lophatnánk (ütés / kiengedés, melyik kézben,
+      #      mivel lopunk; átvétel).
+      # A 2. és 3. esetben a tervező az ütés lehetséges lépéseit (jelöltek) a
+      # tervekkel együtt értékeli. Ha utána a védők hívnak, a következő hívásuk a
+      # számunkra legrosszabb szín (sorsolt világokon, `visszahivas_melyseg`
+      # mélységig; alatta úgy számolunk, mintha mi hívnánk).
+      visszahivas_melyseg: 1
+      vilagok: 120

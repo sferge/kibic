@@ -159,8 +159,36 @@ def kiszamol(e: Elemzes):
     return ertek
 
 
+def _rss_gb() -> float:
+    try:
+        with open("/proc/self/statm") as f:
+            return int(f.read().split()[1]) * os.sysconf("SC_PAGE_SIZE") / 2**30
+    except Exception:
+        return 0.0
+
+
+def _gyorsitotarak_uritese() -> None:
+    from . import tervszinkezeles as ts
+    from . import tervtobbszin as tt
+    for f in (ts.dd_cel, ts._cel_rek, ts.dd, ts._dd_rek):
+        f.cache_clear()
+    tt.tarak_uritese()
+    import gc
+    gc.collect()
+
+
 def _munkas(e: Elemzes):
-    return e.kulcs, tarba(e.kulcs, kiszamol(e))
+    """A folyamatban: számol, lemezre ír, és a nagy gyorsítótárakat üríti (a
+    folyamat memóriája ne nőjön feladatról feladatra)."""
+    ertek = kiszamol(e)
+    ut = _ut(e.kulcs)
+    if ut:
+        MEMORIA.pop(e.kulcs, None)
+        tarba(e.kulcs, ertek)
+        MEMORIA.pop(e.kulcs, None)
+    if e.fajta == "tobb" or _rss_gb() > 1.0:
+        _gyorsitotarak_uritese()
+    return e.kulcs, ertek
 
 
 def szalak_szama() -> int:
@@ -168,26 +196,74 @@ def szalak_szama() -> int:
     return max(1, int(n)) if n else (os.cpu_count() or 1)
 
 
+def szabad_memoria_gb() -> float:
+    """A felhasználható memória: a gép szabad memóriája, és ha a folyamatcsoportnak
+    (konténer) kisebb a kerete, az."""
+    szabad = None
+    try:
+        with open("/proc/meminfo") as f:
+            for sor in f:
+                if sor.startswith("MemAvailable:"):
+                    szabad = int(sor.split()[1]) / 2**20
+    except Exception:
+        pass
+    try:
+        with open("/sys/fs/cgroup/memory.max") as f:
+            mx = f.read().strip()
+        with open("/sys/fs/cgroup/memory.current") as f:
+            cur = int(f.read().strip())
+        if mx != "max":
+            cg = (int(mx) - cur) / 2**30
+            szabad = cg if szabad is None else min(szabad, cg)
+    except Exception:
+        pass
+    return szabad if szabad is not None else 8.0
+
+
+# egy többszínű elemzés legfeljebb ennyi memóriát használ (GB; a 4Q01 #12-n ~4)
+TOBB_MEMORIA_GB = float(os.environ.get("KIBIC_TOBB_MEMORIA_GB", "4.5"))
+
+
+def tobb_szalak_szama() -> int:
+    """Egyszerre ennyi többszínű elemzés: a szálak, de a memória is korlátoz
+    (KIBIC_SZALAK_TOBB felülírja)."""
+    n = os.environ.get("KIBIC_SZALAK_TOBB")
+    if n:
+        return max(1, int(n))
+    return max(1, min(szalak_szama(), int(szabad_memoria_gb() // TOBB_MEMORIA_GB)))
+
+
 STATISZTIKA = {"szamolt": 0, "korok": 0}
 
 
 def szamol_mind(elemzesek) -> None:
-    """A hiányzó elemzések kiszámolása (párhuzamosan, ha több van és több szál)."""
+    """A hiányzó elemzések kiszámolása külön folyamatokban (a fő folyamat
+    memóriája így nem nő): a többszínűek a memória szerinti számú folyamatban,
+    a többi a szálak számának megfelelőben, egyszerre."""
     egyedi = {e.kulcs: e for e in elemzesek if tarbol(e.kulcs) is None}
     if not egyedi:
         return
     STATISZTIKA["korok"] += 1
     STATISZTIKA["szamolt"] += len(egyedi)
-    n = min(szalak_szama(), len(egyedi))
-    # a drágábbak előre (a többszínű elemzés percekig tarthat)
-    sor = sorted(egyedi.values(), key=lambda e: e.fajta != "tobb")
-    if n <= 1:
-        for e in sor:
-            _munkas(e)
-        return
-    with ProcessPoolExecutor(max_workers=n, mp_context=mp.get_context("fork")) as pool:
-        for kulcs, ertek in pool.map(_munkas, sor):
+    tobb = [e for e in egyedi.values() if e.fajta == "tobb"]
+    egy = [e for e in egyedi.values() if e.fajta != "tobb"]
+    ctx = mp.get_context("fork")
+    poolok, jovok = [], []
+    try:
+        if tobb:
+            p = ProcessPoolExecutor(max_workers=min(tobb_szalak_szama(), len(tobb)), mp_context=ctx)
+            poolok.append(p)
+            jovok += [p.submit(_munkas, e) for e in tobb]
+        if egy:
+            p = ProcessPoolExecutor(max_workers=min(szalak_szama(), len(egy)), mp_context=ctx)
+            poolok.append(p)
+            jovok += [p.submit(_munkas, e) for e in egy]
+        for j in jovok:
+            kulcs, ertek = j.result()
             MEMORIA[kulcs] = ertek
+    finally:
+        for p in poolok:
+            p.shutdown(wait=True, cancel_futures=True)
 
 
 def gyujtve(fv, *args, **kw):
