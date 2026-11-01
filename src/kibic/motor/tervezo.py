@@ -223,7 +223,7 @@ class Ertekelo:
         szabad = [l for l in lapok if l not in foglalt and l.szin != self.a.adu]
         jelolt = szabad or [l for l in lapok if l not in foglalt] or lapok
         hossz = {sz: sum(1 for l in jelolt if l.szin == sz) for sz in SZINEK}
-        return min(jelolt, key=lambda l: (l.szin == self.a.adu, -hossz[l.szin], l.rang))
+        return min(jelolt, key=lambda l: (l.szin == self.a.adu, -hossz[l.szin], l.rang, "SHDC".index(l.szin)))
 
     def _tesz(self, st: Allapot, lapok: dict[str, Lap], szin: str, nyero: str) -> Allapot:
         kezek = tuple((k, frozenset(v - {lapok[k]}) if k in lapok else v) for k, v in st.kezek)
@@ -928,6 +928,10 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     t1 = time.time()
     ki = tp.ertekel_mind(olcso, lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))
     stat["olcso_s"] = time.time() - t1
+    # ha egy olcsó terv már 100%-os, drága tervet nem érdemes vizsgálni
+    if not teljes and any(e.kockazattal >= 1 - 1e-9 for e in ki):
+        stat["draga_kihagyva"] = len(draga)
+        draga = []
 
     # 2. a drága tervek becslése: a drága lépés helyett a két szín külön
     t2 = time.time()

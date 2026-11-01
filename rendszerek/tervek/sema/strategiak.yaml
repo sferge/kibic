@@ -82,5 +82,10 @@
       # tervekkel együtt értékeli. Ha utána a védők hívnak, a következő hívásuk a
       # számunkra legrosszabb szín (sorsolt világokon, `visszahivas_melyseg`
       # mélységig; alatta úgy számolunk, mintha mi hívnánk).
+      # Folytatólagosan: a második helyen ülő kezünk lapját az alap folytatással
+      # (a 4. kéz üt, ha kell) értékeljük — ez a lap értékének alsó korlátja; a 4.
+      # kéz többi lehetőségét csak a legjobbtól `folytatas_sav`-on belüli lapokra
+      # számoljuk (a 4. kéz úgyis a 3. lap láttán dönt). 100%-os lap után nincs több.
+      folytatas_sav: 0.10
       visszahivas_melyseg: 1
-      vilagok: 120
+      vilagok: 300
