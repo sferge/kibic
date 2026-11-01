@@ -255,7 +255,7 @@ class UtesTervezo:
         self.melyseg = int(r.get("visszahivas_melyseg", 1)) if melyseg is None else melyseg
         self.sav = float(r.get("folytatas_sav", 0.10))
         self.a = a
-        self.tar: dict = {}
+        self.tar = ALLAS_TAR               # közös: az állás értéke nem függ a döntéstől
         self.naplo = naplo
         self.tervezesek = 0
         self.gyujt: dict | None = None     # gyűjtő menet: a szükséges állások
@@ -267,16 +267,15 @@ class UtesTervezo:
             return 1.0
         if cel > hatra:
             return 0.0
-        kulcs = (tuple(sorted((k, frozenset(v)) for k, v in kezek.items())), frozenset(kint),
-                 cel, hatra, soron, tuple(sorted(set((k.kez, k.szin) for k in korlatok))))
+        kulcs = allas_kulcs(kezek, kint, cel, hatra, soron, korlatok)
         if kulcs in self.tar:
             return self.tar[kulcs]
         if self.gyujt is not None:
             self.gyujt[kulcs] = (self.a.felvevo, self.a.adu, kulcs)
             return 0.5
-        v = _allas_tervezese((self.a.felvevo, self.a.adu, kulcs))[1]
+        k, v, legjobb = _allas_tervezese((self.a.felvevo, self.a.adu, kulcs))
         self.tervezesek += 1
-        self.tar[kulcs] = v
+        _tarol(k, v, legjobb)
         return v
 
     def _szamol_gyujtottek(self) -> None:
@@ -293,14 +292,13 @@ class UtesTervezo:
         self.tervezesek += len(feladat)
         if n <= 1:
             for f in feladat:
-                k, v = _allas_tervezese(f)
-                self.tar[k] = v
+                _tarol(*_allas_tervezese(f))
             return
         belso = max(1, szalak_szama() // n)
         with ProcessPoolExecutor(max_workers=n, mp_context=mp_kontextus(),
                                  initializer=_szalak, initargs=(belso,)) as pool:
-            for k, v in pool.map(_allas_tervezese, feladat):
-                self.tar[k] = v
+            for k, v, legjobb in pool.map(_allas_tervezese, feladat):
+                _tarol(k, v, legjobb)
 
     @staticmethod
     def _jel(utes, mi: dict[str, set[Lap]]) -> tuple:
@@ -549,6 +547,27 @@ def _negyedik_lapjai(kez: set[Lap], utes: list, adu: str | None) -> list[Lap]:
     return list(dict.fromkeys(ki)) or [min(kez, key=_rang)]
 
 
+# Az ütés utáni állások értéke és legjobb terve — közös a döntések között (az élő
+# játékban a következő döntés gyakran pont egy már megtervezett állásból indul).
+ALLAS_TAR: dict = {}
+TERV_TAR: dict = {}
+
+
+def allas_kulcs(kezek: dict, kint, cel: int, hatra: int, soron: str, korlatok) -> tuple:
+    return (tuple(sorted((k, frozenset(v)) for k, v in kezek.items())), frozenset(kint),
+            cel, hatra, soron, tuple(sorted(set((k.kez, k.szin) for k in korlatok))))
+
+
+def _tarol(kulcs, ertek, legjobb) -> None:
+    if len(ALLAS_TAR) > 200_000:
+        ALLAS_TAR.clear()
+    if len(TERV_TAR) > 20_000:
+        TERV_TAR.clear()
+    ALLAS_TAR[kulcs] = ertek
+    if legjobb is not None:
+        TERV_TAR[kulcs] = legjobb
+
+
 def _szalak(n: int) -> None:
     """A folyamaton belüli elemzések szálai: a gép szálai elosztva a párhuzamosan
     tervezett állások közt (4 állás 32 szálon: 8-8)."""
@@ -566,8 +585,9 @@ def _allas_tervezese(f) -> tuple:
     korl = [Korlat(k, sz, 0, 0, "megfigyelt") for k, sz in hiany]
     _, ert = tervez(allas, korl, draga_pontos=False)
     if ert:
-        return kulcs, max(e.kockazattal for e in ert)
-    return kulcs, 1.0 if helyzetelemzes(allas).hiany == 0 else 0.0
+        pontos = [e for e in ert if not e.becsult]
+        return kulcs, max(e.kockazattal for e in ert), (pontos[0] if pontos else None)
+    return kulcs, 1.0 if helyzetelemzes(allas).hiany == 0 else 0.0, None
 
 
 def _alap_lepes(hely: int) -> Lepes:

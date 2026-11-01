@@ -35,3 +35,24 @@ def test_vedo_nem_tervez():
                     lathato={"W": _l("SK"), "N": _l("S8")}, lejatszott=[],
                     legalis={Lap.parse("SK"): "SK"})
     assert td.dontes(ja, "teszt") is None
+
+
+def test_hatarido_utan_a_hatterben_folytatja(monkeypatch):
+    import threading
+    import time
+    kesz = threading.Event()
+
+    def lassu(ja, kulcs, megallito=None, naplo=None):
+        time.sleep(0.5)
+        kesz.set()
+        return "eredmeny"
+    monkeypatch.setattr(td, "dontes", lassu)
+
+    class JA:
+        lejatszott = []
+        ules = "S"
+    d, ok = td.dontes_hataridovel(JA(), "k", 0.05)
+    assert (d, ok) == (None, False)
+    # ugyanarra a pozícióra nem indul új tervezés; a futó eredményét kapja meg
+    d, ok = td.dontes_hataridovel(JA(), "k", 2.0)
+    assert (d, ok) == ("eredmeny", True) and kesz.is_set()

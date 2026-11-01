@@ -683,6 +683,10 @@ def play_dontes(keres: dict, betolto=None, jelzes_fv=None, dd_zar=None,
     return valasz
 
 
+# a felvevő tervező a play határidejének legfeljebb ekkora részét használja
+TERVEZO_ARANY = float(os.getenv("KIBIC_TERVEZO_ARANY", "0.45"))
+
+
 def _terv_play(keres: dict, allas, start: float, feladat, figyelem: list) -> dict | None:
     """A felvevő tervező lapja (motor/tervdontes.py), ha be van kapcsolva és ad
     lapot; különben None (a régi lejátszó dönt). A sürgetés a tervezés lépcsői
@@ -694,11 +698,18 @@ def _terv_play(keres: dict, allas, start: float, feladat, figyelem: list) -> dic
     os.environ.setdefault("KIBIC_MP", "forkserver")
     if feladat is not None:
         feladat.szakaszba("tervezes")
+    # a határidő része (a többi a régi lejátszóé, ha a tervező nem végez időben)
+    hatarido = int(keres.get("deadline_ms") or 20000)
+    keret_s = hatarido / 1000 * TERVEZO_ARANY - (time.time() - start)
     try:
-        d = td.dontes(allas, munkamenet_kulcs(keres),
-                      megallito=feladat.megallito if feladat is not None else None)
+        d, kesz = td.dontes_hataridovel(allas, munkamenet_kulcs(keres), keret_s,
+                                        megallito=feladat.megallito if feladat is not None else None)
     except Exception as e:                       # noqa: BLE001 — a régi lejátszó a tartalék
         figyelem.append(f"tervező: {type(e).__name__}: {e}"[:200])
+        return None
+    if not kesz:
+        figyelem.append(f"tervező: {max(0, keret_s):.0f} s alatt nem végzett "
+                        "(a háttérben folytatja; a régi lejátszó dönt)")
         return None
     if d is None or d.lap not in allas.legalis:
         figyelem.append("tervező: nincs lapja ebben a helyzetben (a régi lejátszó dönt)")

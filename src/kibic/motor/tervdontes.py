@@ -44,6 +44,52 @@ def bekapcsolva(keres: dict) -> bool:
     return bool(kod) and kod in lista
 
 
+# --- határidő: a tervezés külön szálon; ami nem végez időben, a háttérben folytatja ---
+
+_FUTO: dict = {}               # (játszma, lapok száma, ülés) → (szál, esemény, eredmény)
+
+
+def dontes_hataridovel(ja, kulcs: str, keret_s: float, megallito=None):
+    """A döntés legfeljebb `keret_s` másodperc alatt: (TervDontes | None, kész-e).
+    Ha nem végez, a tervezés a háttérben folytatódik — az eredményei (az állások
+    értéke és terve, az elemzések) a következő döntésnél már a tárban vannak.
+    Ugyanarra a pozícióra (ismételt kérés) nem indul új tervezés."""
+    import threading
+    import time
+    poz = (kulcs, len(ja.lejatszott), ja.ules)
+    futo = _FUTO.get(poz)
+    if futo is None:
+        ev, eredmeny = threading.Event(), {}
+
+        def fut():
+            try:
+                eredmeny["d"] = dontes(ja, kulcs)
+            except Exception as e:           # noqa: BLE001 — a hívó dönti el, mi legyen
+                eredmeny["hiba"] = e
+            finally:
+                ev.set()
+                _FUTO.pop(poz, None)
+        szal = threading.Thread(target=fut, daemon=True, name=f"terv:{poz[1]}:{poz[2]}")
+        _FUTO[poz] = futo = (szal, ev, eredmeny)
+        szal.start()
+    _, ev, eredmeny = futo
+    vege = time.time() + max(0.0, keret_s)
+    while not ev.is_set() and time.time() < vege:
+        if megallito is not None and megallito():
+            break
+        ev.wait(0.2)
+    if not ev.is_set():
+        return None, False
+    if "hiba" in eredmeny:
+        raise eredmeny["hiba"]
+    return eredmeny.get("d"), True
+
+
+def hatterben() -> int:
+    """Ennyi tervezés fut még a háttérben (életjelhez, naplóhoz)."""
+    return len(_FUTO)
+
+
 def _lap(szin: str, rang: int) -> Lap:
     return Lap.parse(szin + RANGOK[rang - 2])
 
@@ -99,13 +145,22 @@ def _hivas(ja, X, Y, kint, cel, hatra, korl, kulcs, utesszam, megallito, naplo):
     from .tervszamolo import osztalyok
     from . import tervparhuzam as tp
     felv, aszt = ja.felvevo, ja.asztal
+    from .tervutes import TERV_TAR, allas_kulcs
+    from .tervezo import helyzetelemzes
     allas = Allas(felv, ja.adu, {felv: set(X), aszt: set(Y)}, set(kint), cel, hatra, ja.ules)
     stat: dict = {}
-    h, ert = tervez(allas, korl, stat=stat, megallito=megallito)
-    ert = [e for e in ert if not e.becsult]
-    if not ert:
-        return None
-    v = ert[0]
+    korabbi = TERV_TAR.get(allas_kulcs(allas.kezek, kint, cel, hatra, ja.ules,
+                                       [k for k in korl if k.max == 0]))
+    if korabbi is not None:
+        # ezt az állást egy korábbi (ütés közbeni) tervezés már megtervezte
+        h, v = helyzetelemzes(allas), korabbi
+        stat["korabbi"] = True
+    else:
+        h, ert = tervez(allas, korl, stat=stat, megallito=megallito)
+        ert = [e for e in ert if not e.becsult]
+        if not ert:
+            return None
+        v = ert[0]
     # az első kör: a terv útja egy (a legsúlyosabb) osztályon — az első kör még
     # nem függ megfigyeléstől
     relevans = {l for p in v.terv.lepesek for l in p.relevans}
@@ -156,7 +211,8 @@ def _hivas(ja, X, Y, kint, cel, hatra, korl, kulcs, utesszam, megallito, naplo):
     return TervDontes(lap, szoveg, 0.5 + 0.45 * v.kockazattal,
                       {"plan": v.terv.nev, "chance": round(v.kockazattal, 3),
                        "plans": stat.get("tervek"), "elapsed_s": round(stat.get("ossz_s", 0), 1),
-                       "interrupted": bool(stat.get("megszakitva"))})
+                       "interrupted": bool(stat.get("megszakitva")),
+                       "from_earlier_planning": bool(stat.get("korabbi"))})
 
 
 def _harmadik(ja, akt, kulcs, utesszam):
