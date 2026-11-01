@@ -24,6 +24,10 @@ import time
 import traceback
 
 
+class _Kesz(Exception):
+    pass
+
+
 def _tablak(szoveg: str | None) -> set[int] | None:
     if not szoveg:
         return None
@@ -53,7 +57,7 @@ def main(argv=None) -> int:
     from ..motor.tervsema import problemakep
     from .jatekmeres import fajlok_kibontasa, partik_fajlbol
     from .tervjatszo import tabla_szam
-    from .tervezo import allas_partibol, szinhianyok, tervezesi_pont
+    from .tervezo import FAJTA, allas_partibol, szinhianyok, tervezesi_pont, utes_kozben
 
     valaszt = _tablak(a.tablak)
     partik = [p for p in partik_fajlbol(fajlok_kibontasa([a.pbn], ".pbn"), "IMP", 1)
@@ -63,20 +67,28 @@ def main(argv=None) -> int:
     sorok = []
     fej = ["tabla", "kontraktus", "pont", "relevans_vedoi", "valasztas", "esely", "tervek",
            "draga", "draga_pontos", "elemzes", "ido_s", "olcso_s", "becsles_s", "pontos_s",
-           "teljes_valasztas", "teljes_esely", "teljes_ido_s", "egyezik", "fal_s", "hiba"]
+           "teljes_valasztas", "teljes_esely", "teljes_ido_s", "egyezik", "valodi_utes", "fal_s", "hiba"]
     for p in partik:
         r = {k: "" for k in fej}
         r["tabla"], r["kontraktus"] = tabla_szam(p.azonosito), str(p.kontraktus)
         print(f"\n== {p.azonosito} {p.kontraktus}", flush=True)
         t_parti = time.time()
         try:
-            pont, naplo = tervezesi_pont(p)
-            for t, l, rel, miert in naplo:
-                print(f"   {t}. ütés: védői hívás {l} — {'RELEVÁNS' if rel else 'nem releváns'} ({miert})")
-            r["relevans_vedoi"] = ",".join(str(t) for t, _, rel, _ in naplo if rel)
+            pont, naplo, fajta = tervezesi_pont(p)
+            for t, l, f, miert in naplo:
+                print(f"   {t}. ütés: védői hívás {l} — {FAJTA[f]} ({miert})")
+            r["relevans_vedoi"] = ",".join(f"{t}:{FAJTA[f]}" for t, _, f, _ in naplo if f != 1)
             if pont is None:
-                raise RuntimeError("nincs saját hívásunk")
+                raise RuntimeError("nincs döntési pont")
             r["pont"] = pont + 1
+            if fajta:
+                # a védő hívott, és döntésünk van: tervezés ütés közben
+                stat = {}
+                utes_kozben(p, pont, naplo=lambda x: print("   " + x, flush=True), stat=stat)
+                r.update(valasztas=f"[{FAJTA[fajta]}] {stat['valasztas']}", esely=f"{stat['esely']:.3f}",
+                         tervek=stat["jeloltek"], elemzes=stat["tervezesek"],
+                         ido_s=f"{stat['ossz_s']:.1f}", valodi_utes=stat["valodi"])
+                raise _Kesz()
             allas, jatszott, sor = allas_partibol(p, pont)
             h = helyzetelemzes(allas)
             print(f"   tervezés a {pont + 1}. ütésnél; {h.szoveg()}")
@@ -106,6 +118,8 @@ def main(argv=None) -> int:
                       f"egyezik: {r['egyezik']}", flush=True)
             elif a.teljes:
                 r["egyezik"] = "igen (nincs becsült terv)"
+        except _Kesz:
+            pass
         except Exception as e:     # a mérés megy tovább; a hibát rögzítjük
             r["hiba"] = f"{type(e).__name__}: {e}".replace("\t", " ")[:200]
             print("   HIBA: " + r["hiba"], flush=True)

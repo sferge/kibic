@@ -50,32 +50,61 @@ def allas_partibol(p, utes: int) -> tuple[Allas, dict]:
     return allas, jatszott, list(g.lapok)
 
 
-def tervezesi_pont(p) -> tuple[int | None, list]:
-    """Az első ütés, amelynek elején mi hívunk (RELEVANS_UTES): addig a védői
-    hívásokat vizsgáljuk; a naplóban: (ütés, hívott lap, releváns-e, miért). A
-    releváns védői hívásra a tervező még nem tervez (ott ma a lapjátszó dönt)."""
-    from ..motor.tervpont import relevans_vedoi_hivas, menetek_szama
+def tervezesi_pont(p) -> tuple[int | None, list, int]:
+    """Az első ütés, amelyben döntésünk van (RELEVANS_UTES): a saját hívásunk
+    (fajta 0), vagy a védő hívására dobás (2) vagy ütés-döntés (3). A naplóban az
+    addigi védői hívások: (ütés, hívott lap, fajta, miért)."""
+    from ..motor.tervpont import utes_fajta, NINCS_DONTES
+    k = p.kontraktus
+    adu = None if k.szin == "NT" else k.szin
+    asztal = kovetkezo_ules(k.felvevo, 2)
+    v1 = kovetkezo_ules(k.felvevo, 1)
+    kezek = {u: set(p.leosztas.kezek[u].lapok) for u in "NESW"}
+    g = tj.Jatek(kezek, k.felvevo, adu, [], tj.Terv(()))
+    naplo = []
+    lapok = [Lap.parse(str(c)) for c in p.lapok]
+    for t in range(13):
+        hivo = v1 if t == 0 else g.soron()
+        if vonal(hivo) == vonal(k.felvevo):
+            return t, naplo, 0
+        if 4 * t >= len(lapok):
+            break
+        f, miert = utes_fajta(g.kezek[k.felvevo], g.kezek[asztal], lapok[4 * t], adu)
+        naplo.append((t + 1, lapok[4 * t], f, miert))
+        if f != NINCS_DONTES:
+            return t, naplo, f
+        for i, c in enumerate(lapok[4 * t:4 * t + 4]):
+            g.tesz(hivo if (t == 0 and i == 0) else g.soron(), c)
+    return None, naplo, 0
+
+
+def utes_allas_partibol(p, utes: int):
+    """A `utes`-edik ütés (0-tól) a védő hívása után: (UtesAllas, a valódi ütés)."""
+    from ..motor.tervutes import UtesAllas
     k = p.kontraktus
     adu = None if k.szin == "NT" else k.szin
     asztal = kovetkezo_ules(k.felvevo, 2)
     v1, v2 = kovetkezo_ules(k.felvevo, 1), kovetkezo_ules(k.felvevo, 3)
     kezek = {u: set(p.leosztas.kezek[u].lapok) for u in "NESW"}
     g = tj.Jatek(kezek, k.felvevo, adu, [], tj.Terv(()))
-    menetek = menetek_szama()
-    naplo = []
     lapok = [Lap.parse(str(c)) for c in p.lapok]
-    for t in range(13):
-        hivo = v1 if t == 0 else g.soron()
-        if vonal(hivo) == vonal(k.felvevo):
-            return t, naplo
-        if 4 * t >= len(lapok):
-            break
-        rel, miert = relevans_vedoi_hivas(g.kezek[k.felvevo], g.kezek[asztal], lapok[4 * t],
-                                          g.kezek[v1] | g.kezek[v2], menetek)
-        naplo.append((t + 1, lapok[4 * t], rel, miert))
-        for i, c in enumerate(lapok[4 * t:4 * t + 4]):
-            g.tesz(hivo if (t == 0 and i == 0) else g.soron(), c)
-    return None, naplo
+    sor = []
+    for i, c in enumerate(lapok[:4 * utes]):
+        u = v1 if i == 0 else g.soron()
+        g.tesz(u, c)
+        sor.append((u, c))
+    hivo = v1 if utes == 0 else g.soron()
+    hivott = lapok[4 * utes]
+    nyert = g.felvevo_utesek() if utes else 0
+    a = UtesAllas(k.felvevo, adu, {u: set(g.kezek[u]) for u in (k.felvevo, asztal)},
+                  (set(g.kezek[v1]) | set(g.kezek[v2])) - {hivott}, hivo, hivott,
+                  6 + k.szint - nyert, 13 - utes, szinhianyok(sor, (v1, v2)))
+    valodi = [(hivo, hivott)]
+    u = hivo
+    for c in lapok[4 * utes + 1:4 * utes + 4]:
+        u = kovetkezo_ules(u, 1)
+        valodi.append((u, c))
+    return a, valodi
 
 
 def feltevesek(szovegek: list[str], jatszott: dict) -> list[Korlat]:
@@ -108,6 +137,31 @@ def szinhianyok(sor: list, vedok: tuple) -> list[Korlat]:
     return ki
 
 
+FAJTA = {1: "nincs döntés", 2: "DOBÁS", 3: "ÜTÉS-DÖNTÉS"}
+
+
+def utes_kozben(p, utes: int, naplo=print, stat: dict | None = None):
+    """Tervezés a védő hívása után: a jelöltek értéke és a választás."""
+    import time
+    from ..motor.tervutes import UtesTervezo
+    t0 = time.time()
+    a, valodi = utes_allas_partibol(p, utes)
+    naplo(f"{p.azonosito} {p.kontraktus}, a {utes + 1}. ütésben, {a.hivo} hívása után ({a.hivott}); "
+          f"cél {a.cel} a hátralévő {a.hatra}-ból")
+    ut = UtesTervezo(a, naplo=naplo)
+    ert = ut.tervez()
+    v = ert[0]
+    naplo(f"választás: {v.szoveg()} ({v.ertek:.1%}); a valódi ütés: "
+          + " ".join(f"{u}:{l}" for u, l in valodi))
+    for w, leiras, e in sorted(v.csoportok, key=lambda x: -x[0])[:5]:
+        naplo(f"   {w:5.1%}  {leiras}  → {e:.1%}")
+    if stat is not None:
+        stat.update(jeloltek=len(ert), tervezesek=ut.tervezesek, ossz_s=time.time() - t0,
+                    valasztas=v.szoveg(), esely=v.ertek,
+                    valodi=" ".join(f"{u}:{l}" for u, l in valodi))
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="A sémákból dolgozó felvevő tervező egy állásra")
     ap.add_argument("--pbn", required=True)
@@ -132,12 +186,14 @@ def main(argv=None) -> int:
         return 1
     p = partik[0]
     if a.utes is None:
-        a.utes, naplo = tervezesi_pont(p)
-        for t, l, rel, miert in naplo:
-            print(f"{t}. ütés: a védők hívása {l} — {'RELEVÁNS' if rel else 'nem releváns'} ({miert})")
+        a.utes, naplo, fajta = tervezesi_pont(p)
+        for t, l, f, miert in naplo:
+            print(f"{t}. ütés: a védők hívása {l} — {FAJTA[f]} ({miert})")
         if a.utes is None:
-            print("nincs saját hívásunk a lejátszásban", file=sys.stderr)
+            print("nincs döntési pont a lejátszásban", file=sys.stderr)
             return 1
+        if fajta:
+            return utes_kozben(p, a.utes)
     allas, jatszott, sor = allas_partibol(p, a.utes)
     korl = feltevesek(a.felteves, jatszott) + szinhianyok(sor, allas.vedok)
     h = helyzetelemzes(allas)

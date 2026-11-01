@@ -1,40 +1,46 @@
 """
 A tervezés pillanata (2026-11-01, Felvevő tervjáték): a RELEVANS_UTES szabály.
 
-Nem kell tervezni, amíg nincs valódi döntés. Egy védői hívás nem releváns (a
-legkisebb lapokat tesszük), ha
-  - mindkét kezünkben van a hívott színből (nincs lopás- vagy dobásdöntés),
-  - egyik lapunk sem nagyobb a hívottnál (nem kell eldönteni, ütünk-e, hol),
-  - és egyik lapunk sem válhat magassá a szín `menetek` menete után: a kint
-    lévő, nála nagyobb lapok (a hívotton kívül) több mint `menetek`.
-A saját hívásunk mindig releváns. (A szerkesztő szabálya.)
+A tervezés pillanatát nem az dönti el, hogy ki hív, hanem hogy van-e döntésünk
+(a szerkesztő szabálya). Egy védői hívásnál:
+
+  1. NINCS DÖNTÉS: mindkét kezünk színt ad, és egyik lapunk sem üti a hívott
+     lapot — az ütést mindenképp a védők viszik. Minimális gondolkodás: a
+     legkisebb lapok (így a magassá válható lapunk is megmarad).
+  2. DOBÁS: az ütést mindenképp a védők viszik, de egyik kezünk színhiányos és
+     nem lophat (szanzadu, vagy nincs adója) — mit dobunk: tervezés kell.
+  3. ÜTÉS-DÖNTÉS: üthetnénk (nagyobb lapunk van) vagy lophatnánk — ütünk vagy
+     kiengedünk, melyik kézben, mivel lopunk: ez már a terv része.
+
+A saját hívásunk mindig tervezést kíván.
 """
 from __future__ import annotations
 
 from ..domain import Lap
 
-
-def menetek_szama() -> int:
-    from .tervsema import strategiak_betoltese
-    _, szab = strategiak_betoltese()
-    r = next((s for s in szab if s.get("szabaly") == "RELEVANS_UTES"), {})
-    return int(r.get("menetek", 2))
+NINCS_DONTES, DOBAS, UTES_DONTES = 1, 2, 3
 
 
-def relevans_vedoi_hivas(kez1: set[Lap], kez2: set[Lap], hivott: Lap, kint: set[Lap],
-                         menetek: int | None = None) -> tuple[bool, str]:
-    """kez1, kez2: a két kezünk lapjai az ütés elején; kint: a védők még le nem
-    játszott lapjai (a hívottal együtt vagy nélküle). → (releváns-e, miért)."""
-    if menetek is None:
-        menetek = menetek_szama()
+def utes_fajta(kez1: set[Lap], kez2: set[Lap], hivott: Lap, adu: str | None) -> tuple[int, str]:
+    """kez1, kez2: a két kezünk lapjai az ütés elején. → (fajta, miért)."""
     sz = hivott.szin
+    dobas = False
     for kez in (kez1, kez2):
-        if not any(l.szin == sz for l in kez):
-            return True, "színhiány: lopás vagy dobás"
-    mi = sorted((l for l in kez1 | kez2 if l.szin == sz), key=lambda l: -l.rang)
-    if mi[0].rang > hivott.rang:
-        return True, f"nagyobb lapunk van ({mi[0]})"
-    felette = sum(1 for l in kint if l.szin == sz and l != hivott and l.rang > mi[0].rang)
-    if felette <= menetek:
-        return True, f"a {mi[0]} magassá válhat ({felette} nagyobb kint)"
-    return False, "a legkisebb lapok"
+        sajat = [l for l in kez if l.szin == sz]
+        if sajat:
+            if max(l.rang for l in sajat) > hivott.rang:
+                return UTES_DONTES, f"üthetünk ({max(sajat, key=lambda l: l.rang)})"
+        elif adu and adu != sz and any(l.szin == adu for l in kez):
+            return UTES_DONTES, "lophatunk"
+        else:
+            dobas = True
+    if dobas:
+        return DOBAS, "dobnunk kell"
+    return NINCS_DONTES, "a legkisebb lapok"
+
+
+def relevans_vedoi_hivas(kez1: set[Lap], kez2: set[Lap], hivott: Lap, kint=None,
+                         menetek=None, adu: str | None = None) -> tuple[bool, str]:
+    """Visszafelé kompatibilis alak: releváns-e (2. vagy 3. fajta)."""
+    f, miert = utes_fajta(kez1, kez2, hivott, adu)
+    return f != NINCS_DONTES, miert

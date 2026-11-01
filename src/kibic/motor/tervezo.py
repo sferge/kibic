@@ -883,11 +883,13 @@ def _helyettesitok(p: Peldany, pld: list[Peldany], adu: str) -> list[list[Peldan
 
 def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
            feltevesbol: bool = False, teljes: bool = False,
-           stat: dict | None = None) -> tuple[Helyzet, list[TervErtek]]:
+           stat: dict | None = None, draga_pontos: bool = True) -> tuple[Helyzet, list[TervErtek]]:
     """A tervek értékelése három lépcsőben (TERVEZES szabály): felismerés (a sémák
     `felismeres` feltételei), az olcsó tervek pontosan, a drága (többszínű
     elemzést kívánó) tervek becsléssel, és pontosan csak a legjobb jelöltek.
-    `teljes`: minden drága tervet pontosan (a lépcsők ellenőrzéséhez)."""
+    `teljes`: minden drága tervet pontosan (a lépcsők ellenőrzéséhez);
+    `draga_pontos=False`: a drága tervek csak becsléssel (az ütés közbeni
+    jelöltek gyors összevetéséhez)."""
     import time
     from . import tervparhuzam as tp
     t0 = time.time()
@@ -955,6 +957,8 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     sorrend = sorted(range(len(draga)), key=lambda i: -becsult[i])
     if teljes:
         valasztott = sorrend
+    elif not draga_pontos:
+        valasztott = []
     else:
         valasztott = [i for i in sorrend if becsult[i] >= legjobb - float(tz.get("sav", 0.05))]
         valasztott = valasztott[:int(tz.get("pontos", 3))]
@@ -962,7 +966,7 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
         [draga[i] for i in valasztott],
         lambda x: _terv_ertek(helyzet, *x, oszt, W, kiaduzas_valasztek))))
     legjobb = max([legjobb] + [e.kockazattal for e in pontos.values()])
-    if legjobb < float(tz.get("kiterjesztes_alatt", 0.5)):
+    if draga_pontos and legjobb < float(tz.get("kiterjesztes_alatt", 0.5)):
         maradek = [i for i in sorrend if i not in pontos]
         pontos.update(zip(maradek, tp.ertekel_mind(
             [draga[i] for i in maradek],
