@@ -155,6 +155,7 @@ class Eset:
     tartalek: int
     hiany: int
     megfigyelt: tuple = ()        # az elemzős technikák látott kimenetei (a döntésekhez)
+    bejutas: int = 0              # ennyiszer jutottak hívásba a védők (VEDOI_UTESEK)
 
 
 class Ertekelo:
@@ -180,6 +181,110 @@ class Ertekelo:
         self.politika: dict = {}              # (technika, kör, állapot, megfigyelés) → tovabb / valt
         self.politika_rogzitett: dict | None = None
         self.ut: list | None = None           # egyetlen eset útja (a végrehajtás-ellenőrzéshez)
+        self._vedoi_tar: dict = {}
+        # VEDOI_UTESEK: a terv technikáinak színein kívüli színek (azok vesztéseit a
+        # technika maga számolja); adu-felvételben az adu sem (a kiaduzás kezeli)
+        self.vedoi_szinek = [sz for sz in SZINEK
+                             if sz not in {p.szin for p in terv.lepesek} and sz != self.a.adu]
+
+    # -- VEDOI_UTESEK: amikor a védők hívásba jutnak --
+    def _menetek(self, sz: str, h1: int, h2: int) -> tuple:
+        """A védők a színt hívják újra és újra: körönként V (ők viszik) vagy M (mi
+        visszük, és visszakapjuk a hívást). A védők lapjai közösen (a legnagyobb a
+        hívó kézben — számukra a legjobb), a hosszuk az osztályé; a mi kezünk
+        lopással üt, ha színhiányos és van adója."""
+        kulcs = (sz, h1, h2)
+        if kulcs in self._vedoi_tar:
+            return self._vedoi_tar[kulcs]
+        X, Y = self.a.felvevo, self.a.asztal
+        mi = {k: sorted((l.rang for l in self.a.kezek[k] if l.szin == sz)) for k in (X, Y)}
+        lop = {k: bool(self.a.adu) and sz != self.a.adu and
+               any(l.szin == self.a.adu for l in self.a.kezek[k]) for k in (X, Y)}
+        ok = sorted(l.rang for l in self.a.kint if l.szin == sz)
+        l1, l2 = h1, h2
+        ki = []
+        while max(l1, l2) > 0 and ok:
+            t = ok[-1]
+            nyero = [(r, k) for k in (X, Y) for r in mi[k] if r > t]
+            lopo = [k for k in (X, Y) if not mi[k] and lop[k]]
+            if nyero or lopo:
+                ki.append("M")
+                if nyero:
+                    r, k = min(nyero)
+                    mi[k].remove(r)
+                    for kk in (X, Y):
+                        if kk != k and mi[kk]:
+                            mi[kk].pop(0)
+                # a védők kicsit adnak (a nagy lapjuk megmarad)
+                for _ in range(min(2, (l1 > 0) + (l2 > 0))):
+                    if len(ok) > 1:
+                        ok.pop(0)
+                    else:
+                        ok.pop()
+                l1, l2 = max(0, l1 - 1), max(0, l2 - 1)
+                if lopo and not nyero:
+                    break          # lopással ütünk: a szín tovább nem fut (egyszerűsítés)
+                continue
+            ki.append("V")
+            ok.pop()
+            if min(l1, l2) > 0 and ok:
+                ok.pop(0)
+            l1, l2 = max(0, l1 - 1), max(0, l2 - 1)
+            for k in (X, Y):
+                if mi[k]:
+                    mi[k].pop(0)
+        self._vedoi_tar[kulcs] = tuple(ki)
+        return self._vedoi_tar[kulcs]
+
+    def vedoi_utesek(self, o: Osztaly, g: int) -> int:
+        """A védők plusz ütései összesen az első g hívásba jutásuk alatt: minden
+        színből a mostani nyerőiket egyszer leviszik, egy színt (a versenyszínt)
+        pedig minden bejutáskor tovább hívnak — kiütik a megállítónkat, utána
+        leviszik."""
+        if g <= 0 or not self.kockazat:
+            return 0
+        kulcs = ("f", o.azon, g)
+        if kulcs in self._vedoi_tar:
+            return self._vedoi_tar[kulcs]
+        v1, v2 = self.vedok
+        sorok = {sz: self._menetek(sz, o.kezhossz(v1, sz), o.kezhossz(v2, sz))
+                 for sz in self.vedoi_szinek}
+
+        def elso(m):                       # a V-k az első M előtt
+            n = 0
+            for x in m:
+                if x == "M":
+                    break
+                n += 1
+            return n
+
+        def g_ig(m, g):                    # a V-k a g-edik M előtt (a végén: mind)
+            n, mm = 0, 0
+            for x in m:
+                if x == "M":
+                    mm += 1
+                    if mm >= g:
+                        break
+                else:
+                    n += 1
+            return n
+
+        alap = {sz: elso(m) for sz, m in sorok.items()}
+        legjobb = sum(alap.values())
+        for p, m in sorok.items():
+            legjobb = max(legjobb, sum(alap.values()) - alap[p] + g_ig(m, g))
+        self._vedoi_tar[kulcs] = legjobb
+        return legjobb
+
+    def _veszit(self, e: Eset, n: int) -> Eset | None:
+        """n elvesztett ütés: mindegyik egy bejutás, utána a védők plusz ütései."""
+        for _ in range(n):
+            g = e.bejutas + 1
+            kell = 1 + self.vedoi_utesek(e.o, g) - self.vedoi_utesek(e.o, g - 1)
+            if e.tartalek < kell:
+                return None
+            e = replace(e, tartalek=e.tartalek - kell, bejutas=g)
+        return e
 
     # -- a rejtett feltétel (csak itt, a számolásban) --
     def siker(self, p: Peldany, o: Osztaly) -> bool:
@@ -578,12 +683,13 @@ class Ertekelo:
                     if any(e.o.kezhossz(x, sz) < korszam and self.adu_maradek(e.o, x, st) > 0
                            for x in self.vedok):
                         hozam, koltseg = 0, koltseg + 1
-                if koltseg > e.tartalek:
+                vesz = self._veszit(e, koltseg)
+                if vesz is None:
                     if self.ut is not None:
                         self.ut.append(("kudarc",))
                     continue
-                uj = Eset(e.o, e.w * arany, e.tartalek - koltseg, e.hiany - hozam,
-                          e.megfigyelt + ((ti, hozam, koltseg),))
+                uj = Eset(e.o, e.w * arany, vesz.tartalek, e.hiany - hozam,
+                          e.megfigyelt + ((ti, hozam, koltseg),), vesz.bejutas)
                 if uj.hiany <= 0:
                     if self._lezaras(uj, st2):
                         ok += uj.w
@@ -701,9 +807,9 @@ class Ertekelo:
             tovabb = []
             for e in esetek:
                 if self._ellopjak(e, st, asz, st.soron, lapok, None):
-                    if e.tartalek <= 0:
+                    e = self._veszit(e, 1)
+                    if e is None:
                         continue
-                    e = replace(e, tartalek=e.tartalek - 1)
                 tovabb.append(e)
             if self.ut is not None:
                 self.ut.append(("kor", st.soron, dict(lapok)))
@@ -743,9 +849,9 @@ class Ertekelo:
             elif k.fajta == "impassz" and not self.siker(p, e.o):
                 vesztett = p.sema.kudarc_koltseg
             if vesztett:
-                if e.tartalek < vesztett:
+                e = self._veszit(e, vesztett)
+                if e is None:
                     continue
-                e = replace(e, tartalek=e.tartalek - vesztett)
             tovabb.append(e)
         if self.ut is not None:
             self.ut.append(("kor", hivo, dict(lapok)))

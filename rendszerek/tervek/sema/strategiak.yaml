@@ -58,6 +58,16 @@
       # lapok, színhiány; bizonyított); a licitből feltételezett hosszból nem
       # (a szerkesztő döntése, 2026-10-31: sok parti statisztikája után oldható).
       tudas: [megfigyelt, bizonyitott]
+    - szabaly: VEDOI_UTESEK
+      nev: "A védők ütései, amikor hívásba jutnak"
+      # Minden elvesztett ütés egy bejutás. Bejutáskor a védők a terv technikáinak
+      # színein kívül (aduban az adun kívül) leviszik a mostani nyerőiket, és egy
+      # színt — a versenyszínt — minden bejutáskor tovább hívnak: kiütik a
+      # megállítónkat, a következő bejutáskor leviszik a színt. A plusz ütéseik a
+      # tartalékot fogyasztják (a szükséges ütés a hátralévőkből: a vesztés összesen
+      # legfeljebb a tartalék). Egyszerűsítés: a védők lapjai a színben közösen
+      # (a nagy lapok a hívó kézben), a hosszuk az osztályé; a mi kezünk lopással
+      # megállítja a színt. Csak a kockázattal számolt értékben.
     - szabaly: TERVEZES
       nev: "A tervezés lépcsői: felismerés, becslés, pontos számítás"
       # 1. felismerés: a technikák `felismeres` feltételei (olcsó jellemzők) szűrik,

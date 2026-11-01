@@ -76,3 +76,22 @@ def test_kifejezes_szuk():
     with pytest.raises(KifejezesHiba):
         kifejezes("x.__class__", {"x": 1})
     assert kifejezes("a + 1 >= 2 and not b", {"a": 1, "b": False})
+
+
+def test_vedoi_utesek_versenyszin():
+    """3NT: a ♥K az egyetlen megállítónk, kint ♥QT9 7532 — az első bejutáskor
+    kiütik, a másodiknál leviszik a maradékot."""
+    from kibic.motor.tervezo import Ertekelo, Terv
+    a = Allas(felvevo="S", adu=None,
+              kezek={"S": _lapok("HK SA SK DA DK DQ CA CK CQ"),
+                     "N": _lapok("H4 S2 S3 D2 D3 D4 C2 C3 C4")},
+              kint=_lapok("HQ HT H9 H7 H5 H3 H2 SQ SJ ST S9 S8 DJ DT D9 D8 CJ CT"),
+              cel=9, hatra=9, soron="S")
+    h = helyzetelemzes(a)
+    e = Ertekelo(h, Terv("x", [], 0))
+    o = osztalyok(a.kint, {"W": 9, "E": 9}, set())
+    egy = next(x for x in o if x.kezhossz("W", "H") == 3 and x.kezhossz("E", "H") == 4
+               and x.kezhossz("W", "S") == 2)
+    assert e._menetek("H", 3, 4)[:4] == ("M", "V", "V", "V")
+    assert e.vedoi_utesek(egy, 1) == 0
+    assert e.vedoi_utesek(egy, 2) == 3
