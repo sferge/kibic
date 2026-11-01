@@ -130,16 +130,36 @@ class HianyzoElemzes(Exception):
         self.elemzes = elemzes
 
 
+def _elso_lepes(el, e: Elemzes, egyszinu: bool):
+    """A kezelés első lépése (az élő játékhoz): (hívó "X"/"Y", lap, {a 2. kéz
+    lapja: a 3. kéz lapja}). Egyszínűnél a lapok rangok, többszínűnél kódok."""
+    try:
+        if egyszinu:
+            idx, ures, *_ = el._kezdo()
+            kulcs = (el.legjobb_allapot, idx, ures, ures, e.k, e.m)
+        else:
+            idx, ures, allapot = el._kezdo()
+            kulcs = (allapot, idx, ures, ures, e.k, e.m)
+        akc = el.dontes.get(kulcs)
+        if akc is None:
+            return None
+        harmadik = {l2: c3 for (kk, h, cc, l2), c3 in el.harmadik.items()
+                    if kk == kulcs and (h, cc) == akc}
+        return (akc[0], akc[1], harmadik if egyszinu else {})
+    except Exception:          # noqa: BLE001 — az első lépés csak kiegészítő adat
+        return None
+
+
 def kiszamol(e: Elemzes):
     """Egy elemzés (a folyamatban is ez fut)."""
     if e.fajta == "egy":
         from .tervszinkezeles import Elemzo
         el = Elemzo(e.feladat)
-        ertek = (el.tart, el.kimenetek(e.k, e.m))
+        ertek = (el.tart, el.kimenetek(e.k, e.m), _elso_lepes(el, e, True))
     elif e.fajta == "tobb":
         from . import tervtobbszin as tt
         el = tt.Elemzo(e.feladat)
-        ertek = (el.tart, el.kimenetek(e.k, e.m))
+        ertek = (el.tart, el.kimenetek(e.k, e.m), _elso_lepes(el, e, False))
         tt.tarak_uritese()
     elif e.fajta == "celok":
         from collections import Counter
@@ -189,6 +209,12 @@ def _munkas(e: Elemzes):
     if e.fajta == "tobb" or _rss_gb() > 1.0:
         _gyorsitotarak_uritese()
     return e.kulcs, ertek
+
+
+def mp_kontextus():
+    """A folyamatok indítása: `KIBIC_MP` (alap: fork; a szolgáltatásban forkserver,
+    mert a többszálú folyamat forkja zárakat örökölhet)."""
+    return mp.get_context(os.environ.get("KIBIC_MP", "fork"))
 
 
 def szalak_szama() -> int:
@@ -247,7 +273,7 @@ def szamol_mind(elemzesek) -> None:
     STATISZTIKA["szamolt"] += len(egyedi)
     tobb = [e for e in egyedi.values() if e.fajta == "tobb"]
     egy = [e for e in egyedi.values() if e.fajta != "tobb"]
-    ctx = mp.get_context("fork")
+    ctx = mp_kontextus()
     poolok, jovok = [], []
     try:
         if tobb:

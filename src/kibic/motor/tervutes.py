@@ -56,6 +56,8 @@ class UtesAllas:
     cel: int                          # a hátralévő ütésekből (ezzel együtt) ennyi kell
     hatra: int                        # hátralévő ütések (ezzel együtt)
     korlatok: list[Korlat] = field(default_factory=list)   # megfigyelt színhiányok
+    # az ütésben a hívott lap után már letett lapok (élő játék, 4. kéz: [2. kéz, 3. kéz])
+    utes_eddig: list = field(default_factory=list)
 
     @property
     def asztal(self) -> str:
@@ -257,6 +259,7 @@ class UtesTervezo:
         self.naplo = naplo
         self.tervezesek = 0
         self.gyujt: dict | None = None     # gyűjtő menet: a szükséges állások
+        self.megallito = None              # sürgetés: az első menet után megáll
 
     # az ütés után: a tervező értéke (gyorsítótárral; gyűjtő menetben csak felírja)
     def _allas_erteke(self, kezek, kint, cel, hatra, soron, korlatok) -> float:
@@ -281,7 +284,7 @@ class UtesTervezo:
         állás; a folyamaton belül az elemzések egy szálon)."""
         from concurrent.futures import ProcessPoolExecutor
         import multiprocessing as mp
-        from .tervparhuzam import szalak_szama
+        from .tervparhuzam import mp_kontextus, szalak_szama
         feladat = [f for k, f in self.gyujt.items() if k not in self.tar]
         self.gyujt = None
         if not feladat:
@@ -294,7 +297,7 @@ class UtesTervezo:
                 self.tar[k] = v
             return
         belso = max(1, szalak_szama() // n)
-        with ProcessPoolExecutor(max_workers=n, mp_context=mp.get_context("fork"),
+        with ProcessPoolExecutor(max_workers=n, mp_context=mp_kontextus(),
                                  initializer=_szalak, initargs=(belso,)) as pool:
             for k, v in pool.map(_allas_tervezese, feladat):
                 self.tar[k] = v
@@ -315,12 +318,17 @@ class UtesTervezo:
         return tuple(ki)
 
     def _utes(self, kezek, kint_vedo: dict[str, set[Lap]], sorrend, elso_lap,
-              lepesek: dict[str, Lepes] | None):
-        """Egy ütés lejátszása egy világban: (ütés, nyerő ülés)."""
+              lepesek: dict[str, Lepes] | None, rogzitett: dict | None = None):
+        """Egy ütés lejátszása egy világban: (ütés, nyerő ülés). `rogzitett`: a már
+        letett lapok (élő játék)."""
         utes = [(sorrend[0], elso_lap)]
         for i, u in enumerate(sorrend[1:], start=1):
             partner = kovetkezo_ules(u, 2)
-            if u in kezek:
+            if rogzitett and u in rogzitett:
+                l = rogzitett[u]
+                if u not in kezek:
+                    kint_vedo[u].discard(l)
+            elif u in kezek:
                 lep = lepesek.get(u) if lepesek else None
                 l = _mi_lap(kezek[u], lep or _alap_lepes(i), utes, self.a.adu, partner, i)
             else:
@@ -329,7 +337,8 @@ class UtesTervezo:
         return utes, _nyero(utes, self.a.adu)[0]
 
     def _ertekel_utes(self, kezek, kint, cel, hatra, korlatok, hivo, vilagok_, elso,
-                      lepesek, melyseg, vilag_ertek: dict | None = None) -> tuple[float, list]:
+                      lepesek, melyseg, vilag_ertek: dict | None = None,
+                      rogzitett: dict | None = None) -> tuple[float, list]:
         """Az ütés (a hívó első lapjával, világonként) és utána az állás értéke.
         `elso`: világ → a hívó lapja (None: ebben a világban nem hívhatja).
         `vilag_ertek`: ide kerül világonként (index) a csoportja értéke."""
@@ -341,7 +350,7 @@ class UtesTervezo:
                 continue
             w2 = {u: set(v) for u, v in w.items()}
             w2[hivo].discard(c)
-            utes, nyu = self._utes(kezek, w2, sorrend, c, lepesek)
+            utes, nyu = self._utes(kezek, w2, sorrend, c, lepesek, rogzitett)
             csop[self._jel(utes, kezek)].append((w, utes, nyu, i))
         n = sum(len(v) for v in csop.values())
         if not n:
@@ -405,6 +414,32 @@ class UtesTervezo:
                   for i in range(len(vil)) if any(i in ertekek[s] for s in SZINEK)]
         return sum(osszes) / len(osszes) if osszes else 0.0
 
+    def _negyedik(self, vil, sor, kint0, letett) -> list[JeloltErtek]:
+        """Élő játék, a 4. kéz (három lap már az asztalon): a jelöltek a lapjai; az
+        ütés kimenete ismert, a folytatás a tervezőből (ha a védők viszik: a
+        legrosszabb visszahívás a világokon)."""
+        a = self.a
+        rogz = dict(letett[1:])
+        kez = a.kezek[sor[3]]
+        jelolt = _negyedik_lapjai(kez, letett, a.adu)
+
+        def ertekel(l):
+            return self._ertekel_utes(a.kezek, kint0, a.cel, a.hatra, a.korlatok, a.hivo, vil,
+                                      lambda w: a.hivott, {sor[3]: Lepes("lap", l)}, self.melyseg,
+                                      rogzitett=rogz)
+        self.gyujt = {}
+        for l in jelolt:
+            ertekel(l)
+        self._szamol_gyujtottek()
+        ki = []
+        for l in jelolt:
+            v, cs = ertekel(l)
+            ki.append(JeloltErtek({sor[3]: Lepes("lap", l)}, v, cs))
+            if self.naplo is not None:
+                self.naplo(f"   jelölt {sor[3]}: {l}: {v:.1%}")
+        ki.sort(key=lambda x: -x.ertek)
+        return ki
+
     def tervez(self) -> list[JeloltErtek]:
         a = self.a
         hiany = defaultdict(set)
@@ -412,12 +447,17 @@ class UtesTervezo:
             if k.max == 0:
                 hiany[k.kez].add(k.szin)
         vedok = [kovetkezo_ules(a.felvevo, 1), kovetkezo_ules(a.felvevo, 3)]
-        meret = {v: a.hatra - (1 if v == a.hivo else 0) for v in vedok}
+        letett = [(a.hivo, a.hivott)] + list(a.utes_eddig)
+        meret = {v: a.hatra - sum(1 for u, _ in letett if u == v) for v in vedok}
         vil = vilagok(a.kint, meret, hiany, self.db)
         for w in vil:
-            w[a.hivo].add(a.hivott)         # a hívó lapja a világban is
+            for u, l in letett:             # a védők letett lapjai a világban is
+                if u in w:
+                    w[u].add(l)
         sor = a.sorrend()
-        kint0 = a.kint | {a.hivott}
+        kint0 = a.kint | {l for u, l in letett if u not in a.kezek}
+        if a.utes_eddig:
+            return self._negyedik(vil, sor, kint0, letett)
 
         def ertekel(lep, ve=None):
             return self._ertekel_utes(a.kezek, kint0, a.cel, a.hatra, a.korlatok, a.hivo, vil,
@@ -450,7 +490,9 @@ class UtesTervezo:
             vizsgalt = {max(also, key=also.get)}
         else:
             vizsgalt = {l2 for l2 in csoport if also[l2] >= legjobb - self.sav}
-        if legjobb < 1 - 1e-9:
+        if self.megallito is not None and self.megallito():
+            vizsgalt = set()               # sürgetés: az alap folytatások eredménye megy
+        if legjobb < 1 - 1e-9 and vizsgalt:
             allasok([lep for l2 in vizsgalt for lep in csoport[l2]], "további folytatások")
         ki = []
         for l2, lepesek in csoport.items():
@@ -484,6 +526,27 @@ class UtesTervezo:
                            + (f"≥ {v:.1%} (csak az alap folytatás)" if je.also_korlat else f"{v:.1%}"))
         ki.sort(key=lambda x: -x.ertek)
         return ki
+
+
+def _negyedik_lapjai(kez: set[Lap], utes: list, adu: str | None) -> list[Lap]:
+    """A 4. kéz jelöltjei: kicsi; a nyerő fölötti lapcsoportok; színhiánnyal lopás
+    kis / nagy aduval és dobás színenként."""
+    hivott = utes[0][1].szin
+    _, nyl = _nyero(utes, adu)
+    sajat = sorted((l for l in kez if l.szin == hivott), key=_rang)
+    if sajat:
+        ki = [sajat[0]] + [l for l in sajat if _ut(l, nyl, hivott, adu)][:1]
+        ki += [l for l in sajat if _ut(l, nyl, hivott, adu) and l not in ki][-1:]
+        return list(dict.fromkeys(ki))
+    ki = []
+    if adu:
+        aduk = sorted((l for l in kez if l.szin == adu and _ut(l, nyl, hivott, adu)), key=_rang)
+        ki += aduk[:1] + aduk[-1:]
+    for s in SZINEK:
+        if s != hivott and s != adu:
+            lap = sorted((l for l in kez if l.szin == s), key=_rang)
+            ki += lap[:1]
+    return list(dict.fromkeys(ki)) or [min(kez, key=_rang)]
 
 
 def _szalak(n: int) -> None:
