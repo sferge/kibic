@@ -42,7 +42,8 @@ class Lepes:
             return str(self.lap)
         if self.fajta == "dob":
             return f"dob {'♠♥♦♣'['SHDC'.index(self.szin)]}"
-        return {"kicsi": "kicsi", "ut": "üt, ha kell", "atvesz": "átvesz"}[self.fajta]
+        return {"kicsi": "kicsi", "ut": "üt, ha kell", "atvesz": "átvesz",
+                "deblokk": "a legnagyobbat (deblokk)"}[self.fajta]
 
 
 @dataclass
@@ -156,6 +157,8 @@ def _mi_lap(kez: set[Lap], lepes: Lepes, utes: list, adu: str | None, partner: s
         if sajat:
             return min(sajat, key=_rang)
         return _dobas(kez, adu, lepes.szin)
+    if lepes.fajta == "deblokk" and sajat:
+        return max(sajat, key=_rang)
     if lepes.fajta == "atvesz" and nyu == partner:
         felette = [l for l in sajat if l.rang > nyl.rang]
         if felette:
@@ -185,6 +188,11 @@ def jeloltek(a: UtesAllas) -> list[dict[str, Lepes]]:
             nagy = [l for l in sajat if l.rang > a.hivott.rang]
             ki = [Lepes("lap", min(sajat, key=_rang))]
             ki += [Lepes("lap", l) for l in _csoportok(nagy, kint_sz) if l != ki[0].lap]
+            if not nagy:
+                # deblokk: a legnagyobb lapunk bedobása is jelölt (ha magassá válhatna)
+                m = max(sajat, key=_rang)
+                if m != ki[0].lap:
+                    ki.append(Lepes("lap", m))
             return ki
         ki = []
         if a.adu and a.adu != sz:
@@ -204,6 +212,7 @@ def jeloltek(a: UtesAllas) -> list[dict[str, Lepes]]:
         ki = [Lepes("ut"), Lepes("atvesz")] if sajat else []
         if sajat:
             ki.append(Lepes("kicsi"))
+            ki.append(Lepes("deblokk"))
             return ki
         if a.adu and a.adu != sz and any(l.szin == a.adu for l in kez):
             ki.append(Lepes("ut"))

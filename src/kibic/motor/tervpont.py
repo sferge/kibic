@@ -4,9 +4,11 @@ A tervezés pillanata (2026-11-01, Felvevő tervjáték): a RELEVANS_UTES szabá
 A tervezés pillanatát nem az dönti el, hogy ki hív, hanem hogy van-e döntésünk
 (a szerkesztő szabálya). Egy védői hívásnál:
 
-  1. NINCS DÖNTÉS: mindkét kezünk színt ad, és egyik lapunk sem üti a hívott
-     lapot — az ütést mindenképp a védők viszik. Minimális gondolkodás: a
-     legkisebb lapok (így a magassá válható lapunk is megmarad).
+  1. NINCS DÖNTÉS: mindkét kezünk színt ad, egyik lapunk sem üti a hívott
+     lapot, és egyik lapunk sem válhat magassá a szín 1–2 köre után — az ütést
+     mindenképp a védők viszik. Minimális gondolkodás: a legkisebb lapok.
+     Ha egy lapunk magassá válhat (pl. Kx és Dx az ász alatt), az döntés:
+     melyik kéz dobja be a magas lapot (deblokk, plusz átmenet) — 3. eset.
   2. DOBÁS: az ütést mindenképp a védők viszik, de egyik kezünk színhiányos és
      nem lophat (szanzadu, vagy nincs adója) — mit dobunk: tervezés kell.
   3. ÜTÉS-DÖNTÉS: üthetnénk (nagyobb lapunk van) vagy lophatnánk — ütünk vagy
@@ -21,8 +23,27 @@ from ..domain import Lap
 NINCS_DONTES, DOBAS, UTES_DONTES = 1, 2, 3
 
 
-def utes_fajta(kez1: set[Lap], kez2: set[Lap], hivott: Lap, adu: str | None) -> tuple[int, str]:
-    """kez1, kez2: a két kezünk lapjai az ütés elején. → (fajta, miért)."""
+MENETEK = 2      # ennyi kör után magassá válhat-e a lapunk (RELEVANS_UTES)
+
+
+def magassa_valhat(kez1, kez2, hivott: Lap, kint) -> Lap | None:
+    """A legnagyobb lapunk a hívott színben, ha a kint lévő, nála nagyobb lapok
+    (a hívotton kívül) legfeljebb MENETEK darabok — különben None."""
+    if kint is None:
+        return None
+    sz = hivott.szin
+    mi = [l for l in set(kez1) | set(kez2) if l.szin == sz]
+    if not mi:
+        return None
+    m = max(mi, key=lambda l: l.rang)
+    felette = sum(1 for l in kint if l.szin == sz and l != hivott and l.rang > m.rang)
+    return m if felette <= MENETEK else None
+
+
+def utes_fajta(kez1: set[Lap], kez2: set[Lap], hivott: Lap, adu: str | None,
+               kint=None) -> tuple[int, str]:
+    """kez1, kez2: a két kezünk lapjai az ütés elején; kint: a védők le nem
+    játszott lapjai (a deblokk-döntéshez). → (fajta, miért)."""
     sz = hivott.szin
     dobas = False
     for kez in (kez1, kez2):
@@ -36,6 +57,9 @@ def utes_fajta(kez1: set[Lap], kez2: set[Lap], hivott: Lap, adu: str | None) -> 
             dobas = True
     if dobas:
         return DOBAS, "dobnunk kell"
+    m = magassa_valhat(kez1, kez2, hivott, kint)
+    if m is not None:
+        return UTES_DONTES, f"a {m} magassá válhat: melyik kéz dobja be (deblokk)"
     return NINCS_DONTES, "a legkisebb lapok"
 
 
