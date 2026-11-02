@@ -421,6 +421,17 @@ fejezetek:
           t: PARAM
           kod: FESU_INVIT_MAX
           alap: 12
+      # a természetes licit a színt is ígéri (a szerkesztő, 2026-11-02, #181:
+      # szingli kárónál nem 2♦)
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V1'
+        jobb:
+          t: PARAM
+          kod: FESU_FIT_HOSSZ
+          alap: 3
     jelentes:
       pont:
         min:
@@ -480,6 +491,17 @@ fejezetek:
           t: PARAM
           kod: FESU_INVIT_MAX
           alap: 12
+      # a természetes licit a színt is ígéri (a szerkesztő, 2026-11-02, #181:
+      # szingli kárónál nem 2♦)
+      - t: OSSZE
+        op: '>='
+        bal:
+          t: SZIN
+          szin: '@V2'
+        jobb:
+          t: PARAM
+          kod: FESU_FIT_HOSSZ
+          alap: 3
     jelentes:
       pont:
         min:

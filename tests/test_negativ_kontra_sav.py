@@ -56,3 +56,9 @@ def test_kuzdelmi_licit_gemesellyel_nem():
     # 1♦ (p) 1♥ (X) ?  ♠AK3 ♥QT96 ♦AJT2 ♣AJ (19): a törvény (2♥) küzdelmi,
     # tagadja az invit erőt — gémeséllyel a rendszer szerint: 4♥ (2026-11-02)
     assert _h("AK3.QT96.AJT2.AJ", "P 1D P 1H X", "N") == "4H"
+
+
+def test_kozbeszolas_utan_felullicit_invit():
+    # #196: p p (1♥) 2♦ (p) ?  ♠QJT8 ♥Q7 ♦Q763 ♣AJ4 (12, passzolt lap):
+    # gémesély van — invit: 2♥ felüllicit, nem 5♦ (2026-11-02)
+    assert _h("QJT8.Q7.Q763.AJ4", "P P P 1H 2D P", "E") == "2H"
