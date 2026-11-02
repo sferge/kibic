@@ -20,6 +20,22 @@
 # „Hand of the day” 604 felvevő-központú partija (a magyarázat kulcsszavai), a két
 # kézből számolt kezdőjegyekkel (eszkozok/jatekmod_elemzes, 2026-11-02).
 
+# --- 0. Alapjáték ---------------------------------------------------------------------------
+
+- jatekmod: ALAPJATEK
+  nev: "Alapjáték: felső ütések és egyszerű színkezelés (impassz, ejtés, kiengedés, figura kiütése)"
+  felismeres: []                                   # mindig jelölt: ide lehet visszaesni
+  jegyek: ["a Pavlicek-partik 44%-a csak ilyen (színkezelés, esélyek kombinálása, kísérő szempontok)"]
+  hozam: "színenként a színelemző kínálata"
+  siker: ["a választott színkezelések sikere (a színelemző esélyei)"]
+  taktika: [SZINKEZELES, EJTES, IMPASSZ_VILLA, IMPASSZ_ATENGEDES]
+  valtozatok:
+    - {nev: SZAN, ha: "szanzadu", megj: "a védők versenyszíne és a kontrollok a döntőek"}
+    - {nev: SZIN, ha: "színjáték", megj: "előbb kiaduzás, ha semmi nem akadályozza"}
+    - {nev: EGYETLEN_ESELY}
+    - {nev: ESELYEK_KOMBINACIOJA, megj: "próbák előbb, a kockázat utoljára (strategiak.yaml)"}
+    - {nev: BIZTONSAGI_JATEK, megj: "k ütés a legtöbb elosztáson; a többletütés másodlagos"}
+
 # --- 1. Ütésforrás: hosszból -----------------------------------------------------------
 
 - jatekmod: KIMAGASITAS
