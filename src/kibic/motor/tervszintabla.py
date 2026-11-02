@@ -173,3 +173,36 @@ def alapjatek_eselye(D: dict, U: dict, cel: int, m: int = 99) -> tuple[float, fl
                 uj[t1 + t2] = uj.get(t1 + t2, 0.0) + p1 * p2
         eloszl = uj
     return sum(p for t, p in eloszl.items() if t >= cel), pontos / 4
+
+
+def alapjatek_eselye_tempoval(D: dict, U: dict, cel: int) -> tuple[float, float]:
+    """Az alapjáték gyors esélye a vesztett ütésekkel együtt: színenként egy cél
+    (k ütés, legfeljebb m vesztés; m ∈ {0, 1, 2+}), a színek céljai együtt legalább
+    `cel` ütést adnak, és a vesztéseik összege legfeljebb a tartalék (13 − cel);
+    a legjobb ilyen célkiosztás esélye (a színek függetlenek; a kombinált esélyek
+    nélkül, tehát óvatos). → (esély, a pontos színek aránya)."""
+    tartalek = 13 - cel
+    allapot = {(0, 0): 1.0}                # (ütések, vesztések) → a legjobb esély
+    pontos = 0
+    for sz in "SHDC":
+        X, Y = D.get(sz, set()), U.get(sz, set())
+        opciok = [(0, 0, 1.0)]
+        ok_db = 0
+        for m, mm in ((0, 0), (1, 1), (99, 2)):
+            p, ok = eselyek(X, Y, m)
+            ok_db = max(ok_db, ok)
+            if m != 99 and not ok:
+                continue                   # a közelítésben nincs vesztés-korlátos érték
+            opciok += [(k, mm, v) for k, v in p.items() if v > 0]
+        pontos += ok_db
+        uj: dict = {}
+        for (t, l), p0 in allapot.items():
+            for k, mm, p in opciok:
+                kulcs = (min(cel, t + k), l + mm)
+                if kulcs[1] > tartalek:
+                    continue
+                v = p0 * p
+                if v > uj.get(kulcs, 0.0):
+                    uj[kulcs] = v
+        allapot = uj
+    return max((p for (t, _), p in allapot.items() if t >= cel), default=0.0), pontos / 4
