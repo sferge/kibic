@@ -110,6 +110,15 @@ def _kozelites(k: str) -> dict:
     n = len(kint)
     if not X and not Y:
         return {99: {}}
+    if n > MAX_KINT:
+        # legfeljebb 3 lapunk: a felső (folytonos) lapok ütései, biztosan
+        felso = 0
+        for c in k:
+            if c == ".":
+                break
+            felso += 1
+        felso = min(felso, max(len(X), len(Y)))
+        return {99: {kk: 1.0 for kk in range(1, felso + 1)}}
     db: dict = {}
     W = 0
     for maszk in range(1 << n):
