@@ -1,0 +1,123 @@
+# Játékmódok — a felvevőjáték stratégiai sémái (TERVEZET, 2026-11-02; még nincs bekötve)
+# Leírás és kérdések: claude/terv-jatekmodok-2026-11-02.md
+#
+# Egy játékmód: honnan jön a hiányzó ütés, és mibe kerül. A mező-szerkezet:
+#   felismeres   LÁTOTT jellemzők (a két kéz, a felvétel, a licit): szóba jöhet-e
+#   hozam        hány ütést adhat (elvben, a látott lapokból)
+#   siker        REJTETT feltételek (a védők lapjai) — a gyors esély ezekből: a
+#                feltételek együttes valószínűsége az elosztásokon (pontos kombinatorika,
+#                lejátszás nélkül; ezredmásodpercek)
+#   eroforras    mire van szüksége: adu (melyik kézben, hány), átmenet (melyik kézbe,
+#                hány), kiadás (hányszor kerülnek a védők hívásba), kiaduzás (előtte
+#                legfeljebb hány kör)
+#   kizar        mely módokkal nem fér össze (ugyanazt az erőforrást fogyasztják)
+#   fenyeget     amit a védők ez ellen tehetnek (a gyors esélyt csökkenti)
+#   taktika      a részletes tervezéshez: a technikák (technikak.yaml), amelyek
+#                megvalósítják
+#
+# A fogalmak (látott: terv.py jellemzok; rejtett: tervszamolo.rejtett_fogalmak) egy része
+# már megvan; az új rejtett fogalmak itt: eloszlas(SZ) — a védők hosszabb keze a
+# színben; adu_eloszlas — ugyanez az aduban.
+
+- jatekmod: IMPASSZ
+  nev: "Impassz: a hiányzó figura a kedvező helyen"
+  felismeres: ["szin.impasszolhato"]
+  hozam: 1
+  siker: ["birtokos(F) == bal(HIVO_KEZ)"]          # pl. ♦B-t hívunk az A-K felé: a ♦D Nyugatnál
+  eroforras: {atmenet: {kez: HIVO_KEZ, db: "impasszok száma"}, kiadas: "kudarcnál 1"}
+  fenyeget: ["kudarcnál F birtokosa kerül hívásba (ha ő a veszélyes kéz: versenyszín)"]
+  taktika: [IMPASSZ_VILLA, IMPASSZ_ATENGEDES, SZINKEZELES]
+  pelda: "4Q01 #1: ♦ impassz Nyugat felé (51%)"
+
+- jatekmod: EJTES
+  nev: "Ejtés: a figura a felső lapjaink alá esik"
+  felismeres: ["szin.eso_figura"]
+  hozam: 1
+  siker: ["figura_hossz(F) <= N"]                  # N: a felső lapjaink száma F fölött
+  eroforras: {kiadas: 0}                           # próba: a kudarca nem kerül ütésbe
+  kizar: ["IMPASSZ ugyanabban a színben (a felső lapok elfogynak) — kivéve: előbb egy felső lap"]
+  taktika: [EJTES]
+  pelda: "4Q01 #1: ♦A-K, a ♦D legfeljebb dubló (18%)"
+
+- jatekmod: KIMAGASITAS_HOSSZBOL
+  nev: "Hosszú szín kimagasítása (kiadással / kiengedéssel)"
+  felismeres: ["szin.egyutt >= 7", "szin.tobblet >= 1"]
+  hozam: "szin.tobblet"
+  siker: ["eloszlas(SZ) <= HOSSZ_KORLAT"]          # pl. 3-3 / legfeljebb 4-2 a kiadások számától
+  eroforras:
+    atmenet: {kez: HOSSZU_KEZ, db: "1 + a kiadások után"}
+    kiadas: "a kiengedett körök száma"
+  fenyeget: ["minden kiadásnál a védők versenyszíne (VEDOI_UTESEK)", "a veszélyes kéz hívásba kerül"]
+  taktika: [SZINKEZELES]
+  pelda: "4Q01 #3: ♣ 3-3 (36%) — kombinálva"
+
+- jatekmod: KIMAGASITAS_LOPASSAL
+  nev: "Mellékszín kimagasítása lopással (ruff out)"
+  felismeres: ["felvetel == SZIN", "szin.lopassal_kimagasithato"]
+  hozam: 1
+  siker: ["eloszlas(SZ) <= N_KOR", "adu_eloszlas <= ADU_KORLAT"]
+  eroforras:
+    adu: {kez: ROVID_KEZ, db: "a lopások száma"}
+    atmenet: {kez: HOSSZU_KEZ, db: "a lopások száma + 1 (a kimagasított lap lehívása)"}
+    kiaduzas: "előtte legfeljebb annyi kör, hogy a rövid kéz adui megmaradjanak"
+  kizar: ["TELJES_KIADUZAS előtte"]
+  fenyeget: ["a lehívott köröket ellopják (ELLOPÁS)", "felüllopják a lopást"]
+  taktika: [LOPASOS_KIMAGASITAS, SZINKEZELES_ADUVAL]
+  pelda: "4Q01 #2: ♠QJ54 az asztalon, lopásokkal (az adu körei átmenetek)"
+
+- jatekmod: LOPAS_ROVID_KEZBEN
+  nev: "Plusz aduütés: lopás a rövid adus kézben"
+  felismeres: ["felvetel == SZIN", "lopas_rovid >= 1", "vesztok_tobblet >= 1"]
+  hozam: "min(lopas_rovid, vesztok_tobblet)"
+  siker: ["a lopott kört a védők nem lopják felül: hossz(V, SZ) >= KOR vagy nincs nagyobb adujuk"]
+  eroforras:
+    adu: {kez: ROVID_KEZ, db: "hozam"}
+    atmenet: {kez: ROVID_KEZ, db: "hozam (lopásonként vissza)"}
+    kiaduzas: "előtte legfeljebb: hossz(ROVID_KEZ, adu) - hozam kör"
+  kizar: ["TELJES_KIADUZAS előtte"]
+  fenyeget: ["a védők aduzása (ha hívásba kerülnek, aduval kiütik a lopást)"]
+  taktika: [LOPAS]                                 # új technika kell
+  pelda: "—"
+
+- jatekmod: ASZTALFORDITAS
+  nev: "Asztalfordítás (dummy reversal): a hosszú adus kézzel lopunk"
+  felismeres: ["felvetel == SZIN", "asztalforditas"]
+  hozam: "a lopások száma - (hossz(hosszú adu) - hossz(rövid adu))"
+  siker: ["adu_eloszlas <= 3-2"]
+  eroforras:
+    adu: {kez: HOSSZU_ADU_KEZ, db: "a lopások száma"}
+    atmenet: {kez: ROVID_ADU_KEZ, db: "a lopások száma + 1"}
+  kizar: ["TELJES_KIADUZAS előtte", "LOPAS_ROVID_KEZBEN (ugyanaz az adu)"]
+  taktika: [LOPAS]
+  pelda: "—"
+
+- jatekmod: KERESZTLOPAS
+  nev: "Keresztlopás: mindkét kéz lop, kiaduzás nélkül"
+  felismeres: ["felvetel == SZIN", "keresztlopas"]
+  hozam: "a két kéz lopásainak száma"
+  siker:
+    - "az oldalnyerőinket előbb lehívjuk: hossz(V, SZ) >= a körök száma minden lehívott színben"
+    - "a lopásainkat nem lopják felül (magas aduval lopunk, ha kell)"
+  eroforras: {adu: "mindkét kéz adui", kiadas: "lehetőleg 0"}
+  kizar: ["TELJES_KIADUZAS", "KIMAGASITAS_HOSSZBOL (a kiadás aduzást hoz)"]
+  fenyeget: ["a védők aduhívása (minden hívásba kerülésükkor két lopásunk vész el)",
+             "ára lehet egy védői lopás — a szerkesztő példája: 2 saját lopás 1 védői ellen"]
+  taktika: [LOPAS]
+  pelda: "—"
+
+- jatekmod: VESZTOCSERE
+  nev: "Vesztő eldobása nyerőre (vagy vesztő a vesztőre)"
+  felismeres: ["felvetel == SZIN", "dobas >= 1", "vesztok_tobblet >= 1"]
+  hozam: "min(dobas, vesztok_tobblet)"
+  siker: ["a dobás-szín köreit nem lopják: hossz(V, SZ) >= KOR, vagy előtte kiaduzunk"]
+  eroforras:
+    atmenet: {kez: NYERO_KEZ, db: 1}
+    kiaduzas: "előtte, ha az adukontroll engedi"
+  fenyeget: ["ha előtte ki kell adni a hívást: a védők leviszik a vesztőinket"]
+  taktika: [SZINKEZELES, LEHIVAS]
+  pelda: "4Q01 #5: vesztő a vesztőre (Loser-on-loser)"
+
+# A KOMBINÁLÁS stratégia (esélyek kombinációja) a játékmódok fölött:
+#   próbák előbb (a kudarcuk nem kerül ütésbe), a kockázat utoljára;
+#   két mód csak akkor fér össze, ha nem fogyasztják ugyanazt az erőforrást (kizar);
+#   a gyors esély: P(legalább egy sikerül) a közös elosztásokon.
