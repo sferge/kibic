@@ -193,7 +193,8 @@ def alapjatek_eselye_tempoval(D: dict, U: dict, cel: int) -> tuple[float, float]
             ok_db = max(ok_db, ok)
             if m != 99 and not ok:
                 continue                   # a közelítésben nincs vesztés-korlátos érték
-            opciok += [(k, mm, v) for k, v in p.items() if v > 0]
+            # biztos ütések (P = 1) vesztés nélkül is megvannak
+            opciok += [(k, 0 if v >= 0.999 else mm, v) for k, v in p.items() if v > 0]
         pontos += ok_db
         uj: dict = {}
         for (t, l), p0 in allapot.items():
