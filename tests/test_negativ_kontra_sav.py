@@ -50,3 +50,9 @@ def test_1nt_hatos_kor_transzfer_invit():
 
 def test_1nt_otos_nemes_gemforsz_3nt():
     assert _h("32.KJ865.A73.K62", "P 1NT P 2D P 2H P", "S") == "3NT"
+
+
+def test_kuzdelmi_licit_gemesellyel_nem():
+    # 1♦ (p) 1♥ (X) ?  ♠AK3 ♥QT96 ♦AJT2 ♣AJ (19): a törvény (2♥) küzdelmi,
+    # tagadja az invit erőt — gémeséllyel a rendszer szerint: 4♥ (2026-11-02)
+    assert _h("AK3.QT96.AJT2.AJ", "P 1D P 1H X", "N") == "4H"

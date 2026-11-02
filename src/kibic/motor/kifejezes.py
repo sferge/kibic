@@ -121,6 +121,16 @@ def _partner_igeret(ktx):
     return allas.kenyszertar.get(allas.partner)
 
 
+class _Sav:
+    """Ígéret-nézet szűkebb felső ponthatárral (a többit az eredetitől kérdezi)."""
+
+    def __init__(self, ig, pont_max):
+        self._ig, self.pont_max = ig, pont_max
+
+    def __getattr__(self, nev):
+        return getattr(self._ig, nev)
+
+
 def gemesely(kez: Kez, ig) -> bool:
     """
     Van-e gémesély (2026-10-02, Moha) — a partner ígért sávjának bármely
@@ -629,6 +639,30 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
         if v is not None:          # amit a partner NEM licitált: valószínű felső határ
             from .kovetkeztetes import szukitett_tar
             ig = szukitett_tar({"p": ig}, {"p": v})["p"]
+        # a partner a legutóbbi körében passzolt (már licitált korábban): nem
+        # kért gémet — a mi ígért sávunk ismeretében leállt (a szerkesztő,
+        # 2026-11-02: a küzdelmi licit gémesély nélkül él, pl. 1♥-2♥-P-P-X)
+        # Csak ha a passz a MI licitünkre jött (az előtte álló utolsó nem-passz
+        # hívás az enyém): az ellenfél licitjére mondott passz nem leállás.
+        if allas is not None:
+            lic = allas.licitek
+            i = next((k for k in range(len(lic) - 1, -1, -1)
+                      if lic[k].get("ules") == allas.partner), None)
+            if i is not None and str(lic[i].get("licit", "")).upper() in ("P", "PASS"):
+                elotte = next((e for e in reversed(lic[:i])
+                               if str(e.get("licit", "")).upper() not in ("P", "PASS")), None)
+                if elotte is not None and elotte.get("ules") == allas.ules:
+                    return False
+            # a felső határ, mint a hézag-elvben: a pakliban nem lehet több,
+            # mint 37 − az enyém − az ellenfelek ígért minimuma (pl. passzolt
+            # lap kontrája, 1♣-1♥ az ellenfélnél)
+            tar = getattr(allas, "kenyszertar", None) or {}
+            ellen_min = sum(int(getattr(tar.get(u), "pont_min", 0) or 0)
+                            for u in (allas.bal, allas.jobb))
+            from ..domain import ERTEKELOK as _E
+            felso = 37 - int(round(float(_E["HCP"](kez)))) - ellen_min
+            if felso < ig.pont_max:
+                ig = _Sav(ig, max(int(ig.pont_min), felso))
         return gemesely(kez, ig)
 
     if t == "MENEKULO":            # a menekülő rekontra lapja (a szerkesztő, 2026-10-24)

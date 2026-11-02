@@ -42,14 +42,17 @@ fejezetek:
       (legfeljebb 7 vesztő). A törvény FÖLÖTT (eggyel több, mint az aduk
       száma) csak kedvező zónában (ők bellben) és extra elosztással — és ott
       sem ez dönt, csak jelöltet ad a mérlegelésnek (szimuláció).
+      2026-11-02 (a szerkesztő): a küzdelmi licit tagadja az invit erőt (és a
+      gémforszt): a 2-es / 3-as szinten csak gémesély nélkül él. Gémeséllyel
+      a rendszer szerinti invit / gém jön (zavartalan menet, „system on”).
     szabalyok:
       - {minta: ".. 2A", kulcs: LOTT-2, fajta: ELV, prioritas: 3,
          ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false},
-         fit: {A: 8+}, pont: 5+, jelentes: {tartalek: true},
+         gemeselyes: false, fit: {A: 8+}, pont: 5+, jelentes: {tartalek: true},
          magyarazat: "A törvény: 8 lapos közös aduval a 2-es szintig versenyzünk"}
       - {minta: ".. 3A", kulcs: LOTT-3, fajta: ELV, prioritas: 3,
          ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false},
-         fit: {A: 9+}, vesztok: {O: "0-12", A: "0-12", M: "0-12", S: "0-7"},
+         gemeselyes: false, fit: {A: 9+}, vesztok: {O: "0-12", A: "0-12", M: "0-12", S: "0-7"},
          jelentes: {tartalek: true},
          magyarazat: "A törvény: 9 lapos közös aduval a 3-as szintig versenyzünk"}
       - {minta: ".. 4A", kulcs: LOTT-4, fajta: ELV, prioritas: 3,
@@ -60,7 +63,7 @@ fejezetek:
       # a törvény fölött: csak kedvező zónában, extra elosztással, MÉRLEGELÉSRE
       - {minta: ".. 3A", kulcs: LOTT-3-FELETTE, fajta: ELV, prioritas: 2, dontesi_mod: MERLEGELO,
          ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false, szkor: O},
-         fit: {A: 8}, vesztok: 0-6, jelentes: {tartalek: true},
+         gemeselyes: false, fit: {A: 8}, vesztok: 0-6, jelentes: {tartalek: true},
          magyarazat: "A törvény fölött (8 adu, 3-as szint): kedvező zónában, extra elosztással — mérlegelésre"}
       - {minta: ".. 4A", kulcs: LOTT-4-FELETTE, fajta: ELV, prioritas: 2, dontesi_mod: MERLEGELO,
          ha: {partner_szin: {A: 3}, ellenfel_licitalt: true, gemforsz: false, szkor: O},
