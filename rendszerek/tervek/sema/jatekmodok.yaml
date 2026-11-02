@@ -1,0 +1,157 @@
+# Játékmódok — a felvevőjáték stratégiai sémái (2. TERVEZET, 2026-11-02; még nincs bekötve)
+# Leírás, mérés, kérdések: claude/terv-jatekmodok-2026-11-02.md
+#
+# Egy játékmód: honnan jön a hiányzó ütés (vagy hogyan fogy a vesztő), és mibe kerül.
+# Az impassz, az ejtés stb. NEM játékmód, hanem technika (technikak.yaml) — a szerkesztő
+# megjegyzése nyomán. A mezők:
+#   felismeres   LÁTOTT jellemzők (a két kéz, a felvétel): szóba jöhet-e (szűrő)
+#   jegyek       a gyűjteményekből kimutatott tipikus jellemzők (a rangsor súlya; nem szűrő)
+#   hozam        hány ütést adhat / hány vesztőt tüntet el
+#   siker        REJTETT feltételek (a védők lapjai) — a gyors esély ezek együttes
+#                valószínűsége az elosztásokon (pontos kombinatorika, lejátszás nélkül)
+#   eroforras    adu (melyik kézben, hány), átmenet / kontroll (melyik kézbe, hány),
+#                kiadás (hányszor kerülnek a védők hívásba), kiaduzás (előtte hány kör)
+#   kizar        mely módokkal nem fér össze
+#   kiser        a vele együtt járó kísérő szempont (a mérés szerint)
+#   fenyeget     amit a védők ez ellen tehetnek
+#   taktika      a megvalósító technikák (a részletes tervezéshez)
+#
+# A „jegyek” forrása: Pavlicek 1136 felvevőjáték-partija (a „Play:” címkék) és a BBO
+# „Hand of the day” 604 felvevő-központú partija (a magyarázat kulcsszavai), a két
+# kézből számolt kezdőjegyekkel (eszkozok/jatekmod_elemzes, 2026-11-02).
+
+# --- 0. Alapjáték ---------------------------------------------------------------------------
+
+- jatekmod: ALAPJATEK
+  nev: "Alapjáték: felső ütések és egyszerű színkezelés (impassz, ejtés, kiengedés, figura kiütése)"
+  felismeres: []                                   # mindig jelölt: ide lehet visszaesni
+  jegyek: ["a Pavlicek-partik 44%-a csak ilyen (színkezelés, esélyek kombinálása, kísérő szempontok)"]
+  hozam: "színenként a színelemző kínálata"
+  siker: ["a választott színkezelések sikere (a színelemző esélyei)"]
+  taktika: [SZINKEZELES, EJTES, IMPASSZ_VILLA, IMPASSZ_ATENGEDES]
+  valtozatok:
+    - {nev: SZAN, ha: "szanzadu", megj: "a védők versenyszíne és a kontrollok a döntőek"}
+    - {nev: SZIN, ha: "színjáték", megj: "előbb kiaduzás, ha semmi nem akadályozza"}
+    - {nev: EGYETLEN_ESELY}
+    - {nev: ESELYEK_KOMBINACIOJA, megj: "próbák előbb, a kockázat utoljára (strategiak.yaml)"}
+    - {nev: BIZTONSAGI_JATEK, megj: "k ütés a legtöbb elosztáson; a többletütés másodlagos"}
+
+# --- 1. Ütésforrás: hosszból -----------------------------------------------------------
+
+- jatekmod: KIMAGASITAS
+  nev: "Hosszú szín kimagasítása (kiadással / kiengedéssel / lopással)"
+  felismeres: ["szin.egyutt >= 7", "szin.tobblet >= 1"]
+  jegyek: ["színjátékban: mellékszín 7+ együtt és legalább 2 rövidség (pontosság 40%, alap 17%)",
+           "az átmenetekkel együtt jár (lift 1,85 mindkét gyűjteményben)"]
+  hozam: "szin.tobblet"
+  siker: ["eloszlas(SZ) <= HOSSZ_KORLAT"]          # a gyors esély ebből: ez maga a valószínűség
+  eroforras:
+    atmenet: {kez: HOSSZU_KEZ, db: "1 + kiadások"}
+    kontroll: "a többi színben legalább annyi, ahányszor vissza kell szerezni a hívást"
+    kiadas: "a kiengedett körök száma"
+  kiser: [ATMENETEK, VESZELYES_VEDO]
+  kizar: [KERESZTLOPAS, ASZTALFORDITAS, VEGJATEK, BESZORITAS]   # a mérésben szinte soha együtt
+  fenyeget: ["minden kiadásnál a védők versenyszíne (VEDOI_UTESEK)", "a veszélyes kéz hívásba kerül"]
+  taktika: [SZINKEZELES, LOPASOS_KIMAGASITAS, SZINKEZELES_ADUVAL]
+  valtozatok:
+    - {nev: SZAN_HOSSZBOL, ha: "szanzadu", megj: "kiengedéssel; a kontrollok száma a döntő"}
+    - {nev: LOPASSAL, ha: "színjáték, a rövid kéz lophat", megj: "ruff out; 4Q01 #2 ♠QJ54"}
+
+# --- 2. Ütésforrás: aduból ---------------------------------------------------------------
+
+- jatekmod: LOPAS_ROVID_KEZBEN
+  nev: "Plusz aduütés: lopás a rövid adus kézben"
+  felismeres: ["felvetel == SZIN", "lopas_rovid >= 1", "vesztok_tobblet >= 1"]
+  jegyek: ["egy irányú rövidség: a hosszú adus kéz hosszabb mellékszíne, a rövid kéz rövid (lefedés 62%)"]
+  hozam: "min(lopas_rovid, vesztok_tobblet)"
+  siker: ["a lopott kört a védők nem lopják felül", "adu_eloszlas: annyi adukör, amennyi a lopások előtt kell"]
+  eroforras:
+    adu: {kez: ROVID_KEZ, db: "hozam"}
+    atmenet: {kez: ROVID_KEZ, db: "hozam"}
+    kiaduzas: "előtte a védők aduhosszaiból következő számú kör (lehívható, sőt lehívandó)"
+  kizar: [TELJES_KIADUZAS, KERESZTLOPAS]
+  fenyeget: ["a védők aduhívása, ha hívásba kerülnek"]
+  taktika: [LOPAS, KIADUZAS]
+  valtozatok:
+    - {nev: EGYFORMA_ADUK, ha: "4-4 vagy 5-5 adu", megj: "bármelyik kéz lehet a rövid; a lopó kéz választás"}
+    - {nev: KILOPATAS, ha: "8 adu A-K-val, D nélkül",
+       megj: "két adukör után a D kint marad; a külső nyerők lehívása — ha ellopják, 1 ütés
+              vész el, cserébe mindkét kézben lophatunk egyet (+2) (a szerkesztő példája)"}
+
+- jatekmod: ASZTALFORDITAS
+  nev: "Asztalfordítás: a hosszú adus kézzel lopunk, a rövid aduval aduzunk ki"
+  felismeres: ["felvetel == SZIN", "asztalforditas"]
+  jegyek: ["erős rövid adu: a rövid adus kéz figurái 1,67 (alap 1,15)", "a rövid adu legalább 3 lap",
+           "egy irányú rövidség (78%)", "sok figurapont (26,7), kis hiány (2,4)"]
+  hozam: "a lopások száma - (hossz(hosszú adu) - hossz(rövid adu))"
+  siker: ["adu_eloszlas <= 3-2"]
+  eroforras:
+    adu: {kez: HOSSZU_ADU_KEZ, db: "a lopások száma"}
+    atmenet: {kez: ROVID_ADU_KEZ, db: "a lopások száma + 1"}
+    kiaduzas: "a végén, a rövid kéz magas aduival"
+  kizar: [LOPAS_ROVID_KEZBEN, KIMAGASITAS]
+  taktika: [LOPAS, KIADUZAS]
+
+- jatekmod: KERESZTLOPAS
+  nev: "Keresztlopás: mindkét kéz lop, kiaduzás nélkül"
+  felismeres: ["felvetel == SZIN", "keresztlopas"]
+  jegyek: ["kevés figurapont (22,9; alap 24,3)", "sok elosztási pont (3,8–4,4; alap 3,0–3,2)",
+           "két irányú rövidség: az egyik szín a felvevőnél, a másik az asztalon rövid (27–35%, alap 8–13%)"]
+  hozam: "a két kéz lopásainak száma"
+  siker: ["az oldalnyerőket előbb lehívjuk: a védők nem lopják meg őket",
+          "a lopásainkat nem lopják felül (magas aduval lopunk, ha kell)"]
+  eroforras: {adu: "mindkét kéz adui", kiadas: "lehetőleg 0"}
+  kiser: [FELULLOPAS_ELLEN]                        # lift 3,2: az elopement / magas lopás ide tartozik
+  kizar: [TELJES_KIADUZAS, KIMAGASITAS, LOPAS_ROVID_KEZBEN, BESZORITAS]
+  fenyeget: ["a védők aduhívása (minden hívásba kerülésükkor két lopásunk vész el)",
+             "ára lehet egy védői lopás: 2 saját lopás 1 védői ellen (a szerkesztő példája)"]
+  taktika: [LOPAS]
+
+# --- 3. Vesztőcsökkentés --------------------------------------------------------------------
+
+- jatekmod: VESZTOCSERE
+  nev: "Vesztőcsere: vesztő a nyerőre / vesztő a vesztőre"
+  felismeres: ["felvetel == SZIN", "dobas >= 1", "vesztok_tobblet >= 1"]
+  jegyek: ["kiegyensúlyozottabb kezek: kevés rövidség (0,5–0,7), kevés elosztási pont"]
+  hozam: "a megspórolt vesztők"
+  siker: ["a dobás-szín köreit nem lopják", "a vesztő a vesztőre után a védő hívása nekünk jó"]
+  eroforras: {atmenet: {kez: NYERO_KEZ, db: 1}, kiaduzas: "előtte, ha az adukontroll engedi"}
+  fenyeget: ["ha előtte ki kell adni a hívást: a védők leviszik a vesztőinket"]
+  taktika: [SZINKEZELES, LEHIVAS, DOBAS]
+  valtozatok:
+    - {nev: VESZTO_A_VESZTORE,
+       megj: "a szerkesztő példája: két szingli a két kézben — lopás helyett a másikat dobjuk
+              (-1 ütés); a védő vagy a villás színt hívja (visszaadja), vagy lopás-dobást hív
+              (az egyik lopás visszajön, és még egy vesztőt dobunk)"}
+
+# --- 4. Kényszer: a védők ütései vagy hívásai -------------------------------------------------
+
+- jatekmod: VEGJATEK
+  nev: "Végjáték: elimináció és bedobás (kényszerhívás), lopás-dobás"
+  felismeres: ["eliminalhato", "vesztok_tobblet >= 1 or impassz_szinek >= 1"]
+  jegyek: ["hosszú adu (9+ együtt a BBO-ban)", "kevés rövidség, kevés elosztási pont",
+           "a beszorítással a Pavlicek-címkékben szinte soha (lift 0,04)"]
+  siker: ["a bedobott védőnek nincs kijárata (a kiürített színekben elfogy a lapja)"]
+  eroforras: {adu: "a kiürítéshez (lopások mindkét kézben)", atmenet: "a kiürítés körei"}
+  taktika: [ELIMINACIO, BEDOBAS]
+
+- jatekmod: BESZORITAS
+  nev: "Beszorítás"
+  felismeres: ["fenyegetes_mind >= 2", "hiany_terv <= 2"]
+  jegyek: ["sok figurapont (25,9 szín / 27,6 szan)", "kis hiány (1–2)", "gyakran szlem",
+           "a 8 lapos A-K, D nélküli aduval soha"]
+  siker: ["ugyanaz a védő őrzi a két fenyegetést (egyszerű) / mindkét védő egyet-egyet (kettős)"]
+  eroforras: {atmenet: "a fenyegetések átmenete a beszorító ütés után", kiadas: "ütésszám-igazítás előtte"}
+  kizar: [KIMAGASITAS, KERESZTLOPAS, VEGJATEK]
+  taktika: [UTESSZAM_IGAZITAS, LEHIVAS]
+
+- jatekmod: ADUPUCCS
+  nev: "Adupuccs: a védő adujának csapdába ejtése (a saját aduink rövidítésével)"
+  jegyek: ["rövid aduk (7,6 együtt; a rövid kéz 2,1)"]
+  taktika: [LOPAS, ELIMINACIO]
+
+# --- Kísérő szempontok (nem módok; minden módhoz hozzájöhetnek) ----------------------------
+# ATMENETEK (főleg a kimagasításhoz), VESZELYES_VEDO (kihagyás, kerülő impassz/kiengedés),
+# ADUKONTROLL (7 lapos adu, a védők rövidre lopatnak: 7 lapos adunál pontosság 27%, alap 8%),
+# FELULLOPAS_ELLEN (a keresztlopáshoz), KARTYAOLVASAS, ESELYEK_KOMBINALASA, IDOZITES,
+# BIZTONSAGI_JATEK.

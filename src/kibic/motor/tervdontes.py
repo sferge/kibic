@@ -290,7 +290,7 @@ def _vedoi_hivas(ja, X, Y, kint, cel, hatra, korl, akt, megallito, naplo):
         if u in kezek:
             kezek[u].add(l)
     if len(akt) == 1:
-        f, miert = utes_fajta(kezek[felv], kezek[aszt], hivott, ja.adu)
+        f, miert = utes_fajta(kezek[felv], kezek[aszt], hivott, ja.adu, kint)
         if f == NINCS_DONTES:
             sajat = sorted((l for l in kez if l.szin == hivott.szin), key=lambda l: l.rang)
             if sajat and sajat[0] in ja.legalis:

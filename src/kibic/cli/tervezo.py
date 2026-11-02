@@ -69,7 +69,8 @@ def tervezesi_pont(p) -> tuple[int | None, list, int]:
             return t, naplo, 0
         if 4 * t >= len(lapok):
             break
-        f, miert = utes_fajta(g.kezek[k.felvevo], g.kezek[asztal], lapok[4 * t], adu)
+        f, miert = utes_fajta(g.kezek[k.felvevo], g.kezek[asztal], lapok[4 * t], adu,
+                              g.kezek[v1] | g.kezek[kovetkezo_ules(k.felvevo, 3)])
         naplo.append((t + 1, lapok[4 * t], f, miert))
         if f != NINCS_DONTES:
             return t, naplo, f
