@@ -62,3 +62,28 @@ def test_kozbeszolas_utan_felullicit_invit():
     # #196: p p (1♥) 2♦ (p) ?  ♠QJT8 ♥Q7 ♦Q763 ♣AJ4 (12, passzolt lap):
     # gémesély van — invit: 2♥ felüllicit, nem 5♦ (2026-11-02)
     assert _h("QJT8.Q7.Q763.AJ4", "P P P 1H 2D P", "E") == "2H"
+
+
+def _hm(kez, menet, ules):
+    # a MOHA-paraméterrel (SZABAD_LICIT_MIN = 11)
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    from test_konvenciok_2026_10_04 import _pbn
+    f = feloldas_forrasokbol(betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"]),
+                             "MOHA_STAND")[0]
+    pt = Parametertar(rendszer_ertek={"SZABAD_LICIT_MIN": "11"})
+    v = licit_elemzes({"hand": _pbn(kez), "seat": ules, "dealer": "W", "vulnerability": "none",
+                       "auction": menet.split(), "system": "MOHA_STAND", "test_mode": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    return v["call"] or "P"
+
+
+def test_elolegezett_kulcslicit():
+    # #299: p 1♦ (2♣) 2♠ (3♦) ?  ♠AJ74 ♥J65 ♦AKQ732 ♣– : nem 4♠, hanem 4♣
+    # (az ellenfél színe: előlegezett kulcslicit, 2026-11-03); a partner
+    # ♠KQT63 ♥AT84 ♦95 ♣J6 kulcslicittel válaszol: 4♥
+    assert _hm("AJ74.J65.AKQ732.", "P 1D 2C 2S 3D", "N") == "4C"
+    assert _hm("KQT63.AT84.95.J6", "P 1D 2C 2S 3D 4C P", "S") == "4H"

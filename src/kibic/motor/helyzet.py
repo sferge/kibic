@@ -703,6 +703,14 @@ def kiertekel(csp: dict, allas: Allas,
         # A határ lehet konkrét licit ("4H") vagy PARAMÉTERKÓD — az
         # utóbbi kell ahhoz, hogy a "meddig információs a kontra"
         # kérdés hangolható adat maradjon, ne beégetett érték.
+        if csp.get("gem"):
+            # a határ a kötött szín gémje (nemes 4, minor 5, szan 3)
+            sz_ = str(csp["gem"])
+            if sz_.startswith("@"):
+                sz_ = (kotesek or {}).get(sz_[1:], "")
+            if sz_ not in ("C", "D", "H", "S", "NT"):
+                return None
+            csp = dict(csp, hatar={"C": "5C", "D": "5D", "H": "4H", "S": "4S", "NT": "3NT"}[sz_])
         hatar = _licit_rang(csp["hatar"])
         if hatar is None and paramtar is not None:
             try:
@@ -711,6 +719,14 @@ def kiertekel(csp: dict, allas: Allas,
                 hatar = None
         if hatar is None:
             return None            # nem eldönthető, nem hiba
+        if csp.get("sajat"):
+            # a MOST definiált licit (nem az eddigi legmagasabb) a határig
+            # (a szerkesztő, 2026-11-03: a fogáskérés 3NT alatt)
+            lic = (kotesek or {}).get("_licit")
+            if not lic or not str(lic)[:1].isdigit():
+                return None
+            most = _licit_rang(str(lic))
+            return most <= hatar if csp.get("bezarolag", True) else most < hatar
         if allas._legmagasabb is None:
             return True
         most = _licit_rang(f"{allas._legmagasabb[0]}{allas._legmagasabb[1]}")
