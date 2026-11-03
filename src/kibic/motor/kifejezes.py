@@ -219,6 +219,17 @@ def szlemjelleg(kez: Kez, ktx) -> str | None:
     """
     if _adu(ktx) is None:
         return None
+    # KULCSLICIT-CSERE (a szerkesztő, 2026-11-03): ha a kulcslicitemre (pl.
+    # az előlegezett kulcslicitre) a partner kulcslicittel válaszolt, kiderült
+    # a jó fit — szlemközeli erővel (asztali pontom + a partner minimuma 30+)
+    # a lap szlemjellegű
+    if _kulcslicit_csere(ktx):
+        ig = _partner_igeret(ktx)
+        adu = _adu(ktx)
+        kod = "AP_531" if kez.hossz(adu) >= 4 else "AP_321"
+        fv = ERTEKELOK.get(kod)
+        if ig is not None and fv is not None and float(fv(kez)) + ig.pont_min >= 30:
+            return "igen"
     sajat = vesztok(kez)
     lo, hi = partner_fedo(ktx, kez)
     if sajat - lo < 1:
@@ -226,6 +237,43 @@ def szlemjelleg(kez: Kez, ktx) -> str | None:
     if hi is not None and sajat - hi >= 1:
         return "nem"
     return "talan"
+
+
+def _kulcslicit_csere(ktx) -> bool:
+    """Volt-e ELŐLEGEZETT kulcslicitem (az adut magam nem licitáltam, a
+    kulcslicit tette megállapodottá), és a partner UTÁNA kulcslicittel
+    válaszolt-e."""
+    allas = getattr(ktx, "allas", None)
+    adu = _adu(ktx)
+    if allas is None or adu is None:
+        return False
+    en = None
+    mondtam_adut = False
+    sajat_szinek: set[str] = set()
+    for i, e in enumerate(allas.licitek):
+        lic = str(e.get("licit", ""))
+        if e.get("ules") == allas.ules and en is None:
+            if e.get("kulcslicit") and not mondtam_adut and lic[1:] in ("C", "D", "H", "S") \
+                    and lic[1:] not in sajat_szinek:
+                en = i                         # váratlan szín: nem az enyém, nem az adu
+                continue
+            if lic[1:] == adu:
+                mondtam_adut = True
+            if lic[:1].isdigit():
+                sajat_szinek.add(lic[1:])
+        elif en is not None and e.get("ules") == allas.partner and e.get("kulcslicit"):
+            return True
+    return False
+
+
+def _partner_kulcslicit_szinek(ktx) -> set[str]:
+    """A partner kulcslicittel mutatott színei (kontroll a színben)."""
+    allas = getattr(ktx, "allas", None)
+    if allas is None:
+        return set()
+    return {str(e.get("licit"))[1:] for e in allas.licitek
+            if e.get("ules") == allas.partner and e.get("kulcslicit")
+            and str(e.get("licit", ""))[:1].isdigit()}
 
 
 def ot_biztos(kez: Kez, ktx, min_pont: float = 30, mod: str | None = None) -> bool | None:
@@ -243,6 +291,12 @@ def ot_biztos(kez: Kez, ktx, min_pont: float = 30, mod: str | None = None) -> bo
     fv = ERTEKELOK.get("HCP")
     if fv is not None and float(fv(kez)) + ig.pont_min >= min_pont:
         return True
+    # kulcslicit-csere után (jó fit) az asztali pont is számít (2026-11-03)
+    if _kulcslicit_csere(ktx) and _adu(ktx) is not None:
+        kod = "AP_531" if kez.hossz(_adu(ktx)) >= 4 else "AP_321"
+        fa = ERTEKELOK.get(kod)
+        if fa is not None and float(fa(kez)) + ig.pont_min >= min_pont:
+            return True
     lo, _ = partner_fedo(ktx, kez, becsult=True)
     if vesztok(kez) - lo <= 2:
         return True
@@ -816,8 +870,10 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
         adu = _adu(ktx)
         if adu is None:
             return None
+        # a partner kulcslicittel mutatott kontrollja is számít (2026-11-03)
+        partneri = _partner_kulcslicit_szinek(ktx)
         for sz in ("S", "H", "D", "C"):
-            if sz == adu:
+            if sz == adu or sz in partneri:
                 continue
             lapok = {l.ertek for l in kez.lapok if l.szin == sz}
             if kez.hossz(sz) > 1 and not lapok & {"A", "K"}:

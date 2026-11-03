@@ -87,3 +87,14 @@ def test_elolegezett_kulcslicit():
     # ♠KQT63 ♥AT84 ♦95 ♣J6 kulcslicittel válaszol: 4♥
     assert _hm("AJ74.J65.AKQ732.", "P 1D 2C 2S 3D", "N") == "4C"
     assert _hm("KQT63.AT84.95.J6", "P 1D 2C 2S 3D 4C P", "S") == "4H"
+
+
+def test_elolegezett_kulcslicit_utan_rkc():
+    # a kulcslicit-csere (4♣ – 4♥) után Észak kulcslapot kér
+    assert _hm("AJ74.J65.AKQ732.", "P 1D 2C 2S 3D 4C P 4H P", "N") == "4NT"
+
+
+def test_rekontra_utan_szabad_licit_emeles():
+    # #235: p (1♣) p (1♥) X (XX) 2♦ (p) ?  ♠AQ75 ♥A94 ♦JT63 ♣98 (passzolt
+    # lap, maximum, 4 lapos káró): 3♦ (2026-11-03)
+    assert _h("AQ75.A94.JT63.98", "P 1C P 1H X XX 2D P", "W") == "3D"

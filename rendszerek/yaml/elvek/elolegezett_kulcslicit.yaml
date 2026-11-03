@@ -45,5 +45,6 @@ fejezetek:
         vagy: [{lapok: [EA]}, {lapok: [EK]}, {hossz: {E: 0-1}}]
         alulrol: true
         forsz: GEMFORSZ
+        jelentes: {fedo_plusz: 1}
         prioritas: 5
         alert: "Előlegezett kulcslicit: a partner nemese az adu, enyhe szlemhajlandóság, kontroll a színben"
