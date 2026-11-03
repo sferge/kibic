@@ -114,7 +114,7 @@ fejezetek:
           magyarazat: "Rossz 11 FP (üres dáma/bubi vagy rossz lapminőség), nincs 4-es pikk; lehet 3 lapos kőr"
       - minta: 1M-2C
         ha: {ules: [3, 4]}            # passzolt kézzel nem gémforsz (Drury)
-        jelentes: {gf_hatar: "4C"}      # kvázi gémforsz: 4 minorig kötelez (a szerkesztő, 2026-10-05)
+        # valódi gémforsz (a szerkesztő, 2026-11-03; a 2026-10-05-i „4 minorig” határ téves volt)
         pont: "(11)12+"
         hossz: {C: 2+}
         forsz: GEMFORSZ
@@ -126,7 +126,7 @@ fejezetek:
           prioritas: 50
       - minta: 1M-2D
         ha: {ules: [3, 4]}
-        jelentes: {gf_hatar: "4C"}      # kvázi gémforsz: 4 minorig kötelez (a szerkesztő, 2026-10-05)
+        # valódi gémforsz (a szerkesztő, 2026-11-03; a 2026-10-05-i „4 minorig” határ téves volt)
         pont: "(11)12+"
         hossz: {D: 5+}
         forsz: GEMFORSZ
