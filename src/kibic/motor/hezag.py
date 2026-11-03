@@ -657,7 +657,9 @@ class Hezag:
         also = _gemkuszob_eleri(sajat, plo, self.kez, self.p, fit_nemes, fit_minor, szan_lehet)
         # VALÓDI gémforszban a gém megállapodás, nem esély (a szerkesztő,
         # 2026-11-03: az 1M-2m valódi gémforsz)
-        if not also:
+        # (csak a partner büntető kontrájánál: bent hagyjuk, vagy a gémünk —
+        # máskor a gémforsz menetét a leíró licitek viszik, nem az azonnali gém)
+        if not also and self.partner_kontrazta():
             from .helyzet import kiertekel as _hk
             if _hk({"t": "GEMFORSZ", "ertek": True, "valodi": True}, self.allas, {}) is True:
                 also = True
