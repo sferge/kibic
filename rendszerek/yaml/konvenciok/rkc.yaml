@@ -89,14 +89,26 @@ fejezetek:
          alert: "Káró-emelés négyes szintre: adu, gémforsz és kulcslapkérdés (ORKC)"}
       # VALÓDI gémforszban (nem kvázi) a partner minorjának 4-es szintű
       # összeemelése a legolcsóbb szinten is ORKC (a szerkesztő, 2026-11-03)
+      # a közös adu 8+ lapos legyen (a partner 5+ lapjához 3, a 4+-hoz 4 lap)
       - {minta: ".. 4C", kulcs: ORKC-TREFF-EMELES-GF, fajta: ELV,
-         ha: {adu: nincs, partner_szin: C, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         ha: {adu: nincs, partner_szin: {C: 5}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
          hossz: {C: 3+}, vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}],   # a gyors-lassú „lassú” emelése
          forsz: GEMFORSZ, prioritas: 7,
          alert: "Treff-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      - {minta: ".. 4C", kulcs: ORKC-TREFF-EMELES-GF-4, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {C: 4}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {C: 4+}, vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}],   # a gyors-lassú „lassú” emelése
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Treff-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      # a közös adu 8+ lapos legyen (a partner 5+ lapjához 3, a 4+-hoz 4 lap)
       - {minta: ".. 4D", kulcs: ORKC-KARO-EMELES-GF, fajta: ELV,
-         ha: {adu: nincs, partner_szin: D, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         ha: {adu: nincs, partner_szin: {D: 5}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
          hossz: {D: 3+}, vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}],   # a gyors-lassú „lassú” emelése
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Káró-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      - {minta: ".. 4D", kulcs: ORKC-KARO-EMELES-GF-4, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {D: 4}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {D: 4+}, vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}],   # a gyors-lassú „lassú” emelése
          forsz: GEMFORSZ, prioritas: 7,
          alert: "Káró-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
       - {minta: ".. 4NT", kulcs: ASZKERDES-MINOR, fajta: ELV, ha: {adu: minor},
