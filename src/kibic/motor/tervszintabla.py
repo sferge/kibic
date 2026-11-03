@@ -158,6 +158,72 @@ def eloszlas(X, Y, m: int = 99) -> tuple[dict, bool]:
     return {t: v for t, v in ki.items() if v > 1e-12}, pontos
 
 
+# --- Kimenetek: a választott kezelés eredménye elosztásonként (a játékmódok gyors esélyéhez) ---
+# kulcs → {(k, m): ((ütés, vesztés), ...)} a Feladat.tartasok() sorrendjében (13-13 szabad hely);
+# m ∈ KIMENET_M. Külön fájl: KIBIC_SZINKIMENET (alap ~/.cache/kibic/szinkimenet.pkl).
+KIMENET_M = (1, 99)
+_KIMENET: dict | None = None
+
+
+def _kim_ut() -> str:
+    return os.environ.get("KIBIC_SZINKIMENET") or os.path.join(
+        os.path.expanduser("~"), ".cache", "kibic", "szinkimenet.pkl")
+
+
+def kimenet_tabla() -> dict:
+    global _KIMENET
+    if _KIMENET is None:
+        try:
+            with open(_kim_ut(), "rb") as f:
+                _KIMENET = pickle.load(f)
+        except Exception:          # noqa: BLE001
+            _KIMENET = {}
+    return _KIMENET
+
+
+def kimenet_ment(t: dict) -> None:
+    ut = _kim_ut()
+    os.makedirs(os.path.dirname(ut), exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(ut), suffix=".tmp")
+    with os.fdopen(fd, "wb") as f:
+        pickle.dump(t, f)
+    os.replace(tmp, ut)
+
+
+def kimenet_szamol(k: str) -> dict:
+    """Egy szín kezelései elosztásonként: {(k, m): ((ütés, vesztés), ...)}; üres, ha a
+    színben túl sok a kint lévő lap (ott a mindent látó játék is elég)."""
+    return szamol_mind(k)[1]
+
+
+def szamol_mind(k: str) -> tuple[dict, dict]:
+    """(a táblázat értéke — mint `szamol` —, a kimenetek) egyetlen elemzővel."""
+    from .tervszinkezeles import Elemzo, Feladat
+    X = frozenset(14 - i for i, c in enumerate(k) if c == "x")
+    Y = frozenset(14 - i for i, c in enumerate(k) if c == "y")
+    kint = frozenset(14 - i for i, c in enumerate(k) if c == ".")
+    if (not X and not Y) or len(kint) > MAX_KINT or not kint:
+        return szamol(k), {}
+    e = Elemzo(Feladat(X, Y, kint))
+    n = len(e.tart)
+    ertek, kim = {}, {}
+    for m in VESZTESEK:
+        d = {}
+        for kk in range(1, max(len(X), len(Y)) + 1):
+            p = e.esely(kk, m)[0]
+            d[kk] = p
+            if p <= 0:
+                break
+            if m in KIMENET_M:
+                km = e.kimenetek(kk, m)
+                kim[(kk, m)] = tuple((km[i].utes, km[i].vesztes) if i in km else (0, 0) for i in range(n))
+        ertek[m] = d
+    from . import tervszinkezeles as ts
+    for fv in (ts.dd_cel, ts._cel_rek, ts.dd, ts._dd_rek):
+        fv.cache_clear()
+    return ertek, kim
+
+
 def alapjatek_eselye(D: dict, U: dict, cel: int, m: int = 99) -> tuple[float, float]:
     """Az alapjáték gyors esélye: a négy szín ütés-eloszlása (táblázatból, ha van;
     különben közelítés) függetlennek véve, P(összesen legalább `cel` ütés).
@@ -173,3 +239,37 @@ def alapjatek_eselye(D: dict, U: dict, cel: int, m: int = 99) -> tuple[float, fl
                 uj[t1 + t2] = uj.get(t1 + t2, 0.0) + p1 * p2
         eloszl = uj
     return sum(p for t, p in eloszl.items() if t >= cel), pontos / 4
+
+
+def alapjatek_eselye_tempoval(D: dict, U: dict, cel: int) -> tuple[float, float]:
+    """Az alapjáték gyors esélye a vesztett ütésekkel együtt: színenként egy cél
+    (k ütés, legfeljebb m vesztés; m ∈ {0, 1, 2+}), a színek céljai együtt legalább
+    `cel` ütést adnak, és a vesztéseik összege legfeljebb a tartalék (13 − cel);
+    a legjobb ilyen célkiosztás esélye (a színek függetlenek; a kombinált esélyek
+    nélkül, tehát óvatos). → (esély, a pontos színek aránya)."""
+    tartalek = 13 - cel
+    allapot = {(0, 0): 1.0}                # (ütések, vesztések) → a legjobb esély
+    pontos = 0
+    for sz in "SHDC":
+        X, Y = D.get(sz, set()), U.get(sz, set())
+        opciok = [(0, 0, 1.0)]
+        ok_db = 0
+        for m, mm in ((0, 0), (1, 1), (99, 2)):
+            p, ok = eselyek(X, Y, m)
+            ok_db = max(ok_db, ok)
+            if m != 99 and not ok:
+                continue                   # a közelítésben nincs vesztés-korlátos érték
+            # biztos ütések (P = 1) vesztés nélkül is megvannak
+            opciok += [(k, 0 if v >= 0.999 else mm, v) for k, v in p.items() if v > 0]
+        pontos += ok_db
+        uj: dict = {}
+        for (t, l), p0 in allapot.items():
+            for k, mm, p in opciok:
+                kulcs = (min(cel, t + k), l + mm)
+                if kulcs[1] > tartalek:
+                    continue
+                v = p0 * p
+                if v > uj.get(kulcs, 0.0):
+                    uj[kulcs] = v
+        allapot = uj
+    return max((p for (t, _), p in allapot.items() if t >= cel), default=0.0), pontos / 4

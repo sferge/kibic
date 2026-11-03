@@ -3,7 +3,7 @@ szerző címkéje szerinti mód (2026-11-02)."""
 import collections, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
-from rangsor import PBN, GYOKER, modok                      # noqa: E402
+from rangsor import GYOKER, modok, partik_cimkekkel                      # noqa: E402
 
 VALT = {"LOPAS_ROVID_KEZBEN": "LOPAS_ROVID", "ASZTALFORDITAS": "ASZTALFORDITAS",
         "KERESZTLOPAS": "KERESZTLOPAS"}
@@ -25,12 +25,10 @@ def main():
     from kibic.cli.tervfelismeres import cimkek_pbnbol
     from kibic.motor import terv as tv
     sorok = tv.tervsorok_yamlbol([str(GYOKER / "rendszerek" / "tervek")])
-    cimkek = cimkek_pbnbol(str(PBN))
     n = bent = 0
     meret = collections.Counter()
     modonkent = collections.defaultdict(lambda: [0, 0])
-    for i, p in enumerate(partik_fajlbol([str(PBN)], "IMP")):
-        c = cimkek[i] if i < len(cimkek) else None
+    for p, c in partik_cimkekkel():
         h = tv.helyzet_partibol(p)
         if c is None or h is None:
             continue
