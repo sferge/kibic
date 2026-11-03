@@ -655,6 +655,12 @@ class Hezag:
             (fit in ("C", "D") and self.fit(fit) >= 8)
         szan_lehet = True   # (a 3NT-feltételt nem szűkítjük — 2026-10-21, mellékhatások)
         also = _gemkuszob_eleri(sajat, plo, self.kez, self.p, fit_nemes, fit_minor, szan_lehet)
+        # VALÓDI gémforszban a gém megállapodás, nem esély (a szerkesztő,
+        # 2026-11-03: az 1M-2m valódi gémforsz)
+        if not also:
+            from .helyzet import kiertekel as _hk
+            if _hk({"t": "GEMFORSZ", "ertek": True, "valodi": True}, self.allas, {}) is True:
+                also = True
         # a felső határ: a partner sávjának BÁRMELY értékével (a szanfeltétel nem
         # monoton: nagy eltérésnél hosszú szín kell)
         felso = any(_gemkuszob_eleri(sajat, p, self.kez, self.p, fit_nemes, fit_minor, szan_lehet)
