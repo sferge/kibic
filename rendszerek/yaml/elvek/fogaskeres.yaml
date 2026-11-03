@@ -36,7 +36,8 @@ fejezetek:
         fajta: ELV
         prioritas: 6
         ha: {ellenfel_szine: A, nem_mondtam: A, partner_nem_mondta: A,
-             nyers: {t: ES, gy: [{t: MONDVA, ki: ok, szin: "@A"}, {t: LICIT_LEGFELJEBB, hatar: "3S"}]}}
+             nyers: {t: ES, gy: [{t: MONDVA, ki: ok, szin: "@A"}, {t: LICIT_LEGFELJEBB, hatar: "3S"},
+                                 {t: LICIT_LEGFELJEBB, hatar: "3NT", sajat: true, bezarolag: false}]}}
         forsz: EGY_MENET
         jelentes: {hossz: {"@A": {min: 0}}, csak_megertes: true}
         alert: "Fogáskérés az ellenfél színében: 3NT-t fogással (fél fogással) kérek"
@@ -46,7 +47,8 @@ fejezetek:
         fajta: ELV
         prioritas: 6
         ha: {ellenfel_szine: A, nem_mondtam: A, partner_nem_mondta: A, ugras: true,
-             nyers: {t: ES, gy: [{t: NEM, gy: [{t: MONDVA, ki: ok, szin: "@A"}]}, {t: LICIT_LEGFELJEBB, hatar: "3S"}]}}
+             nyers: {t: ES, gy: [{t: NEM, gy: [{t: MONDVA, ki: ok, szin: "@A"}]}, {t: LICIT_LEGFELJEBB, hatar: "3S"},
+                                 {t: LICIT_LEGFELJEBB, hatar: "3NT", sajat: true, bezarolag: false}]}}
         forsz: EGY_MENET
         jelentes: {hossz: {"@A": {min: 0}}, csak_megertes: true}
         alert: "Fogáskérés a kontrájukkal ígért színben (ugrással): 3NT-t fogással (fél fogással) kérek"

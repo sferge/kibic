@@ -50,3 +50,51 @@ def test_1nt_hatos_kor_transzfer_invit():
 
 def test_1nt_otos_nemes_gemforsz_3nt():
     assert _h("32.KJ865.A73.K62", "P 1NT P 2D P 2H P", "S") == "3NT"
+
+
+def test_kuzdelmi_licit_gemesellyel_nem():
+    # 1♦ (p) 1♥ (X) ?  ♠AK3 ♥QT96 ♦AJT2 ♣AJ (19): a törvény (2♥) küzdelmi,
+    # tagadja az invit erőt — gémeséllyel a rendszer szerint: 4♥ (2026-11-02)
+    assert _h("AK3.QT96.AJT2.AJ", "P 1D P 1H X", "N") == "4H"
+
+
+def test_kozbeszolas_utan_felullicit_invit():
+    # #196: p p (1♥) 2♦ (p) ?  ♠QJT8 ♥Q7 ♦Q763 ♣AJ4 (12, passzolt lap):
+    # gémesély van — invit: 2♥ felüllicit, nem 5♦ (2026-11-02)
+    assert _h("QJT8.Q7.Q763.AJ4", "P P P 1H 2D P", "E") == "2H"
+
+
+def _hm(kez, menet, ules):
+    # a MOHA-paraméterrel (SZABAD_LICIT_MIN = 11)
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    from test_konvenciok_2026_10_04 import _pbn
+    f = feloldas_forrasokbol(betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"]),
+                             "MOHA_STAND")[0]
+    pt = Parametertar(rendszer_ertek={"SZABAD_LICIT_MIN": "11"})
+    v = licit_elemzes({"hand": _pbn(kez), "seat": ules, "dealer": "W", "vulnerability": "none",
+                       "auction": menet.split(), "system": "MOHA_STAND", "test_mode": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    return v["call"] or "P"
+
+
+def test_elolegezett_kulcslicit():
+    # #299: p 1♦ (2♣) 2♠ (3♦) ?  ♠AJ74 ♥J65 ♦AKQ732 ♣– : nem 4♠, hanem 4♣
+    # (az ellenfél színe: előlegezett kulcslicit, 2026-11-03); a partner
+    # ♠KQT63 ♥AT84 ♦95 ♣J6 kulcslicittel válaszol: 4♥
+    assert _hm("AJ74.J65.AKQ732.", "P 1D 2C 2S 3D", "N") == "4C"
+    assert _hm("KQT63.AT84.95.J6", "P 1D 2C 2S 3D 4C P", "S") == "4H"
+
+
+def test_elolegezett_kulcslicit_utan_rkc():
+    # a kulcslicit-csere (4♣ – 4♥) után Észak kulcslapot kér
+    assert _hm("AJ74.J65.AKQ732.", "P 1D 2C 2S 3D 4C P 4H P", "N") == "4NT"
+
+
+def test_rekontra_utan_szabad_licit_emeles():
+    # #235: p (1♣) p (1♥) X (XX) 2♦ (p) ?  ♠AQ75 ♥A94 ♦JT63 ♣98 (passzolt
+    # lap, maximum, 4 lapos káró): 3♦ (2026-11-03)
+    assert _h("AQ75.A94.JT63.98", "P 1C P 1H X XX 2D P", "W") == "3D"

@@ -49,6 +49,7 @@ hivatkozasok:
   - GAMBLING_3NT
   - GYENGE_2D                   # ideiglenes, a saját leírásod fogja felváltani
   - BLOKK_NYITASOK
+  - ELOLEGEZETT_KULCSLICIT      # elv: a támogatás helyett váratlan szín gém alatt, szlemközeli erővel (2026-11-03)
   - MOHA_SZLEM                  # helyzeti elv: megállapodott adu mellett kulcslicit vagy ászkérdés (2026-09-30)
   - MOHA_3NT_4M                 # helyzeti elv: a partner 3NT-je után a 4m ORKC (az RKC ELŐTT)
   - RKC                         # helyzeti elv: kulcslapkérdés megállapodott adu mellett

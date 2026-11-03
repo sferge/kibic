@@ -1,0 +1,50 @@
+# ELOLEGEZETT_KULCSLICIT — az előlegezett kulcslicit (a szerkesztő,
+# 2026-11-03), ELV.
+#
+# Eszköz a „jó fit” kiderítésére: amikor a partner színét támogatjuk, és
+# a gémen túl annyi többleterőnk van, hogy a partner jó, megfelelő lapjával
+# szlemesélyt látunk (a saját asztali pontom + a partner ígért minimuma
+# legalább 30, a maximumával legalább 33 — e fölött ászkérdés, ez alatt
+# gém), gém alatt egy VÁRATLAN színt mondunk: új színt vagy az ellenfél
+# színét — nem a (most támogatott) adut, és nem valamilyen konvenció
+# részeként (ELV: csak akkor él, ha konkrét szabály nem illik).
+#   * Jelentés: enyhe szlemhajlandóság, a partner színe az adu (legalább 3
+#     lap), kontroll a színben (ász, király, renonsz vagy szingli). Gémforszt
+#     teremt.
+#   * A gém egyből (pl. 4♠) a leggyengébb: szlemérdeklődés nélkül
+#     (gyors-lassú).
+#   * A partner, ha tud, hasonló kulcslicittel válaszol (gém alatt új szín,
+#     kontroll); minimummal a gém (passzolható); erős lappal ászkérdés. Ezt
+#     a MOHA_SZLEM kulcslicit-elve adja: az előlegezett kulcslicit után az adu
+#     megállapodott (a támogatás 3+ lapot ígér).
+#
+# Most a nemes adura (a minor-adu gémje az 5-ös szint — NYITOTT).
+rendszer:
+  kod: ELOLEGEZETT_KULCSLICIT
+  nev: Előlegezett kulcslicit
+  nev_en: Advance cue bid
+  fajta: KONVENCIO
+  tema: "Szlemhajlandóság a támogatás helyett"
+  leiras: >-
+    A partner nemesét támogatva, szlemközeli erővel (asztali pontom + a
+    partner minimuma 30+, maximuma 33+), gém alatt egy váratlan szín (új vagy
+    az ellenfélé, kontrollal): enyhe szlemhajlandóság, a partner nemese az
+    adu; a gém egyből a leggyengébb.
+fejezetek:
+  - fejezet: "Előlegezett kulcslicit"
+    szabalyok:
+      - minta: ".. +E"
+        kulcs: ELOLEG-KL
+        fajta: ELV
+        ha: {partner_szin: {M: 5}, nem_mondtam: E, partner_nem_mondta: E, negyedik_szin: false,
+             nyers: {t: LICIT_LEGFELJEBB, sajat: true, gem: "@M", bezarolag: false}}
+        kulonbozo: [E, M]
+        hossz: {M: 3+}
+        fit: {M: 8+}
+        osszesen: {ap_biztos: 30-32}
+        vagy: [{lapok: [EA]}, {lapok: [EK]}, {hossz: {E: 0-1}}]
+        alulrol: true
+        forsz: GEMFORSZ
+        jelentes: {fedo_plusz: 1}
+        prioritas: 5
+        alert: "Előlegezett kulcslicit: a partner nemese az adu, enyhe szlemhajlandóság, kontroll a színben"

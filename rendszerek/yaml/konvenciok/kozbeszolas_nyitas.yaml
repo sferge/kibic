@@ -75,3 +75,20 @@ fejezetek:
       - {minta: "(1S) 2H (*) 3D (*) 3H", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
       # az 1-re 2 után (mint az 1M-2m-2M): a saját nemes ismétlése várakozó
       - {minta: "(1E) 1M (P) 2A (P) 2M", prioritas: 55, magyarazat: "Várakozó: semmit nem ígér (mint 1M-2m-2M)"}
+
+  - fejezet: "Felüllicit a közbeszólás után: fit, invit erő (2026-11-02)"
+    jegyzet: >-
+      A szerkesztő (2026-11-02, #196): ha a közbeszólás után gémesélyünk van,
+      invitet adunk, nem küzdelmi licitet és nem gémet. Az ellenfél színe (a
+      legolcsóbb) = fit a partner színében, invit erő vagy több; a partner
+      fogással 3NT-t mondhat, minimummal a színét ismétli (passzolható).
+    szabalyok:
+      # (az 1-es szintű közbeszólásra a felüllicites emelés a KIBICEGY_KUZDELMI-ben van)
+      - {minta: "(1A) 2B (P) +A", kulcs: KN-FELUL-INVIT, ha: {partner_szin: {B: 5}, partner_ugrott: false}, kulonbozo: [A, B],
+         gemeselyes: true, pont: 10+, hossz: {B: 3+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Felüllicit: fit a partner színében, invit erő vagy több"}
+      # a közbeszóló válasza
+      - {minta: "(1A) 2B (P) +A (P) 3NT", kulcs: KN-FELUL-INVIT-3NT, ha: {en_igertem: {B: 5}}, kulonbozo: [A, B],
+         pont: 13+, fogas: [A], prioritas: 54, magyarazat: "Az invit elfogadása: fogás az ellenfél színében — 3NT"}
+      - {minta: "(1A) 2B (P) +A (P) +B", kulcs: KN-FELUL-INVIT-MIN, ha: {en_igertem: {B: 5}}, kulonbozo: [A, B],
+         pont: 0-12, forsz: NEM, prioritas: 54, magyarazat: "Minimum: a színem ismétlése (passzolható)"}

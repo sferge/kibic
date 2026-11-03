@@ -122,3 +122,17 @@ fejezetek:
       - {minta: "(1A) X (P) 1M (P) 2M", pont: "16-18", hossz: {M: 4+}, prioritas: 57, magyarazat: "Emelés: 16-18 FP, 4+ adu"}
       - {minta: "(1A) X (P) 1M (P) 3M", pont: "19-21", hossz: {M: 4+}, prioritas: 57, magyarazat: "Ugró emelés: 19-21 FP, 4+ adu (invit)"}
       - {minta: "(1A) X (P) 1M (P) 4M", pont: "22+", hossz: {M: 4+}, prioritas: 57, magyarazat: "Gém: 22+ FP, 4+ adu"}
+
+  - fejezet: "A rekontra után (2026-11-03)"
+    jegyzet: >-
+      A szerkesztő (#235, p (1♣) p (1♥) X (XX) 2♦): a kontrázó partnere a
+      rekontra után nem köteles licitálni — ha mégis a kontrával ígért színt
+      mondja, az szabad licit: 4+ lap, némi érték. Erre a kontrázó maximummal
+      és 4 lapos fittel emel (küzdelmi emelés: passzolt lappal nincs gémerő).
+    szabalyok:
+      - {minta: ".. X (XX) +A", kulcs: XX-UTAN-SZABAD, fajta: ELV, ha: {partner_szin: {A: 4}},
+         hossz: {A: 4+}, pont: 5+, prioritas: 6,
+         magyarazat: "Szabad licit a rekontra után: 4+ lap a kontrával ígért színben, némi érték"}
+      - {minta: ".. X (XX) +A (P) +A", kulcs: XX-UTAN-EMELES, fajta: ELV, ha: {en_igertem: {A: 4}},
+         hossz: {A: 4+}, pont: 10+, prioritas: 6,
+         magyarazat: "Küzdelmi emelés: maximum, 4 lapos fit (a partner szabad licitjére)"}
