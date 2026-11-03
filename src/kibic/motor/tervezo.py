@@ -434,11 +434,14 @@ class Ertekelo:
                 adu = sorted((l for l in st.kez(cel) if l.szin == self.a.adu and l not in foglalt),
                              key=lambda l: l.rang)
                 if adu:
-                    # a rövid adus kézbe olcsó (a lopás plusz ütés); a hosszú adus kéz
-                    # aduit a kiaduzás kívánja: oda csak végső esetben
-                    rovid = len([l for l in st.kez(cel) if l.szin == self.a.adu]) <= \
-                        len([l for l in st.kez(st.soron) if l.szin == self.a.adu])
-                    jelolt.append(((0 if rovid else 3, adu[0].rang), sz, hivo_lapok[0], adu[0]))
+                    # a rövid adus kézbe mindig jó (a lopás plusz ütés); a hosszú adus
+                    # kézbe akkor, ha utána is marad annyi adója, amennyi a kint lévő
+                    # aduk lehúzásához a legrosszabb elosztásnál (4-0) is elég —
+                    # különben csak végső esetben (a szerkesztő, 2026-11-03)
+                    n_cel = len([l for l in st.kez(cel) if l.szin == self.a.adu])
+                    rovid = n_cel <= len([l for l in st.kez(st.soron) if l.szin == self.a.adu])
+                    jo = rovid or n_cel - 1 >= self.kint_adu_db
+                    jelolt.append(((0 if jo else 3, adu[0].rang), sz, hivo_lapok[0], adu[0]))
         if not jelolt:
             return None
         _, sz, h, c = min(jelolt, key=lambda x: x[0])
@@ -615,10 +618,14 @@ class Ertekelo:
         # átmenet lopással (2026-11-03): a partner hív egy színt, amelyből a kéz
         # színhiányos; a kéz maradék (nem nyerőként számolt, nem foglalt) aduival
         adu = self.a.adu
-        if adu and adu not in kihagy and sum(1 for l in st.kez(kez) if l.szin == adu) <= \
-                sum(1 for l in st.kez(p) if l.szin == adu):
-            # csak a rövid adus kézbe (a hosszú adus kéz aduit a kiaduzás kívánja)
+        if adu and adu not in kihagy:
+            # a rövid adus kézbe bármennyi; a hosszú adus kézbe annyi, hogy utána is
+            # lehúzhassa a kint lévő adukat a legrosszabb elosztásnál
+            n_kez = sum(1 for l in st.kez(kez) if l.szin == adu)
+            rovid = n_kez <= sum(1 for l in st.kez(p) if l.szin == adu)
             sajat_adu = sum(1 for l in st.kez(kez) if l.szin == adu and l not in foglalt)
+            if not rovid:
+                sajat_adu = min(sajat_adu, max(0, n_kez - self.kint_adu_db))
             hivhato = sum(1 for l in st.kez(p) if l.szin not in kihagy and l.szin != adu
                           and l not in foglalt and not any(x.szin == l.szin for x in st.kez(kez)))
             db += max(0, min(hivhato, sajat_adu - adu_db))
@@ -701,10 +708,13 @@ class Ertekelo:
                 partner = kovetkezo_ules(kez, 2)
                 # 1. átmenet lopással: a partner olyan színt hív, amelyből a kéz színhiányos
                 #    (a kéz legkisebb aduja, a partner legkisebb lapja) — ez nem visz el nyerőt;
-                #    csak a rövid adus kézbe
-                if self.a.adu and sum(1 for l in kezek[kez] if l.szin == self.a.adu) <= \
-                        sum(1 for l in kezek[partner] if l.szin == self.a.adu):
+                #    a hosszú adus kézbe csak annyiszor, hogy a kiaduzás (4-0-nál is) megmaradjon
+                if self.a.adu:
                     while db > 0:
+                        n_kez = sum(1 for l in kezek[kez] if l.szin == self.a.adu)
+                        if n_kez > sum(1 for l in kezek[partner] if l.szin == self.a.adu) and \
+                                n_kez - 1 < self.kint_adu_db:
+                            break
                         aduk = sorted((l for l in kezek[kez] if l.szin == self.a.adu and l not in foglalt),
                                       key=lambda l: l.rang)
                         hiv = sorted((l for l in kezek[partner] if l.szin not in kivett and l.szin != self.a.adu
