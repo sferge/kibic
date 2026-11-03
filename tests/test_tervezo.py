@@ -112,3 +112,19 @@ def test_lopas_a_rovid_kezben():
     assert e.elvi == pytest.approx(1.0)
     assert 0.7 < e.kockazattal < 0.9                             # a felüllopás kockázata
     assert e.terv.kiaduzas != "mind"                             # a kiaduzás nem viheti el az asztal aduit
+
+
+def test_atmenet_lopassal():
+    """A 6♦ (MB, 2026-11-03) 3. ütése: az asztal (N) pikkből színhiányos, van adója —
+    a ♠K lopása átmenet az asztalra (a ♦Q és a ♣K mellett a harmadik)."""
+    from kibic.motor.tervezo import Ertekelo, Terv, kezdo_allapot
+    N = _lapok("HA HK H8 H4 H2 DQ D5 CK C7 C5 C2")
+    S = _lapok("SK DA DK DJ DT D6 CA CJ C8 C6 C3")
+    latott = N | S | _lapok("SA S2 S3 S4 D7 D4 D8 D9")
+    minden = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"}
+    a = Allas(felvevo="S", adu="D", kezek={"S": S, "N": N}, kint=minden - latott, cel=11, hatra=11, soron="S")
+    e = Ertekelo(helyzetelemzes(a), Terv("", [], 0))
+    st = kezdo_allapot(a)
+    assert e._atmenetek(st, "N", "H", set()) == 3          # ♦Q, ♣K, a ♠ lopása
+    sz, h, c = e._atmenet(st, "N", {Lap.parse("CK")})       # a ♣K foglalt: a lopás az átmenet
+    assert (sz, str(h), c.szin) == ("S", "SK", "D")

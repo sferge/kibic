@@ -425,8 +425,14 @@ class Ertekelo:
             for c in sorted((l for l in st.kez(cel) if l.szin == sz), key=lambda l: l.rang):
                 if c in foglalt or c.rang < kint_max or c.rang < hivo_lapok[0].rang:
                     continue
-                jelolt.append(((sz == self.a.adu, c.rang), sz, hivo_lapok[0], c))
+                jelolt.append(((0 if sz != self.a.adu else 2, c.rang), sz, hivo_lapok[0], c))
                 break
+            # átmenet lopással (2026-11-03): a cél kéz színhiányos a színben, és van adója
+            if self.a.adu and sz != self.a.adu and not any(l.szin == sz for l in st.kez(cel)):
+                adu = sorted((l for l in st.kez(cel) if l.szin == self.a.adu and l not in foglalt),
+                             key=lambda l: l.rang)
+                if adu:
+                    jelolt.append(((1, adu[0].rang), sz, hivo_lapok[0], adu[0]))
         if not jelolt:
             return None
         _, sz, h, c = min(jelolt, key=lambda x: x[0])
@@ -589,6 +595,7 @@ class Ertekelo:
         nagyobb), amelyek alá a partner hívni tud; a terv más lapjai nem."""
         p = kovetkezo_ules(kez, 2)
         db = 0
+        adu_db = 0
         kihagy = set(sz) if isinstance(sz, tuple) else {sz}
         for l in st.kez(kez):
             if l.szin in kihagy or l in foglalt:
@@ -598,6 +605,15 @@ class Ertekelo:
                 continue
             if any(x.szin == l.szin and x.rang < l.rang for x in st.kez(p)):
                 db += 1
+                adu_db += l.szin == self.a.adu
+        # átmenet lopással (2026-11-03): a partner hív egy színt, amelyből a kéz
+        # színhiányos; a kéz maradék (nem nyerőként számolt, nem foglalt) aduival
+        adu = self.a.adu
+        if adu and adu not in kihagy:
+            sajat_adu = sum(1 for l in st.kez(kez) if l.szin == adu and l not in foglalt)
+            hivhato = sum(1 for l in st.kez(p) if l.szin not in kihagy and l.szin != adu
+                          and l not in foglalt and not any(x.szin == l.szin for x in st.kez(kez)))
+            db += max(0, min(hivhato, sajat_adu - adu_db))
         return db
 
     def _szk_eloszlas(self, p: Peldany, o: Osztaly, tart, kim) -> dict:
@@ -674,8 +690,24 @@ class Ertekelo:
                 adu = sorted((l for l in kezek[lopo] if l.szin == self.a.adu), key=lambda l: l.rang)
                 kezek[lopo] -= set(adu[:lop])
             for kez, db in ((self.a.felvevo, ax), (self.a.asztal, ay)):
+                partner = kovetkezo_ules(kez, 2)
+                # 1. átmenet lopással: a partner olyan színt hív, amelyből a kéz színhiányos
+                #    (a kéz legkisebb aduja, a partner legkisebb lapja) — ez nem visz el nyerőt
+                if self.a.adu:
+                    while db > 0:
+                        aduk = sorted((l for l in kezek[kez] if l.szin == self.a.adu and l not in foglalt),
+                                      key=lambda l: l.rang)
+                        hiv = sorted((l for l in kezek[partner] if l.szin not in kivett and l.szin != self.a.adu
+                                      and l not in foglalt and not any(x.szin == l.szin for x in kezek[kez])),
+                                     key=lambda l: l.rang)
+                        if not aduk or not hiv:
+                            break
+                        kezek[kez].discard(aduk[0])
+                        kezek[partner].discard(hiv[0])
+                        db -= 1
+                # 2. a nyerők: előbb az aduk (a kiaduzás része), utána a mellékszínek
                 jelolt = sorted((l for l in kezek[kez] if l.szin not in kivett and l not in foglalt),
-                                key=lambda l: (l.szin == self.a.adu, l.rang))
+                                key=lambda l: (l.szin != self.a.adu, l.rang))
                 nyerok = [l for l in jelolt if not self.a.kint_szin(l.szin)
                           or l.rang > self.a.kint_szin(l.szin)[0].rang]
                 kezek[kez] -= set(nyerok[:db])
