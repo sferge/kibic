@@ -36,7 +36,7 @@ fejezetek:
       - minta: ".. +E"
         kulcs: ELOLEG-KL
         fajta: ELV
-        ha: {partner_szin: {M: 5}, nem_mondtam: E, partner_nem_mondta: E,
+        ha: {partner_szin: {M: 5}, nem_mondtam: E, partner_nem_mondta: E, negyedik_szin: false,
              nyers: {t: LICIT_LEGFELJEBB, sajat: true, gem: "@M", bezarolag: false}}
         kulonbozo: [E, M]
         hossz: {M: 3+}
