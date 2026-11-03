@@ -62,13 +62,18 @@ fejezetek:
          forsz: KIZARO, alert: "Gyenge dupla ugrás: 7+ lap, gyenge (kizáró) — nem erő"}
 
   - fejezet: "Ugrás új színben második megszólalásként: erő"
+    jegyzet: >-
+      A szerkesztő (2026-11-03): a nyitótól LIMITÁLT (17-19), nem gémforsz,
+      passzolható; a válaszolótól nem limitált, gémforsz. Splinter csak akkor,
+      ha a partner nemesét követi, a nemes 4-es szintje fölé ugorva (az
+      SPLINTER elv).
     szabalyok:
       - {minta: ".. 2B", kulcs: EROS-UGRAS-2-NY, fajta: ELV, prioritas: 5,
          ha: {eros_ugras: true, en_nyitottam: true}, hossz: {B: 4+}, pont: 17-19,
-         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
+         forsz: NEM, alert: "Ugrás új színben (második licit, nyitótól): 17-19, limitált, passzolható"}
       - {minta: ".. 3B", kulcs: EROS-UGRAS-3-NY, fajta: ELV, prioritas: 5,
          ha: {eros_ugras: true, en_nyitottam: true}, hossz: {B: 4+}, pont: 17-19,
-         forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
+         forsz: NEM, alert: "Ugrás új színben (második licit, nyitótól): 17-19, limitált, passzolható"}
       - {minta: ".. 2B", kulcs: EROS-UGRAS-2, fajta: ELV, prioritas: 5,
          ha: {eros_ugras: true, en_nyitottam: false}, hossz: {B: 4+}, pont: 15+,
          forsz: GEMFORSZ, alert: "Ugrás új színben (második licit): erő, gémforsz"}
