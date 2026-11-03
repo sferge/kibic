@@ -4,12 +4,15 @@ az az első; ha kicsi, a speciális módok kerülnek előre (a szabályaik ponto
 szerint). Kétszeres keresztvalidáció: a küszöböt és a pontosságokat az egyik
 félen választjuk, a másikon mérünk.
 
-    PYTHONPATH=src python3 eszkozok/jatekmod_elemzes/rangsor3.py
+    PYTHONPATH=src python3 eszkozok/jatekmod_elemzes/rangsor3.py [--tempo]
+
+    --tempo: az alapjáték esélye a vesztett ütésekkel együtt (a tartalékon belül;
+    ehhez a pontos színtáblázat kell)
 """
 import collections, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
-from rangsor import PBN, GYOKER, modok                      # noqa: E402
+from rangsor import GYOKER, modok, partik_cimkekkel                      # noqa: E402
 from rangsor2 import szabalyok                              # noqa: E402
 
 KUSZOBOK = [0.0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01]
@@ -28,11 +31,9 @@ def main():
     from kibic.motor import terv as tv
     from kibic.motor import tervszintabla as tsz
     sorok = tv.tervsorok_yamlbol([str(GYOKER / "rendszerek" / "tervek")])
-    cimkek = cimkek_pbnbol(str(PBN))
     adat = []
     pontos = 0.0
-    for i, p in enumerate(partik_fajlbol([str(PBN)], "IMP")):
-        c = cimkek[i] if i < len(cimkek) else None
+    for p, c in partik_cimkekkel():
         h = tv.helyzet_partibol(p)
         if c is None or h is None:
             continue
@@ -42,7 +43,10 @@ def main():
         Y = p.leosztas.kezek[kovetkezo_ules(k.felvevo, 2)].lapok
         D = {sz: {l.rang for l in X if l.szin == sz} for sz in "SHDC"}
         U = {sz: {l.rang for l in Y if l.szin == sz} for sz in "SHDC"}
-        pa, ok = tsz.alapjatek_eselye(D, U, 6 + k.szint)
+        if "--tempo" in sys.argv:
+            pa, ok = tsz.alapjatek_eselye_tempoval(D, U, 6 + k.szint)
+        else:
+            pa, ok = tsz.alapjatek_eselye(D, U, 6 + k.szint)
         pontos += ok
         adat.append((szabalyok(h, g, tv.felismeres(sorok, h)), modok(c), pa))
     n = len(adat)

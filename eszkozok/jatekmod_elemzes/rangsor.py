@@ -18,7 +18,33 @@ sys.path.insert(0, str(Path(__file__).parent))
 from jegyek import jegyek                                   # noqa: E402
 
 GYOKER = Path(__file__).resolve().parents[2]
-PBN = GYOKER / "tanpartik/pavlicek_teljes/pavlicek_practice_teljes.pbn"
+# a címkézett partik: --pbn <fájlok vagy könyvtárak> (alap: tanpartik/pavlicek_teljes)
+PBN = [GYOKER / "tanpartik" / "pavlicek_teljes"]
+
+
+def pbn_utak() -> list[str]:
+    """A --pbn utáni utak (a parancssorból), különben az alapértelmezett."""
+    a = sys.argv[1:]
+    if "--pbn" in a:
+        i = a.index("--pbn")
+        utak = []
+        for x in a[i + 1:]:
+            if x.startswith("--"):
+                break
+            utak.append(x)
+        return utak
+    return [str(u) for u in PBN]
+
+
+def partik_cimkekkel():
+    """(parti, „Play:” címkék) minden megadott PBN-fájlból (a címke None, ha nincs)."""
+    sys.path.insert(0, str(GYOKER / "src"))
+    from kibic.cli.jatekmeres import fajlok_kibontasa, partik_fajlbol
+    from kibic.cli.tervfelismeres import cimkek_pbnbol
+    for ut in fajlok_kibontasa(pbn_utak(), ".pbn"):
+        cimkek = cimkek_pbnbol(ut)
+        for i, p in enumerate(partik_fajlbol([ut], "IMP")):
+            yield p, (cimkek[i] if i < len(cimkek) else None)
 
 MOD_CIMKE = {
     "KIMAGASITAS": ["Set up dummy’s suit", "Establish side suit", "Set up suit at notrump"],
@@ -77,10 +103,8 @@ def main():
     from kibic.cli.tervfelismeres import cimkek_pbnbol
     from kibic.motor import terv as tv
     sorok = tv.tervsorok_yamlbol([str(GYOKER / "rendszerek" / "tervek")])
-    cimkek = cimkek_pbnbol(str(PBN))
     adat = []
-    for i, p in enumerate(partik_fajlbol([str(PBN)], "IMP")):
-        c = cimkek[i] if i < len(cimkek) else None
+    for p, c in partik_cimkekkel():
         h = tv.helyzet_partibol(p)
         if c is None or h is None or p.kontraktus is None:
             continue
