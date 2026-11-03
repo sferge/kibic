@@ -224,7 +224,9 @@ def test_orkc_minor_adu_gemforszban(kibic_stand_rkc):
                        "auction": ["1D", "P", "2C", "P", "3C", "P", "4C", "P"],
                        "system": "KIBIC_STAND", "test_mode": True},
                       lambda k, p, t=None: (kibic_stand_rkc.sorok, Parametertar()))
-    assert v["call"] == "4H"          # 1 kulcslap: a második lépcső
+    # 1 kulcslap, nem „tetszik”: a 3. lépcső (1. lépcső: tetszik, 2.: 0/3) —
+    # a Moha-ORKC válaszrendje (a szerkesztő, 2026-11-03)
+    assert v["call"] == "4S"
 
 
 def test_negyes_minor_emeles_orkc(kibic_stand_rkc):
@@ -236,7 +238,7 @@ def test_negyes_minor_emeles_orkc(kibic_stand_rkc):
                        "auction": ["1D", "P", "1S", "P", "2D", "P", "4D", "P"],
                        "system": "KIBIC_STAND", "test_mode": True},
                       lambda k, p, t=None: (kibic_stand_rkc.sorok, Parametertar()))
-    assert v["call"] == "4S"          # a második lépcső a 4♦ fölött
+    assert v["call"] == "4NT"         # 1 kulcslap: a 3. lépcső a 4♦ fölött (2026-11-03)
     v = licit_elemzes({"hand": kez, "seat": "N", "dealer": "N", "vulnerability": "none",
                        "auction": ["1D", "P", "4D", "P"],
                        "system": "KIBIC_STAND", "test_mode": True},

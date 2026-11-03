@@ -87,6 +87,30 @@ fejezetek:
          hossz: {D: 4+}, szlem: nem_kizart,
          dontesi_mod: MERLEGELO, forsz: GEMFORSZ, prioritas: 5,
          alert: "Káró-emelés négyes szintre: adu, gémforsz és kulcslapkérdés (ORKC)"}
+      # VALÓDI gémforszban (nem kvázi) a partner minorjának 4-es szintű
+      # összeemelése a legolcsóbb szinten is ORKC (a szerkesztő, 2026-11-03)
+      # a közös adu 8+ lapos legyen (a partner 5+ lapjához 3, a 4+-hoz 4 lap)
+      - {minta: ".. 4C", kulcs: ORKC-TREFF-EMELES-GF, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {C: 5}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {C: 3+}, vagy: [{osszesen: {pont_biztos: 30+}}, {vesztok: 0-4.5}],   # szlemérdeklődés: pontból VAGY kevés vesztőből (2026-11-03)
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Treff-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      - {minta: ".. 4C", kulcs: ORKC-TREFF-EMELES-GF-4, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {C: 4}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {C: 4+}, vagy: [{osszesen: {pont_biztos: 30+}}, {vesztok: 0-4.5}],   # szlemérdeklődés: pontból VAGY kevés vesztőből (2026-11-03)
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Treff-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      # a közös adu 8+ lapos legyen (a partner 5+ lapjához 3, a 4+-hoz 4 lap)
+      - {minta: ".. 4D", kulcs: ORKC-KARO-EMELES-GF, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {D: 5}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {D: 3+}, vagy: [{osszesen: {pont_biztos: 30+}}, {vesztok: 0-4.5}],   # szlemérdeklődés: pontból VAGY kevés vesztőből (2026-11-03)
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Káró-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
+      - {minta: ".. 4D", kulcs: ORKC-KARO-EMELES-GF-4, fajta: ELV,
+         ha: {adu: nincs, partner_szin: {D: 4}, gemforsz: valodi, legfeljebb: 3S},   # a 3NT után a MOHA_3NT_4M dönt
+         hossz: {D: 4+}, vagy: [{osszesen: {pont_biztos: 30+}}, {vesztok: 0-4.5}],   # szlemérdeklődés: pontból VAGY kevés vesztőből (2026-11-03)
+         forsz: GEMFORSZ, prioritas: 7,
+         alert: "Káró-emelés gémforszban: adu és kulcslapkérdés (ORKC) — 1. lépcső tetszik"}
       - {minta: ".. 4NT", kulcs: ASZKERDES-MINOR, fajta: ELV, ha: {adu: minor},
          szlem: nem_kizart, dontesi_mod: MERLEGELO, prioritas: 4,
          alert: "Opcionális ászkérdés és szleminvit (passzolható)"}
@@ -121,23 +145,54 @@ fejezetek:
          adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
 
   - fejezet: Válasz — minor adu, gémforszban (ORKC)
+    jegyzet: >-
+      A szerkesztő (2026-11-03), mint a 3NT utáni Moha-ORKC-nél: az 1. lépcső
+      „tetszik” (szlemjellegű lap), erre a kérdező 1. relével kérdezi a
+      kulcslapokat, és onnan lépcsőkben jönnek a válaszok (utána spirál).
+      Ha nem tetszik: közvetlenül a kulcslapok (2. lépcső 0/3, 3. lépcső 1/4,
+      4. lépcső 2 dáma nélkül). 2 kulcslap + adu dáma: mindig az 5. lépcső
+      (5m), akár tetszik, akár nem.
     szabalyok:
-      - {minta: ".. 4C 4D", kulcs: ORKC-TREFF-1, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, ha: {adu: C, gemforsz: true},
-         kulcslapok: [0, 3], prioritas: 10, alert: "0 vagy 3 kulcslap"}
-      - {minta: ".. 4C 4H", kulcs: ORKC-TREFF-2, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, ha: {adu: C, gemforsz: true},
-         kulcslapok: [1, 4], prioritas: 10, alert: "1 vagy 4 kulcslap"}
-      - {minta: ".. 4C 4S", kulcs: ORKC-TREFF-3, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, ha: {adu: C, gemforsz: true},
-         kulcslapok: 2, adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
-      - {minta: ".. 4C 4NT", kulcs: ORKC-TREFF-4, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, ha: {adu: C, gemforsz: true},
-         kulcslapok: 2, adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
-      - {minta: ".. 4D 4H", kulcs: ORKC-KARO-1, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, ha: {adu: D, gemforsz: true},
-         kulcslapok: [0, 3], prioritas: 10, alert: "0 vagy 3 kulcslap"}
-      - {minta: ".. 4D 4S", kulcs: ORKC-KARO-2, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, ha: {adu: D, gemforsz: true},
-         kulcslapok: [1, 4], prioritas: 10, alert: "1 vagy 4 kulcslap"}
-      - {minta: ".. 4D 4NT", kulcs: ORKC-KARO-3, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, ha: {adu: D, gemforsz: true},
-         kulcslapok: 2, adu_dama: false, prioritas: 10, alert: "2 kulcslap, adu dáma nélkül"}
-      - {minta: ".. 4D 5C", kulcs: ORKC-KARO-4, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, ha: {adu: D, gemforsz: true},
-         kulcslapok: 2, adu_dama: true, prioritas: 10, alert: "2 kulcslap, adu dámával"}
+      # treff adu: 4♣ ORKC
+      - {minta: ".. 4C 4D", kulcs: ORKC-TREFF-TETSZIK, fajta: ELV, ha: {adu: C, gemforsz: true},
+         vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12,
+         alert: "Tetszik (szlemjellegű lap); a kulcslapokat a 4♥ kérdezi"}
+      - {minta: ".. 4C 4H", kulcs: ORKC-TREFF-1, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: [0, 3], prioritas: 11, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4C 4S", kulcs: ORKC-TREFF-2, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: [1, 4], prioritas: 11, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4C 4NT", kulcs: ORKC-TREFF-3, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: 2, adu_dama: false, prioritas: 11, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4C 5C", kulcs: ORKC-TREFF-4, fajta: ELV, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}}, ha: {adu: C, gemforsz: true},
+         kulcslapok: 2, adu_dama: true, prioritas: 13, alert: "2 kulcslap, adu dámával"}
+      - {minta: ".. 4C 4D 4H", kulcs: ORKC-TREFF-RELE, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 12,
+         alert: "Relé: kulcslapkérdés treff aduval"}
+      - {minta: ".. 4C 4D 4H 4S", kulcs: ORKC-TREFF-RELE-1, fajta: ELV, ha: {adu: C}, kulcslapok: [0, 3], prioritas: 11,
+         jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4C 4D 4H 4NT", kulcs: ORKC-TREFF-RELE-2, fajta: ELV, ha: {adu: C}, kulcslapok: [1, 4], prioritas: 11,
+         jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4C 4D 4H 5C", kulcs: ORKC-TREFF-RELE-3, fajta: ELV, ha: {adu: C}, kulcslapok: 2, adu_dama: false, prioritas: 11,
+         jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, adu dáma nélkül"}
+      # káró adu: 4♦ ORKC
+      - {minta: ".. 4D 4H", kulcs: ORKC-KARO-TETSZIK, fajta: ELV, ha: {adu: D, gemforsz: true},
+         vagy: [{igeret: {pont: felso}}, {gyorsutes: 3+}], forsz: EGY_MENET, prioritas: 12,
+         alert: "Tetszik (szlemjellegű lap); a kulcslapokat a 4♠ kérdezi"}
+      - {minta: ".. 4D 4S", kulcs: ORKC-KARO-1, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: [0, 3], prioritas: 11, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4D 4NT", kulcs: ORKC-KARO-2, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: [1, 4], prioritas: 11, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4D 5C", kulcs: ORKC-KARO-3, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: 2, adu_dama: false, prioritas: 11, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4D 5D", kulcs: ORKC-KARO-4, fajta: ELV, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}}, ha: {adu: D, gemforsz: true},
+         kulcslapok: 2, adu_dama: true, prioritas: 13, alert: "2 kulcslap, adu dámával"}
+      - {minta: ".. 4D 4H 4S", kulcs: ORKC-KARO-RELE, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 12,
+         alert: "Relé: kulcslapkérdés káró aduval"}
+      - {minta: ".. 4D 4H 4S 4NT", kulcs: ORKC-KARO-RELE-1, fajta: ELV, ha: {adu: D}, kulcslapok: [0, 3], prioritas: 11,
+         jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}}, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4D 4H 4S 5C", kulcs: ORKC-KARO-RELE-2, fajta: ELV, ha: {adu: D}, kulcslapok: [1, 4], prioritas: 11,
+         jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}}, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4D 4H 4S 5D", kulcs: ORKC-KARO-RELE-3, fajta: ELV, ha: {adu: D}, kulcslapok: 2, adu_dama: false, prioritas: 11,
+         jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}}, alert: "2 kulcslap, adu dáma nélkül"}
 
   - fejezet: Válasz — minor adu, opcionális 4NT
     szabalyok:

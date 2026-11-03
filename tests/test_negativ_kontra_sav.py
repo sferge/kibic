@@ -109,3 +109,12 @@ def test_kulcslicit_csere_utan_rkc_pontbol():
 def test_4nt_a_partner_4h_je_utan_nem_kulcslicit():
     # a partner 4♥-je (kétség) után nincs újabb kulcslicit (4NT): RKC vagy passz
     assert _hm("AKQ3.K6543.KT.82", "P 1H P 2D P 2S P 3H P 3S P 4C P 4D P 4H P", "N") != "4NT"
+
+
+def test_orkc_osszeemeles_gemforszban():
+    # 2026-11-03: p 1♥ p 2♦ (2/1, valódi GF) p 3♣ p 3♠ (negyedik szín) p — a
+    # 4♦ összeemelés valódi gémforszban ORKC; a válaszoló 1. lépcsője (4♥)
+    # „tetszik”, a 4♠ relé-kulcslapkérdés
+    assert _hm("2.AK842.Q54.K752", "P 1H P 2D P 3C P 3S P", "N") == "4D"
+    assert _hm("K4..AKJT96.AJ863", "P 1H P 2D P 3C P 3S P 4D P", "S") == "4H"
+    assert _hm("2.AK842.Q54.K752", "P 1H P 2D P 3C P 3S P 4D P 4H P", "N") == "4S"

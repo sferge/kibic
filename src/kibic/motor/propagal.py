@@ -274,8 +274,10 @@ def egyesit(valtozatok: list[Igeret]) -> Igeret:
     ki.fogas = set.intersection(*(set(v.fogas) for v in valtozatok))
     hs = {v.help_szin for v in valtozatok}
     ki.help_szin = hs.pop() if len(hs) == 1 else None
-    gh = {v.gf_hatar for v in valtozatok}
-    ki.gf_hatar = gh.pop() if len(gh) == 1 else None
+    # ha bármelyik értelmezés kvázi gémforsz (határral), az egész az: a
+    # valódi gémforszt csak az egyöntetű, határ nélküli gémforsz adja
+    gh = {v.gf_hatar for v in valtozatok if v.gf_hatar}
+    ki.gf_hatar = gh.pop() if len(gh) == 1 else (max(gh) if gh else None)
     kl = [v.kulcslap for v in valtozatok if v.kulcslap is not None]
     if kl and all(k == kl[0] for k in kl):
         ki.kulcslap = dict(kl[0])
@@ -632,7 +634,12 @@ class Propagalo:
                     licit, uj, _adu_most(er.kenyszertar, u, licitek[:i], oszto)):
                 er.kenyszertar[u].gemforsz = True
                 er.kenyszertar[partner].gemforsz = True
-            _osszefesul(er.kenyszertar[u], uj)
+            # egy már futó KVÁZI gémforszon belül (a partneré is) a „gémforsz”
+            # licit nem teremt valódi gémforszt (2026-11-03)
+            partner_ = {"N": "S", "S": "N", "E": "W", "W": "E"}.get(u)
+            kvazi_ = bool(partner_ and er.kenyszertar[partner_].gf_hatar
+                          and not er.kenyszertar[partner_].gf_valodi)
+            _osszefesul(er.kenyszertar[u], uj, kvazi_)
             if len(valtozatok) > 1:
                 # a változatok a saját (szabályon belüli `vagy:`) ágaikkal együtt
                 er.kenyszertar[u].alternativak.append([deepcopy(x) for x in valtozatok])
@@ -959,7 +966,7 @@ def definialo(szabalyok, elozmeny, elo_kotes, allas, paramtar=None):
         return ered
     return van
 
-def _osszefesul(cel: Igeret, uj: Igeret) -> None:
+def _osszefesul(cel: Igeret, uj: Igeret, kvazi: bool = False) -> None:
     """
     Egy ülés korábbi és mostani ígéretének METSZETE. Itt a metszet a
     helyes: a játékosnak MINDEN licitje igaz kell legyen egyszerre.
@@ -986,6 +993,8 @@ def _osszefesul(cel: Igeret, uj: Igeret) -> None:
     cel.fogas |= uj.fogas              # a fogás-ígéretek összeadódnak
     if uj.gf_hatar:
         cel.gf_hatar = uj.gf_hatar
+    elif uj.forsz == "GEMFORSZ" and not cel.gf_hatar and not kvazi:
+        cel.gf_valodi = True           # határ nélküli (valódi) gémforsz
     cel.help_szin = uj.help_szin       # csak a legutóbbi licit HELP-je számít
     cel.forsz = uj.forsz
     cel.gi = uj.gi                     # az UTOLSÓ licit számít
