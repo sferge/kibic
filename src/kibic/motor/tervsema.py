@@ -217,8 +217,27 @@ def fogalmak(allas: Allas) -> dict:
             return None
         return k1 if h1 < h2 else k2
 
+    def rovid_adu_lopo(sz):
+        """A színben rövidebb kezünk, ha lophat, és legfeljebb annyi adója van, mint a
+        partnerének: a lopása plusz aduütés (a hosszú adus kéz aduit a felső ütések
+        már számolják)."""
+        if not a.adu or sz == a.adu:
+            return None
+        k1, k2 = a.kezek
+        h1, h2 = len(a.szin(k1, sz)), len(a.szin(k2, sz))
+        if h1 == h2:
+            return None
+        L, M = (k1, k2) if h1 < h2 else (k2, k1)
+        aL, aM = len(a.szin(L, a.adu)), len(a.szin(M, a.adu))
+        return L if 0 < aL <= aM else None
+
     return {
         "legnagyobb_kint": legnagyobb_kint,
+        "rovid_adu_lopo": rovid_adu_lopo,
+        # a hiányzó ütések száma (a cél a felső ütéseken felül)
+        "hiany": lambda: max(0, a.cel - sum(a.biztos_utesek(sz) for sz in SZINEK)),
+        "min": min,
+        "max": max,
         "felettunk": felettunk,
         "felettunk_kezben": felettunk_kezben,
         "kozvetlen_alatta": kozvetlen_alatta,
@@ -281,7 +300,7 @@ class TechnikaSema:
     korok: list
     siker: str
     kudarc_koltseg: int
-    hozam: int
+    hozam: int | str             # állandó, vagy kifejezés (a példány szerepeiből)
     hasznal: list
     elfogyaszt: list
     fajta: str = "kotta"        # kotta: a körök a sémában; elemzo: az egyszínű elemző kezelése
@@ -321,9 +340,26 @@ def technikak_betoltese(konyvtar: Path = SEMA_KONYVTAR) -> dict[str, TechnikaSem
         ki[azon] = TechnikaSema(azon, d.get("nev", azon), d.get("szerepek") or {},
                                 d.get("alkalmazhato") or [], d.get("korok") or [],
                                 d.get("siker") or "False", int(d.get("kudarc_koltseg", 0)),
-                                int(d.get("hozam", 1)), d.get("hasznal") or [],
+                                d.get("hozam", 1), d.get("hasznal") or [],
                                 d.get("elfogyaszt") or [], d.get("fajta", "kotta"),
                                 d.get("celok") or {}, d.get("felismeres") or [])
+    return ki
+
+
+def mod_technikak(modok, konyvtar: Path = SEMA_KONYVTAR) -> set[str]:
+    """A játékmódok (jatekmodok.yaml `taktika`) technikái, a változataikkal együtt."""
+    sorok = {s["jatekmod"]: s for s in _yaml(konyvtar / "jatekmodok.yaml") if "jatekmod" in s}
+    ki = set()
+    for m in modok:
+        ki |= set(sorok.get(m, {}).get("taktika") or [])
+    nyers = _yaml(konyvtar / "technikak.yaml")
+    valt = True
+    while valt:
+        valt = False
+        for s in nyers:
+            if s.get("valtozat") and s.get("alap") in ki and s["valtozat"] not in ki:
+                ki.add(s["valtozat"])
+                valt = True
     return ki
 
 
@@ -363,6 +399,7 @@ class Peldany:
     hasznal: set[Lap]
     elfogyaszt: set[Lap]
     relevans: set[Lap] = field(default_factory=set)   # a `siker`-ben szereplő kint lévő lapok
+    hozam: int = 1                                     # a séma hozama ezen a példányon
 
     @property
     def nev(self) -> str:
@@ -381,7 +418,8 @@ class Peldany:
                     + (f", {lop} lopás" if lop else "") + ")")
         r = {"EJTES": "ejtés", "IMPASSZ_VILLA": "impassz", "IMPASSZ_ATENGEDES": "impassz",
              "IMPASSZ_ATENGEDES_FELSO_ELOBB": "impassz (felső előbb)",
-             "LOPASOS_KIMAGASITAS": "lopásos kimagasítás"}.get(self.sema.azon, self.sema.azon)
+             "LOPASOS_KIMAGASITAS": "lopásos kimagasítás",
+             "LOPAS_ROVID_KEZBEN": "lopás a rövid kézben"}.get(self.sema.azon, self.sema.azon)
         return f"{'♠♥♦♣'['SHDC'.index(self.szin)]} {r}"
 
     def siker_kornyezet(self) -> dict:
@@ -434,5 +472,8 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
             szerepek = {n: kor[n] for n in sema.szerepek}
             relevans = {l for v in szerepek.values() for l in _lapok(v if isinstance(v, list) else [v])
                         if l in allas.kint}
-            ki.append(Peldany(sema, sz, szerepek, korok, hasznal, elfogy, relevans))
+            hozam = int(kifejezes(str(sema.hozam), kor))
+            if hozam <= 0:
+                continue
+            ki.append(Peldany(sema, sz, szerepek, korok, hasznal, elfogy, relevans, hozam))
     return ki

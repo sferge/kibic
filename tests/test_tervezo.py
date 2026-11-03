@@ -95,3 +95,20 @@ def test_vedoi_utesek_versenyszin():
     assert e._menetek("H", 3, 4)[:4] == ("M", "V", "V", "V")
     assert e.vedoi_utesek(egy, 1) == 0
     assert e.vedoi_utesek(egy, 2) == 3
+
+
+def test_lopas_a_rovid_kezben():
+    """7 lapos végállás, ♠ adu: a felső ütések 5, a 6. a ♥ lopása az asztalon (a rövid adus
+    kéz). A lopó kéz aduit nem viheti el előtte a kiaduzás (különben a lopás nem játszható)."""
+    a = Allas(felvevo="N", adu="S",
+              kezek={"N": _lapok("SA SK SQ H4 H3 H2 CA"), "S": _lapok("S5 S4 HA D3 D2 C3 C2")},
+              kint=_lapok("SJ ST S9 HK HQ HJ HT H9 DA DK DQ CK CQ CJ"), cel=6, hatra=7, soron="N")
+    pld = [p for p in peldanyok(a, technikak_betoltese()) if p.sema.azon == "LOPAS_ROVID_KEZBEN"]
+    assert [(p.szin, p.hozam) for p in pld] == [("H", 1)]       # csak annyi lopás, amennyi hiányzik
+    assert [k.fajta for k in pld[0].korok] == ["lehiv", "lop"]
+    _, ert = tervez(a)
+    e = ert[0]
+    assert e.terv.nev == "♥ lopás a rövid kézben"
+    assert e.elvi == pytest.approx(1.0)
+    assert 0.7 < e.kockazattal < 0.9                             # a felüllopás kockázata
+    assert e.terv.kiaduzas != "mind"                             # a kiaduzás nem viheti el az asztal aduit

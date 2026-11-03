@@ -1,4 +1,5 @@
-# Játékmódok — a felvevőjáték stratégiai sémái (2. TERVEZET, 2026-11-02; még nincs bekötve)
+# Játékmódok — a felvevőjáték stratégiai sémái (2. TERVEZET, 2026-11-02; a `taktika` a tervező
+# technikáira mutat: tervsema.mod_technikak — 2026-11-03)
 # Leírás, mérés, kérdések: claude/terv-jatekmodok-2026-11-02.md
 #
 # Egy játékmód: honnan jön a hiányzó ütés (vagy hogyan fogy a vesztő), és mibe kerül.
@@ -52,7 +53,7 @@
   kiser: [ATMENETEK, VESZELYES_VEDO]
   kizar: [KERESZTLOPAS, ASZTALFORDITAS, VEGJATEK, BESZORITAS]   # a mérésben szinte soha együtt
   fenyeget: ["minden kiadásnál a védők versenyszíne (VEDOI_UTESEK)", "a veszélyes kéz hívásba kerül"]
-  taktika: [SZINKEZELES, LOPASOS_KIMAGASITAS, SZINKEZELES_ADUVAL]
+  taktika: [SZINKEZELES, LOPASOS_KIMAGASITAS]       # a SZINKEZELES aduval célja is (lopással)
   valtozatok:
     - {nev: SZAN_HOSSZBOL, ha: "szanzadu", megj: "kiengedéssel; a kontrollok száma a döntő"}
     - {nev: LOPASSAL, ha: "színjáték, a rövid kéz lophat", megj: "ruff out; 4Q01 #2 ♠QJ54"}
@@ -71,7 +72,7 @@
     kiaduzas: "előtte a védők aduhosszaiból következő számú kör (lehívható, sőt lehívandó)"
   kizar: [TELJES_KIADUZAS, KERESZTLOPAS]
   fenyeget: ["a védők aduhívása, ha hívásba kerülnek"]
-  taktika: [LOPAS, KIADUZAS]
+  taktika: [LOPAS_ROVID_KEZBEN]                    # technikak.yaml; a kiaduzás helye a KIADUZAS szabályé
   valtozatok:
     - {nev: EGYFORMA_ADUK, ha: "4-4 vagy 5-5 adu", megj: "bármelyik kéz lehet a rövid; a lopó kéz választás"}
     - {nev: KILOPATAS, ha: "8 adu A-K-val, D nélkül",

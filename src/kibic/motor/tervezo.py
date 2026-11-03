@@ -460,7 +460,7 @@ class Ertekelo:
             ok, tovabb = 0.0, []
             for e in esetek:
                 if self.siker(p, e.o):
-                    h = e.hiany - p.sema.hozam
+                    h = e.hiany - p.hozam
                     if h <= 0 and not self._lezaras(e, st):
                         if self.ut is not None:
                             self.ut.append(("kudarc",))
@@ -843,6 +843,9 @@ class Ertekelo:
         else:                                     # lop
             lapok = {hivo: self._kicsi(st, hivo, sz, foglalt),
                      k.lopo: self._kovet(st, k.lopo, sz, foglalt, lop=True)}
+            l = lapok[k.lopo]
+            if l is None or l.szin != self.a.adu:
+                return 0.0                        # nincs mivel lopni (pl. a kiaduzás elvitte): a terv így nem játszható
         if any(v is None for v in lapok.values()):
             return 0.0
         tovabb = []
@@ -993,13 +996,15 @@ def _helyettesitok(p: Peldany, pld: list[Peldany], adu: str) -> list[list[Peldan
 
 def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
            feltevesbol: bool = False, teljes: bool = False,
-           stat: dict | None = None, draga_pontos: bool = True, megallito=None) -> tuple[Helyzet, list[TervErtek]]:
+           stat: dict | None = None, draga_pontos: bool = True, megallito=None,
+           csak: set[str] | None = None) -> tuple[Helyzet, list[TervErtek]]:
     """A tervek értékelése három lépcsőben (TERVEZES szabály): felismerés (a sémák
     `felismeres` feltételei), az olcsó tervek pontosan, a drága (többszínű
     elemzést kívánó) tervek becsléssel, és pontosan csak a legjobb jelöltek.
     `teljes`: minden drága tervet pontosan (a lépcsők ellenőrzéséhez);
     `draga_pontos=False`: a drága tervek csak becsléssel (az ütés közbeni
-    jelöltek gyors összevetéséhez)."""
+    jelöltek gyors összevetéséhez). `csak`: csak ezek a technikák (a választott
+    játékmódok technikái — tervsema.mod_technikak)."""
     import time
     from . import tervparhuzam as tp
     t0 = time.time()
@@ -1008,6 +1013,8 @@ def tervez(allas: Allas, korlatok: list[Korlat] = (), kiaduzas_valasztek=None,
     szamolt0 = tp.STATISZTIKA["szamolt"]
     helyzet = helyzetelemzes(allas)
     technikak = technikak_betoltese()
+    if csak is not None:
+        technikak = {k: v for k, v in technikak.items() if k in csak}
     strategiak, szabalyok = strategiak_betoltese()
     szabaly = lambda nev: next((s for s in szabalyok if s.get("szabaly") == nev), {})
     if kiaduzas_valasztek is None:

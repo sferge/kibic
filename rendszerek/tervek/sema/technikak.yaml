@@ -117,6 +117,34 @@
   hasznal: [FELSO, "[M]"]
   elfogyaszt: [FELSO, "[M]"]
 
+- technika: LOPAS_ROVID_KEZBEN
+  nev: "Lopás a rövid adus kézben: a hosszú adus kéz vesztőit a rövid adus kéz lopja"
+  # Játékmód: LOPAS_ROVID_KEZBEN (jatekmodok.yaml). A rövid adus kéz lopása plusz
+  # aduütés (a hosszú adus kéz aduit a felső ütések már számolják) — ezért a lopó kéz
+  # legfeljebb annyi adus, mint a partnere (egyenlő adunál bármelyik). Először a
+  # lopó kéz lapjait a felső nyerőkkel elfogyasztjuk (kiadás nélkül: ez még nincs a
+  # kották között), utána a partner kis lapjait lopjuk; a felüllopás az ELLOPÁS
+  # szabályé (a lopó adu, ha minden kint lévőnél nagyobb, nem lopható felül). A
+  # maradék nyerőket a terv lezárása gyűjti be.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    L: "rovid_adu_lopo(SZ)"
+    MK: "partner(L)"
+    N: "kezhossz(L, SZ)"
+    NYERO: "felettunk(SZ, F)"
+    # a lopások száma: ahány vesztője van a partnernek, ahány adója a lopónak — de csak
+    # amennyi a hiányhoz kell (minden fölösleges lopás felüllopási kockázat)
+    R: "min(kezhossz(MK, SZ) - max(N, hossz(NYERO)), adu_kezben(L), max(1, hiany()))"
+  alkalmazhato: ["nem_adu(SZ)", "van(L)", "hossz(NYERO) >= N", "R >= 1"]
+  korok:
+    - {ismetles: "N", fajta: lehiv, lap: NYERO}
+    - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
+  siker: "True"                      # rejtett feltétel nincs: a kockázat a felüllopás (ELLOPÁS)
+  kudarc_koltseg: 0
+  hozam: "R"
+  hasznal: [NYERO]
+  elfogyaszt: [NYERO]
+
 - technika: SZINKEZELES
   nev: "Színkezelés: az egyszínű elemző kezelése (k ütés legfeljebb m vesztéssel)"
   # A kotta és a siker az egyszínű elemzőből jön (motor/tervszinkezeles.py): a
