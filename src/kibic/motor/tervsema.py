@@ -234,6 +234,11 @@ def fogalmak(allas: Allas) -> dict:
     return {
         "legnagyobb_kint": legnagyobb_kint,
         "rovid_adu_lopo": rovid_adu_lopo,
+        "kint_db": lambda sz: len(a.kint_szin(sz)),
+        "fele_felfele": lambda n: -(-n // 2),
+        # a kéz lapjai a színben F alatt, felülről
+        "kicsik_kezben": lambda kez, sz, f: [l for l in a.szin(kez, sz) if f is None or l.rang < f.rang] if kez else [],
+        "elejen": lambda xs, n: list(xs)[:max(0, n)],
         # a hiányzó ütések száma (a cél a felső ütéseken felül)
         "hiany": lambda: max(0, a.cel - sum(a.biztos_utesek(sz) for sz in SZINEK)),
         "min": min,
@@ -419,11 +424,12 @@ class Peldany:
         r = {"EJTES": "ejtés", "IMPASSZ_VILLA": "impassz", "IMPASSZ_ATENGEDES": "impassz",
              "IMPASSZ_ATENGEDES_FELSO_ELOBB": "impassz (felső előbb)",
              "LOPASOS_KIMAGASITAS": "lopásos kimagasítás",
-             "LOPAS_ROVID_KEZBEN": "lopás a rövid kézben"}.get(self.sema.azon, self.sema.azon)
+             "LOPAS_ROVID_KEZBEN": "lopás a rövid kézben",
+             "LOPASOS_KIMAGASITAS_HOSSZ": "lopásos kimagasítás (hosszú lap)"}.get(self.sema.azon, self.sema.azon)
         return f"{'♠♥♦♣'['SHDC'.index(self.szin)]} {r}"
 
     def siker_kornyezet(self) -> dict:
-        return dict(self.szerepek)
+        return dict(self.szerepek, SZ=self.szin)
 
 
 def _lapok(ertek) -> list[Lap]:

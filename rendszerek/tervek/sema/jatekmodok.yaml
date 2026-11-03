@@ -53,7 +53,7 @@
   kiser: [ATMENETEK, VESZELYES_VEDO]
   kizar: [KERESZTLOPAS, ASZTALFORDITAS, VEGJATEK, BESZORITAS]   # a mérésben szinte soha együtt
   fenyeget: ["minden kiadásnál a védők versenyszíne (VEDOI_UTESEK)", "a veszélyes kéz hívásba kerül"]
-  taktika: [SZINKEZELES, LOPASOS_KIMAGASITAS]       # a SZINKEZELES aduval célja is (lopással)
+  taktika: [SZINKEZELES, LOPASOS_KIMAGASITAS, LOPASOS_KIMAGASITAS_HOSSZ]   # a SZINKEZELES aduval célja is
   valtozatok:
     - {nev: SZAN_HOSSZBOL, ha: "szanzadu", megj: "kiengedéssel; a kontrollok száma a döntő"}
     - {nev: LOPASSAL, ha: "színjáték, a rövid kéz lophat", megj: "ruff out; 4Q01 #2 ♠QJ54"}

@@ -117,6 +117,36 @@
   hasznal: [FELSO, "[M]"]
   elfogyaszt: [FELSO, "[M]"]
 
+- technika: LOPASOS_KIMAGASITAS_HOSSZ
+  nev: "Lopásos kimagasítás a hosszú lapokra: előbb a kis lapokat lopjuk, a felső és a hosszú lapok a kiaduzás után"
+  # A szerkesztő (2026-11-03, MB 6♦): „Csak annyit KELL lehívni, ami után a szín már
+  # lopható” — a színhiányos kéz rögtön lophat: a kis lapokat lopjuk (a felüllopás csak
+  # nagyon rossz elosztásnál fenyeget: a lopó mögött ülő védő már az első körökben
+  # színhiányos), és a felső lapokat a hosszú lappal együtt a kiaduzás után hívjuk le
+  # (BEGYUJTES: nincs ellopási kockázat). A lopások száma a legegyenletesebb elosztáshoz
+  # kell (a kint lévők fele felfelé, a felső lapjaink nélkül); ha a védők hosszabb fele
+  # ennél hosszabb, a hosszú lap nem magas — nem hívjuk le (kudarc, vesztés nélkül).
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    L: "rovidebb_adus_kez(SZ)"
+    MK: "partner(L)"
+    FELSO: "felettunk(SZ, F)"
+    R: "fele_felfele(kint_db(SZ)) - hossz(FELSO)"
+    KICSI: "kicsik_kezben(MK, SZ, F)"
+    HOZAM: "kezhossz(MK, SZ) - R - hossz(FELSO)"
+    HOSSZU: "elejen(KICSI, HOZAM)"
+  alkalmazhato: ["nem_adu(SZ)", "van(L)", "kezhossz(L, SZ) == 0", "R >= 1", "HOZAM >= 1",
+                 "adu_kezben(L) >= R", "hossz(felettunk_kezben(MK, SZ, F)) == hossz(FELSO)"]
+  korok:
+    - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
+    - {ismetles: "hossz(FELSO)", fajta: lehiv, lap: FELSO, begyujtes: igen}
+    - {ismetles: "HOZAM", fajta: lehiv, lap: HOSSZU, csak_ha: siker, begyujtes: igen}
+  siker: "max_vedo_hossz(SZ) <= R + hossz(FELSO)"
+  kudarc_koltseg: 0
+  hozam: "HOZAM"
+  hasznal: [FELSO, HOSSZU]
+  elfogyaszt: [FELSO, HOSSZU]
+
 - technika: LOPAS_ROVID_KEZBEN
   nev: "Lopás a rövid adus kézben: a hosszú adus kéz vesztőit a rövid adus kéz lopja"
   # Játékmód: LOPAS_ROVID_KEZBEN (jatekmodok.yaml). A rövid adus kéz lopása plusz
