@@ -860,6 +860,15 @@ def kiertekel(csp: dict, allas: Allas,
         kov = allas.kovetkezo_licit(sz)
         return kov is not None and szint > kov[0]
 
+    if t == "PARTNER_GEM":
+        # a partner utolsó (nem passz) licitje a megállapodott adu gémje volt
+        # (kétség: „a szlem kétséges” — a szerkesztő, 2026-11-03)
+        adu = allas.adu()
+        if adu is None:
+            return False
+        _, lic = allas.utolso_licit(allas.partner)
+        return lic == {"C": "5C", "D": "5D", "H": "4H", "S": "4S"}[adu]
+
     if t == "PARTNER_KULCSLICIT":
         # a partner utolsó (nem passz) licitje kulcslicit volt-e (a
         # propagálás jelöli a licit elemében)
@@ -1388,6 +1397,8 @@ def leiras(csp: dict) -> str:
         return "a partner utolsó licitje ugrás volt"
     if t == "PARTNER_KULCSLICIT":
         return "a partner utolsó licitje kulcslicit volt"
+    if t == "PARTNER_GEM":
+        return "a partner gémet mondott a megállapodott aduban"
     if t == "EROS_UGRAS":
         return "ugrás új színben második megszólalásként (erő, gémforsz)"
     if t == "EN_NYITOTTAM":

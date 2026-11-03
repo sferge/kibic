@@ -219,6 +219,8 @@ def szlemjelleg(kez: Kez, ktx) -> str | None:
     """
     if _adu(ktx) is None:
         return None
+    if _pontos_szlemero(kez, ktx):
+        return "igen"
     # KULCSLICIT-CSERE (a szerkesztő, 2026-11-03): ha a kulcslicitemre (pl.
     # az előlegezett kulcslicitre) a partner kulcslicittel válaszolt, kiderült
     # a jó fit — szlemközeli erővel (asztali pontom + a partner minimuma 30+)
@@ -237,6 +239,44 @@ def szlemjelleg(kez: Kez, ktx) -> str | None:
     if hi is not None and sajat - hi >= 1:
         return "nem"
     return "talan"
+
+
+def _minden_kontroll(kez: Kez, ktx) -> bool | None:
+    """Minden külső színben van kontroll (A, K, sikén, szingli) — a saját
+    lapomban, vagy a partner kulcslicittel mutatta (2026-11-03)."""
+    adu = _adu(ktx)
+    if adu is None:
+        return None
+    partneri = _partner_kulcslicit_szinek(ktx)
+    for sz in ("S", "H", "D", "C"):
+        if sz == adu or sz in partneri:
+            continue
+        lapok = {l.ertek for l in kez.lapok if l.szin == sz}
+        if kez.hossz(sz) > 1 and not lapok & {"A", "K"}:
+            return False
+    return True
+
+
+def _pontos_szlemero(kez: Kez, ktx) -> bool:
+    """Színszlem pontból (a szerkesztő, 2026-11-03): megállapodott adu,
+    minden külső szín kontrollja megvan, lopási lehetőség (nálam vagy a
+    partnernél tudottan 0-1 lapos külső szín), és a pontjaim (az 5+ lapos
+    színek többletével) + a partner ígért minimuma legalább 30. (A szanszlem
+    33 — hosszú szín nélkül; az a hézag-elvben van.)"""
+    adu = _adu(ktx)
+    ig = _partner_igeret(ktx)
+    if adu is None or ig is None or _minden_kontroll(kez, ktx) is not True:
+        return False
+    kulso = [sz for sz in ("S", "H", "D", "C") if sz != adu]
+    lopas = any(kez.hossz(sz) <= 1 for sz in kulso) or \
+        any(ig.hossz(sz)[1] <= 1 for sz in kulso)
+    if not lopas:
+        return False
+    fv = ERTEKELOK.get("HCP")
+    if fv is None:
+        return False
+    hosszpont = sum(max(0, kez.hossz(sz) - 4) for sz in ("S", "H", "D", "C"))
+    return float(fv(kez)) + hosszpont + ig.pont_min >= 30
 
 
 def _kulcslicit_csere(ktx) -> bool:
@@ -290,6 +330,8 @@ def ot_biztos(kez: Kez, ktx, min_pont: float = 30, mod: str | None = None) -> bo
         return None
     fv = ERTEKELOK.get("HCP")
     if fv is not None and float(fv(kez)) + ig.pont_min >= min_pont:
+        return True
+    if _pontos_szlemero(kez, ktx):
         return True
     # kulcslicit-csere után (jó fit) az asztali pont is számít (2026-11-03)
     if _kulcslicit_csere(ktx) and _adu(ktx) is not None:
@@ -867,18 +909,7 @@ def kiertekel(csp: dict, kez: Kez, ktx: Kontextus | None = None) -> bool | None:
         return onallo_adu(kez, sz, float(csp.get("kuszob", ALAP_KUSZOB)))
 
     if t == "KONTROLLOK":          # minden külső színben van kontroll (A, K, sikén, szingli)
-        adu = _adu(ktx)
-        if adu is None:
-            return None
-        # a partner kulcslicittel mutatott kontrollja is számít (2026-11-03)
-        partneri = _partner_kulcslicit_szinek(ktx)
-        for sz in ("S", "H", "D", "C"):
-            if sz == adu or sz in partneri:
-                continue
-            lapok = {l.ertek for l in kez.lapok if l.szin == sz}
-            if kez.hossz(sz) > 1 and not lapok & {"A", "K"}:
-                return False
-        return True
+        return _minden_kontroll(kez, ktx)
 
     if t == "OT_BIZTOS":           # az 5-ös szint biztonságos (sok pont / kevés vesztő)
         return ot_biztos(kez, ktx, float(csp.get("pont", 30)), csp.get("mod"))

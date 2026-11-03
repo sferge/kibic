@@ -948,6 +948,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
         elif k == "partner_ugrott":        # a partner utolsó licitje ugrás volt-e
             n = {"t": "PARTNER_UGROTT"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
+        elif k == "partner_gem":           # a partner gémet mondott a megállapodott aduban
+            n = {"t": "PARTNER_GEM"}
+            gy.append(n if v else {"t": "NEM", "gy": [n]})
         elif k == "partner_kulcslicitelt":  # a partner utolsó licitje kulcslicit volt-e
             n = {"t": "PARTNER_KULCSLICIT"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
@@ -1101,6 +1104,8 @@ def _ha_szoveg(ha) -> str | None:
             reszek.append("a partner ugrott" if v else "a partner nem ugrott")
         elif k == "partner_kulcslicitelt":
             reszek.append("a partner kulcslicitet mondott" if v else "a partner nem mondott kulcslicitet")
+        elif k == "partner_gem":
+            reszek.append("a partner gémet mondott" if v else "a partner nem mondott gémet")
         elif k == "eros_ugras":
             reszek.append("ugrás új színben második megszólalásként (erő)")
         elif k == "en_nyitottam":

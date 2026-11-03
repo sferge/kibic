@@ -98,3 +98,14 @@ def test_rekontra_utan_szabad_licit_emeles():
     # #235: p (1♣) p (1♥) X (XX) 2♦ (p) ?  ♠AQ75 ♥A94 ♦JT63 ♣98 (passzolt
     # lap, maximum, 4 lapos káró): 3♦ (2026-11-03)
     assert _h("AQ75.A94.JT63.98", "P 1C P 1H X XX 2D P", "W") == "3D"
+
+
+def test_kulcslicit_csere_utan_rkc_pontbol():
+    # #175: Dél ♠7 ♥AJ2 ♦A8654 ♣KQT5 („jó 15”) a riverzzel szemben, minden
+    # kontroll megvan, lopás pikkben: nem 4♥, hanem RKC (4♠) — 2026-11-03
+    assert _hm("7.AJ2.A8654.KQT5", "P 1H P 2D P 2S P 3H P 3S P 4C P 4D P", "S") == "4S"
+
+
+def test_4nt_a_partner_4h_je_utan_nem_kulcslicit():
+    # a partner 4♥-je (kétség) után nincs újabb kulcslicit (4NT): RKC vagy passz
+    assert _hm("AKQ3.K6543.KT.82", "P 1H P 2D P 2S P 3H P 3S P 4C P 4D P 4H P", "N") != "4NT"

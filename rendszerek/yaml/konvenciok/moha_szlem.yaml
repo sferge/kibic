@@ -64,7 +64,9 @@ fejezetek:
       - minta: ".. +B"
         kulcs: KL-GEM-FELETT
         fajta: ELV
-        ha: {adu: barmely}
+        # a partner gémje (kétség) után nincs újabb kulcslicit: RKC vagy passz
+        # (a szerkesztő, 2026-11-03)
+        ha: {adu: barmely, partner_gem: false}
         nem_adu: [B]
         licit_felett: gem
         nem_rkc: true

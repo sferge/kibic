@@ -54,7 +54,10 @@ fejezetek:
       # Kőr adu mellett a pikk-kulcslicit a 4NT (a 4♠ az RKC). Gém fölött:
       # ász kell. "Kulcslicitre kulcslicit, ha lehet" (Moha, 2026-10-04):
       # nem kizárt szlemnél a pikk ász birtokában ez a licit.
-      - {minta: ".. 4NT", kulcs: KULCSLICIT-PIKK, fajta: ELV, ha: {adu: H, gemforsz: true},
+      # (a szerkesztő, 2026-11-03: csak a 4♥ HELYETT — átugorva a gémet; a
+      # partner 4♥-je után a 4NT választás a gémek közül, lásd lent)
+      - {minta: ".. 4NT", kulcs: KULCSLICIT-PIKK, fajta: ELV,
+         ha: {adu: H, gemforsz: true, nyers: {t: LICIT_LEGFELJEBB, hatar: "4D"}},
          szlem: nem_kizart, lapok: [SA], forsz: EGY_MENET, prioritas: 4,
          jelentes: {fedo_plusz: 1},
          alert: "Kulcslicit pikkben (a 4♠ az RKC): pikk ász"}
@@ -87,6 +90,13 @@ fejezetek:
       - {minta: ".. 4NT", kulcs: ASZKERDES-MINOR, fajta: ELV, ha: {adu: minor},
          szlem: nem_kizart, dontesi_mod: MERLEGELO, prioritas: 4,
          alert: "Opcionális ászkérdés és szleminvit (passzolható)"}
+
+      # a partner 4♥-je után a 4NT nem kulcslicit, hanem választás a gémek
+      # közül: szanban játszanánk (a szerkesztő, 2026-11-03). A kibic maga nem
+      # mondja (csak megértés).
+      - {minta: ".. 4NT", kulcs: VALASZTAS-4NT, fajta: ELV, ha: {adu: H, partner_gem: true},
+         jelentes: {csak_megertes: true}, prioritas: 6,
+         magyarazat: "Választás a gémek közül: szanban játszanék (passzolható)"}
 
   - fejezet: Válasz — kőr adu (4♠ kérdés)
     szabalyok:
