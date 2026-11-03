@@ -90,6 +90,9 @@ class Igeret:
     # KVÁZI GÉMFORSZ (2026-10-05, Moha 1M-2m): a gémforsz eddig a licitig
     # kötelez (pl. "4C": a 4-es szint, 4 minor már passzolható)
     gf_hatar: str | None = None
+    # volt-e VALÓDI (határ nélküli) gémforsz licitje — ezt egy későbbi kvázi
+    # gémforsz határa nem szünteti meg (a szerkesztő, 2026-11-03)
+    gf_valodi: bool = False
     # NEGYEDIK SZÍN = HELP: a szín, amelyben fogást kért (nincs fogása)
     help_szin: str | None = None
     # TÖBBÉRTELMŰ LICITEK (2026-10-21): licitenként a lehetséges jelentések
@@ -330,6 +333,9 @@ class Allas:
         KVÁZI GÉMFORSZ: a vonal gémforsza csak egy licitig (pl. 4♣-ig, azaz 4
         minorig) kötelez — ha a menet elérte, a gémforsz teljesült.
         """
+        if any(getattr(self.kenyszertar.get(u), "gf_valodi", False)
+               for u in (self.ules, self.partner)):
+            return False               # valódi gémforsz: a kvázi határa nem szünteti meg
         hatarok = [_licit_rang(str(ig.gf_hatar)) for u in (self.ules, self.partner)
                    if (ig := self.kenyszertar.get(u)) is not None
                    and getattr(ig, "gf_hatar", None)]
@@ -1069,6 +1075,11 @@ def kiertekel(csp: dict, allas: Allas,
         # Gémforszban vagyunk-e: volt-e a vonalunkon gémforsz licit?
         if not allas.kenyszertar:
             return None
+        if csp.get("valodi"):
+            # VALÓDI (határ nélküli) gémforsz a vonalon (a szerkesztő, 2026-11-03)
+            van = any(getattr(allas.kenyszertar.get(u), "gf_valodi", False)
+                      for u in (allas.ules, allas.partner))
+            return van if csp.get("ertek", True) else not van
         van = any(getattr(allas.kenyszertar.get(u), "gemforsz", False)
                   for u in (allas.ules, allas.partner))
         # KVÁZI gémforsz: a határ (pl. 4m) elérésével megszűnik (a
@@ -1429,6 +1440,8 @@ def leiras(csp: dict) -> str:
                 "minor": "megállapodott minor adu mellett"}.get(
                     f, "megállapodott adu mellett")
     if t == "GEMFORSZ":
+        if csp.get("valodi"):
+            return "valódi (nem kvázi) gémforszban"
         return "gémforszban" if csp.get("ertek", True) else "nem gémforszban"
     if t == "FOGASMUTATAS":
         fm = csp.get("fit_min", 8)

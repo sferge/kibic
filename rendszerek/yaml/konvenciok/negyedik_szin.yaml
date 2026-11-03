@@ -40,11 +40,14 @@ fejezetek:
 
   - fejezet: "Válasz a negyedik színre (lapleírás)"
     szabalyok:
+      # valódi gémforszban a 4m-es összeemelés nem lapleírás, hanem ORKC (RKC)
       - {minta: ".. nA +B", kulcs: NEGYEDIK-TAMOGAT-5, fajta: ELV, prioritas: 6,
-         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 5}}, kulonbozo: [A, B], hossz: {B: 3+},
+         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 5},
+             nyers: {t: VAGY, gy: [{t: NEM, gy: [{t: GEMFORSZ, ertek: true, valodi: true}]}, {t: LICIT_LEGFELJEBB, hatar: "3NT", sajat: true}]}}, kulonbozo: [A, B], hossz: {B: 3+},
          magyarazat: "Lapleírás: támogatás (3+) a partner ötös színéhez"}
       - {minta: ".. nA +B", kulcs: NEGYEDIK-TAMOGAT-4, fajta: ELV, prioritas: 6,
-         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 4}}, kulonbozo: [A, B], hossz: {B: 4+},
+         ha: {adu: nincs, partner_negyedik: true, partner_szin: {B: 4},
+             nyers: {t: VAGY, gy: [{t: NEM, gy: [{t: GEMFORSZ, ertek: true, valodi: true}]}, {t: LICIT_LEGFELJEBB, hatar: "3NT", sajat: true}]}}, kulonbozo: [A, B], hossz: {B: 4+},
          magyarazat: "Lapleírás: 4 lapos támogatás a partner színéhez"}
       # A szan-válasz a TELJES laperőt mutatja (a szerkesztő, 2026-10-23):
       # * ha a legolcsóbb szan 3NT alatt van, és gémforszban vagyunk, a

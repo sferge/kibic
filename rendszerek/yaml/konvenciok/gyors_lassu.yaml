@@ -34,7 +34,9 @@ fejezetek:
       - minta: ".. +A"
         kulcs: GYORS-LASSU-LASSU
         fajta: ELV
-        ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5}}
+        # valódi gémforszban a minor 4-es szintű lassú emelése az ORKC (RKC)
+        ha: {gemforsz: true, adu: nincs, partner_szin: {A: 5},
+             nyers: {t: VAGY, gy: [{t: NEM, gy: [{t: GEMFORSZ, ertek: true, valodi: true}]}, {t: LICIT_LEGFELJEBB, hatar: "3NT", sajat: true}]}}
         hossz: {A: 3+}
         licit_alatt: {gem: A}
         vagy: [{igeret: {pont: felso}}, {vesztok: 0-6.5}]

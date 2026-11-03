@@ -902,7 +902,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
         elif k == "gemforsz":              # gémforszban vagyunk-e
             # `volt`: volt gémforsz a vonalon (a kvázi gémforsz határától
             # függetlenül — pl. a gémforsz megszűnésének elve, KENYSZER)
+            # `valodi`: határ nélküli (nem kvázi) gémforsz (2026-11-03)
             gy.append({"t": "GEMFORSZ", "ertek": True, "volt": True} if v == "volt"
+                      else {"t": "GEMFORSZ", "ertek": True, "valodi": True} if v == "valodi"
                       else {"t": "GEMFORSZ", "ertek": bool(v)})
         elif k == "partner_gi":            # a partner utolsó licitje géminvit
             n = {"t": "PARTNER_GI"}
