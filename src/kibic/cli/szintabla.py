@@ -36,7 +36,7 @@ def gyujt(utak: list[str]) -> dict:
     """kulcs → előfordulás (a felvevő és az asztal minden színe)."""
     from .jatekmeres import fajlok_kibontasa, partik_fajlbol
     db: dict = {}
-    for p in partik_fajlbol(fajlok_kibontasa(utak, ".pbn"), "IMP"):
+    for p in partik_fajlbol(fajlok_kibontasa(utak, ".pbn"), "IMP", min_lapok=0):
         k = p.kontraktus
         if k is None:
             continue

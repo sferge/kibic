@@ -10,6 +10,9 @@ másikon mérünk.
     --alap   az alapjáték esélye a küszöbhöz: mod = a módok közös modellje (alap),
              tabla = a színtáblázat (rangsor3), tempo = a táblázat a vesztésekkel
     --mind   minden mód jelölt (a felismerő szabályok nélkül)
+    --bbo [könyvtár]  a BBO „Hand of the day” ellenőrzött címkéi (bbo_cimkek.tsv) független
+             próbaként: a Pavlicek-partikon tanul, a BBO-partikon mér (alap: tanpartik/bbo_hotd;
+             előtte a színtáblázat ezekre is: szintabla --pbn tanpartik/bbo_hotd --kimenet)
     --kalibral  a módok nem a nyereségük nagysága szerint, hanem a nyereségük sávjához
              tartozó mért pontosság szerint jönnek (a tanuló félen mérve); az alapjáték is
              így, az esélye sávja szerint — a küszöbök helyett
@@ -98,6 +101,22 @@ def rang_kal(jel, pa, ny, kal):
     return sorted(["ALAPJATEK"] + list(jel), key=lambda m: -pont(m))
 
 
+def bbo_partik(konyvtar=None):
+    """(parti, {mód}) a bbo_cimkek.tsv ellenőrzött címkéivel."""
+    from kibic.cli.jatekmeres import partik_fajlbol
+    konyvtar = Path(konyvtar or GYOKER / "tanpartik" / "bbo_hotd")
+    for sor in (Path(__file__).parent / "bbo_cimkek.tsv").read_text().splitlines():
+        if not sor or sor.startswith("#"):
+            continue
+        fn, m = sor.split("\t")
+        ut = konyvtar / fn
+        if not ut.exists():
+            continue
+        for p in partik_fajlbol([str(ut)], "IMP", min_lapok=0):
+            yield p, set(m.split(","))
+            break
+
+
 def main():
     from kibic.domain import kovetkezo_ules
     from kibic.motor import terv as tv
@@ -111,9 +130,15 @@ def main():
     except Exception:              # noqa: BLE001
         tar = {}
     adat, feladat = [], []
-    for p, c in partik_cimkekkel():
+    bbo = []
+    if "--bbo" in sys.argv:
+        i = sys.argv.index("--bbo")
+        kv = sys.argv[i + 1] if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("--") else None
+        bbo = [(p, ms, "B") for p, ms in bbo_partik(kv)]
+    forras = [(p, (modok(c) if c is not None else None), "P") for p, c in partik_cimkekkel()] + bbo
+    for p, cimke, fo in forras:
         h = tv.helyzet_partibol(p)
-        if c is None or h is None:
+        if cimke is None or h is None:
             continue
         g, _ = tv.jellemzok(h)
         k = p.kontraktus
@@ -131,7 +156,7 @@ def main():
         kulcs = (deal_szoveg(p), k.felvevo, k.szint, k.szin)
         sz = szabalyok(h, g, tv.felismeres(sorok, h))
         jel = [m for m in SPEC if mind or sz.get(m)]
-        adat.append([kulcs, jel, modok(c), pa])
+        adat.append([kulcs, jel, cimke, pa, fo])
         if kulcs not in tar:
             feladat.append((kulcs, (D, U, None if k.szin == "NT" else k.szin, 6 + k.szint)))
     n = len(adat)
@@ -148,13 +173,14 @@ def main():
                     el = time.time() - t0
                     print(f"  {i+1}/{len(feladat)}  {el:.0f} s  (még kb. {el/(i+1)*(len(feladat)-i-1):.0f} s)",
                           flush=True)
-    sor = []
-    for kulcs, jel, ms, pa in adat:
+    sor, sor_b = [], []
+    for kulcs, jel, ms, pa, fo in adat:
         e = tar[kulcs]
         if pa is None:
             pa = e["ALAP"]
         ny = {m: (e[m][1] if m in e else 0.0) for m in SPEC}
-        sor.append((jel, ms, pa, ny))
+        (sor if fo == "P" else sor_b).append((jel, ms, pa, ny))
+    n = len(sor)
 
     # a nyereség a címke szerint
     kt = tsz.kimenet_tabla()
@@ -215,6 +241,41 @@ def main():
                 print(f"  {m:16s} " + "  ".join(f"{b}:{v:.2f}" for b, v in sorok_))
     for m, (d, a2) in sorted(modonkent.items(), key=lambda x: -x[1][0]):
         print(f"  {m:16s} {d:5d}  az első kettőben {100*a2/d:4.0f}%")
+    if sor_b:
+        bbo_meres(sor, sor_b, pontossag, ertek)
+
+
+def bbo_meres(sor, sor_b, pontossag, ertek):
+    """A Pavlicek-partikon tanul (az összesen), a BBO-partikon mér."""
+    nb = len(sor_b)
+    print(f"\n=== BBO próba: {nb} ellenőrzött parti (a Pavlicek-partikon tanulva) ===")
+    lef = sum(1 for j, ms, _, _ in sor_b if set(j) & ms)
+    print(f"a címke módja a jelöltek közt: {100*lef/nb:.0f}%")
+    print(f"{'címke':16s} {'db':>4} " + " ".join(f"{m[:6]:>7s}" for m in SPEC[:6]))
+    for cim in SPEC:
+        r = [x for x in sor_b if cim in x[1]]
+        if r:
+            print(f"{cim:16s} {len(r):4d} " + " ".join(f"{sum(x[3][m] for x in r)/len(r):7.3f}" for m in SPEC[:6]))
+    pont = pontossag(sor)
+    nulla = {m: 0.0 for m in SPEC}
+    valt = [("a szabályok pontossága szerint (nyereség nélkül)", lambda j, pa, ny: rang(j, pa, nulla, pont, 0.0, 0.0))]
+    ku, nyk = max(((q, d) for q in KUSZOBOK for d in NYERESEG_KUSZOB), key=lambda x: ertek(sor, pont, *x))
+    valt.append((f"a nyereség szerint (küszöbök {ku} / {nyk})", lambda j, pa, ny: rang(j, pa, ny, pont, ku, nyk)))
+    kal = kalibral(sor)
+    valt.append(("kalibrálva", lambda j, pa, ny: rang_kal(j, pa, ny, kal)))
+    for nev, f in valt:
+        e = [0, 0, 0]
+        modonkent = collections.defaultdict(lambda: [0, 0])
+        for j, ms, pa, ny in sor_b:
+            r = f(j, pa, ny)
+            for i in range(3):
+                e[i] += bool(set(r[:i + 1]) & ms)
+            for m in ms:
+                modonkent[m][0] += 1
+                modonkent[m][1] += m in r[:2]
+        print(f"\n{nev}: első hely {100*e[0]/nb:.0f}%, első kettő {100*e[1]/nb:.0f}%, első három {100*e[2]/nb:.0f}%")
+        print("   " + ", ".join(f"{m} {100*a/d:.0f}% ({d})" for m, (d, a) in
+                                sorted(modonkent.items(), key=lambda x: -x[1][0])))
 
 
 if __name__ == "__main__":
