@@ -297,5 +297,9 @@ def test_szlemjelleg_szamitasa():
     ktx = Kontextus(allas=allas)
     # a partner egyszerű emelése: 2-3,75 fedő
     assert szlemjelleg(Kez.pbn_bol("AKQJ2.AKQ.AK2.2"), ktx) == "igen"     # 2 vesztő: 2-2 < 1
-    assert szlemjelleg(Kez.pbn_bol("AKQ32.AK2.AK2.2"), ktx) == "talan"    # 3 vesztő
+    # 3 vesztő ("talán" a vesztőkből), de 24 + 1 + 6 = 31 pont, szingli treff,
+    # minden kontroll: színszlem pontból (a szerkesztő, 2026-11-03)
+    assert szlemjelleg(Kez.pbn_bol("AKQ32.AK2.AK2.2"), ktx) == "igen"
+    # lopási lehetőség (0-1 lapos külső szín) nélkül marad a vesztőszámítás
+    assert szlemjelleg(Kez.pbn_bol("AKQ32.AK2.AK.432"), ktx) == "talan"
     assert szlemjelleg(Kez.pbn_bol("AKQ32.AK2.A32.32"), ktx) == "nem"     # 5 - 3,75 >= 1
