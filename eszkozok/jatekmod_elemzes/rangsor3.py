@@ -15,12 +15,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 from rangsor import GYOKER, modok, partik_cimkekkel                      # noqa: E402
 from rangsor2 import szabalyok                              # noqa: E402
 
-KUSZOBOK = [0.0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01]
+KUSZOBOK = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01]
 
 
 def rang(sz, p_alap, pont, kuszob):
     spec = sorted((m for m, v in sz.items() if v and m != "ALAPJATEK"), key=lambda m: -pont.get(m, 0))
-    return (["ALAPJATEK"] + spec) if p_alap >= kuszob else (spec[:1] + ["ALAPJATEK"] + spec[1:])
+    # ha az alapjáték esélye kicsi, a két legjobb speciális mód kerül előre (az
+    # alapjáték csak a harmadik)
+    return (["ALAPJATEK"] + spec) if p_alap >= kuszob else (spec[:2] + ["ALAPJATEK"] + spec[2:])
 
 
 def main():
@@ -76,7 +78,7 @@ def main():
         tes = [x for i, x in enumerate(adat) if i % 2 != fold]
         pont = pontossag(tan)
         ku = max(KUSZOBOK, key=lambda q: ertek(tan, pont, q))
-        print(f"  {fold}. fél: a választott küszöb {ku}")
+        print(f"  {fold}. fél: a választott küszöb {ku}  (az alapjáték e alatt a harmadik helyre kerül)")
         for sz, ms, pa in tes:
             r = rang(sz, pa, pont, ku)
             e1 += r[0] in ms
