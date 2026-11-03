@@ -651,39 +651,50 @@ class Ertekelo:
         if self.ut is not None:
             self.ut.append(("elemzo", p, self._utolso_elemzes))
         sz = p.szin
-        # az állapot utána: a szín lapjaink elfogynak; a lopások és az átmenetek
-        # (a legrosszabb tartás szerint) a legkisebb adut / a legolcsóbb nyerőt viszik
-        kezek = {k: set(v) for k, v in st.kezek}
-        max_lop = max((getattr(k, "lopas", 0) for k in kim.values()), default=0)
-        max_ax = max((k.atm_x for k in kim.values()), default=0)
-        max_ay = max((k.atm_y for k in kim.values()), default=0)
         aduval = bool(p.szerepek.get("aduval"))
         kivett = {sz, self.a.adu} if aduval else {sz}
-        for k in kezek:
-            kezek[k] = {l for l in kezek[k] if l.szin not in kivett}
-        if max_lop and self.a.adu and not aduval:
-            lopo = self.a.felvevo if p.szerepek.get("lop_x") else self.a.asztal
-            adu = sorted((l for l in kezek[lopo] if l.szin == self.a.adu), key=lambda l: l.rang)
-            kezek[lopo] -= set(adu[:max_lop])
         foglalt = self._foglalt(ti, 0) - p.hasznal
-        for kez, db in ((self.a.felvevo, max_ax), (self.a.asztal, max_ay)):
-            jelolt = sorted((l for l in kezek[kez] if l.szin not in kivett and l not in foglalt),
-                            key=lambda l: (l.szin == self.a.adu, l.rang))
-            nyerok = [l for l in jelolt if not self.a.kint_szin(l.szin)
-                      or l.rang > self.a.kint_szin(l.szin)[0].rang]
-            kezek[kez] -= set(nyerok[:db])
-        korok = dict(st.korok)
-        korok[sz] = korok.get(sz, 0) + max((k.utes + k.vesztes + getattr(k, "lopas", 0) for k in kim.values()), default=0)
-        st2 = Allapot(tuple(sorted((k, frozenset(v)) for k, v in kezek.items())),
-                      tuple(sorted(korok.items())), self.a.felvevo,
-                      st.kiaduzva or sz == self.a.adu or aduval)
-        ok, tovabb = 0.0, []
+        allapotok: dict = {}
+
+        def utana(lop: int, ax: int, ay: int, korszam: int) -> Allapot:
+            """Az állapot a szín után ABBAN a kimenetben, amelyben `lop` lopás és
+            ax/ay átmenet kellett (2026-11-03: eddig a legrosszabb tartás szerint
+            minden kimenetre — így egy próba-szín, amely rossz elosztásnál korán
+            abbamarad, a további technikák átmeneteit is elvitte). A szín lapjaink
+            elfogynak; a lopások a legkisebb adut, az átmenetek a legolcsóbb nyerőt
+            viszik."""
+            kk = (lop, ax, ay, korszam)
+            if kk in allapotok:
+                return allapotok[kk]
+            kezek = {k: set(v) for k, v in st.kezek}
+            for k in kezek:
+                kezek[k] = {l for l in kezek[k] if l.szin not in kivett}
+            if lop and self.a.adu and not aduval:
+                lopo = self.a.felvevo if p.szerepek.get("lop_x") else self.a.asztal
+                adu = sorted((l for l in kezek[lopo] if l.szin == self.a.adu), key=lambda l: l.rang)
+                kezek[lopo] -= set(adu[:lop])
+            for kez, db in ((self.a.felvevo, ax), (self.a.asztal, ay)):
+                jelolt = sorted((l for l in kezek[kez] if l.szin not in kivett and l not in foglalt),
+                                key=lambda l: (l.szin == self.a.adu, l.rang))
+                nyerok = [l for l in jelolt if not self.a.kint_szin(l.szin)
+                          or l.rang > self.a.kint_szin(l.szin)[0].rang]
+                kezek[kez] -= set(nyerok[:db])
+            korok = dict(st.korok)
+            korok[sz] = korok.get(sz, 0) + korszam
+            st2 = Allapot(tuple(sorted((k, frozenset(v)) for k, v in kezek.items())),
+                          tuple(sorted(korok.items())), self.a.felvevo,
+                          st.kiaduzva or sz == self.a.adu or aduval)
+            allapotok[kk] = st2
+            return st2
+
+        ok = 0.0
+        tovabb: dict = {}                      # állapot → a folytatandó esetek
         for e in esetek:
             for (hozam, koltseg, lop, ax, ay), arany in self._szk_eloszlas(p, e.o, tart, kim).items():
+                korszam = hozam + self.h.biztos.get(sz, 0) + koltseg + lop
                 # ELLOPÁS a mellékszín köreire, amíg a védőknél adu van (durva közelítés:
                 # ha egy védő a kör előtt színhiányos és van adója, a hozam elvész)
                 if self.kockazat and self.a.adu and sz != self.a.adu and not st.kiaduzva and not aduval:
-                    korszam = hozam + self.h.biztos.get(sz, 0) + koltseg + lop
                     if any(e.o.kezhossz(x, sz) < korszam and self.adu_maradek(e.o, x, st) > 0
                            for x in self.vedok):
                         hozam, koltseg = 0, koltseg + 1
@@ -694,16 +705,17 @@ class Ertekelo:
                     continue
                 uj = Eset(e.o, e.w * arany, vesz.tartalek, e.hiany - hozam,
                           e.megfigyelt + ((ti, hozam, koltseg),), vesz.bejutas)
+                st2 = utana(lop, ax, ay, korszam)
                 if uj.hiany <= 0:
                     if self._lezaras(uj, st2):
                         ok += uj.w
                         if self.ut is not None:
                             self.ut.append(("siker", p.rovid))
                     continue
-                tovabb.append(uj)
+                tovabb.setdefault(st2, []).append(uj)
         if self.naplo is not None:
             self.naplo.append(f"színkezelés {p.rovid}")
-        return ok + self.futtat(tovabb, ti + 1, 0, st2)
+        return ok + sum(self.futtat(es, ti + 1, 0, st2) for st2, es in tovabb.items())
 
     def _lezaras(self, e: Eset, st: Allapot) -> bool:
         """A cél megvan; a maradék (biztos ütések) begyűjthető-e úgy, hogy a védők

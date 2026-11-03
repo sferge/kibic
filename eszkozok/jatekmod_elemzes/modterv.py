@@ -13,6 +13,7 @@ A kimenet: melyik terv nyer, az esélyek (kockázattal), az idők és az elemzé
     PYTHONPATH=src python3 eszkozok/jatekmod_elemzes/modterv.py --pbn <Pavlicek PBN> \\
         [--bbo tanpartik/bbo_hotd] [--mod LOPAS_ROVID] [--kontroll 20] [--max N] [--kimenet modterv.tsv]
 
+--pontos: a drága tervek pontosan is (lassú: partinként akár órák); alapból becsléssel.
 --mod: a vizsgált mód (a címke); --kontroll: ennyi alapjáték-címkés színjáték-parti is
 (azon nem szabad rontania). A tervező elemzései a közös tárba kerülnek: a B és a C
 már az A elemzéseiből is dolgozik — az idők közül az A-é a hideg idő.
@@ -68,7 +69,9 @@ def tervezes(allas, csak):
     from kibic.motor.tervezo import tervez
     stat = {}
     t = time.time()
-    _, ert = tervez(allas, csak=csak, stat=stat)
+    # alapból a drága (adu + szín együtt) tervek csak becsléssel: a 13 lapos pontos
+    # számítás partinként órákig tart (a szerkesztő mérése, 2026-11-03)
+    _, ert = tervez(allas, csak=csak, stat=stat, draga_pontos="--pontos" in sys.argv)
     v = ert[0] if ert else None
     return (v.terv.nev if v else "-", v.kockazattal if v else 0.0, time.time() - t,
             stat.get("elemzes_szamolt", 0))

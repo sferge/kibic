@@ -336,8 +336,13 @@ class Elemzo:
             v = self._utes(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, kulcs)
             if v[0] > legjobb[0]:
                 legjobb, akc = v, (hivo, c)
-        if akc is None:
-            legjobb = (0.0, frozenset())
+        if akc is None or legjobb[0] <= 0:
+            # 2026-11-03: ha a látott lapokkal egyetlen még lehetséges tartáson sem érhető
+            # el a cél, a felvevő abbahagyja a színt (nincs döntés: a kimenet itt véget ér,
+            # a maradékból csak a biztos nyerők) — eddig az első (tetszőleges) hívást
+            # játszotta tovább, és a próba-színek kudarca fölösleges vesztést hozott (a
+            # tervező így nem folytathatta a következő technikával)
+            legjobb, akc = (0.0, frozenset()), None
         self._memo[kulcs] = legjobb
         self.dontes[kulcs] = akc
         return legjobb
