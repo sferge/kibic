@@ -466,9 +466,10 @@ a legolcsóbb minor-fit (4m), és arra a HELP-kérő passzolhat (15 pontig).
 tehát a 3♥ fogás); erre a partner kétes káró-fogással és dubló pikkel 3♠-t
 mondhat. Kőr és pikk felcserélve ez nem működik: ott 3M.
 
-**Kvázi gémforsz.** Az 1M-2♣/2♦ gémforsz csak 4 minorig kényszerít: ha a
-licit eljutott a 4♣-ig, a hézag-elv már nem tekinti kényszerítőnek a
-helyzetet (passz is lehet). Ezen felül a hézag-elv a gémforszban fékez: ha a
+**Kvázi gémforsz.** ~~Az 1M-2♣/2♦ gémforsz csak 4 minorig kényszerít.~~
+(2026-11-03, a szerkesztő: TÉVES volt — az 1M-2♣ / 1M-2♦ VALÓDI gémforsz.
+Kvázi gémforsz a negyedik szín: 4 minorig kényszerít; ha a licit eljutott a
+4♣-ig, a hézag-elv már nem tekinti kényszerítőnek a helyzetet.) Ezen felül a hézag-elv a gémforszban fékez: ha a
 partner sávjának nincs felső határa, de már legalább kétszer licitált, a
 felső határ legfeljebb a minimum + 4 (`GF_FEKEZES`) — a 37 pontos „F” így
 nem jön ki, ha a partner a harmadik körben fékezett.

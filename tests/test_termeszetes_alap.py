@@ -120,8 +120,10 @@ def test_exclusion_valasz_csak_ugrasra():
     assert _licit_r("KQT.AQ986.T92.93", menet, "N", "N") == "5NT"
 
 
-def test_kvazi_gemforsz_a_4m_nel_megszunik():
-    assert _licit_r("5.AJ732.KJ3.K754", "1H P 2D P 2H P 4D P", "N", "N") == "P"
+def test_2per1_valodi_gemforsz_a_4m_nel_sem_szunik_meg():
+    # 2026-11-03 (a szerkesztő): az 1M-2m VALÓDI gémforsz — a 4♦-nél nincs passz
+    # (a 2026-10-05-i „4 minorig” határ téves volt)
+    assert _licit_r("5.AJ732.KJ3.K754", "1H P 2D P 2H P 4D P", "N", "N") != "P"
 
 
 def test_egyre_ketto_kozbeszolas_utan_varakozo():
@@ -167,8 +169,10 @@ def test_felmentes_kontra(kez, menet, ules, oszto, zona, vart):
     assert _licit_r(kez, menet, ules, oszto, zona=zona) == vart
 
 
-def test_kvazi_gf_hataran_minimummal_passz():
-    assert _licit_r("Q.KQJ2.AJ543.T43", "1S P 2D P 2S P 3H P 4D P", "S", "N") == "P"
+def test_2per1_utan_a_4m_orkc():
+    # 2026-11-03: valódi gémforszban (1♠-2♦) az összeemelt 4♦ ORKC — a
+    # válaszoló a lépcsők szerint felel (1 kulcslap, nem tetszik: 4NT)
+    assert _licit_r("Q.KQJ2.AJ543.T43", "1S P 2D P 2S P 3H P 4D P", "S", "N") == "4NT"
 
 
 # --- 2026-10-21 (6.): a Michaels teljes válaszrendje (Michaels.pdf) -----------

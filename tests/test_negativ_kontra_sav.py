@@ -115,6 +115,8 @@ def test_orkc_osszeemeles_gemforszban():
     # 2026-11-03: p 1♥ p 2♦ (2/1, valódi GF) p 3♣ p 3♠ (negyedik szín) p — a
     # 4♦ összeemelés valódi gémforszban ORKC; a válaszoló 1. lépcsője (4♥)
     # „tetszik”, a 4♠ relé-kulcslapkérdés
-    assert _hm("2.AK842.Q54.K752", "P 1H P 2D P 3C P 3S P", "N") == "4D"
+    # Észak (12 pont, 6,5 vesztő) erőfeltétele nem elég az ORKC-hoz: 5♦ (gyors)
+    assert _hm("2.AK842.Q54.K752", "P 1H P 2D P 3C P 3S P", "N") == "5D"
+    # de ha 4♦-et mond, az ORKC, és a 4♥ „tetszik”
     assert _hm("K4..AKJT96.AJ863", "P 1H P 2D P 3C P 3S P 4D P", "S") == "4H"
     assert _hm("2.AK842.Q54.K752", "P 1H P 2D P 3C P 3S P 4D P 4H P", "N") == "4S"
