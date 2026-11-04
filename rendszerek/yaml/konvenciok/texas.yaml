@@ -8,7 +8,7 @@ rendszer:
 fejezetek:
   - fejezet: Texas
     szabalyok:
-      # a 6+ lapos nemes pontja a szan ellen: + szingli 1 / renonsz 2, + 1 az
+      # a 6+ lapos nemes pontja a szan ellen: + szingli 1 / sikén 2, + 1 az
       # A/K-ért a színben (nt_pont; a szerkesztő, 2026-10-31)
       - {minta: 1NT-4D, pont: 7-13, nt_pont: 10-13, hossz: {H: 6+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 59,
          alert: "Texas-transzfer: 6+ kőr, gém", nyers: "4♦! | Texas transzfer; 6+ kőr; GF"}

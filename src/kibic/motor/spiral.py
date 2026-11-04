@@ -30,7 +30,7 @@ A kérdező döntése (a gép mostani elve):
     válaszoló mondja a szlemet (a szerkesztő, 2026-10-05);
   * 2+ hiányzó kulcslap: leállás 5m-ben (ha a válasz épp az: passz);
     minor adunál 4NT-ben, ha a tudott fit legfeljebb 8 lapos, a vonal
-    már licitált szant, és a kérdezőnek nincs renonsza, az adu nála
+    már licitált szant, és a kérdezőnek nincs sikénje, az adu nála
     legfeljebb 5 lapos (2026-10-23); a 4NT-re a válaszoló többlethosszal
     és nem szan jellegű lappal 5m-re javít;
   * 1 hiányzó kulcslap: kis szlem, ha az adu dáma megvan (vagy 10+ adu);
@@ -377,7 +377,7 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     # (a 4NT reális alternatíva).
     mi_szan = any(e.get("ules") in mieink and str(e.get("licit", "")).upper() in
                   ("1NT", "2NT", "3NT") for e in licitek[:i_v])
-    # A saját lapom se zárja ki a szant: nincs renonszom, és az adu
+    # A saját lapom se zárja ki a szant: nincs sikénem, és az adu
     # legfeljebb 5 lapos nálam (hosszú minorral / renonsszal az 5m a reális).
     szan_jellegu = all(kez.hossz(sz) >= 1 for sz in _KULSO_RENDBEN) and kez.hossz(adu) <= 5
     szan_leallas = adu in ("C", "D") and adu_hossz <= 8 and mi_szan and szan_jellegu
