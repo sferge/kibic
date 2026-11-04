@@ -274,6 +274,7 @@ class Utkozes:
     mintak: tuple[str, ...]
     db: int
     pelda: str
+    sor_idk: tuple[int, ...] = ()      # az ütköző sorok licitmenet_id-je
 
 
 @dataclass
@@ -288,6 +289,7 @@ class CheckEredmeny:
     eldonthetetlen: int = 0
     sorrendi_felulirasok: list[str] = field(default_factory=list)
     hibas_mintak: list[str] = field(default_factory=list)
+    vizsgalt_idk: set[int] = field(default_factory=set)   # licitmenet_id-k
 
     @property
     def rendben(self) -> bool:
@@ -326,7 +328,11 @@ class CheckEredmeny:
 
 def ellenoriz(sorok: list[Sor], paramtar=None, kez_db: int = 200,
               mag: int = 1, max_proba: int = 60000,
-              feloldas: Feloldas | None = None) -> CheckEredmeny:
+              feloldas: Feloldas | None = None,
+              csak_sorok: set[int] | None = None) -> CheckEredmeny:
+    """`csak_sorok`: csak azokat a helyzeteket vizsgálja, ahol ezek közül
+    (licitmenet_id) legalább egy sor illeszkedik — az automatikus
+    elfogadás így csak az új sorok helyzeteit méri."""
     rnd = random.Random(mag)
     er = CheckEredmeny()
     if feloldas is not None:
@@ -353,6 +359,9 @@ def ellenoriz(sorok: list[Sor], paramtar=None, kez_db: int = 200,
         reteg = [(m, s) for m, s in motor_teljes.szabalyok
                  if Licitmotor._elozmeny_illesztes(m, elozmeny) is not None]
         if not reteg:
+            continue
+        if csak_sorok is not None and not any(
+                s.licitmenet_id in csak_sorok for _, s in reteg):
             continue
         er.helyzet_db += 1
         motor = Licitmotor([], rendszer_kontextus(paramtar), mod="MERLEGELO")
@@ -394,7 +403,8 @@ def ellenoriz(sorok: list[Sor], paramtar=None, kez_db: int = 200,
                 licitek = (also,)
             if len(licitek) > 1:
                 mintak = tuple(sorted({j.sor.minta for j in elol}))
-                utk[(licitek, mintak)].append(k)
+                utk[(licitek, mintak)].append((k, tuple(sorted(
+                    {j.sor.licitmenet_id for j in elol}))))
             else:
                 for j in elol:
                     nyert[id(j.sor)] += 1
@@ -403,13 +413,16 @@ def ellenoriz(sorok: list[Sor], paramtar=None, kez_db: int = 200,
                     if rang(j) != legjobb:
                         legyozte[id(j.sor)][gyoztes] += 1
         for (licitek, mintak), kl in utk.items():
+            k0 = kl[0][0]
+            idk = tuple(sorted({i for _, x in kl for i in x}))
             er.utkozesek.append(Utkozes(kulcs, licitek, mintak, len(kl),
-                                        kl[0].pbn() if hasattr(kl[0], "pbn")
-                                        else str(kl[0])))
+                                        k0.pbn() if hasattr(k0, "pbn")
+                                        else str(k0), idk))
 
     for _, s in motor_teljes.szabalyok:
         if id(s) not in vizsgalt:
             continue
+        er.vizsgalt_idk.add(s.licitmenet_id)
         nev = f"{s.minta}  [{s.rendszer_kod}]"
         if teljesult[id(s)] == 0:
             er.nem_teljesult.append(nev)

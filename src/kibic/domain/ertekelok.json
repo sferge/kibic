@@ -1,7 +1,7 @@
 {
  "AP_321": {
   "kontextus": "SZINTALALKOZAS",
-  "leiras": "HCP + renonsz 3 / szingli 2 / dubló 1",
+  "leiras": "HCP + sikén 3 / szingli 2 / dubló 1",
   "nev": "Asztali pont (3-2-1)",
   "tagok": [
    {
@@ -205,7 +205,7 @@
  },
  "HOSSZ_NT": {
   "kontextus": "SZINTALALKOZAS",
-  "leiras": "Hosszú (6+) szín a partner szanja ellen: HCP + szingli 1 / renonsz 2 + 1, ha a leghosszabb, legalább 6 lapos színben ász vagy király van (a dáma nem számít)",
+  "leiras": "Hosszú (6+) szín a partner szanja ellen: HCP + szingli 1 / sikén 2 + 1, ha a leghosszabb, legalább 6 lapos színben ász vagy király van (a dáma nem számít)",
   "nev": "Hosszú szín a szan ellen",
   "tagok": [
    {
@@ -712,7 +712,7 @@
  },
  "TOTAL_POINTS": {
   "kontextus": "ABSZOLUT",
-  "leiras": "HCP + rovidsegi pont (renonsz 3 / szingli 2 / dublo 1) + hosszusagi pont (minden 4 feletti lap +1). A GIB sajat magyarazataibol visszafejtve.",
+  "leiras": "HCP + rovidsegi pont (sikén 3 / szingli 2 / dublo 1) + hosszusagi pont (minden 4 feletti lap +1). A GIB sajat magyarazataibol visszafejtve.",
   "nev": "Total points (BBO GIB)",
   "tagok": [
    {

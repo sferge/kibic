@@ -4,6 +4,7 @@ YAML-FORRÁSBÓL AZ ADATBÁZISBA: rendszerek és konvenciók betöltése.
     python -m kibic.cli.rendszerimport rendszerek/yaml/
     python -m kibic.cli.rendszerimport rendszerek/yaml/ --csak STAYMAN --probafutas
     python -m kibic.cli.rendszerimport --jovahagy STAYMAN --ki "sanyi"
+    python -m kibic.cli.rendszerimport --auto-elfogad [--probafutas]
     python -m kibic.cli.rendszerimport --jovahagy KIBICEGY_STAND --fejezet "Az 1NT indulás"
     python -m kibic.cli.rendszerimport --jegel KIBICEGY_STAND --minta "1NT-4S"
     python -m kibic.cli.rendszerimport --kiolvaszt KIBICEGY_STAND --minta "1NT-4S"
@@ -21,7 +22,12 @@ adatbázisban: a JÓVÁHAGYÁS. Ezt az import megőrzi:
   * ha egy korábban ELFOGADOTT sor tartalma megváltozott, az új sor
     FELULVIZSGALANDO lesz — a motor nem használja, amíg újra jóvá nem
     hagyod;
-  * minden új sor JAVASOLT;
+  * minden új sor JAVASOLT — majd AUTOMATIKUSAN ELFOGADOTT, ha nem
+    ütközik egyetlen ELFOGADOTT vagy JAVASOLT sorral sem egyik rendszerben
+    sem (motor/auto_elfogadas.py; jóváhagyó: "auto (ütközésmentes)").
+    Az ütköző és az ellenőrizhetetlen sor JAVASOLT marad, a lista a
+    kimeneten. Kikapcsolás: --nem-auto; a meglévő JAVASOLT sorokra
+    egyszer: --auto-elfogad;
   * a YAML `allapot:` kulcsa mindezt felülírja.
 
 Védelem: egy olyan rendszerbe, amelynek vannak NEM YAML-ból jött sorai
@@ -79,12 +85,18 @@ def alairas(minta, kulcs, feltetel, jelentes, ha) -> tuple:
             _kanon(ha))
 
 
-def uj_allapotok(uj: list[SzabalySor], regi: list[tuple]
+def uj_allapotok(uj: list[SzabalySor], regi: list[tuple],
+                 ujak: list[int] | None = None
                  ) -> list[tuple[str, str | None, object]]:
     """
     A jóváhagyás megőrzése. `regi`: (minta, kulcs, feltetel, jelentes,
     ha_feltetel, allapot, jovahagyta, jovahagyva) sorok.
     Visszaad soronként: (allapot, jovahagyta, jovahagyva).
+
+    `ujak`: ide kerül az ÚJ (vagy megváltozott, eddig nem elfogadott) és
+    ezért JAVASOLT sorok indexe — az automatikus elfogadás jelöltjei. A
+    változatlan, korábban is JAVASOLT sor nem jelölt (lehet, hogy a
+    szerkesztő állította vissza), és a YAML kimondott `allapot:`-a sem.
 
     Tiszta függvény, hogy adatbázis nélkül tesztelhető legyen.
     """
@@ -105,6 +117,8 @@ def uj_allapotok(uj: list[SzabalySor], regi: list[tuple]
         elif (s.minta, s.kulcs) in elfogadott_minta:
             ki_lista.append(("FELULVIZSGALANDO", None, None))
         else:
+            if ujak is not None:
+                ujak.append(len(ki_lista))
             ki_lista.append(("JAVASOLT", None, None))
     return ki_lista
 
@@ -307,7 +321,9 @@ def _vedelem(cur, rid: int, kod: str, kenyszer: bool) -> None:
             f"Ha tényleg ezt akarod: --kenyszer")
 
 
-def rendszer_ir(cur, r: RendszerForras, kenyszer: bool = False) -> Counter:
+def rendszer_ir(cur, r: RendszerForras, kenyszer: bool = False,
+                jeloltek: set[int] | None = None) -> Counter:
+    """`jeloltek`: ide kerül az új JAVASOLT sorok licitmenet-id-je."""
     rid = _rendszer_upsert(cur, r)
     _vedelem(cur, rid, r.kod, kenyszer)
 
@@ -315,7 +331,9 @@ def rendszer_ir(cur, r: RendszerForras, kenyszer: bool = False) -> Counter:
         "SELECT minta, kulcs, feltetel, jelentes, ha_feltetel, allapot,"
         " jovahagyta, jovahagyva FROM licitmenet"
         " WHERE rendszer_id=%s AND tipus='SZABALY'", (rid,))
-    allapotok = uj_allapotok(r.sorok, list(cur.fetchall()))
+    ujak: list[int] = []
+    allapotok = uj_allapotok(r.sorok, list(cur.fetchall()), ujak)
+    ujak_h = set(ujak)
 
     # paraméterek
     cur.execute("DELETE FROM rendszer_parameter WHERE rendszer_id=%s", (rid,))
@@ -375,7 +393,7 @@ def rendszer_ir(cur, r: RendszerForras, kenyszer: bool = False) -> Counter:
              (YAML_JEL + r.fajlok[0])[:120]))
 
     stat: Counter = Counter()
-    for s, (allapot, ki, mikor) in zip(r.sorok, allapotok):
+    for i, (s, (allapot, ki, mikor)) in enumerate(zip(r.sorok, allapotok)):
         cur.execute(
             "INSERT INTO licitmenet (rendszer_id, fejezet, alfejezet, seq,"
             " tipus, minta, kulcs, specifikussag, prioritas, jelentes,"
@@ -397,6 +415,8 @@ def rendszer_ir(cur, r: RendszerForras, kenyszer: bool = False) -> Counter:
              json.dumps(s.ha_feltetel, ensure_ascii=False)
              if s.ha_feltetel else None, s.ha_feltetel_szoveg,
              s.elvaras, s.magyarazat_en, s.szabaly_fajta, s.ag, s.jegyzet))
+        if jeloltek is not None and i in ujak_h:
+            jeloltek.add(cur.lastrowid)
         stat[allapot] += 1
     return stat
 
@@ -436,6 +456,50 @@ def jovahagy(cur, kod: str, ki: str, fejezet: str | None,
                          ("JAVASOLT", "FELULVIZSGALANDO"), ki, fejezet, minta)
 
 
+# --- Automatikus elfogadás ----------------------------------------------
+
+def auto_elfogadas(conn, jeloltek: set[int] | None, kez: int = 100,
+                   reszletes: bool = True) -> int:
+    """
+    A jelölt JAVASOLT sorok közül az ütközésmentesek -> ELFOGADOTT
+    (motor/auto_elfogadas.py). `jeloltek=None`: az adatbázis összes
+    JAVASOLT sora. Minden RENDSZER / GYUJTEMENY fajtájú rendszerben mér,
+    teszt módú feloldással. Visszaad: az elfogadott sorok száma.
+    """
+    from ..motor.auto_elfogadas import AUTO_JOVAHAGYO, utkozesmentes
+    from ..motor.feloldas import feloldas
+    from ..motor.kriterium import parametertar_betolt
+    cur = conn.cursor()
+    if jeloltek is None:
+        cur.execute("SELECT id FROM licitmenet WHERE tipus='SZABALY'"
+                    " AND allapot='JAVASOLT'")
+        jeloltek = {r[0] for r in cur.fetchall()}
+    if not jeloltek:
+        return 0
+    cur.execute("SELECT kod FROM rendszer WHERE fajta IN ('RENDSZER','GYUJTEMENY')")
+    rendszerek = {}
+    for (kod,) in cur.fetchall():
+        f = feloldas(conn, kod, teszt=True)
+        if {s.licitmenet_id for s in f.sorok} & jeloltek:
+            rendszerek[kod] = (f.sorok, parametertar_betolt(conn, kod), f)
+    er = utkozesmentes(rendszerek, jeloltek, kez_db=kez)
+    nevek: dict[int, str] = {}
+    helyek = ",".join(["%s"] * len(jeloltek))
+    cur.execute("SELECT l.id, r.kod, l.minta, l.kulcs FROM licitmenet l"
+                f" JOIN rendszer r ON r.id=l.rendszer_id WHERE l.id IN ({helyek})",
+                tuple(jeloltek))
+    for i, kod, minta, kulcs in cur.fetchall():
+        nevek[i] = f"{kod}: {minta}" + (f"  [{kulcs}]" if kulcs and kulcs != minta else "")
+    if er.elfogadhato:
+        helyek = ",".join(["%s"] * len(er.elfogadhato))
+        cur.execute("UPDATE licitmenet SET allapot='ELFOGADOTT', jovahagyta=%s,"
+                    f" jovahagyva=NOW() WHERE allapot='JAVASOLT' AND id IN ({helyek})",
+                    (AUTO_JOVAHAGYO, *er.elfogadhato))
+    if reszletes:
+        print(er.jelentes(lambda i: nevek.get(i, f"#{i}")))
+    return len(er.elfogadhato)
+
+
 # --- Belépő ------------------------------------------------------------
 
 def main(argv=None) -> int:
@@ -458,6 +522,14 @@ def main(argv=None) -> int:
     ap.add_argument("--minta", help="--jovahagy/--jegel/--kiolvaszt mellett: csak ez a minta")
     ap.add_argument("--ki", default=os.getenv("USER", "kibic"),
                     help="--jovahagy mellett: a jóváhagyó neve")
+    ap.add_argument("--nem-auto", action="store_true",
+                    help="Az új JAVASOLT sorok automatikus elfogadása (ütközés "
+                         "nélkül ELFOGADOTT) kimarad")
+    ap.add_argument("--auto-elfogad", action="store_true",
+                    help="Csak az automatikus elfogadás, az adatbázis ÖSSZES "
+                         "JAVASOLT sorára (import nélkül)")
+    ap.add_argument("--auto-kez", type=int, default=100,
+                    help="Az ütközésvizsgálat kezei helyzetenként (100)")
     ap.add_argument("--jelzesek", default=None,
                     help="A jelzésrendszerek könyvtára (alap: rendszerek/jelzesek, "
                          "ha van; '' = kihagyja)")
@@ -488,6 +560,20 @@ def main(argv=None) -> int:
             conn.close()
         print(f"{kod}: {n} sor -> {uj}.")
         print("Ne felejtsd: POST /v1/kibic/ujratolt")
+        return 0
+
+    if a.auto_elfogad:
+        conn = _kapcsolat(a)
+        try:
+            n = auto_elfogadas(conn, None, a.auto_kez)
+            if a.probafutas:
+                conn.rollback()
+                print("PRÓBAFUTÁS: semmi nem íródott be.")
+            else:
+                conn.commit()
+                print(f"{n} sor -> ELFOGADOTT. Ne felejtsd: POST /v1/kibic/ujratolt")
+        finally:
+            conn.close()
         return 0
 
     if not a.utak:
@@ -541,9 +627,10 @@ def main(argv=None) -> int:
                 stat = jelzesrendszer_ir(cur, jr)
                 print(f"  {jr.kod:<22} JELZES/{jr.fajta:<13} {len(jr.sorok):>4} sor  "
                       + ", ".join(f"{k}: {v}" for k, v in sorted(stat.items())))
+        jeloltek: set[int] = set()
         for kod in sorrend:
             try:
-                stat = rendszer_ir(cur, forrasok[kod], a.kenyszer)
+                stat = rendszer_ir(cur, forrasok[kod], a.kenyszer, jeloltek)
             except Exception as e:                     # noqa: BLE001
                 # melyik rendszernél akadt el (a tranzakció visszagörgetődik)
                 print(f"HIBA a(z) {kod} importjánál: {e}", file=sys.stderr)
@@ -567,6 +654,8 @@ def main(argv=None) -> int:
                 print(f"  {kod}: {x}")
             for x in f.figyelmeztetesek:
                 print(f"  {kod}: FIGYELEM: {x}")
+        if jeloltek and not a.nem_auto:
+            auto_elfogadas(conn, jeloltek, a.auto_kez)
         if a.probafutas:
             conn.rollback()
             print("PRÓBAFUTÁS: semmi nem íródott be.")
