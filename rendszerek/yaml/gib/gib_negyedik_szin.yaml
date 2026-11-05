@@ -1,0 +1,24 @@
+# GIB_NEGYEDIK_SZIN — a negyedik szín a GIB-ben VALÓDI gémforsz
+# (1♣-1♦-1♥-1♠ mesterséges gémforsz; 1♣-1♦-1♥-2♠ gémforsz pikkel).
+# A Moha-féle NEGYEDIK_SZIN változata: a lapleírás (a válaszok) közös, csak
+# a negyedik szín licitje más (nincs 4 minoros határ).
+rendszer:
+  kod: GIB_NEGYEDIK_SZIN
+  nev: A negyedik szín (GIB, gémforsz)
+  nev_en: Fourth suit forcing (GIB, game force)
+  fajta: KONVENCIO
+  alapja: NEGYEDIK_SZIN
+  viszony: VALTOZAT
+  leiras: "A vonal negyedik színe valódi gémforsz; ugrással természetes gémforsz."
+  forras: https://www.bridgebase.com/doc/gib_system_notes.php
+fejezetek:
+  - fejezet: "A negyedik szín licitje"
+    szabalyok:
+      - {minta: ".. +A", kulcs: NEGYEDIK-SZIN, fajta: ELV, prioritas: 2,
+         ha: {negyedik_szin: true, adu: nincs}, hossz: {A: 0+},
+         osszesen: {pont_biztos: 25+},
+         forsz: GEMFORSZ, elvaras: VALASZ,
+         alert: "Negyedik szín: mesterséges gémforsz",
+         nyers: "1♣-1♦-1♥-1♠ is artificial game force"}
+      - {minta: 1C-1D-1H-2S, pont: 12+, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 56,
+         alert: "Gémforsz, természetes pikk", nyers: "1♣-1♦-1♥-2♠ is game forcing with spades"}

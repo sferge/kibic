@@ -1,0 +1,290 @@
+# GIB_RKC — Roman Key Card Blackwood, 0314 (a GIB leírása szerint).
+#
+# 5 kulcslap: a 4 ász és az adu király. A 4NT a kérdés, ha van
+# megállapodott adunk (a kényszertár szerint). Válaszok:
+#   5♣ 0 vagy 3 · 5♦ 1 vagy 4 · 5♥ 2 (5) adu dáma nélkül · 5♠ 2 (5) dámával
+#   5NT páros számú kulcslap + (meg nem nevezett) sikén
+#   6x  páratlan számú kulcslap + sikén: az adu 6-os szintje alatt a sikén
+#       színében; az adu 6-os szintjén egy magasabb (meg nem nevezett) színben
+# Dámakérdés (5♣ / 5♦ után): a következő NEM lezáró lépcső. Válasz: az adu
+#   a legolcsóbban = nincs dáma; új szín = dáma + király abban a színben;
+#   5NT = dáma, és nincs a 6-os adu alatt mutatható mellékkirály.
+# 5NT a kulcslap-válasz után: királykérdés (megvan mind az 5 kulcslap és a
+#   dáma). Válasz: nagyszlem, ha 13 ütés látszik; az adunál alacsonyabb
+#   színű király a 6-os szinten (több közül a legalacsonyabb); egyébként
+#   6 az aduból.
+# DOPI: ha az ellenfél a 4NT után beszól: kontra 0, passz 1 kulcslap.
+#
+# NYITOTT: ha nincs megállapodott adu, a GIB szerint általában a legutóbb
+# licitált szín királya az ötödik kulcslap — ezt a kibic még nem kezeli
+# (adu nélkül a 4NT itt nem kulcslapkérdés).
+rendszer:
+  kod: GIB_RKC
+  nev: RKC 0314 (GIB)
+  nev_en: Roman Key Card Blackwood 0314 (GIB)
+  fajta: KONVENCIO
+  tema: "Adu megállapodása után: ászkérdés"
+  leiras: "4NT kulcslapkérdés 0314: 5♣ 0/3, 5♦ 1/4, 5♥ 2 dáma nélkül, 5♠ 2 dámával; 5NT / 6x sikénnel; dámakérdés; 5NT királykérdés; DOPI."
+  forras: https://www.bridgebase.com/doc/gib_system_notes.php
+fejezetek:
+  - fejezet: A kérdés
+    szabalyok:
+      - {minta: ".. 4NT", kulcs: GIB-RKC-C, fajta: ELV, ha: {adu: C}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (treff adu), 0314"}
+      - {minta: ".. 4NT", kulcs: GIB-RKC-D, fajta: ELV, ha: {adu: D}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (káró adu), 0314"}
+      - {minta: ".. 4NT", kulcs: GIB-RKC-H, fajta: ELV, ha: {adu: H}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (kőr adu), 0314"}
+      - {minta: ".. 4NT", kulcs: GIB-RKC-S, fajta: ELV, ha: {adu: S}, szlem: igen, ot_biztos: true, kontrollok: true,
+         forsz: EGY_MENET, prioritas: 5, alert: "Kulcslapkérdés (pikk adu), 0314"}
+
+  - fejezet: "Válasz — treff adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C", kulcs: GIB-RKC-C-1, fajta: ELV, ha: {adu: C}, kulcslapok: [0, 3], jelentes: {kulcslap: {adu: C, ertek: [0, 3], dama: null}},
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4NT 5D", kulcs: GIB-RKC-C-2, fajta: ELV, ha: {adu: C}, kulcslapok: [1, 4], jelentes: {kulcslap: {adu: C, ertek: [1, 4], dama: null}},
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4NT 5H", kulcs: GIB-RKC-C-3, fajta: ELV, ha: {adu: C}, kulcslapok: 2, adu_dama: false, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: false}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4NT 5S", kulcs: GIB-RKC-C-4, fajta: ELV, ha: {adu: C}, kulcslapok: 2, adu_dama: true, jelentes: {kulcslap: {adu: C, ertek: [2, 5], dama: true}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dámával"}
+      - {minta: ".. 4NT 5NT", kulcs: GIB-RKC-C-SIKEN-PAROS, fajta: ELV, ha: {adu: C}, kulcslapok: 2, vagy: [{hossz: {D: 0}}, {hossz: {H: 0}}, {hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: C, ertek: [0, 2, 4], dama: null}}, prioritas: 11, alert: "Páros számú kulcslap és egy sikén"}
+      - {minta: ".. 4NT 6C", kulcs: GIB-RKC-C-SIKEN-FEL, fajta: ELV, ha: {adu: C}, kulcslapok: 1, vagy: [{hossz: {D: 0}}, {hossz: {H: 0}}, {hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: C, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén egy magasabb színben"}
+
+  - fejezet: "Dámakérdés és királykérdés — treff adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C 5D", kulcs: GIB-RKC-C-5C-DK, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5C 5D 6C", kulcs: GIB-RKC-C-5C-DK-NEM, fajta: ELV, ha: {adu: C}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5C 5D 5H", kulcs: GIB-RKC-C-5C-DK-H, fajta: ELV, ha: {adu: C}, adu_dama: true, lapok: [HK], prioritas: 11,
+         alert: "Adu dáma és kőr király"}
+      - {minta: ".. 4NT 5C 5D 5S", kulcs: GIB-RKC-C-5C-DK-S, fajta: ELV, ha: {adu: C}, adu_dama: true, lapok: [SK], prioritas: 11,
+         alert: "Adu dáma és pikk király"}
+      - {minta: ".. 4NT 5C 5D 5NT", kulcs: GIB-RKC-C-5C-DK-5NT, fajta: ELV, ha: {adu: C}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5D 5H", kulcs: GIB-RKC-C-5D-DK, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5D 5H 6C", kulcs: GIB-RKC-C-5D-DK-NEM, fajta: ELV, ha: {adu: C}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5D 5H 5S", kulcs: GIB-RKC-C-5D-DK-S, fajta: ELV, ha: {adu: C}, adu_dama: true, lapok: [SK], prioritas: 11,
+         alert: "Adu dáma és pikk király"}
+      - {minta: ".. 4NT 5D 5H 5NT", kulcs: GIB-RKC-C-5D-DK-5NT, fajta: ELV, ha: {adu: C}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5C 5NT", kulcs: GIB-RKC-C-5C-KIRALY, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5C 5NT 6C", kulcs: GIB-RKC-C-5C-K-NINCS, fajta: ELV, ha: {adu: C}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5D 5NT", kulcs: GIB-RKC-C-5D-KIRALY, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5D 5NT 6C", kulcs: GIB-RKC-C-5D-K-NINCS, fajta: ELV, ha: {adu: C}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5S 5NT", kulcs: GIB-RKC-C-5S-KIRALY, fajta: ELV, ha: {adu: C}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5S 5NT 6C", kulcs: GIB-RKC-C-5S-K-NINCS, fajta: ELV, ha: {adu: C}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+
+  - fejezet: "Válasz — káró adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C", kulcs: GIB-RKC-D-1, fajta: ELV, ha: {adu: D}, kulcslapok: [0, 3], jelentes: {kulcslap: {adu: D, ertek: [0, 3], dama: null}},
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4NT 5D", kulcs: GIB-RKC-D-2, fajta: ELV, ha: {adu: D}, kulcslapok: [1, 4], jelentes: {kulcslap: {adu: D, ertek: [1, 4], dama: null}},
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4NT 5H", kulcs: GIB-RKC-D-3, fajta: ELV, ha: {adu: D}, kulcslapok: 2, adu_dama: false, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: false}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4NT 5S", kulcs: GIB-RKC-D-4, fajta: ELV, ha: {adu: D}, kulcslapok: 2, adu_dama: true, jelentes: {kulcslap: {adu: D, ertek: [2, 5], dama: true}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dámával"}
+      - {minta: ".. 4NT 5NT", kulcs: GIB-RKC-D-SIKEN-PAROS, fajta: ELV, ha: {adu: D}, kulcslapok: 2, vagy: [{hossz: {C: 0}}, {hossz: {H: 0}}, {hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: D, ertek: [0, 2, 4], dama: null}}, prioritas: 11, alert: "Páros számú kulcslap és egy sikén"}
+      - {minta: ".. 4NT 6C", kulcs: GIB-RKC-D-SIKEN-C, fajta: ELV, ha: {adu: D}, kulcslapok: 1, hossz: {C: 0},
+         jelentes: {kulcslap: {adu: D, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén treff"}
+      - {minta: ".. 4NT 6D", kulcs: GIB-RKC-D-SIKEN-FEL, fajta: ELV, ha: {adu: D}, kulcslapok: 1, vagy: [{hossz: {H: 0}}, {hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: D, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén egy magasabb színben"}
+
+  - fejezet: "Dámakérdés és királykérdés — káró adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C 5H", kulcs: GIB-RKC-D-5C-DK, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5C 5H 6D", kulcs: GIB-RKC-D-5C-DK-NEM, fajta: ELV, ha: {adu: D}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5C 5H 6C", kulcs: GIB-RKC-D-5C-DK-C, fajta: ELV, ha: {adu: D}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5C 5H 5S", kulcs: GIB-RKC-D-5C-DK-S, fajta: ELV, ha: {adu: D}, adu_dama: true, lapok: [SK], prioritas: 11,
+         alert: "Adu dáma és pikk király"}
+      - {minta: ".. 4NT 5C 5H 5NT", kulcs: GIB-RKC-D-5C-DK-5NT, fajta: ELV, ha: {adu: D}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5D 5H", kulcs: GIB-RKC-D-5D-DK, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5D 5H 6D", kulcs: GIB-RKC-D-5D-DK-NEM, fajta: ELV, ha: {adu: D}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5D 5H 6C", kulcs: GIB-RKC-D-5D-DK-C, fajta: ELV, ha: {adu: D}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5D 5H 5S", kulcs: GIB-RKC-D-5D-DK-S, fajta: ELV, ha: {adu: D}, adu_dama: true, lapok: [SK], prioritas: 11,
+         alert: "Adu dáma és pikk király"}
+      - {minta: ".. 4NT 5D 5H 5NT", kulcs: GIB-RKC-D-5D-DK-5NT, fajta: ELV, ha: {adu: D}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5C 5NT", kulcs: GIB-RKC-D-5C-KIRALY, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5C 5NT 6C", kulcs: GIB-RKC-D-5C-K-C, fajta: ELV, ha: {adu: D}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5C 5NT 6D", kulcs: GIB-RKC-D-5C-K-NINCS, fajta: ELV, ha: {adu: D}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5D 5NT", kulcs: GIB-RKC-D-5D-KIRALY, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5D 5NT 6C", kulcs: GIB-RKC-D-5D-K-C, fajta: ELV, ha: {adu: D}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5D 5NT 6D", kulcs: GIB-RKC-D-5D-K-NINCS, fajta: ELV, ha: {adu: D}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5S 5NT", kulcs: GIB-RKC-D-5S-KIRALY, fajta: ELV, ha: {adu: D}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5S 5NT 6C", kulcs: GIB-RKC-D-5S-K-C, fajta: ELV, ha: {adu: D}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5S 5NT 6D", kulcs: GIB-RKC-D-5S-K-NINCS, fajta: ELV, ha: {adu: D}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+
+  - fejezet: "Válasz — kőr adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C", kulcs: GIB-RKC-H-1, fajta: ELV, ha: {adu: H}, kulcslapok: [0, 3], jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null}},
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4NT 5D", kulcs: GIB-RKC-H-2, fajta: ELV, ha: {adu: H}, kulcslapok: [1, 4], jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null}},
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4NT 5H", kulcs: GIB-RKC-H-3, fajta: ELV, ha: {adu: H}, kulcslapok: 2, adu_dama: false, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4NT 5S", kulcs: GIB-RKC-H-4, fajta: ELV, ha: {adu: H}, kulcslapok: 2, adu_dama: true, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dámával"}
+      - {minta: ".. 4NT 5NT", kulcs: GIB-RKC-H-SIKEN-PAROS, fajta: ELV, ha: {adu: H}, kulcslapok: 2, vagy: [{hossz: {C: 0}}, {hossz: {D: 0}}, {hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: H, ertek: [0, 2, 4], dama: null}}, prioritas: 11, alert: "Páros számú kulcslap és egy sikén"}
+      - {minta: ".. 4NT 6C", kulcs: GIB-RKC-H-SIKEN-C, fajta: ELV, ha: {adu: H}, kulcslapok: 1, hossz: {C: 0},
+         jelentes: {kulcslap: {adu: H, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén treff"}
+      - {minta: ".. 4NT 6D", kulcs: GIB-RKC-H-SIKEN-D, fajta: ELV, ha: {adu: H}, kulcslapok: 1, hossz: {D: 0},
+         jelentes: {kulcslap: {adu: H, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén káró"}
+      - {minta: ".. 4NT 6H", kulcs: GIB-RKC-H-SIKEN-FEL, fajta: ELV, ha: {adu: H}, kulcslapok: 1, vagy: [{hossz: {S: 0}}],
+         jelentes: {kulcslap: {adu: H, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén egy magasabb színben"}
+
+  - fejezet: "Dámakérdés és királykérdés — kőr adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C 5D", kulcs: GIB-RKC-H-5C-DK, fajta: ELV, ha: {adu: H}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5C 5D 5H", kulcs: GIB-RKC-H-5C-DK-NEM, fajta: ELV, ha: {adu: H}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5C 5D 6C", kulcs: GIB-RKC-H-5C-DK-C, fajta: ELV, ha: {adu: H}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5C 5D 6D", kulcs: GIB-RKC-H-5C-DK-D, fajta: ELV, ha: {adu: H}, adu_dama: true, lapok: [DK], prioritas: 11,
+         alert: "Adu dáma és káró király"}
+      - {minta: ".. 4NT 5C 5D 5S", kulcs: GIB-RKC-H-5C-DK-S, fajta: ELV, ha: {adu: H}, adu_dama: true, lapok: [SK], prioritas: 11,
+         alert: "Adu dáma és pikk király"}
+      - {minta: ".. 4NT 5C 5D 5NT", kulcs: GIB-RKC-H-5C-DK-5NT, fajta: ELV, ha: {adu: H}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5D 5S", kulcs: GIB-RKC-H-5D-DK, fajta: ELV, ha: {adu: H}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5D 5S 6H", kulcs: GIB-RKC-H-5D-DK-NEM, fajta: ELV, ha: {adu: H}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5D 5S 6C", kulcs: GIB-RKC-H-5D-DK-C, fajta: ELV, ha: {adu: H}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5D 5S 6D", kulcs: GIB-RKC-H-5D-DK-D, fajta: ELV, ha: {adu: H}, adu_dama: true, lapok: [DK], prioritas: 11,
+         alert: "Adu dáma és káró király"}
+      - {minta: ".. 4NT 5D 5S 5NT", kulcs: GIB-RKC-H-5D-DK-5NT, fajta: ELV, ha: {adu: H}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5C 5NT", kulcs: GIB-RKC-H-5C-KIRALY, fajta: ELV, ha: {adu: H}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5C 5NT 6C", kulcs: GIB-RKC-H-5C-K-C, fajta: ELV, ha: {adu: H}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5C 5NT 6D", kulcs: GIB-RKC-H-5C-K-D, fajta: ELV, ha: {adu: H}, lapok: [DK], prioritas: 11,
+         alert: "Káró király"}
+      - {minta: ".. 4NT 5C 5NT 6H", kulcs: GIB-RKC-H-5C-K-NINCS, fajta: ELV, ha: {adu: H}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5D 5NT", kulcs: GIB-RKC-H-5D-KIRALY, fajta: ELV, ha: {adu: H}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5D 5NT 6C", kulcs: GIB-RKC-H-5D-K-C, fajta: ELV, ha: {adu: H}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5D 5NT 6D", kulcs: GIB-RKC-H-5D-K-D, fajta: ELV, ha: {adu: H}, lapok: [DK], prioritas: 11,
+         alert: "Káró király"}
+      - {minta: ".. 4NT 5D 5NT 6H", kulcs: GIB-RKC-H-5D-K-NINCS, fajta: ELV, ha: {adu: H}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5S 5NT", kulcs: GIB-RKC-H-5S-KIRALY, fajta: ELV, ha: {adu: H}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5S 5NT 6C", kulcs: GIB-RKC-H-5S-K-C, fajta: ELV, ha: {adu: H}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5S 5NT 6D", kulcs: GIB-RKC-H-5S-K-D, fajta: ELV, ha: {adu: H}, lapok: [DK], prioritas: 11,
+         alert: "Káró király"}
+      - {minta: ".. 4NT 5S 5NT 6H", kulcs: GIB-RKC-H-5S-K-NINCS, fajta: ELV, ha: {adu: H}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+
+  - fejezet: "Válasz — pikk adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C", kulcs: GIB-RKC-S-1, fajta: ELV, ha: {adu: S}, kulcslapok: [0, 3], jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null}},
+         prioritas: 10, alert: "0 vagy 3 kulcslap"}
+      - {minta: ".. 4NT 5D", kulcs: GIB-RKC-S-2, fajta: ELV, ha: {adu: S}, kulcslapok: [1, 4], jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null}},
+         prioritas: 10, alert: "1 vagy 4 kulcslap"}
+      - {minta: ".. 4NT 5H", kulcs: GIB-RKC-S-3, fajta: ELV, ha: {adu: S}, kulcslapok: 2, adu_dama: false, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dáma nélkül"}
+      - {minta: ".. 4NT 5S", kulcs: GIB-RKC-S-4, fajta: ELV, ha: {adu: S}, kulcslapok: 2, adu_dama: true, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true}},
+         prioritas: 10, alert: "2 vagy 5 kulcslap, adu dámával"}
+      - {minta: ".. 4NT 5NT", kulcs: GIB-RKC-S-SIKEN-PAROS, fajta: ELV, ha: {adu: S}, kulcslapok: 2, vagy: [{hossz: {C: 0}}, {hossz: {D: 0}}, {hossz: {H: 0}}],
+         jelentes: {kulcslap: {adu: S, ertek: [0, 2, 4], dama: null}}, prioritas: 11, alert: "Páros számú kulcslap és egy sikén"}
+      - {minta: ".. 4NT 6C", kulcs: GIB-RKC-S-SIKEN-C, fajta: ELV, ha: {adu: S}, kulcslapok: 1, hossz: {C: 0},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén treff"}
+      - {minta: ".. 4NT 6D", kulcs: GIB-RKC-S-SIKEN-D, fajta: ELV, ha: {adu: S}, kulcslapok: 1, hossz: {D: 0},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén káró"}
+      - {minta: ".. 4NT 6H", kulcs: GIB-RKC-S-SIKEN-H, fajta: ELV, ha: {adu: S}, kulcslapok: 1, hossz: {H: 0},
+         jelentes: {kulcslap: {adu: S, ertek: [1, 3], dama: null}}, prioritas: 11, alert: "Páratlan számú kulcslap, sikén kőr"}
+
+  - fejezet: "Dámakérdés és királykérdés — pikk adu"
+    szabalyok:
+      - {minta: ".. 4NT 5C 5D", kulcs: GIB-RKC-S-5C-DK, fajta: ELV, ha: {adu: S}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5C 5D 5S", kulcs: GIB-RKC-S-5C-DK-NEM, fajta: ELV, ha: {adu: S}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5C 5D 6C", kulcs: GIB-RKC-S-5C-DK-C, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5C 5D 6D", kulcs: GIB-RKC-S-5C-DK-D, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [DK], prioritas: 11,
+         alert: "Adu dáma és káró király"}
+      - {minta: ".. 4NT 5C 5D 5H", kulcs: GIB-RKC-S-5C-DK-H, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [HK], prioritas: 11,
+         alert: "Adu dáma és kőr király"}
+      - {minta: ".. 4NT 5C 5D 5NT", kulcs: GIB-RKC-S-5C-DK-5NT, fajta: ELV, ha: {adu: S}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5D 5H", kulcs: GIB-RKC-S-5D-DK, fajta: ELV, ha: {adu: S}, forsz: EGY_MENET, prioritas: 10,
+         alert: "Dámakérdés"}
+      - {minta: ".. 4NT 5D 5H 5S", kulcs: GIB-RKC-S-5D-DK-NEM, fajta: ELV, ha: {adu: S}, adu_dama: false, prioritas: 10,
+         alert: "Nincs adu dáma"}
+      - {minta: ".. 4NT 5D 5H 6C", kulcs: GIB-RKC-S-5D-DK-C, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [CK], prioritas: 11,
+         alert: "Adu dáma és treff király"}
+      - {minta: ".. 4NT 5D 5H 6D", kulcs: GIB-RKC-S-5D-DK-D, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [DK], prioritas: 11,
+         alert: "Adu dáma és káró király"}
+      - {minta: ".. 4NT 5D 5H 6H", kulcs: GIB-RKC-S-5D-DK-H, fajta: ELV, ha: {adu: S}, adu_dama: true, lapok: [HK], prioritas: 11,
+         alert: "Adu dáma és kőr király"}
+      - {minta: ".. 4NT 5D 5H 5NT", kulcs: GIB-RKC-S-5D-DK-5NT, fajta: ELV, ha: {adu: S}, adu_dama: true, prioritas: 10,
+         alert: "Adu dáma, nincs mutatható mellékkirály"}
+      - {minta: ".. 4NT 5C 5NT", kulcs: GIB-RKC-S-5C-KIRALY, fajta: ELV, ha: {adu: S}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5C 5NT 6C", kulcs: GIB-RKC-S-5C-K-C, fajta: ELV, ha: {adu: S}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5C 5NT 6D", kulcs: GIB-RKC-S-5C-K-D, fajta: ELV, ha: {adu: S}, lapok: [DK], prioritas: 11,
+         alert: "Káró király"}
+      - {minta: ".. 4NT 5C 5NT 6H", kulcs: GIB-RKC-S-5C-K-H, fajta: ELV, ha: {adu: S}, lapok: [HK], prioritas: 10,
+         alert: "Kőr király"}
+      - {minta: ".. 4NT 5C 5NT 6S", kulcs: GIB-RKC-S-5C-K-NINCS, fajta: ELV, ha: {adu: S}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+      - {minta: ".. 4NT 5D 5NT", kulcs: GIB-RKC-S-5D-KIRALY, fajta: ELV, ha: {adu: S}, forsz: EGY_MENET, prioritas: 9,
+         alert: "Királykérdés: megvan mind az 5 kulcslap és az adu dáma"}
+      - {minta: ".. 4NT 5D 5NT 6C", kulcs: GIB-RKC-S-5D-K-C, fajta: ELV, ha: {adu: S}, lapok: [CK], prioritas: 12,
+         alert: "Treff király"}
+      - {minta: ".. 4NT 5D 5NT 6D", kulcs: GIB-RKC-S-5D-K-D, fajta: ELV, ha: {adu: S}, lapok: [DK], prioritas: 11,
+         alert: "Káró király"}
+      - {minta: ".. 4NT 5D 5NT 6H", kulcs: GIB-RKC-S-5D-K-H, fajta: ELV, ha: {adu: S}, lapok: [HK], prioritas: 10,
+         alert: "Kőr király"}
+      - {minta: ".. 4NT 5D 5NT 6S", kulcs: GIB-RKC-S-5D-K-NINCS, fajta: ELV, ha: {adu: S}, prioritas: 8,
+         alert: "Nincs alacsonyabb mellékkirály"}
+
+  - fejezet: "DOPI (beszólás a 4NT után)"
+    szabalyok:
+      - {minta: ".. 4NT (?) X", kulcs: GIB-DOPI-C-0, fajta: ELV, ha: {adu: C}, kulcslapok: 0, prioritas: 10, alert: "DOPI: 0 kulcslap"}
+      - {minta: ".. 4NT (?) P", kulcs: GIB-DOPI-C-1, fajta: ELV, ha: {adu: C}, kulcslapok: 1, prioritas: 10, alert: "DOPI: 1 kulcslap"}
+      - {minta: ".. 4NT (?) X", kulcs: GIB-DOPI-D-0, fajta: ELV, ha: {adu: D}, kulcslapok: 0, prioritas: 10, alert: "DOPI: 0 kulcslap"}
+      - {minta: ".. 4NT (?) P", kulcs: GIB-DOPI-D-1, fajta: ELV, ha: {adu: D}, kulcslapok: 1, prioritas: 10, alert: "DOPI: 1 kulcslap"}
+      - {minta: ".. 4NT (?) X", kulcs: GIB-DOPI-H-0, fajta: ELV, ha: {adu: H}, kulcslapok: 0, prioritas: 10, alert: "DOPI: 0 kulcslap"}
+      - {minta: ".. 4NT (?) P", kulcs: GIB-DOPI-H-1, fajta: ELV, ha: {adu: H}, kulcslapok: 1, prioritas: 10, alert: "DOPI: 1 kulcslap"}
+      - {minta: ".. 4NT (?) X", kulcs: GIB-DOPI-S-0, fajta: ELV, ha: {adu: S}, kulcslapok: 0, prioritas: 10, alert: "DOPI: 0 kulcslap"}
+      - {minta: ".. 4NT (?) P", kulcs: GIB-DOPI-S-1, fajta: ELV, ha: {adu: S}, kulcslapok: 1, prioritas: 10, alert: "DOPI: 1 kulcslap"}

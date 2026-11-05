@@ -1,0 +1,70 @@
+# GIB — a BBO robotjának rendszere (2/1 gémforsz), a kibic nyelvén.
+#
+# Forrás: https://www.bridgebase.com/doc/gib_system_notes.php (2019, v40)
+# és a BBO_GIB.docx (rendszerek/BBO/). A régi, csak nyitásokat tartalmazó
+# LICREN-fordítást (rendszerek/gib/gib.lr) ez váltja fel.
+#
+# KÉT CÉL (a szerkesztő, 2026-11-04):
+#   * a kibiccel játszó ember VÁLASZTHASSA ezt a rendszert;
+#   * a kibic ÉRTSE a BEN-t és a GIB-et játszó embereket.
+#
+# 1. szakasz (2026-11-06): nyitások, válaszok és folytatások, 1NT / 2NT,
+# 2♣, gyenge kettesek, RKC 0314. A küzdelmi rész egyelőre a KIBIC_STAND
+# általános konvencióiból jön (2. szakasz: a GIB saját határai), a
+# jelzések a Moha-féléből (3. szakasz: GIB-jelzések).
+rendszer:
+  kod: GIB
+  nev: BBO GIB (2/1 gémforsz)
+  nev_en: BBO GIB (2/1 game force)
+  fajta: RENDSZER
+  csalad: NATURAL
+  verzio: "1.0"
+  leiras: >-
+    A BBO robotjának (GIB) rendszere: 2/1 gémforsz, ötös nemes, 15-17 szan,
+    fordított minoremelés, Soloway ugró színváltás, kétféle gémkísérlet,
+    Jacoby 2NT, splinter, reverse Drury, negyedik szín gémforsz, egyirányú
+    új minor; 1NT után Stayman, Jacoby- és Texas-transzfer, minor Stayman,
+    minor-transzfer; RKC 0314.
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+hivatkozasok:
+  - GIB_RKC                     # 4NT kulcslapkérdés 0314, dámakérdés, 5NT királykérdés, DOPI
+  - GIB_ALAP                    # a GIB saját licitjei (rendszerek/yaml/gib/)
+  - GIB_NEGYEDIK_SZIN           # a negyedik szín: valódi gémforsz
+  - GERBER                      # a GIB nem szereti, de válaszol rá
+  # --- küzdelmi rész: ideiglenesen a KIBIC_STAND általános konvenciói (2. szakasz) ---
+  - KIBICEGY_KUZDELMI
+  - NEGATIV_KONTRA
+  - SUPPORT_KONTRA
+  - INFORMATIV_KONTRA
+  - RESZPONZIV_KONTRA
+  - LEBENSOHL
+  - MICHAELS
+  - SZOKATLAN_2NT
+  - GYENGE_UGRO_KOZBESZOLAS
+  # --- általános elvek ---
+  - EMELES_ELV
+  - EGYRE_EGY
+  - FOGASKERES
+  - TERMESZETES_ALAP
+  - PASSZ_ELV
+
+kartya:
+  jatekosok: "BBO GIB / BEN — GIB"
+  kategoria: "online (BBO)"
+  altalanos: >-
+    2/1 gémforsz, ötös nemes minden ülésben; 1♣ 3+ (4333, 3433, 4423), 1♦
+    4+ (kivéve 4432); 1NT 15-17 (lehet 5-ös nemes; 17 + 5-ös nemes = 18);
+    2♣ erős mesterséges 22+; fegyelmezett gyenge kettesek; 2NT 20-21.
+    Fordított minoremelés, 1♦-2♣ gémforsz, 1M-1NT kényszerít, 1M-2M 7-10,
+    kétféle gémkísérlet, Jacoby 2NT, splinter, Soloway ugró színváltás,
+    reverse Drury, negyedik szín gémforsz, egyirányú új minor.
+  szlem:
+    - "RKC 0314 (5♣ 0/3, 5♦ 1/4, 5♥ 2 dáma nélkül, 5♠ 2 dámával; 5NT / 6x sikénnel)"
+    - "Dámakérdés a következő lépcsővel; 5NT királykérdés; DOPI"
+    - "Gerber (4♣) az 1NT és 2NT után"
+  pszichik: "nincs"
+
+jelzesek: MOHA_STAND            # ideiglenes; a GIB-jelzések a 3. szakaszban

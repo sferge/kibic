@@ -1,0 +1,102 @@
+# GIB_ALAP — a GIB saját licitjei. Forrás: gib_system_notes.php (2019),
+# BBO_GIB.docx és a régi gib.lr (a robot saját magyarázataiból
+# visszafejtett nyitási feltételek). A `# kieg.` sorokat a leírás nem adja
+# meg: ezek 2/1-es alapértékek, a gépi GIB-magyarázatokkal mérendők.
+#
+# Pontok: `pont` = HCP (figurapont); `tp` = a GIB „total points”-ja
+# (TOTAL_POINTS: HCP + sikén 3 / szingli 2 / dubló 1, a gib.lr szerint +
+# hosszpont). A GIB nagyjából 25 TP-nél forszol gémig.
+rendszer:
+  kod: GIB_ALAP
+  nev: GIB alaprendszer
+  nev_en: GIB base system
+  fajta: ALAPRENDSZER
+  csalad: NATURAL
+  verzio: "1.0"
+  leiras: >-
+    A BBO GIB robot licitjei (2/1 gémforsz): nyitások, válaszok,
+    folytatások, 1NT / 2NT rendszer, 2♣, gyenge kettesek.
+  forras: https://www.bridgebase.com/doc/gib_system_notes.php
+parameterek:
+  PONT_METRIKA: P_HCP
+  JATEKUTES_METRIKA: J_KLASSZIKUS
+  INDULOERO_KESZLET: NYITAS_ERO
+fejezetek:
+  - fejezet: Nyitások
+    jegyzet: >-
+      Prioritás: 2♣ (95) > 2NT (90) > 1NT (85) > 3-as blokk (72) > gyenge
+      kettes (70) > 1♠ (62) > 1♥ (61) > 1♦ (51) > 1♣ (50). Az 1-es szintű
+      nyitás a gib.lr szerint 11+ HCP VAGY 12+ total point.
+    szabalyok:
+      - minta: 2C
+        vagy: [{pont: 22+}, {pont: 19+, tp: 23+}]
+        forsz: EGY_MENET
+        prioritas: 95
+        alert: "Erős, mesterséges: 22+ HCP (egyenetlennel 19+ HCP és 23+ total point)"
+        nyers: "2♣ strong, artificial. 22+ HCP"
+        jegyzet: >-
+          A leírás 22+ HCP-t mond; a gib.lr (a robot magyarázataiból) 19+ HCP
+          és 23+ TP-t. Mindkettőt elfogadjuk — a mérés dönti el.
+      - minta: 2NT
+        pont: 20-21
+        elosztas: ["4333", "4432", "5332", "5422"]
+        hossz: {S: 0-5, H: 0-5, D: 0-5, C: 0-5}
+        prioritas: 90
+        magyarazat: "20-21 HCP, egyenletes; lehet 5-ös nemes"
+        nyers: "2NT balanced 20-21 HCP, may have a 5-card major"
+      - minta: 1NT
+        pont: 15-17
+        vagy:
+          - {elosztas: ["4333", "4432"]}
+          - {elosztas: ["5332"], hossz: {S: 0-4, H: 0-4}}
+          - {elosztas: ["5332"], pont: 15-16}
+        prioritas: 85
+        magyarazat: "15-17 HCP, egyenletes; lehet 5-ös nemes (17 + 5-ös nemes: nem 1NT)"
+        nyers: "1NT balanced 15-17 HCP, may have a 5-card major (GIB treats 17 with 5-card major as 18)"
+
+      - {minta: 3C, pont: 5-9, hossz: {C: 7+, S: 0-4, H: 0-4}, figura: {C: 3+}, forsz: KIZARO, prioritas: 72,
+         magyarazat: "Blokk: 7+ treff, 5-9 HCP, két honőr a színben"}
+      - {minta: 3D, pont: 5-9, hossz: {D: 7+, S: 0-4, H: 0-4}, figura: {D: 3+}, forsz: KIZARO, prioritas: 72,
+         magyarazat: "Blokk: 7+ káró, 5-9 HCP, két honőr a színben"}
+      - {minta: 3H, pont: 5-9, hossz: {H: 7+, S: 0-4}, figura: {H: 3+}, forsz: KIZARO, prioritas: 72,
+         magyarazat: "Blokk: 7+ kőr, 5-9 HCP, két honőr a színben"}
+      - {minta: 3S, pont: 5-9, hossz: {S: 7+, H: 0-4}, figura: {S: 3+}, forsz: KIZARO, prioritas: 72,
+         magyarazat: "Blokk: 7+ pikk, 5-9 HCP, két honőr a színben"}
+
+      - {minta: 2D, pont: 0-10, tp: 7+, hossz: {D: 6+, S: 0-4, H: 0-4}, figura: {D: 1+}, forsz: KIZARO, prioritas: 70,
+         alert: "Gyenge kettes: 6+ káró, legfeljebb 10 HCP, honőr a színben",
+         nyers: "2♦ 2♥ 2♠ weak 2 bid. Disciplined, with honors in the suit"}
+      - {minta: 2H, pont: 0-10, tp: 7+, hossz: {H: 6+, S: 0-4}, figura: {H: 1+}, forsz: KIZARO, prioritas: 70,
+         alert: "Gyenge kettes: 6+ kőr, legfeljebb 10 HCP, honőr a színben"}
+      - {minta: 2S, pont: 0-10, tp: 7+, hossz: {S: 6+, H: 0-4}, figura: {S: 1+}, forsz: KIZARO, prioritas: 70,
+         alert: "Gyenge kettes: 6+ pikk, legfeljebb 10 HCP, honőr a színben"}
+
+      - minta: 1S
+        hossz: {S: 5+}
+        rel: ["S>=H", "S>=D", "S>=C"]
+        vagy: [{pont: 11-21}, {pont: 0-21, tp: 12+}]
+        prioritas: 62
+        magyarazat: "5+ pikk, 11-21 HCP (vagy 12+ total point); 5-5-tel pikk"
+        nyers: "1♥ 1♠ normally show 5 in all seats. Opens 1♠ with 5-5 in spades and clubs."
+      - minta: 1H
+        hossz: {H: 5+}
+        rel: ["H>S", "H>=D", "H>=C"]
+        vagy: [{pont: 11-21}, {pont: 0-21, tp: 12+}]
+        prioritas: 61
+        magyarazat: "5+ kőr, 11-21 HCP (vagy 12+ total point)"
+      - minta: 1D
+        hossz: {S: 0-4, H: 0-4}
+        vagy:
+          - {hossz: {D: 4+}, rel: ["D>=C"], pont: 11-21}
+          - {hossz: {D: 4+}, rel: ["D>=C"], pont: 0-21, tp: 12+}
+          - {hossz: {D: 3, C: 2}, pont: 11-21}
+          - {hossz: {D: 3, C: 2}, pont: 0-21, tp: 12+}
+        prioritas: 51
+        magyarazat: "4+ káró (4432-ben lehet 3), 11-21 HCP; 4-4 minorral 1♦"
+        nyers: "1♦ usually 4 unless 4432. Opens 1♦ with 4-4 in the minors."
+      - minta: 1C
+        hossz: {C: 3+, S: 0-4, H: 0-4}
+        vagy: [{pont: 11-21}, {pont: 0-21, tp: 12+}]
+        prioritas: 50
+        magyarazat: "3+ treff (3 lappal 4333, 3433, 4423), 11-21 HCP"
+        nyers: "1♣ could be 3 if 4333, 3433 or 4423."

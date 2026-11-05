@@ -1,0 +1,109 @@
+# GIB — 2NT (20-21), 2♣ (erős) és a gyenge kettesek.
+# A 2NT rendszer a leírás szerint; a 2♣ és a gyenge kettes válaszait a
+# leírás nem adja meg: kieg. (szokásos 2/1: 2♣-2♦ várakozó, gyenge
+# kettesre a 2NT erőt kérdez — „feature”).
+rendszer: {kod: GIB_ALAP}
+fejezetek:
+  - fejezet: Válasz a 2NT-re
+    szabalyok:
+      - {minta: 2NT-3C, kulcs: GIB-2NT-STAYMAN, pont: 4+, vagy: [{hossz: {H: 4+}}, {hossz: {S: 4+}}],
+         forsz: GEMFORSZ, elvaras: VALASZ, prioritas: 58, alert: "Stayman: legalább egy 4-es nemes"}
+      - {minta: 2NT-3D, kulcs: GIB-2NT-TR-H, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Jacoby-transzfer: 5+ kőr"}
+      - {minta: 2NT-3H, kulcs: GIB-2NT-TR-S, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Jacoby-transzfer: 5+ pikk"}
+      - {minta: 2NT-3S, pont: 5+, hossz: {C: 4+, D: 4+, S: 0-3, H: 0-3}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: GEMFORSZ, elvaras: VALASZ, prioritas: 57, alert: "Minor Stayman: 5-4+ a minorokban, gémforsz"}
+      - {minta: 2NT-3NT, pont: 4-10, hossz: {S: 0-3, H: 0-3}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 2NT-4D, hossz: {H: 6+}, pont: 4-10, prioritas: 60, alert: "Texas-transzfer: 6+ kőr"}
+      - {minta: 2NT-4H, hossz: {S: 6+}, pont: 4-10, prioritas: 60, alert: "Texas-transzfer: 6+ pikk"}
+      - {minta: 2NT-4NT, pont: 11-12, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 52, magyarazat: "Kvantitatív: 6NT-invit"}
+      - {minta: 2NT-5NT, pont: 15-16, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 52, magyarazat: "Kvantitatív: 7NT-invit"}
+      - {minta: 2NT-6NT, pont: 13-14, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 51, magyarazat: "Leállás"}
+
+  - fejezet: "2NT után: a nyitó és a folytatások"
+    szabalyok:
+      - {minta: 2NT-3C-3D, hossz: {H: 0-3, S: 0-3}, prioritas: 50, magyarazat: "Nincs 4-es nemes"}
+      - {minta: 2NT-3C-3H, hossz: {H: 4+}, prioritas: 52, magyarazat: "4 kőr (lehet 4 pikk is)"}
+      - {minta: 2NT-3C-3S, hossz: {S: 4+, H: 0-3}, prioritas: 52, magyarazat: "4 pikk, nincs 4 kőr"}
+      - {minta: 2NT-3C-3D-3H, hossz: {H: 4, S: 5}, forsz: GEMFORSZ, prioritas: 55, alert: "Smolen: 4 kőr és 5 pikk"}
+      - {minta: 2NT-3C-3D-3S, hossz: {S: 4, H: 5}, forsz: GEMFORSZ, prioritas: 55, alert: "Smolen: 4 pikk és 5 kőr"}
+      - {minta: 2NT-3C-3D-4C, alulrol: true, pont: 11+, hossz: {C: 5+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "5+ treff, szlemérdeklődés"}
+      - {minta: 2NT-3C-3D-4D, alulrol: true, pont: 11+, hossz: {D: 5+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "5+ káró, szlemérdeklődés"}
+      - {minta: 2NT-3C-3D-3NT, pont: 4-10, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 2NT-3C-3D-4NT, pont: 11-12, prioritas: 51, magyarazat: "6NT-invit"}
+      - {minta: 2NT-3C-3H-3S, pont: 11+, hossz: {H: 4+}, forsz: GEMFORSZ, prioritas: 55, alert: "Mesterséges szlemkísérlet: 4+ kőr"}
+      - {minta: 2NT-3C-3H-3NT, hossz: {S: 4, H: 0-3}, prioritas: 50, magyarazat: "4 pikk: választás 4♠ és 3NT között"}
+      - {minta: 2NT-3C-3H-4H, pont: 4-10, hossz: {H: 4+}, prioritas: 53, magyarazat: "Leállás"}
+      - {minta: 2NT-3C-3H-3NT-4S, hossz: {S: 4}, prioritas: 52, magyarazat: "4 pikk"}
+      - {minta: 2NT-3C-3S-3NT, hossz: {H: 4, S: 0-3}, prioritas: 50, magyarazat: "Leállás (4 kőrrel)"}
+      - {minta: 2NT-3C-3S-4H, pont: 11+, hossz: {S: 4+}, forsz: GEMFORSZ, prioritas: 55, alert: "Mesterséges szlemkísérlet: 4+ pikk"}
+      - {minta: 2NT-3C-3S-4S, pont: 4-10, hossz: {S: 4+}, prioritas: 53, magyarazat: "Leállás"}
+      - {minta: 2NT-3D-3H, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2NT-3H-3S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 2NT-3D-4H, pont: 21, hossz: {H: 4+}, prioritas: 53, alert: "Szuperelfogadás: maximum, 4 kőr"}
+      - {minta: 2NT-3H-4S, pont: 21, hossz: {S: 4+}, prioritas: 53, alert: "Szuperelfogadás: maximum, 4 pikk"}
+      - {minta: 2NT-3D-3H-3S, pont: 11+, hossz: {H: 5+, S: 5+}, forsz: GEMFORSZ, prioritas: 54, alert: "5+ kőr és 5+ pikk, szlemérdeklődés"}
+      - {minta: 2NT-3D-3H-3NT, pont: 4-10, hossz: {H: 5}, prioritas: 52, magyarazat: "Pontosan 5 kőr: választás 4♥ és 3NT között"}
+      - {minta: 2NT-3D-3H-4C, alulrol: true, pont: 4+, hossz: {H: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ kőr, 4+ treff"}
+      - {minta: 2NT-3D-3H-4D, alulrol: true, pont: 4+, hossz: {H: 5+, D: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ kőr, 4+ káró"}
+      - {minta: 2NT-3D-3H-4H, pont: 8-10, hossz: {H: 6+}, prioritas: 54, magyarazat: "Enyhe szlemkísérlet, 6+ kőr"}
+      - {minta: 2NT-3D-3H-4NT, pont: 11-12, hossz: {H: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Pontosan 5 kőr: 6♥ / 6NT invit"}
+      - {minta: 2NT-3D-3H-5NT, pont: 13+, hossz: {H: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Választás 6♥ és 6NT között"}
+      - {minta: 2NT-3H-3S-3NT, pont: 4-10, hossz: {S: 5}, prioritas: 52, magyarazat: "Pontosan 5 pikk: választás 4♠ és 3NT között"}
+      - {minta: 2NT-3H-3S-4C, alulrol: true, pont: 4+, hossz: {S: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ pikk, 4+ treff"}
+      - {minta: 2NT-3H-3S-4D, alulrol: true, pont: 4+, hossz: {S: 5+, D: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ pikk, 4+ káró"}
+      - {minta: 2NT-3H-3S-4H, pont: 4+, hossz: {S: 5+, H: 5+}, prioritas: 55, magyarazat: "5+ pikk és 5+ kőr: választás 4♥ és 4♠ között"}
+      - {minta: 2NT-3H-3S-4S, pont: 8-10, hossz: {S: 6+}, prioritas: 54, magyarazat: "Enyhe szlemkísérlet, 6+ pikk"}
+      - {minta: 2NT-3H-3S-4NT, pont: 11-12, hossz: {S: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Pontosan 5 pikk: 6♠ / 6NT invit"}
+      - {minta: 2NT-3H-3S-5NT, pont: 13+, hossz: {S: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Választás 6♠ és 6NT között"}
+      - {minta: 2NT-3D-3H-3NT-4H, hossz: {H: 3+}, prioritas: 51, magyarazat: "3+ kőr"}
+      - {minta: 2NT-3H-3S-3NT-4S, hossz: {S: 3+}, prioritas: 51, magyarazat: "3+ pikk"}
+      - {minta: 2NT-3S-4C, hossz: {C: 4+}, rel: ["C>=D"], prioritas: 51, magyarazat: "4+ treff"}
+      - {minta: 2NT-3S-4D, hossz: {D: 4+}, rel: ["D>C"], prioritas: 51, magyarazat: "4+ káró"}
+      - {minta: 2NT-3S-3NT, hossz: {C: 0-3, D: 0-3}, prioritas: 50, magyarazat: "Nincs 4-es minor"}
+      - {minta: 2NT-4D-4H, prioritas: 50, magyarazat: "Kötelező"}
+      - {minta: 2NT-4H-4S, prioritas: 50, magyarazat: "Kötelező"}
+
+  - fejezet: A 2♣ nyitás után
+    jegyzet: "kieg.: a leírás nem adja meg; szokásos 2/1 (2♦ várakozó, pozitív 8+ jó színnel)."
+    szabalyok:
+      - {minta: 2C-2D, forsz: EGY_MENET, prioritas: 40, alert: "Várakozó"}
+      - {minta: 2C-2H, alulrol: true, pont: 8+, hossz: {H: 5+}, fohonor: {H: 2+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "Pozitív: 5+ kőr, két honőr"}
+      - {minta: 2C-2S, alulrol: true, pont: 8+, hossz: {S: 5+}, fohonor: {S: 2+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "Pozitív: 5+ pikk, két honőr"}
+      - {minta: 2C-2NT, pont: 8+, elosztas: BAL, forsz: GEMFORSZ, prioritas: 50, magyarazat: "Pozitív, egyenletes"}
+      - {minta: 2C-3C, alulrol: true, pont: 8+, hossz: {C: 5+}, fohonor: {C: 2+}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "Pozitív: 5+ treff, két honőr"}
+      - {minta: 2C-3D, alulrol: true, pont: 8+, hossz: {D: 5+}, fohonor: {D: 2+}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "Pozitív: 5+ káró, két honőr"}
+      - {minta: 2C-2D-2H, hossz: {H: 5+}, rel: ["H>S"], forsz: EGY_MENET, prioritas: 51, magyarazat: "Természetes, 5+ kőr"}
+      - {minta: 2C-2D-2S, hossz: {S: 5+}, rel: ["S>=H"], forsz: EGY_MENET, prioritas: 51, magyarazat: "Természetes, 5+ pikk"}
+      - {minta: 2C-2D-2NT, pont: 22-24, elosztas: BAL, prioritas: 52, folytatas: {mint: 2NT, pont: 2},
+         magyarazat: "22-24 HCP, egyenletes; a válaszok mint a 2NT után"}
+      - {minta: 2C-2D-3C, hossz: {C: 5+}, rel: ["C>=D"], forsz: EGY_MENET, prioritas: 50, magyarazat: "Természetes, 5+ treff"}
+      - {minta: 2C-2D-3D, hossz: {D: 5+}, rel: ["D>C"], forsz: EGY_MENET, prioritas: 50, magyarazat: "Természetes, 5+ káró"}
+      - {minta: 2C-2D-3NT, pont: 25-27, elosztas: BAL, prioritas: 52, magyarazat: "25-27 HCP, egyenletes"}
+      - {minta: 2C-2D-2M-3M, hossz: {M: 3+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "Támogatás"}
+      - {minta: 2C-2D-2M-2NT, hossz: {M: 0-2}, forsz: EGY_MENET, prioritas: 49, magyarazat: "Nincs támogatás"}
+
+  - fejezet: A gyenge kettes után
+    jegyzet: "kieg.: a leírás nem adja meg; a 2NT erőt kérdez (feature), az új szín kényszerít."
+    szabalyok:
+      - {minta: 2D-2H, alulrol: true, pont: 14+, hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 52, magyarazat: "5+ kőr, kényszerít"}
+      - {minta: 2D-2S, alulrol: true, pont: 14+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 52, magyarazat: "5+ pikk, kényszerít"}
+      - {minta: 2H-2S, pont: 14+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 52, magyarazat: "5+ pikk, kényszerít"}
+      - {minta: 2D-2NT, pont: 15+, hossz: {D: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 50, alert: "Erőt kérdez (feature)"}
+      - {minta: 2M-2NT, pont: 15+, hossz: {M: 2+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 50, alert: "Erőt kérdez (feature)"}
+      - {minta: 2D-3D, pont: 0-14, hossz: {D: 3+}, forsz: KIZARO, prioritas: 51, magyarazat: "Kizáró emelés"}
+      - {minta: 2M-3M, pont: 0-14, hossz: {M: 3+}, forsz: KIZARO, prioritas: 51, magyarazat: "Kizáró emelés"}
+      - {minta: 2M-4M, vagy: [{pont: 16+, hossz: {M: 2+}}, {pont: 0-12, hossz: {M: 4+}}], prioritas: 53, magyarazat: "Gém (erővel vagy áldozatnak)"}
+      - {minta: 2D-3NT, pont: 16+, hossz: {D: 0-1}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 2M-3NT, pont: 16+, hossz: {M: 0-1}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 2D-2NT-3NT, pont: 9-10, fohonor: {D: 3}, prioritas: 53, magyarazat: "Zárt szín (AKQ)"}
+      - {minta: 2M-2NT-3NT, pont: 9-10, fohonor: {M: 3}, prioritas: 53, magyarazat: "Zárt szín (AKQ)"}
+      - {minta: 2D-2NT-3C, alulrol: true, pont: 9-10, fohonor: {C: 1+}, prioritas: 51, magyarazat: "Maximum, figura treffben"}
+      - {minta: 2D-2NT-3H, alulrol: true, pont: 9-10, fohonor: {H: 1+}, prioritas: 51, magyarazat: "Maximum, figura kőrben"}
+      - {minta: 2D-2NT-3S, alulrol: true, pont: 9-10, fohonor: {S: 1+}, prioritas: 51, magyarazat: "Maximum, figura pikkben"}
+      - {minta: 2M-2NT-3C, alulrol: true, pont: 9-10, fohonor: {C: 1+}, prioritas: 51, magyarazat: "Maximum, figura treffben"}
+      - {minta: 2M-2NT-3D, alulrol: true, pont: 9-10, fohonor: {D: 1+}, prioritas: 51, magyarazat: "Maximum, figura káróban"}
+      - {minta: 2S-2NT-3H, alulrol: true, pont: 9-10, fohonor: {H: 1+}, prioritas: 51, magyarazat: "Maximum, figura kőrben"}
+      - {minta: 2D-2NT-3D, pont: 0-8, prioritas: 50, magyarazat: "Minimum"}
+      - {minta: 2M-2NT-3M, pont: 0-8, prioritas: 50, magyarazat: "Minimum"}

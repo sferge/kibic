@@ -183,7 +183,7 @@ _SZABALY_KULCSOK = {
     "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
     "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "gyenge_fogas", "help_fogas",
     "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit", "menekulo",
-    "nt_pont",
+    "nt_pont", "tp",
 }
 _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "feltetel", "lapok", "nincs", "fohonor", "figura", "fogas",
@@ -196,7 +196,7 @@ _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
                 "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont",
                 "gyenge_fogas", "help_fogas", "gem_eselytelen", "eros_fogas",
-                "leghosszabb_partner_szin", "misfit", "menekulo", "nt_pont"}
+                "leghosszabb_partner_szin", "misfit", "menekulo", "nt_pont", "tp"}
 
 # A lap minősége (LAPMINOSEG = jó jelek − rossz jelek, lásd 023_lapminoseg.sql)
 _MINOSEG = {"jo": (">=", 2), "rossz": ("<=", -2),
@@ -615,6 +615,8 @@ def _kez_fa(spec: dict, hely: str) -> dict:
         gy += _sav_fa({"t": "URES_FIGURA"}, lo, hi)
     if "vesztok" in spec:                        # vesztőütés az egész kézben (zónás is)
         gy.append(_pont_fa(spec["vesztok"], {"t": "VESZTO"}, hely))
+    if "tp" in spec:                             # GIB „total points” (TOTAL_POINTS)
+        gy.append(_pont_fa(spec["tp"], {"t": "ERT", "kod": "TOTAL_POINTS"}, hely))
     if "jatekutes" in spec:                      # játékütés (J_KLASSZIKUS), zónás is
         gy.append(_pont_fa(spec["jatekutes"], {"t": "ERT", "kod": "J_KLASSZIKUS"}, hely))
     if "gyorsutes" in spec:                      # gyorsütés (AK=2, AQ=1,5, A=1, KQ=1, Kx=0,5)

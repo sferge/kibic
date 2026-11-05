@@ -1,0 +1,185 @@
+# GIB — AZ 1NT NYITÁS (15-17) és folytatásai, a leírás szerint.
+# kieg.: a válaszoló sávjai (invit 8-9, gém 10-15, szleminvit 16-17,
+# szlem 18+) a leírásban nincsenek számmal; a szokásos értékek.
+rendszer: {kod: GIB_ALAP}
+fejezetek:
+  - fejezet: Válasz az 1NT-re
+    szabalyok:
+      - {minta: 1NT-2C, kulcs: GIB-STAYMAN, pont: 8+, vagy: [{hossz: {H: 4+}}, {hossz: {S: 4+}}, {pont: 8-9, elosztas: BAL}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 58,
+         alert: "Stayman: legalább egy 4-es nemes (kivéve 3NT-invitnél)"}
+      - {minta: 1NT-2D, kulcs: GIB-TR-H, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Jacoby-transzfer: 5+ kőr"}
+      - {minta: 1NT-2H, kulcs: GIB-TR-S, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 59,
+         alert: "Jacoby-transzfer: 5+ pikk"}
+      - {minta: 1NT-2S, kulcs: GIB-MSS, pont: 10+, hossz: {C: 4+, D: 4+, S: 0-3, H: 0-3}, vagy: [{hossz: {C: 5+}}, {hossz: {D: 5+}}],
+         forsz: GEMFORSZ, elvaras: VALASZ, prioritas: 57,
+         alert: "Minor Stayman: általában 5-4+ a minorokban, gémforsz"}
+      - {minta: 1NT-2NT, kulcs: GIB-TR-C, hossz: {C: 6+, S: 0-3, H: 0-3}, vagy: [{pont: 0-7}, {pont: 10+}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 56,
+         alert: "Minor-transzfer: 6+ treff (a nyitó 3♣-t mond)"}
+      - {minta: 1NT-3C, kulcs: GIB-TR-D, hossz: {D: 6+, S: 0-3, H: 0-3}, vagy: [{pont: 0-7}, {pont: 10+}],
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 56,
+         alert: "Minor-transzfer: 6+ káró (a nyitó 3♦-t mond)"}
+      - {minta: 1NT-3D, pont: 10+, hossz: {D: 0-1, S: 4, H: 4, C: 4+}, forsz: GEMFORSZ, prioritas: 60,
+         alert: "Szingli/sikén káró, a többi színben 4+, nincs 5-ös nemes; gémforsz"}
+      - {minta: 1NT-3H, pont: 10+, hossz: {H: 0-1, S: 4, D: 4+, C: 4+}, forsz: GEMFORSZ, prioritas: 60,
+         alert: "Szingli/sikén kőr, a többi színben 4+, nincs 5-ös nemes; gémforsz"}
+      - {minta: 1NT-3S, pont: 10+, hossz: {S: 0-1, H: 4, D: 4+, C: 4+}, forsz: GEMFORSZ, prioritas: 60,
+         alert: "Szingli/sikén pikk, a többi színben 4+, nincs 5-ös nemes; gémforsz"}
+      - {minta: 1NT-3NT, pont: 10-15, hossz: {S: 0-3, H: 0-3}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1NT-4D, kulcs: GIB-TEXAS-H, hossz: {H: 6+}, pont: 10-15, prioritas: 60, alert: "Texas-transzfer: 6+ kőr"}
+      - {minta: 1NT-4H, kulcs: GIB-TEXAS-S, hossz: {S: 6+}, pont: 10-15, prioritas: 60, alert: "Texas-transzfer: 6+ pikk"}
+      - {minta: 1NT-4NT, pont: 16-17, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 52, magyarazat: "Kvantitatív: 6NT-invit"}
+      - {minta: 1NT-5NT, pont: 20-21, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 52, magyarazat: "Kvantitatív: 7NT-invit"}
+      - {minta: 1NT-6NT, pont: 18-19, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 51, magyarazat: "Leállás"}
+
+  - fejezet: "Stayman: a nyitó"
+    szabalyok:
+      - {minta: 1NT-2C-2D, hossz: {H: 0-3, S: 0-3}, prioritas: 50, magyarazat: "Nincs 4-es nemes"}
+      - {minta: 1NT-2C-2H, hossz: {H: 4+}, prioritas: 52, magyarazat: "4 kőr (lehet 4 pikk is)"}
+      - {minta: 1NT-2C-2S, hossz: {S: 4+, H: 0-3}, prioritas: 52, magyarazat: "4 pikk, nincs 4 kőr"}
+
+  - fejezet: "Stayman – 2♦ után a válaszoló"
+    szabalyok:
+      - {minta: 1NT-2C-2D-2H, pont: 8-9, hossz: {H: 5, S: 4}, prioritas: 54, magyarazat: "Invit: 5 kőr és 4 pikk"}
+      - {minta: 1NT-2C-2D-2S, pont: 8-9, hossz: {S: 5, H: 4}, prioritas: 54, magyarazat: "Invit: 5 pikk és 4 kőr"}
+      - {minta: 1NT-2C-2D-2NT, pont: 8-9, prioritas: 50, magyarazat: "Invit, nem ígér 4-es nemest"}
+      - {minta: 1NT-2C-2D-3C, alulrol: true, pont: 10+, hossz: {C: 5+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "5+ treff, gémforsz"}
+      - {minta: 1NT-2C-2D-3D, alulrol: true, pont: 10+, hossz: {D: 5+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "5+ káró, gémforsz"}
+      - {minta: 1NT-2C-2D-3H, pont: 10+, hossz: {H: 4, S: 5}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 kőr és 5 pikk, gémforsz"}
+      - {minta: 1NT-2C-2D-3S, pont: 10+, hossz: {S: 4, H: 5}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Smolen: 4 pikk és 5 kőr, gémforsz"}
+      - {minta: 1NT-2C-2D-3NT, pont: 10-15, hossz: {H: 0-4, S: 0-4}, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1NT-2C-2D-4NT, pont: 16-17, elosztas: BAL, prioritas: 55, magyarazat: "6NT-invit"}
+      - {minta: 1NT-2C-2D-3H-3S, hossz: {S: 3+}, prioritas: 52, magyarazat: "3+ pikk"}
+      - {minta: 1NT-2C-2D-3H-3NT, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Nincs 3 pikk"}
+      - {minta: 1NT-2C-2D-3S-4H, hossz: {H: 3+}, prioritas: 52, magyarazat: "3+ kőr"}
+      - {minta: 1NT-2C-2D-3S-3NT, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Nincs 3 kőr"}
+
+  - fejezet: "Stayman – 2♥ után a válaszoló"
+    szabalyok:
+      - {minta: 1NT-2C-2H-2S, pont: 8-9, hossz: {S: 4+, H: 0-3}, prioritas: 53, magyarazat: "Invit 4 pikkel"}
+      - {minta: 1NT-2C-2H-2NT, pont: 8-9, hossz: {S: 0-3, H: 0-3}, prioritas: 50, magyarazat: "Invit, tagadja a 4 pikket"}
+      - {minta: 1NT-2C-2H-3C, alulrol: true, pont: 10+, hossz: {C: 5+, H: 0-3}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "5+ treff, gémforsz"}
+      - {minta: 1NT-2C-2H-3D, alulrol: true, pont: 10+, hossz: {D: 5+, H: 0-3}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "5+ káró, gémforsz"}
+      - {minta: 1NT-2C-2H-3H, pont: 8-9, hossz: {H: 4+}, prioritas: 54, magyarazat: "Invit, kőr adu"}
+      - {minta: 1NT-2C-2H-3S, pont: 14+, hossz: {H: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Mesterséges szlemkísérlet: 4+ kőr, általában egyenletes"}
+      - {minta: 1NT-2C-2H-4C, alulrol: true, pont: 12+, hossz: {H: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 4+ kőr, rövid treff, szlemérdeklődés"}
+      - {minta: 1NT-2C-2H-4D, alulrol: true, pont: 12+, hossz: {H: 4+, D: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 4+ kőr, rövid káró, szlemérdeklődés"}
+      - {minta: 1NT-2C-2H-3NT, pont: 10-15, hossz: {H: 0-3, S: 4}, prioritas: 50, magyarazat: "Leállás (4 pikkel)"}
+      - {minta: 1NT-2C-2H-4H, pont: 10-13, hossz: {H: 4+}, prioritas: 53, magyarazat: "Leállás"}
+      - {minta: 1NT-2C-2H-4NT, pont: 16-17, hossz: {H: 0-3}, elosztas: BAL, prioritas: 55, magyarazat: "6NT-invit"}
+
+  - fejezet: "Stayman – 2♠ után a válaszoló"
+    szabalyok:
+      - {minta: 1NT-2C-2S-2NT, pont: 8-9, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Invit, nem ígér 4 kőrt"}
+      - {minta: 1NT-2C-2S-3C, alulrol: true, pont: 10+, hossz: {C: 5+, S: 0-3}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "5+ treff, gémforsz"}
+      - {minta: 1NT-2C-2S-3D, alulrol: true, pont: 10+, hossz: {D: 5+, S: 0-3}, forsz: GEMFORSZ, prioritas: 51, magyarazat: "5+ káró, gémforsz"}
+      - {minta: 1NT-2C-2S-3H, pont: 14+, hossz: {S: 4+}, forsz: GEMFORSZ, prioritas: 55,
+         alert: "Mesterséges szlemkísérlet: 4+ pikk, általában egyenletes"}
+      - {minta: 1NT-2C-2S-3S, pont: 8-9, hossz: {S: 4+}, prioritas: 54, magyarazat: "Invit, pikk adu"}
+      - {minta: 1NT-2C-2S-4C, alulrol: true, pont: 12+, hossz: {S: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 4+ pikk, rövid treff"}
+      - {minta: 1NT-2C-2S-4D, alulrol: true, pont: 12+, hossz: {S: 4+, D: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 4+ pikk, rövid káró"}
+      - {minta: 1NT-2C-2S-4H, alulrol: true, pont: 12+, hossz: {S: 4+, H: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 4+ pikk, rövid kőr"}
+      - {minta: 1NT-2C-2S-3NT, pont: 10-15, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Leállás (4 kőrrel)"}
+      - {minta: 1NT-2C-2S-4S, pont: 10-13, hossz: {S: 4+}, prioritas: 53, magyarazat: "Leállás"}
+      - {minta: 1NT-2C-2S-4NT, pont: 16-17, hossz: {S: 0-3}, elosztas: BAL, prioritas: 55, magyarazat: "6NT-invit"}
+
+  - fejezet: "Stayman: a nyitó az invit után"
+    szabalyok:                                                               # kieg.
+      - {minta: 1NT-2C-2D-2NT-3NT, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2C-2H-2NT-3NT, pont: 16-17, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2C-2H-2NT-4S, pont: 16-17, hossz: {S: 4}, prioritas: 51, magyarazat: "Maximum, 4 pikk"}
+      - {minta: 1NT-2C-2H-2NT-3S, pont: 15, hossz: {S: 4}, prioritas: 51, magyarazat: "Minimum, 4 pikk"}
+      - {minta: 1NT-2C-2S-2NT-3NT, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2C-2H-2S-4S, pont: 16-17, hossz: {S: 4}, prioritas: 52, magyarazat: "Maximum, 4 pikk"}
+      - {minta: 1NT-2C-2H-2S-3NT, pont: 16-17, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Maximum, nincs 4 pikk"}
+      - {minta: 1NT-2C-2H-3H-4H, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2C-2S-3S-4S, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+
+  - fejezet: "Jacoby-transzfer: a nyitó"
+    szabalyok:
+      - {minta: 1NT-2D-2H, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 1NT-2H-2S, prioritas: 50, magyarazat: "A transzfer teljesítése"}
+      - {minta: 1NT-2D-3H, pont: 17, hossz: {H: 4+}, prioritas: 53, alert: "Szuperelfogadás: maximum, 4 lapos kőr"}
+      - {minta: 1NT-2H-3S, pont: 17, hossz: {S: 4+}, prioritas: 53, alert: "Szuperelfogadás: maximum, 4 lapos pikk"}
+
+  - fejezet: "Jacoby-transzfer: a válaszoló (1NT-2♦-2♥ után)"
+    szabalyok:
+      - {minta: 1NT-2D-2H-2S, pont: 8-9, hossz: {H: 5+, S: 5+}, prioritas: 54, alert: "5+ kőr és 5+ pikk, invit"}
+      - {minta: 1NT-2D-2H-2NT, pont: 8-9, hossz: {H: 5}, prioritas: 52, magyarazat: "Pontosan 5 kőr, invit"}
+      - {minta: 1NT-2D-2H-3C, alulrol: true, pont: 10+, hossz: {H: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ kőr, 4+ treff, gémforsz"}
+      - {minta: 1NT-2D-2H-3D, alulrol: true, pont: 10+, hossz: {H: 5+, D: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ kőr, 4+ káró, gémforsz"}
+      - {minta: 1NT-2D-2H-3H, pont: 8-9, hossz: {H: 6+}, prioritas: 53, magyarazat: "Invit, 6+ kőr"}
+      - {minta: 1NT-2D-2H-3NT, pont: 10-15, hossz: {H: 5}, prioritas: 52, magyarazat: "Pontosan 5 kőr: választás 4♥ és 3NT között"}
+      - {minta: 1NT-2D-2H-3S, alulrol: true, pont: 12+, hossz: {H: 6+, S: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ kőr, rövid pikk"}
+      - {minta: 1NT-2D-2H-4C, alulrol: true, pont: 12+, hossz: {H: 6+, C: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ kőr, rövid treff"}
+      - {minta: 1NT-2D-2H-4D, alulrol: true, pont: 12+, hossz: {H: 6+, D: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ kőr, rövid káró"}
+      - {minta: 1NT-2D-2H-4H, pont: 12-15, hossz: {H: 6+, S: 2+, D: 2+, C: 2+}, prioritas: 54,
+         magyarazat: "6+ kőr, nincs rövidség, enyhe szlemérdeklődés"}
+      - {minta: 1NT-2D-2H-4NT, pont: 16-17, hossz: {H: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Pontosan 5 kőr: 6♥ / 6NT invit"}
+      - {minta: 1NT-2D-2H-5NT, pont: 18+, hossz: {H: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Választás 6♥ és 6NT között"}
+
+  - fejezet: "Jacoby-transzfer: a válaszoló (1NT-2♥-2♠ után)"
+    szabalyok:
+      - {minta: 1NT-2H-2S-2NT, pont: 8-9, hossz: {S: 5}, prioritas: 52, magyarazat: "Pontosan 5 pikk, invit"}
+      - {minta: 1NT-2H-2S-3C, alulrol: true, pont: 10+, hossz: {S: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ pikk, 4+ treff, gémforsz"}
+      - {minta: 1NT-2H-2S-3D, alulrol: true, pont: 10+, hossz: {S: 5+, D: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "5+ pikk, 4+ káró, gémforsz"}
+      - {minta: 1NT-2H-2S-3H, pont: 10+, hossz: {S: 5+, H: 5+}, forsz: GEMFORSZ, prioritas: 54, magyarazat: "5+ pikk és 5+ kőr, gémforsz"}
+      - {minta: 1NT-2H-2S-3S, pont: 8-9, hossz: {S: 6+}, prioritas: 53, magyarazat: "Invit, 6+ pikk"}
+      - {minta: 1NT-2H-2S-3NT, pont: 10-15, hossz: {S: 5}, prioritas: 52, magyarazat: "Pontosan 5 pikk: választás 4♠ és 3NT között"}
+      - {minta: 1NT-2H-2S-4C, alulrol: true, pont: 12+, hossz: {S: 6+, C: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ pikk, rövid treff"}
+      - {minta: 1NT-2H-2S-4D, alulrol: true, pont: 12+, hossz: {S: 6+, D: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ pikk, rövid káró"}
+      - {minta: 1NT-2H-2S-4H, alulrol: true, pont: 12+, hossz: {S: 6+, H: 0-1}, forsz: GEMFORSZ, prioritas: 56, alert: "Splinter: 6+ pikk, rövid kőr"}
+      - {minta: 1NT-2H-2S-4S, pont: 12-15, hossz: {S: 6+, H: 2+, D: 2+, C: 2+}, prioritas: 54,
+         magyarazat: "6+ pikk, nincs rövidség, enyhe szlemérdeklődés"}
+      - {minta: 1NT-2H-2S-4NT, pont: 16-17, hossz: {S: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Pontosan 5 pikk: 6♠ / 6NT invit"}
+      - {minta: 1NT-2H-2S-5NT, pont: 18+, hossz: {S: 5}, elosztas: BAL, prioritas: 55, magyarazat: "Választás 6♠ és 6NT között"}
+
+  - fejezet: "A transzfer után a nyitó"
+    szabalyok:                                                               # kieg.
+      - {minta: 1NT-2D-2H-2NT-3NT, pont: 16-17, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 kőr"}
+      - {minta: 1NT-2D-2H-2NT-4H, pont: 16-17, hossz: {H: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ kőr"}
+      - {minta: 1NT-2D-2H-2NT-3H, pont: 15, hossz: {H: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ kőr"}
+      - {minta: 1NT-2H-2S-2NT-3NT, pont: 16-17, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 pikk"}
+      - {minta: 1NT-2H-2S-2NT-4S, pont: 16-17, hossz: {S: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ pikk"}
+      - {minta: 1NT-2H-2S-2NT-3S, pont: 15, hossz: {S: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ pikk"}
+      - {minta: 1NT-2D-2H-3NT-4H, hossz: {H: 3+}, prioritas: 51, magyarazat: "3+ kőr"}
+      - {minta: 1NT-2H-2S-3NT-4S, hossz: {S: 3+}, prioritas: 51, magyarazat: "3+ pikk"}
+      - {minta: 1NT-2D-2H-3H-4H, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2H-2S-3S-4S, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+
+  - fejezet: "Minor Stayman, minor-transzfer, Texas"
+    jegyzet: >-
+      Minor Stayman: a nyitó 4+ lapos minort mond, ha van; különben 2NT (a
+      leírás szerint 3343 / 3334-gyel — ez a 4-4-es nemesekkel együtt is
+      csak úgy következetes, ha a 2NT „nincs 4-es minor”). A válaszoló
+      3-as szintű nemese szingli/sikén. Minor-transzfer után az új szín a
+      3-as szinten rövidség, a 3NT enyhe szlemkísérlet, a 4NT RKC.
+    szabalyok:
+      - {minta: 1NT-2S-3C, hossz: {C: 4+}, rel: ["C>=D"], prioritas: 51, magyarazat: "4+ treff"}
+      - {minta: 1NT-2S-3D, hossz: {D: 4+}, rel: ["D>C"], prioritas: 51, magyarazat: "4+ káró"}
+      - {minta: 1NT-2S-2NT, hossz: {C: 0-3, D: 0-3}, prioritas: 50, magyarazat: "Nincs 4-es minor"}
+      - {minta: 1NT-2S-3C-3H, alulrol: true, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén kőr"}
+      - {minta: 1NT-2S-3C-3S, alulrol: true, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén pikk"}
+      - {minta: 1NT-2S-3D-3H, alulrol: true, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén kőr"}
+      - {minta: 1NT-2S-3D-3S, alulrol: true, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén pikk"}
+      - {minta: 1NT-2S-2NT-3H, alulrol: true, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén kőr"}
+      - {minta: 1NT-2S-2NT-3S, alulrol: true, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 52, alert: "Szingli/sikén pikk"}
+      - {minta: 1NT-2NT-3C, prioritas: 50, magyarazat: "Kötelező"}
+      - {minta: 1NT-3C-3D, prioritas: 50, magyarazat: "Kötelező"}
+      - {minta: 1NT-2NT-3C-3D, alulrol: true, pont: 10+, hossz: {D: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén káró"}
+      - {minta: 1NT-2NT-3C-3H, alulrol: true, pont: 10+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén kőr"}
+      - {minta: 1NT-2NT-3C-3S, alulrol: true, pont: 10+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén pikk"}
+      - {minta: 1NT-2NT-3C-3NT, pont: 13+, elosztas: BAL, prioritas: 52, alert: "Enyhe szlemkísérlet, általában egyenletes"}
+      - {minta: 1NT-2NT-3C-5C, pont: 10-12, prioritas: 50, magyarazat: "Gém"}
+      - {minta: 1NT-3C-3D-3H, alulrol: true, pont: 10+, hossz: {H: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén kőr"}
+      - {minta: 1NT-3C-3D-3S, alulrol: true, pont: 10+, hossz: {S: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén pikk"}
+      - {minta: 1NT-3C-3D-4C, alulrol: true, pont: 10+, hossz: {C: 0-1}, forsz: GEMFORSZ, prioritas: 53, alert: "Szingli/sikén treff"}
+      - {minta: 1NT-3C-3D-3NT, pont: 13+, elosztas: BAL, prioritas: 52, alert: "Enyhe szlemkísérlet, általában egyenletes"}
+      - {minta: 1NT-3C-3D-5D, pont: 10-12, prioritas: 50, magyarazat: "Gém"}
+      - {minta: 1NT-4D-4H, prioritas: 50, magyarazat: "Kötelező"}
+      - {minta: 1NT-4H-4S, prioritas: 50, magyarazat: "Kötelező"}

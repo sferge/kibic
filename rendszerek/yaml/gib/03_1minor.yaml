@@ -1,0 +1,136 @@
+# GIB — AZ 1 MINOR NYITÁS: válaszok és folytatások.
+# A leírásból: 1♣-2♣ és 1♦-2♦ fordított (kényszerít); 1♦-2♣ gémforsz;
+# az ugró ismétlés 6+ lap, 17-20 HCP; egyirányú új minor; a negyedik
+# szín gémforsz (1♣-1♦-1♥-1♠ mesterséges, 1♣-1♦-1♥-2♠ gémforsz pikkel).
+# kieg.: a többi sáv a szokásos 2/1, a mérés dönti el.
+rendszer: {kod: GIB_ALAP}
+fejezetek:
+  - fejezet: Válasz az 1 minorra
+    szabalyok:
+      - {minta: 1C-1D, pont: 6+, hossz: {D: 4+}, vagy: [{hossz: {S: 0-3, H: 0-3}}, {hossz: {D: 5+}, pont: 12+}],
+         forsz: EGY_MENET, prioritas: 54, magyarazat: "4+ káró, 6+ HCP"}           # kieg.
+      - minta: 1m-1H
+        pont: 6+
+        hossz: {H: 4+}
+        vagy: [{rel: ["H>S"]}, {hossz: {H: 4, S: 4}}]
+        forsz: EGY_MENET
+        prioritas: 56
+        magyarazat: "4+ kőr, 6+ HCP"
+      - minta: 1m-1S
+        pont: 6+
+        hossz: {S: 4+}
+        vagy: [{rel: ["S>H"]}, {hossz: {S: 5+, H: 5+}, rel: ["S>=H"]}]
+        forsz: EGY_MENET
+        prioritas: 56
+        magyarazat: "4+ pikk, 6+ HCP"
+      - {minta: 1m-1NT, pont: 6-10, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
+         magyarazat: "6-10 HCP, egyenletes, nincs 4-es nemes"}                     # kieg.
+      - {minta: 1m-2NT, pont: 11-12, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 47,
+         magyarazat: "11-12 HCP, egyenletes, nincs 4-es nemes: invit"}             # kieg.
+      - {minta: 1m-3NT, pont: 13-15, elosztas: ["4333"], hossz: {S: 0-3, H: 0-3}, prioritas: 48,
+         magyarazat: "13-15 HCP, 4333, nincs 4-es nemes"}                          # kieg.
+      - {minta: 1D-2C, pont: 12+, hossz: {C: 4+}, vagy: [{hossz: {S: 0-3, H: 0-3}}, {hossz: {C: 5+}}],
+         forsz: GEMFORSZ, prioritas: 53, ha: {ules: [3, 4]},
+         alert: "Gémforsz, 4+ treff", nyers: "1♦: 2♣ response is game forcing"}
+      - {minta: 1C-2C, pont: 10+, hossz: {C: 5+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Fordított emelés: 10+ HCP, 5+ treff, kényszerít", nyers: "2♣ response is forcing, inverted"}
+      - {minta: 1D-2D, pont: 10+, hossz: {D: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Fordított emelés: 10+ HCP, 4+ káró, kényszerít", nyers: "2♦ response is forcing, inverted"}
+      - {minta: 1C-3C, pont: 0-9, hossz: {C: 5+, S: 0-3, H: 0-3}, forsz: KIZARO, prioritas: 51,
+         alert: "Gyenge (kizáró) emelés: 5+ treff"}                                  # kieg.
+      - {minta: 1D-3D, pont: 0-9, hossz: {D: 5+, S: 0-3, H: 0-3}, forsz: KIZARO, prioritas: 51,
+         alert: "Gyenge (kizáró) emelés: 5+ káró"}                                   # kieg.
+
+  - fejezet: Soloway ugró színváltás az 1 minorra
+    jegyzet: "Mint az 1 nemesnél: 17+ TP (vagy 18+ HCP egyenletes), 4+ kontroll, önálló szín."
+    szabalyok:
+      - minta: 1C-2D
+        alulrol: true
+        ha: {ules: [3, 4]}
+        hossz: {D: 5+}
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
+        vagy: [{tp: 17+, fohonor: {D: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {D: 2+}}]
+        forsz: GEMFORSZ
+        prioritas: 58
+        alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
+      - minta: 1m-2H
+        alulrol: true
+        ha: {ules: [3, 4]}
+        hossz: {H: 5+}
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
+        vagy: [{tp: 17+, fohonor: {H: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {H: 2+}}]
+        forsz: GEMFORSZ
+        prioritas: 58
+        alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
+      - minta: 1m-2S
+        alulrol: true
+        ha: {ules: [3, 4]}
+        hossz: {S: 5+}
+        feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
+        vagy: [{tp: 17+, fohonor: {S: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {S: 2+}}]
+        forsz: GEMFORSZ
+        prioritas: 58
+        alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
+
+  - fejezet: "A nyitó a Soloway ugró színváltás után"
+    jegyzet: >-
+      Ismétlés: 6+ lap. Emelés: 3+ támogatás. Mellékszín: tagadja a
+      támogatást, legalább KD a színben. Minden más: a legolcsóbb szan.
+    szabalyok:
+      - {minta: 1H-2S-3S, hossz: {S: 3+}, prioritas: 55, magyarazat: "3+ pikk támogatás"}
+      - {minta: 1H-2S-3H, hossz: {H: 6+, S: 0-2}, prioritas: 54, magyarazat: "6+ kőr"}
+      - {minta: 1H-2S-3C, alulrol: true, hossz: {S: 0-2}, fohonor: {C: 2+}, prioritas: 53, magyarazat: "Nincs támogatás, legalább KD treffben"}
+      - {minta: 1H-2S-3D, alulrol: true, hossz: {S: 0-2}, fohonor: {D: 2+}, prioritas: 53, magyarazat: "Nincs támogatás, legalább KD káróban"}
+      - {minta: 1H-2S-2NT, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Minden más (a legolcsóbb szan)"}
+      - {minta: 1m-2M-3M, hossz: {M: 3+}, prioritas: 55, magyarazat: "3+ támogatás"}
+      - {minta: 1m-2M-3m, hossz: {m: 6+, M: 0-2}, prioritas: 54, magyarazat: "6+ lap a nyitott minorban"}
+      - {minta: 1m-2M-2NT, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Minden más (a legolcsóbb szan)"}
+      - {minta: 1C-2D-3D, hossz: {D: 3+}, prioritas: 55, magyarazat: "3+ káró támogatás"}
+      - {minta: 1C-2D-3C, hossz: {C: 6+, D: 0-2}, prioritas: 54, magyarazat: "6+ treff"}
+      - {minta: 1C-2D-2NT, hossz: {D: 0-2}, prioritas: 50, magyarazat: "Minden más (a legolcsóbb szan)"}
+
+  - fejezet: "A nyitó második licitje az 1 minor után"
+    szabalyok:
+      - {minta: 1m-1M-1NT, pont: 11-14, elosztas: BAL, hossz: {M: 0-3}, prioritas: 50, magyarazat: "11-14 HCP, egyenletes"}
+      - {minta: 1m-1H-1S, pont: 11-18, hossz: {S: 4, H: 0-3}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4 pikk, nincs 4 kőr"}
+      - {minta: 1m-1M-2M, tp: 12-15, hossz: {M: 4}, prioritas: 55, magyarazat: "4 lapos támogatás, minimum"}
+      - {minta: 1m-1M-3M, tp: 16-18, hossz: {M: 4}, prioritas: 56, magyarazat: "Invit, 4 lapos támogatás"}
+      - {minta: 1m-1M-2m, pont: 11-16, hossz: {m: 6+, M: 0-3}, prioritas: 52, magyarazat: "6+ lap, minimum"}
+      - {minta: 1m-1M-3m, pont: 17-20, hossz: {m: 6+, M: 0-3}, prioritas: 54,
+         magyarazat: "Ugró ismétlés: 6+ lap, 17-20 HCP", nyers: "1♣-1any-3♣ promises 6+ card, 17-20 HCP"}
+      - {minta: 1D-1M-2C, pont: 11-16, hossz: {D: 4+, C: 4+, M: 0-3}, prioritas: 51, magyarazat: "4+ treff, 18 alatt"}
+      - {minta: 1C-1M-2D, pont: 17+, hossz: {C: 4+, D: 4+, M: 0-3}, rel: ["C>D"], forsz: EGY_MENET, prioritas: 55,
+         alert: "Riverz: 17+, kényszerít"}                                          # kieg.
+      - {minta: 1m-1H-2S, pont: 17+, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 55, alert: "Riverz: 17+, kényszerít"}
+      - {minta: 1m-1S-2H, pont: 17+, hossz: {H: 4+, S: 0-3}, forsz: EGY_MENET, prioritas: 55, alert: "Riverz: 17+, kényszerít"}
+      - {minta: 1m-1M-2NT, pont: 18-19, elosztas: BAL, hossz: {M: 0-3}, prioritas: 53, magyarazat: "18-19 HCP, egyenletes"}
+      - {minta: 1D-1M-3C, pont: 19+, hossz: {D: 4+, C: 4+, M: 0-3}, forsz: GEMFORSZ, prioritas: 56, alert: "Ugró színváltás: gémforsz"}
+      - {minta: 1C-1D-1H, pont: 11-18, hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4+ kőr"}
+      - {minta: 1C-1D-1S, pont: 11-18, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4+ pikk, nincs 4 kőr"}
+      - {minta: 1C-1D-1NT, pont: 11-14, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 50, magyarazat: "11-14 HCP, egyenletes"}
+      - {minta: 1C-1D-2D, tp: 12-15, hossz: {D: 4+, S: 0-3, H: 0-3}, prioritas: 51, magyarazat: "Támogatás, minimum"}
+
+  - fejezet: "A fordított minoremelés után"
+    szabalyok:                                                                        # kieg. egész fejezet
+      - {minta: 1m-2m-2NT, pont: 11-14, elosztas: BAL, prioritas: 50, magyarazat: "Egyenletes minimum"}
+      - {minta: 1m-2m-3m, pont: 11-14, elosztas: NEM_BAL, prioritas: 49, magyarazat: "Minimum, egyenetlen: nem kényszerít"}
+      - {minta: 1m-2m-3NT, pont: 18-19, elosztas: BAL, prioritas: 53, magyarazat: "18-19 HCP, egyenletes"}
+      - {minta: 1C-2C-2D, alulrol: true, pont: 15+, hossz: {D: 3+}, forsz: EGY_MENET, prioritas: 51, magyarazat: "Extra erő, káró érték"}
+      - {minta: 1m-2m-2H, alulrol: true, pont: 15+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 51, magyarazat: "Extra erő, kőr érték"}
+      - {minta: 1m-2m-2S, alulrol: true, pont: 15+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 51, magyarazat: "Extra erő, pikk érték"}
+
+  - fejezet: "Új minor (egyirányú)"
+    jegyzet: "1m-1M-1NT után a másik minor 2-es szinten mesterséges, invit vagy erősebb."
+    szabalyok:
+      - {minta: 1C-1M-1NT-2D, pont: 11+, hossz: {M: 4+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+         alert: "Új minor: invit+, a nemest kérdezi"}
+      - {minta: 1D-1M-1NT-2C, pont: 11+, hossz: {M: 4+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+         alert: "Új minor: invit+, a nemest kérdezi"}
+      - {minta: 1C-1M-1NT-2D-2M, hossz: {M: 3}, prioritas: 53, magyarazat: "3 lap a nemesben"}
+      - {minta: 1D-1M-1NT-2C-2M, hossz: {M: 3}, prioritas: 53, magyarazat: "3 lap a nemesben"}
+      - {minta: 1C-1S-1NT-2D-2H, hossz: {H: 4, S: 0-2}, prioritas: 52, magyarazat: "4 kőr, nincs 3 pikk"}
+      - {minta: 1D-1S-1NT-2C-2H, hossz: {H: 4, S: 0-2}, prioritas: 52, magyarazat: "4 kőr, nincs 3 pikk"}
+      - {minta: 1C-1M-1NT-2D-2NT, pont: 11-12, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Minimum, nincs 3 lap"}
+      - {minta: 1D-1M-1NT-2C-2NT, pont: 11-12, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Minimum, nincs 3 lap"}
+      - {minta: 1C-1M-1NT-2D-3NT, pont: 13-14, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Maximum, nincs 3 lap"}
+      - {minta: 1D-1M-1NT-2C-3NT, pont: 13-14, hossz: {M: 0-2}, prioritas: 50, magyarazat: "Maximum, nincs 3 lap"}
