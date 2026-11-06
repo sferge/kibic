@@ -26,7 +26,7 @@ fejezetek:
       # 2/1 gémforsz (passzolt lappal nem: ott a 2♣ Drury)
       - {minta: 1M-2C, pont: 12+, hossz: {C: 3+}, forsz: GEMFORSZ, prioritas: 50,
          ha: {ules: [3, 4]}, alert: "2/1 gémforsz"}
-      - {minta: 1M-2D, pont: 12+, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 51,
+      - {minta: 1M-2D, pont: 12+, hossz: {D: 4+}, vagy: [{hossz: {D: 5+}}, {hossz: {C: 0-2}}], forsz: GEMFORSZ, prioritas: 51,
          ha: {ules: [3, 4]}, alert: "2/1 gémforsz"}
       - {minta: 1S-2H, pont: 12+, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 53,
          ha: {ules: [3, 4]}, alert: "2/1 gémforsz, 5+ kőr"}
@@ -138,21 +138,21 @@ fejezetek:
     szabalyok:
       - {minta: 1M-2C, kulcs: GIB-DRURY, ha: {ules: [1, 2]}, tp: 11-12, hossz: {M: 3+}, forsz: EGY_MENET, prioritas: 59,
          alert: "Reverse Drury: 3+ adu, invit (11-12 pont)"}
-      - {minta: 1M-2C-2D, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-2D, tp: 12-17, elosztas: BAL, prioritas: 50,
+      - {minta: 1M-2C-2D, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-2D, tp: 14-17, elosztas: BAL, prioritas: 50,
          alert: "Teljes nyitás, gémet invitál, nincs extra elosztás"}
       - {minta: 1M-2C-2M, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-2M, pont: 0-11, prioritas: 52,
          alert: "Szubminimum, nincs gémérdeklődés"}
-      - {minta: 1M-2C-2NT, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-2NT, tp: 12-17, elosztas: ["5332"], forsz: EGY_MENET, prioritas: 51,
+      - {minta: 1M-2C-2NT, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-2NT, tp: 14-17, elosztas: ["5332"], forsz: EGY_MENET, prioritas: 51,
          alert: "5332, egy körre kényszerít, 18 alatt"}
-      - {minta: 1M-2C-3NT, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-3NT, tp: 12-17, elosztas: ["6322"], forsz: EGY_MENET, prioritas: 51,
+      - {minta: 1M-2C-3NT, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-3NT, tp: 14-17, elosztas: ["6322"], forsz: EGY_MENET, prioritas: 51,
          alert: "6322, egy körre kényszerít, 18 alatt"}
       - {minta: 1M-2C-3M, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-3M, tp: 18+, elosztas: BAL, prioritas: 52,
          alert: "18+ pont, egyenletes"}
       - {minta: 1M-2C-4M, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-4M, tp: 14-17, prioritas: 49,
          magyarazat: "Leállás, nincs mit mutatni"}
-      - {minta: 1H-2C-2S, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-UJ-S, tp: 12-17, hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 51,
+      - {minta: 1H-2C-2S, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-UJ-S, tp: 14-17, hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 51,
          alert: "4+ pikk, 18 alatt"}
-      - {minta: 1M-2C-3D, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-UJ-D, tp: 12-17, hossz: {D: 4+}, prioritas: 50,
+      - {minta: 1M-2C-3D, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-UJ-D, tp: 14-17, hossz: {D: 4+}, prioritas: 50,
          alert: "4+ káró, 18 alatt"}
       - {minta: 1H-2C-3S, alulrol: true, ha: {ules: [3, 4]}, kulcs: GIB-DRURY-UGRAS-S, tp: 18+, hossz: {S: 1}, forsz: GEMFORSZ, prioritas: 53,
          alert: "18+ pont, szingli pikk"}
@@ -167,7 +167,7 @@ fejezetek:
       ismétlése nem ígér 6 lapot. kieg.: a többi a szokásos 2/1.
     szabalyok:
       - {minta: 1M-1NT-2M, pont: 11-16, hossz: {M: 6+}, prioritas: 52, magyarazat: "6+ lap, minimum"}
-      - {minta: 1M-1NT-3M, pont: 17-20, hossz: {M: 6+}, prioritas: 54,
+      - {minta: 1M-1NT-3M, pont: 16-20, hossz: {M: 6+}, prioritas: 54,
          magyarazat: "Ugró ismétlés: 6+ lap, 17-20 HCP", nyers: "jump rebid promises 6+ card, 17-20 HCP"}
       - {minta: 1M-1NT-2C, pont: 11-17, hossz: {C: 3+}, rel: ["C>=D"], prioritas: 49, magyarazat: "Természetes vagy 3 lapos minor"}
       - {minta: 1M-1NT-2D, pont: 11-17, hossz: {D: 3+}, rel: ["D>C"], prioritas: 49, magyarazat: "Természetes, 3+ káró"}
@@ -187,7 +187,23 @@ fejezetek:
       # 2/1 után (gémforsz): a nemes ismétlése bármilyen minimum
       - {minta: 1M-2m-2M, pont: 11-14, hossz: {M: 5+}, ha: {ules: [1, 2]}, prioritas: 52,
          magyarazat: "Minimum; nem ígér 6 lapot", nyers: "Opening major rebid after 2/1 response does not promise 6 cards"}
+      - {minta: 1S-2m-2H, ha: {ules: [1, 2]}, hossz: {S: 5+, H: 4+}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Új szín: 4+ kőr, 5+ pikk", nyers: "New suit -- 4+ !H; 5+ !S; 11-21 HCP; forcing to 3N"}
+      - {minta: 1S-2m-2H-3S, ha: {ules: [3, 4]}, tp: 17+, hossz: {S: 3+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Emelés: 3+ pikk, valószínűleg erős (17+)", nyers: "Raise; probably strong -- 3+ !S; 17+ total points"}
+      - {minta: 1H-1NT-2S, pont: 17+, hossz: {H: 5+, S: 4+}, forsz: EGY_MENET, prioritas: 55, alert: "Riverz: 4+ pikk, 5+ kőr, erős"}      # a robot
+      - {minta: 1S-1NT-3H, pont: 18+, hossz: {S: 5+, H: 4+}, forsz: GEMFORSZ, prioritas: 56, alert: "Erős: 4+ kőr, 5+ pikk, gémforsz"}  # a robot
+      - {minta: 1M-1NT-3C, alulrol: true, pont: 18+, hossz: {M: 5+, C: 4+}, forsz: GEMFORSZ, prioritas: 55, alert: "Erős: 4+ treff, gémforsz"}
+      - {minta: 1M-1NT-3D, alulrol: true, pont: 18+, hossz: {M: 5+, D: 4+}, forsz: GEMFORSZ, prioritas: 55, alert: "Erős: 4+ káró, gémforsz"}
+      - {minta: 1M-2C-2D, alulrol: true, ha: {ules: [1, 2]}, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "Új szín: 4+ káró"}            # a robot
+      - {minta: 1H-2m-2S, alulrol: true, ha: {ules: [1, 2]}, hossz: {S: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "Új szín: 4+ pikk"}
+      - {minta: 1M-2D-3C, alulrol: true, ha: {ules: [1, 2]}, hossz: {C: 4+}, forsz: GEMFORSZ, prioritas: 53, magyarazat: "Új szín: 4+ treff"}
+      - {minta: 1M-2C-2D-3D, ha: {ules: [3, 4]}, hossz: {D: 4+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "4+ káró támogatás"}       # a robot
+      - {minta: 1M-3M-4M, tp: 14+, prioritas: 52, magyarazat: "Elfogadja a limitemelést"}                                                # a robot
+      - {minta: 1M-2NT-3C-4M, tp: 13-15, prioritas: 52, magyarazat: "Minimum: leállás"}                                                  # a robot
+      - {minta: 1M-2NT-3D-4M, tp: 13-15, prioritas: 52, magyarazat: "Minimum: leállás"}
+      - {minta: 1M-2NT-3oM-4M, tp: 13-15, prioritas: 52, magyarazat: "Minimum: leállás"}
       - {minta: 1M-2m-2NT, pont: 11-14, elosztas: BAL, hossz: {M: 5}, ha: {ules: [1, 2]}, prioritas: 51, magyarazat: "Egyenletes minimum"}
-      - {minta: 1M-2m-3m, hossz: {m: 4+}, ha: {ules: [1, 2]}, prioritas: 53, magyarazat: "Támogatás, 4+ lap"}
+      - {minta: 1M-2m-3m, alulrol: true, hossz: {m: 4+}, ha: {ules: [1, 2]}, prioritas: 53, magyarazat: "Támogatás, 4+ lap"}
       - {minta: 1M-2m-3M, pont: 15+, hossz: {M: 6+}, fohonor: {M: 2+}, ha: {ules: [1, 2]}, prioritas: 54, magyarazat: "Jó 6+ lap, extra erő"}
       - {minta: 1M-2m-3NT, pont: 15-17, elosztas: BAL, hossz: {M: 5}, ha: {ules: [1, 2]}, prioritas: 50, magyarazat: "Egyenletes, 15-17"}
