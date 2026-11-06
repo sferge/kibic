@@ -48,19 +48,20 @@ fejezetek:
         pont: 15-17
         vagy:
           - {elosztas: ["4333", "4432"]}
-          - {elosztas: ["5332"], hossz: {S: 0-4, H: 0-4}}
-          - {elosztas: ["5332"], pont: 15-16}
+          - {elosztas: ["5332", "5422"], hossz: {S: 0-4, H: 0-4}}
+          - {elosztas: ["5332", "5422"], pont: 15-16}
         prioritas: 85
-        magyarazat: "15-17 HCP, egyenletes; lehet 5-ös nemes (17 + 5-ös nemes: nem 1NT)"
-        nyers: "1NT balanced 15-17 HCP, may have a 5-card major (GIB treats 17 with 5-card major as 18)"
+        magyarazat: "15-17 HCP, minden szín 2-5 lap (5422 is); lehet 5-ös nemes (17 + 5-ös nemes: nem 1NT)"
+        nyers: "notrump opener. Could have 5M. -- 2-5 each suit; 15-17 HCP; 18- total points"
+        jegyzet: "A robot magyarázata (2026-11-06, a mérésből): minden szín 2-5, 18- total points — az 5422 is 1NT."
 
-      - {minta: 3C, pont: 5-9, hossz: {C: 7+, S: 0-4, H: 0-4}, figura: {C: 3+}, forsz: KIZARO, prioritas: 72,
+      - {minta: 3C, pont: 5-9, hossz: {C: 7+, S: 0-4, H: 0-4}, vagy: [{fohonor: {C: 2+}}, {fohonor: {C: 1}, lapok: [CJ]}], forsz: KIZARO, prioritas: 72,
          magyarazat: "Blokk: 7+ treff, 5-9 HCP, két honőr a színben"}
-      - {minta: 3D, pont: 5-9, hossz: {D: 7+, S: 0-4, H: 0-4}, figura: {D: 3+}, forsz: KIZARO, prioritas: 72,
+      - {minta: 3D, pont: 5-9, hossz: {D: 7+, S: 0-4, H: 0-4}, vagy: [{fohonor: {D: 2+}}, {fohonor: {D: 1}, lapok: [DJ]}], forsz: KIZARO, prioritas: 72,
          magyarazat: "Blokk: 7+ káró, 5-9 HCP, két honőr a színben"}
-      - {minta: 3H, pont: 5-9, hossz: {H: 7+, S: 0-4}, figura: {H: 3+}, forsz: KIZARO, prioritas: 72,
+      - {minta: 3H, pont: 5-9, hossz: {H: 7+, S: 0-4}, vagy: [{fohonor: {H: 2+}}, {fohonor: {H: 1}, lapok: [HJ]}], forsz: KIZARO, prioritas: 72,
          magyarazat: "Blokk: 7+ kőr, 5-9 HCP, két honőr a színben"}
-      - {minta: 3S, pont: 5-9, hossz: {S: 7+, H: 0-4}, figura: {S: 3+}, forsz: KIZARO, prioritas: 72,
+      - {minta: 3S, pont: 5-9, hossz: {S: 7+, H: 0-4}, vagy: [{fohonor: {S: 2+}}, {fohonor: {S: 1}, lapok: [SJ]}], forsz: KIZARO, prioritas: 72,
          magyarazat: "Blokk: 7+ pikk, 5-9 HCP, két honőr a színben"}
 
       - {minta: 2D, pont: 0-10, tp: 7+, hossz: {D: 6+, S: 0-4, H: 0-4}, figura: {D: 1+}, forsz: KIZARO, prioritas: 70,

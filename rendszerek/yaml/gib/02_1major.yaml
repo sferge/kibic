@@ -187,6 +187,10 @@ fejezetek:
       # 2/1 után (gémforsz): a nemes ismétlése bármilyen minimum
       - {minta: 1M-2m-2M, pont: 11-14, hossz: {M: 5+}, ha: {ules: [1, 2]}, prioritas: 52,
          magyarazat: "Minimum; nem ígér 6 lapot", nyers: "Opening major rebid after 2/1 response does not promise 6 cards"}
+      - {minta: 1S-2m-2H, ha: {ules: [1, 2]}, hossz: {S: 5+, H: 4+}, forsz: GEMFORSZ, prioritas: 54,
+         magyarazat: "Új szín: 4+ kőr, 5+ pikk", nyers: "New suit -- 4+ !H; 5+ !S; 11-21 HCP; forcing to 3N"}
+      - {minta: 1S-2m-2H-3S, ha: {ules: [3, 4]}, tp: 17+, hossz: {S: 3+}, forsz: GEMFORSZ, prioritas: 55,
+         magyarazat: "Emelés: 3+ pikk, valószínűleg erős (17+)", nyers: "Raise; probably strong -- 3+ !S; 17+ total points"}
       - {minta: 1M-2m-2NT, pont: 11-14, elosztas: BAL, hossz: {M: 5}, ha: {ules: [1, 2]}, prioritas: 51, magyarazat: "Egyenletes minimum"}
       - {minta: 1M-2m-3m, hossz: {m: 4+}, ha: {ules: [1, 2]}, prioritas: 53, magyarazat: "Támogatás, 4+ lap"}
       - {minta: 1M-2m-3M, pont: 15+, hossz: {M: 6+}, fohonor: {M: 2+}, ha: {ules: [1, 2]}, prioritas: 54, magyarazat: "Jó 6+ lap, extra erő"}

@@ -91,6 +91,8 @@ fejezetek:
 
   - fejezet: "A nyitó második licitje az 1 minor után"
     szabalyok:
+      - {minta: 1m-1NT-2NT, pont: 17-18, elosztas: BAL, prioritas: 50,
+         magyarazat: "Invit 3NT-re: 17-18 HCP", nyers: "Invitational to 3NT game -- 17-18 HCP"}
       - {minta: 1m-1M-1NT, pont: 11-14, elosztas: BAL, hossz: {M: 0-3}, prioritas: 50, magyarazat: "11-14 HCP, egyenletes"}
       - {minta: 1m-1H-1S, pont: 11-18, hossz: {S: 4, H: 0-3}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4 pikk, nincs 4 kőr"}
       - {minta: 1m-1M-2M, tp: 12-15, hossz: {M: 4}, prioritas: 55, magyarazat: "4 lapos támogatás, minimum"}
