@@ -1,0 +1,258 @@
+# GIB_KUZDELMI — a GIB küzdelmi licitjei (2. szakasz, 2026-11-06).
+# Forrás: gib_system_notes.php (Competitive Auctions) és a robot mért
+# licitjei (eszkozok/gib_yaml_ellenorzes.py). A `# kieg.` sávok 2/1-es
+# alapértékek. Mellette a GIB az általános NEGATIV_KONTRA (3♠-ig),
+# RESZPONZIV_KONTRA (3♠-ig), SUPPORT_KONTRA (2♥-ig), INFORMATIV_KONTRA,
+# LEBENSOHL, MICHAELS és SZOKATLAN_2NT konvenciót használja.
+#
+# NYITOTT: a szendvics 1NT (csak passzolt lappal) — a passzolt lap még nem
+# fejezhető ki a mintában.
+rendszer:
+  kod: GIB_KUZDELMI
+  nev: GIB küzdelmi licitek
+  nev_en: GIB competitive bidding
+  fajta: KONVENCIO
+  csalad: NATURAL
+  leiras: "Közbeszólás 8-17 (1-es szint), gyenge ugró közbeszólás 3-9, információs kontra 4♥-ig, Cappelletti, Truscott 2NT, unusual vs unusual, fogásemelés = limit+, 1NT után Stayman-kontra és menekülő rekontra."
+  forras: https://www.bridgebase.com/doc/gib_system_notes.php
+fejezetek:
+  - fejezet: "Közbeszólás az ellenfél 1-es nyitására"
+    szabalyok:
+      - {minta: "(1C) 1D", pont: 8-16, hossz: {D: 5+}, prioritas: 55, magyarazat: "Közbeszólás: 5+ káró, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1C) 2D", pont: 3-9, hossz: {D: 6+}, forsz: KIZARO, prioritas: 51, alert: "Gyenge ugró közbeszólás: 6+ káró, 3-9 HCP"}
+      - {minta: "(1C) 1H", pont: 8-16, hossz: {H: 5+}, prioritas: 56, magyarazat: "Közbeszólás: 5+ kőr, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1C) 2H", pont: 3-9, hossz: {H: 6+}, forsz: KIZARO, prioritas: 52, alert: "Gyenge ugró közbeszólás: 6+ kőr, 3-9 HCP"}
+      - {minta: "(1C) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1C) 2S", pont: 3-9, hossz: {S: 6+}, forsz: KIZARO, prioritas: 53, alert: "Gyenge ugró közbeszólás: 6+ pikk, 3-9 HCP"}
+      - {minta: "(1C) 1NT", pont: 15-18, elosztas: BAL, fogas: ["C"], prioritas: 58, magyarazat: "15-18 HCP, egyenletes, fogással"}                        # kieg.
+      - {minta: "(1C) P (P) 1NT", pont: 11-14, elosztas: BAL, fogas: ["C"], prioritas: 56, magyarazat: "Újranyitó 1NT: 11-14 HCP"}                          # kieg.
+      - {minta: "(1D) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás a 2-es szinten: 5+ treff, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1D) 3C", pont: 3-9, hossz: {C: 7+}, forsz: KIZARO, prioritas: 50, alert: "Gyenge ugró közbeszólás: 7+ treff, 3-9 HCP"}
+      - {minta: "(1D) 1H", pont: 8-16, hossz: {H: 5+}, prioritas: 56, magyarazat: "Közbeszólás: 5+ kőr, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1D) 2H", pont: 3-9, hossz: {H: 6+}, forsz: KIZARO, prioritas: 52, alert: "Gyenge ugró közbeszólás: 6+ kőr, 3-9 HCP"}
+      - {minta: "(1D) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1D) 2S", pont: 3-9, hossz: {S: 6+}, forsz: KIZARO, prioritas: 53, alert: "Gyenge ugró közbeszólás: 6+ pikk, 3-9 HCP"}
+      - {minta: "(1D) 1NT", pont: 15-18, elosztas: BAL, fogas: ["D"], prioritas: 58, magyarazat: "15-18 HCP, egyenletes, fogással"}                        # kieg.
+      - {minta: "(1D) P (P) 1NT", pont: 11-14, elosztas: BAL, fogas: ["D"], prioritas: 56, magyarazat: "Újranyitó 1NT: 11-14 HCP"}                          # kieg.
+      - {minta: "(1H) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás a 2-es szinten: 5+ treff, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1H) 3C", pont: 3-9, hossz: {C: 7+}, forsz: KIZARO, prioritas: 50, alert: "Gyenge ugró közbeszólás: 7+ treff, 3-9 HCP"}
+      - {minta: "(1H) 2D", pont: 10-16, hossz: {D: 5+}, prioritas: 51, magyarazat: "Közbeszólás a 2-es szinten: 5+ káró, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1H) 3D", pont: 3-9, hossz: {D: 7+}, forsz: KIZARO, prioritas: 51, alert: "Gyenge ugró közbeszólás: 7+ káró, 3-9 HCP"}
+      - {minta: "(1H) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk, 8-17 HCP", nyers: "One-level overcall -- 5+; 8-17 HCP; 9-19 total points"}
+      - {minta: "(1H) 2S", pont: 3-9, hossz: {S: 6+}, forsz: KIZARO, prioritas: 53, alert: "Gyenge ugró közbeszólás: 6+ pikk, 3-9 HCP"}
+      - {minta: "(1H) 1NT", pont: 15-18, elosztas: BAL, fogas: ["H"], prioritas: 58, magyarazat: "15-18 HCP, egyenletes, fogással"}                        # kieg.
+      - {minta: "(1H) P (P) 1NT", pont: 11-14, elosztas: BAL, fogas: ["H"], prioritas: 56, magyarazat: "Újranyitó 1NT: 11-14 HCP"}                          # kieg.
+      - {minta: "(1S) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás a 2-es szinten: 5+ treff, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1S) 3C", pont: 3-9, hossz: {C: 7+}, forsz: KIZARO, prioritas: 50, alert: "Gyenge ugró közbeszólás: 7+ treff, 3-9 HCP"}
+      - {minta: "(1S) 2D", pont: 10-16, hossz: {D: 5+}, prioritas: 51, magyarazat: "Közbeszólás a 2-es szinten: 5+ káró, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1S) 3D", pont: 3-9, hossz: {D: 7+}, forsz: KIZARO, prioritas: 51, alert: "Gyenge ugró közbeszólás: 7+ káró, 3-9 HCP"}
+      - {minta: "(1S) 2H", pont: 10-16, hossz: {H: 5+}, prioritas: 52, magyarazat: "Közbeszólás a 2-es szinten: 5+ kőr, 10-17 HCP", nyers: "Two-level overcall -- 5+; 10+ HCP"}
+      - {minta: "(1S) 3H", pont: 3-9, hossz: {H: 7+}, forsz: KIZARO, prioritas: 52, alert: "Gyenge ugró közbeszólás: 7+ kőr, 3-9 HCP"}
+      - {minta: "(1S) 1NT", pont: 15-18, elosztas: BAL, fogas: ["S"], prioritas: 58, magyarazat: "15-18 HCP, egyenletes, fogással"}                        # kieg.
+      - {minta: "(1S) P (P) 1NT", pont: 11-14, elosztas: BAL, fogas: ["S"], prioritas: 56, magyarazat: "Újranyitó 1NT: 11-14 HCP"}                          # kieg.
+
+  - fejezet: "Információs kontra a magas blokkra"
+    szabalyok:
+      - {minta: "(4C) X", pont: 13+, hossz: {C: 0-2}, prioritas: 55, alert: "Információs kontra (4♥-ig)"}
+      - {minta: "(4C) P (P) X", tp: 15+, hossz: {C: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)", nyers: "Takeout double -- 2- in their suit; 15+ total points"}
+      - {minta: "(4D) X", pont: 13+, hossz: {D: 0-2}, prioritas: 55, alert: "Információs kontra (4♥-ig)"}
+      - {minta: "(4D) P (P) X", tp: 15+, hossz: {D: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)", nyers: "Takeout double -- 2- in their suit; 15+ total points"}
+      - {minta: "(4H) X", pont: 13+, hossz: {H: 0-2}, prioritas: 55, alert: "Információs kontra (4♥-ig)"}
+      - {minta: "(4H) P (P) X", tp: 15+, hossz: {H: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)", nyers: "Takeout double -- 2- in their suit; 15+ total points"}
+
+  - fejezet: "Válasz az információs kontrára (a robot szerint)"
+    szabalyok:
+      - {minta: "(1C) X (P) 2D", tp: 9-12, pont: 0-11, hossz: {D: 4+}, rel: ["D>=H", "D>=S"], prioritas: 61, magyarazat: "Ugró új szín: 4+ káró, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1C) X (P) 2H", tp: 9-12, pont: 0-11, hossz: {H: 4+}, rel: ["H>=D", "H>=S"], prioritas: 62, magyarazat: "Ugró új szín: 4+ kőr, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1C) X (P) 2S", tp: 9-12, pont: 0-11, hossz: {S: 4+}, rel: ["S>=D", "S>=H"], prioritas: 63, magyarazat: "Ugró új szín: 4+ pikk, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1C) X (P) 2C", pont: 13+, forsz: GEMFORSZ, prioritas: 61, alert: "Felüllicit: 13+, gémforsz"}                                       # kieg.
+      - {minta: "(1D) X (P) 3C", tp: 9-12, pont: 0-11, hossz: {C: 4+}, rel: ["C>=H", "C>=S"], prioritas: 60, magyarazat: "Ugró új szín: 4+ treff, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1D) X (P) 2H", tp: 9-12, pont: 0-11, hossz: {H: 4+}, rel: ["H>=C", "H>=S"], prioritas: 62, magyarazat: "Ugró új szín: 4+ kőr, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1D) X (P) 2S", tp: 9-12, pont: 0-11, hossz: {S: 4+}, rel: ["S>=C", "S>=H"], prioritas: 63, magyarazat: "Ugró új szín: 4+ pikk, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1D) X (P) 2D", pont: 13+, forsz: GEMFORSZ, prioritas: 61, alert: "Felüllicit: 13+, gémforsz"}                                       # kieg.
+      - {minta: "(1H) X (P) 3C", tp: 9-12, pont: 0-11, hossz: {C: 4+}, rel: ["C>=D", "C>=S"], prioritas: 60, magyarazat: "Ugró új szín: 4+ treff, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1H) X (P) 3D", tp: 9-12, pont: 0-11, hossz: {D: 4+}, rel: ["D>=C", "D>=S"], prioritas: 61, magyarazat: "Ugró új szín: 4+ káró, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1H) X (P) 2S", tp: 9-12, pont: 0-11, hossz: {S: 4+}, rel: ["S>=C", "S>=D"], prioritas: 63, magyarazat: "Ugró új szín: 4+ pikk, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1H) X (P) 2H", pont: 13+, forsz: GEMFORSZ, prioritas: 61, alert: "Felüllicit: 13+, gémforsz"}                                       # kieg.
+      - {minta: "(1S) X (P) 3C", tp: 9-12, pont: 0-11, hossz: {C: 4+}, rel: ["C>=D", "C>=H"], prioritas: 60, magyarazat: "Ugró új szín: 4+ treff, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1S) X (P) 3D", tp: 9-12, pont: 0-11, hossz: {D: 4+}, rel: ["D>=C", "D>=H"], prioritas: 61, magyarazat: "Ugró új szín: 4+ káró, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1S) X (P) 3H", tp: 9-12, pont: 0-11, hossz: {H: 4+}, rel: ["H>=C", "H>=D"], prioritas: 62, magyarazat: "Ugró új szín: 4+ kőr, 9-12 total points", nyers: "Jump new suit -- 4+; 11- HCP; 9-12 total points"}
+      - {minta: "(1S) X (P) 2S", pont: 13+, forsz: GEMFORSZ, prioritas: 61, alert: "Felüllicit: 13+, gémforsz"}                                       # kieg.
+
+  - fejezet: "Nyitásunk után közbeszólnak"
+    szabalyok:
+      - {minta: "1C (1D) 2D", tp: 11+, hossz: {C: 4+, H: 0-3, S: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ treff", nyers: "Cue: limit raise or better"}
+      - {minta: "1C (1D) 2C", tp: 6-10, hossz: {C: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ treff"}
+      - {minta: "1C (1D) 1NT", pont: 8-11, fogas: ["D"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1C (1H) 2H", tp: 11+, hossz: {C: 4+, S: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ treff", nyers: "Cue: limit raise or better"}
+      - {minta: "1C (1H) 2C", tp: 6-10, hossz: {C: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ treff"}
+      - {minta: "1C (1H) 1NT", pont: 8-11, fogas: ["H"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1C (1S) 2S", tp: 11+, hossz: {C: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ treff", nyers: "Cue: limit raise or better"}
+      - {minta: "1C (1S) 2C", tp: 6-10, hossz: {C: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ treff"}
+      - {minta: "1C (1S) 1NT", pont: 8-11, fogas: ["S"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1D (2C) 3C", tp: 11+, hossz: {D: 4+, H: 0-3, S: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ káró", nyers: "Cue: limit raise or better"}
+      - {minta: "1D (2C) 2D", tp: 6-10, hossz: {D: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ káró"}
+      - {minta: "1D (1H) 2H", tp: 11+, hossz: {D: 4+, S: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ káró", nyers: "Cue: limit raise or better"}
+      - {minta: "1D (1H) 2D", tp: 6-10, hossz: {D: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ káró"}
+      - {minta: "1D (1H) 1NT", pont: 8-11, fogas: ["H"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1D (1S) 2S", tp: 11+, hossz: {D: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 4+ káró", nyers: "Cue: limit raise or better"}
+      - {minta: "1D (1S) 2D", tp: 6-10, hossz: {D: 4+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 4+ káró"}
+      - {minta: "1D (1S) 1NT", pont: 8-11, fogas: ["S"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1H (2C) 3C", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ kőr", nyers: "Cue: limit raise or better"}
+      - {minta: "1H (2C) 2H", tp: 6-10, hossz: {H: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ kőr"}
+      - {minta: "1H (2D) 3D", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ kőr", nyers: "Cue: limit raise or better"}
+      - {minta: "1H (2D) 2H", tp: 6-10, hossz: {H: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ kőr"}
+      - {minta: "1H (1S) 2S", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ kőr", nyers: "Cue: limit raise or better"}
+      - {minta: "1H (1S) 2H", tp: 6-10, hossz: {H: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ kőr"}
+      - {minta: "1H (1S) 1NT", pont: 8-11, fogas: ["S"], prioritas: 50, magyarazat: "8-11 HCP, fogás a közbeszólás színében", nyers: "8-11 HCP; likely stop"}
+      - {minta: "1S (2C) 3C", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ pikk", nyers: "Cue: limit raise or better"}
+      - {minta: "1S (2C) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ pikk"}
+      - {minta: "1S (2D) 3D", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ pikk", nyers: "Cue: limit raise or better"}
+      - {minta: "1S (2D) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ pikk"}
+      - {minta: "1S (2H) 3H", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 61, alert: "Felüllicit: limitemelés vagy erősebb, 3+ pikk", nyers: "Cue: limit raise or better"}
+      - {minta: "1S (2H) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 56, magyarazat: "Egyszerű emelés: 6-10, 3+ pikk"}
+
+  - fejezet: "Unusual vs. unusual (1M (2NT))"
+    szabalyok:
+      - {minta: "1H (2NT) 3C", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 60, alert: "Alacsonyabb felüllicit: limitemelés vagy erősebb kőrben"}
+      - {minta: "1H (2NT) 3D", pont: 10+, hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 59, alert: "Magasabb felüllicit: 5+ pikk, kényszerít"}
+      - {minta: "1S (2NT) 3C", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 60, alert: "Alacsonyabb felüllicit: limitemelés vagy erősebb pikkben"}
+      - {minta: "1S (2NT) 3D", pont: 10+, hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 59, alert: "Magasabb felüllicit: 5+ kőr, kényszerít"}
+      - {minta: "1M (2NT) 3M", tp: 6-10, hossz: {M: 3+}, prioritas: 56, magyarazat: "Versenyemelés"}
+
+  - fejezet: "Nyitásunkat kontrázzák (Truscott 2NT)"
+    szabalyok:
+      - {minta: "1M (X) 2NT", tp: 11+, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 60, alert: "Truscott: limitemelés vagy erősebb, 4+ adu"}
+      - {minta: "1m (X) 2NT", tp: 11+, hossz: {m: 5+}, forsz: EGY_MENET, prioritas: 60, alert: "Truscott: limitemelés vagy erősebb, 5+ adu"}
+      - {minta: "1M (X) 2M", tp: 6-10, hossz: {M: 3+}, prioritas: 57, magyarazat: "Egyszerű emelés"}
+      - {minta: "1M (X) 3M", pont: 0-9, hossz: {M: 4+}, forsz: KIZARO, prioritas: 58, magyarazat: "Kizáró emelés"}
+      - {minta: "1C (X) XX", pont: 10+, forsz: EGY_MENET, prioritas: 52, alert: "Rekontra: 10+ HCP"}
+      - {minta: "1D (X) XX", pont: 10+, forsz: EGY_MENET, prioritas: 52, alert: "Rekontra: 10+ HCP"}
+      - {minta: "1H (X) XX", pont: 10+, forsz: EGY_MENET, prioritas: 52, alert: "Rekontra: 10+ HCP"}
+      - {minta: "1S (X) XX", pont: 10+, forsz: EGY_MENET, prioritas: 52, alert: "Rekontra: 10+ HCP"}
+
+  - fejezet: "Az 1NT nyitásunk után"
+    szabalyok:
+      - {minta: "1NT (2C) X", kulcs: GIB-1NT-2C-X, pont: 8+, vagy: [{hossz: {H: 4+}}, {hossz: {S: 4+}}], forsz: EGY_MENET, prioritas: 60,
+         alert: "Stayman (a 2♣ közbeszólás után)", nyers: "Double of 2♣ is Stayman"}
+      - {minta: "1NT (X) XX", kulcs: GIB-1NT-X-XX, pont: 0-7, hossz: {C: 4+, D: 4+}, prioritas: 58,
+         alert: "Menekülés egy minorba: a nyitó 2♣-t mond", nyers: "Redouble runs out to a minor"}
+      - {minta: "1NT (X) XX (P) 2C", prioritas: 55, alert: "Kötelező"}
+      - {minta: "1NT (X) XX (P) 2C (P) 2D", hossz: {D: 4+}, rel: ["D>C"], prioritas: 55, magyarazat: "Káró"}
+
+  - fejezet: "Cappelletti az ellenfél 1NT-jére"
+    szabalyok:
+      - {minta: "(1NT) X", pont: 15+, prioritas: 55, alert: "Büntető"}
+      - {minta: "(1NT) 2C", pont: 8+, vagy: [{hossz: {C: 6+}}, {hossz: {D: 6+}}, {hossz: {H: 6+}}, {hossz: {S: 6+}}], forsz: EGY_MENET, prioritas: 56,
+         alert: "Cappelletti: egyszínű lap (6+)"}
+      - {minta: "(1NT) 2D", pont: 8+, vagy: [{hossz: {H: 5+, S: 4+}}, {hossz: {S: 5+, H: 4+}}], forsz: EGY_MENET, prioritas: 58,
+         alert: "Cappelletti: mindkét nemes"}
+      - {minta: "(1NT) 2H", pont: 8+, hossz: {H: 5+}, vagy: [{hossz: {C: 4+}}, {hossz: {D: 4+}}], prioritas: 57, alert: "Cappelletti: 5+ kőr és 4+ minor"}
+      - {minta: "(1NT) 2S", pont: 8+, hossz: {S: 5+}, vagy: [{hossz: {C: 4+}}, {hossz: {D: 4+}}], prioritas: 57, alert: "Cappelletti: 5+ pikk és 4+ minor"}
+      - {minta: "(1NT) 2NT", pont: 8+, hossz: {C: 5+, D: 5+}, prioritas: 59, alert: "Cappelletti: mindkét minor"}
+      - {minta: "(1NT) 2C (P) 2D", pont: 0-11, forsz: EGY_MENET, prioritas: 52, alert: "Kérdés: melyik a színed?"}
+      - {minta: "(1NT) 2C (P) 2D (P) 2H", alulrol: true, hossz: {H: 6+}, prioritas: 52, magyarazat: "6+ kőr"}
+      - {minta: "(1NT) 2C (P) 2D (P) 2S", alulrol: true, hossz: {S: 6+}, prioritas: 52, magyarazat: "6+ pikk"}
+      - {minta: "(1NT) 2C (P) 2D (P) 3C", alulrol: true, hossz: {C: 6+}, prioritas: 52, magyarazat: "6+ treff"}
+      - {minta: "(1NT) 2D (P) 2H", rel: ["H>=S"], prioritas: 52, magyarazat: "Választás: kőr"}
+      - {minta: "(1NT) 2D (P) 2S", rel: ["S>H"], prioritas: 52, magyarazat: "Választás: pikk"}
+
+  - fejezet: "A gyenge kettesre"
+    szabalyok:
+      - {minta: "(2M) 4NT", hossz: {C: 5+, D: 5+}, pont: 6-12, prioritas: 59, alert: "Mindkét minor (gyengébb; erősebbel felüllicit)"}
+      - {minta: "(2D) 2NT", pont: 15-18, elosztas: BAL, fogas: ["D"], prioritas: 62, magyarazat: "15-18 HCP, egyenletes, fogással"}   # kieg.
+
+  - fejezet: "A „törvény” szerinti emelés a gyenge ketteshez"
+    szabalyok:
+      - {minta: "2D (2S) 3D", pont: 0-14, hossz: {D: 3+}, forsz: KIZARO, prioritas: 57, alert: "A törvény: 9 adu -> 3-as szint", nyers: "The Law: 9 trump -> 3 level"}
+      - {minta: "2D (X) 3D", pont: 0-14, hossz: {D: 3+}, forsz: KIZARO, prioritas: 57, alert: "A törvény: 9 adu -> 3-as szint"}
+      - {minta: "2H (2S) 3H", pont: 0-14, hossz: {H: 3+}, forsz: KIZARO, prioritas: 57, alert: "A törvény: 9 adu -> 3-as szint"}
+      - {minta: "2M (X) 3M", pont: 0-14, hossz: {M: 3+}, forsz: KIZARO, prioritas: 57, alert: "A törvény: 9 adu -> 3-as szint"}
+      - {minta: "2M (X) 4M", pont: 0-14, hossz: {M: 4+}, forsz: KIZARO, prioritas: 58, alert: "A törvény: 10 adu -> 4-es szint"}
+
+  - fejezet: "Közbeszólás a második helyen (a robot licitjei, 2026-11-06)"
+    szabalyok:
+      - {minta: "(1C) 1H", kulcs: GIB-KB-4-CH, pont: 10-16, hossz: {H: 4}, fohonor: {H: 2+}, prioritas: 59, magyarazat: "Közbeszólás erős 4 lapos kőrral"}
+      - {minta: "(1C) 1S", kulcs: GIB-KB-4-CS, pont: 10-16, hossz: {S: 4}, fohonor: {S: 2+}, prioritas: 59, magyarazat: "Közbeszólás erős 4 lapos pikkral"}
+      - {minta: "(1C) 3D", pont: 3-9, hossz: {D: 7+}, forsz: KIZARO, prioritas: 52, alert: "Gyenge ugró közbeszólás: 7+ káró, 3-9 HCP"}
+      - {minta: "(1C) 3H", pont: 3-9, hossz: {H: 7+}, forsz: KIZARO, prioritas: 53, alert: "Gyenge ugró közbeszólás: 7+ kőr, 3-9 HCP"}
+      - {minta: "(1C) 3S", pont: 3-9, hossz: {S: 7+}, forsz: KIZARO, prioritas: 54, alert: "Gyenge ugró közbeszólás: 7+ pikk, 3-9 HCP"}
+      - {minta: "(1C) P (1D) 1H", pont: 8-16, hossz: {H: 5+}, prioritas: 56, magyarazat: "Közbeszólás: 5+ kőr"}
+      - {minta: "(1C) P (1D) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk"}
+      - {minta: "(1C) P (1H) 2D", pont: 10-16, hossz: {D: 5+}, prioritas: 51, magyarazat: "Közbeszólás: 5+ káró"}
+      - {minta: "(1C) P (1H) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk"}
+      - {minta: "(1C) P (1S) 2D", pont: 10-16, hossz: {D: 5+}, prioritas: 51, magyarazat: "Közbeszólás: 5+ káró"}
+      - {minta: "(1C) P (1S) 2H", pont: 10-16, hossz: {H: 5+}, prioritas: 52, magyarazat: "Közbeszólás: 5+ kőr"}
+      - {minta: "(1D) 1H", kulcs: GIB-KB-4-DH, pont: 10-16, hossz: {H: 4}, fohonor: {H: 2+}, prioritas: 59, magyarazat: "Közbeszólás erős 4 lapos kőrral"}
+      - {minta: "(1D) 1S", kulcs: GIB-KB-4-DS, pont: 10-16, hossz: {S: 4}, fohonor: {S: 2+}, prioritas: 59, magyarazat: "Közbeszólás erős 4 lapos pikkral"}
+      - {minta: "(1D) 3H", pont: 3-9, hossz: {H: 7+}, forsz: KIZARO, prioritas: 53, alert: "Gyenge ugró közbeszólás: 7+ kőr, 3-9 HCP"}
+      - {minta: "(1D) 3S", pont: 3-9, hossz: {S: 7+}, forsz: KIZARO, prioritas: 54, alert: "Gyenge ugró közbeszólás: 7+ pikk, 3-9 HCP"}
+      - {minta: "(1D) P (1H) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás: 5+ treff"}
+      - {minta: "(1D) P (1H) 1S", pont: 8-16, hossz: {S: 5+}, prioritas: 57, magyarazat: "Közbeszólás: 5+ pikk"}
+      - {minta: "(1D) P (1S) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás: 5+ treff"}
+      - {minta: "(1D) P (1S) 2H", pont: 10-16, hossz: {H: 5+}, prioritas: 52, magyarazat: "Közbeszólás: 5+ kőr"}
+      - {minta: "(1H) 1S", kulcs: GIB-KB-4-HS, pont: 10-16, hossz: {S: 4}, fohonor: {S: 2+}, prioritas: 59, magyarazat: "Közbeszólás erős 4 lapos pikkral"}
+      - {minta: "(1H) 3S", pont: 3-9, hossz: {S: 7+}, forsz: KIZARO, prioritas: 54, alert: "Gyenge ugró közbeszólás: 7+ pikk, 3-9 HCP"}
+      - {minta: "(1H) P (1S) 2C", pont: 10-16, hossz: {C: 5+}, prioritas: 50, magyarazat: "Közbeszólás: 5+ treff"}
+      - {minta: "(1H) P (1S) 2D", pont: 10-16, hossz: {D: 5+}, prioritas: 51, magyarazat: "Közbeszólás: 5+ káró"}
+
+  - fejezet: "A közbeszóló partnere (a robot licitjei)"
+    szabalyok:
+      - {minta: "(1C) 1D (P) 2D", tp: 6-10, hossz: {D: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ káró, 6-10"}
+      - {minta: "(1C) 1D (P) 2C", tp: 11+, hossz: {D: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1C) 1D (P) 3D", pont: 0-9, hossz: {D: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ káró"}
+      - {minta: "(1C) 1D (P) 1NT", pont: 8-11, fogas: ["C"], hossz: {D: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1C) 1H (P) 2H", tp: 6-10, hossz: {H: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ kőr, 6-10"}
+      - {minta: "(1C) 1H (P) 2C", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1C) 1H (P) 3H", pont: 0-9, hossz: {H: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ kőr"}
+      - {minta: "(1C) 1H (P) 1NT", pont: 8-11, fogas: ["C"], hossz: {H: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1C) 1S (P) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ pikk, 6-10"}
+      - {minta: "(1C) 1S (P) 2C", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1C) 1S (P) 3S", pont: 0-9, hossz: {S: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ pikk"}
+      - {minta: "(1C) 1S (P) 1NT", pont: 8-11, fogas: ["C"], hossz: {S: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1D) 2C (P) 3C", tp: 6-10, hossz: {C: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ treff, 6-10"}
+      - {minta: "(1D) 2C (P) 2D", tp: 11+, hossz: {C: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1D) 2C (P) 4C", pont: 0-9, hossz: {C: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ treff"}
+      - {minta: "(1D) 1H (P) 2H", tp: 6-10, hossz: {H: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ kőr, 6-10"}
+      - {minta: "(1D) 1H (P) 2D", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1D) 1H (P) 3H", pont: 0-9, hossz: {H: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ kőr"}
+      - {minta: "(1D) 1H (P) 1NT", pont: 8-11, fogas: ["D"], hossz: {H: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1D) 1S (P) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ pikk, 6-10"}
+      - {minta: "(1D) 1S (P) 2D", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1D) 1S (P) 3S", pont: 0-9, hossz: {S: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ pikk"}
+      - {minta: "(1D) 1S (P) 1NT", pont: 8-11, fogas: ["D"], hossz: {S: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1H) 2C (P) 3C", tp: 6-10, hossz: {C: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ treff, 6-10"}
+      - {minta: "(1H) 2C (P) 2H", tp: 11+, hossz: {C: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1H) 2C (P) 4C", pont: 0-9, hossz: {C: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ treff"}
+      - {minta: "(1H) 2D (P) 3D", tp: 6-10, hossz: {D: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ káró, 6-10"}
+      - {minta: "(1H) 2D (P) 2H", tp: 11+, hossz: {D: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1H) 2D (P) 4D", pont: 0-9, hossz: {D: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ káró"}
+      - {minta: "(1H) 1S (P) 2S", tp: 6-10, hossz: {S: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ pikk, 6-10"}
+      - {minta: "(1H) 1S (P) 2H", tp: 11+, hossz: {S: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1H) 1S (P) 3S", pont: 0-9, hossz: {S: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ pikk"}
+      - {minta: "(1H) 1S (P) 1NT", pont: 8-11, fogas: ["H"], hossz: {S: 0-2}, prioritas: 50, magyarazat: "8-11 HCP, fogással"}
+      - {minta: "(1S) 2C (P) 3C", tp: 6-10, hossz: {C: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ treff, 6-10"}
+      - {minta: "(1S) 2C (P) 2S", tp: 11+, hossz: {C: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1S) 2C (P) 4C", pont: 0-9, hossz: {C: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ treff"}
+      - {minta: "(1S) 2D (P) 3D", tp: 6-10, hossz: {D: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ káró, 6-10"}
+      - {minta: "(1S) 2D (P) 2S", tp: 11+, hossz: {D: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1S) 2D (P) 4D", pont: 0-9, hossz: {D: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ káró"}
+      - {minta: "(1S) 2H (P) 3H", tp: 6-10, hossz: {H: 3+}, prioritas: 55, magyarazat: "Emelés: 3+ kőr, 6-10"}
+      - {minta: "(1S) 2H (P) 2S", tp: 11+, hossz: {H: 3+}, forsz: EGY_MENET, prioritas: 56, alert: "Felüllicit: limitemelés vagy erősebb"}
+      - {minta: "(1S) 2H (P) 4H", pont: 0-9, hossz: {H: 4+}, forsz: KIZARO, prioritas: 54, magyarazat: "Kizáró emelés: 4+ kőr"}
+
+  - fejezet: "Újranyitó kontra a blokkra (a robot licitjei)"
+    szabalyok:
+      - {minta: "(2D) P (P) X", pont: 11+, hossz: {D: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(2H) P (P) X", pont: 11+, hossz: {H: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(2S) P (P) X", pont: 11+, hossz: {S: 0-2}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(3C) P (P) X", pont: 12+, hossz: {C: 0-1}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(3D) P (P) X", pont: 12+, hossz: {D: 0-1}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(3H) P (P) X", pont: 12+, hossz: {H: 0-1}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(3S) P (P) X", pont: 12+, hossz: {S: 0-1}, prioritas: 55, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(2H) P (P) 3C", alulrol: true, pont: 10-16, hossz: {C: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ treff"}
+      - {minta: "(2H) P (P) 3D", alulrol: true, pont: 10-16, hossz: {D: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ káró"}
+      - {minta: "(2H) P (P) 2S", alulrol: true, pont: 10-16, hossz: {S: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ pikk"}
+      - {minta: "(2S) P (P) 3C", alulrol: true, pont: 10-16, hossz: {C: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ treff"}
+      - {minta: "(2S) P (P) 3D", alulrol: true, pont: 10-16, hossz: {D: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ káró"}
+      - {minta: "(2S) P (P) 3H", alulrol: true, pont: 10-16, hossz: {H: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ kőr"}
