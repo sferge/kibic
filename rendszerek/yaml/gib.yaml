@@ -9,9 +9,8 @@
 #   * a kibic ÉRTSE a BEN-t és a GIB-et játszó embereket.
 #
 # 1. szakasz (2026-11-06): nyitások, válaszok és folytatások, 1NT / 2NT,
-# 2♣, gyenge kettesek, RKC 0314. A küzdelmi rész egyelőre a KIBIC_STAND
-# általános konvencióiból jön (2. szakasz: a GIB saját határai), a
-# jelzések a Moha-féléből (3. szakasz: GIB-jelzések).
+# 2♣, gyenge kettesek, RKC 0314. 2. szakasz (2026-11-06): küzdelmi rész
+# (GIB_KUZDELMI). A jelzések a Moha-féléből (3. szakasz: GIB-jelzések).
 rendszer:
   kod: GIB
   nev: BBO GIB (2/1 gémforsz)
@@ -34,8 +33,8 @@ hivatkozasok:
   - GIB_ALAP                    # a GIB saját licitjei (rendszerek/yaml/gib/)
   - GIB_NEGYEDIK_SZIN           # a negyedik szín: valódi gémforsz
   - GERBER                      # a GIB nem szereti, de válaszol rá
-  # --- küzdelmi rész: ideiglenesen a KIBIC_STAND általános konvenciói (2. szakasz) ---
-  - KIBICEGY_KUZDELMI
+  # --- küzdelmi rész (2. szakasz): a GIB saját sorai + általános konvenciók ---
+  - GIB_KUZDELMI
   - NEGATIV_KONTRA
   - SUPPORT_KONTRA
   - INFORMATIV_KONTRA
@@ -43,7 +42,6 @@ hivatkozasok:
   - LEBENSOHL
   - MICHAELS
   - SZOKATLAN_2NT
-  - GYENGE_UGRO_KOZBESZOLAS
   # --- általános elvek ---
   - EMELES_ELV
   - EGYRE_EGY
