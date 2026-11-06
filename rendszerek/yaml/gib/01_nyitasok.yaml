@@ -29,10 +29,10 @@ fejezetek:
       nyitás a gib.lr szerint 11+ HCP VAGY 12+ total point.
     szabalyok:
       - minta: 2C
-        vagy: [{pont: 22+}, {pont: 19+, tp: 23+}]
+        pont: 22+
         forsz: EGY_MENET
         prioritas: 95
-        alert: "Erős, mesterséges: 22+ HCP (egyenetlennel 19+ HCP és 23+ total point)"
+        alert: "Erős, mesterséges: 22+ HCP"
         nyers: "2♣ strong, artificial. 22+ HCP"
         jegyzet: >-
           A leírás 22+ HCP-t mond; a gib.lr (a robot magyarázataiból) 19+ HCP
@@ -86,18 +86,22 @@ fejezetek:
         prioritas: 61
         magyarazat: "5+ kőr, 11-21 HCP (vagy 12+ total point)"
       - minta: 1D
-        hossz: {S: 0-4, H: 0-4}
         vagy:
-          - {hossz: {D: 4+}, rel: ["D>=C"], pont: 11-21}
-          - {hossz: {D: 4+}, rel: ["D>=C"], pont: 0-21, tp: 12+}
-          - {hossz: {D: 3, C: 2}, pont: 11-21}
-          - {hossz: {D: 3, C: 2}, pont: 0-21, tp: 12+}
+          - {hossz: {D: 4+, S: 0-4, H: 0-4}, rel: ["D>=C"], pont: 11-21}
+          - {hossz: {D: 4+, S: 0-4, H: 0-4}, rel: ["D>=C"], pont: 0-21, tp: 12+}
+          - {hossz: {D: 3, C: 2, S: 0-4, H: 0-4}, pont: 11-21}
+          - {hossz: {D: 3, C: 2, S: 0-4, H: 0-4}, pont: 0-21, tp: 12+}
+          - {hossz: {D: 5+}, rel: ["D>H", "D>S", "D>=C"], pont: 11-21}       # a robot: 6-5 hosszabb minorral 1♦
+          - {hossz: {D: 4, C: 5, H: 4, S: 0-1}, pont: 11-21}               # a robot: 0-4-4-5 -> 1♦
         prioritas: 51
         magyarazat: "4+ káró (4432-ben lehet 3), 11-21 HCP; 4-4 minorral 1♦"
         nyers: "1♦ usually 4 unless 4432. Opens 1♦ with 4-4 in the minors."
       - minta: 1C
-        hossz: {C: 3+, S: 0-4, H: 0-4}
-        vagy: [{pont: 11-21}, {pont: 0-21, tp: 12+}]
+        hossz: {C: 3+}
+        vagy:
+          - {hossz: {S: 0-4, H: 0-4}, pont: 11-21}
+          - {hossz: {S: 0-4, H: 0-4}, pont: 0-21, tp: 12+}
+          - {hossz: {C: 6+}, rel: ["C>H", "C>S"], pont: 0-21, tp: 12+}     # a robot: 5-6 hosszabb treffel 1♣
         prioritas: 50
         magyarazat: "3+ treff (3 lappal 4333, 3433, 4423), 11-21 HCP"
         nyers: "1♣ could be 3 if 4333, 3433 or 4423."

@@ -82,6 +82,9 @@ fejezetek:
       - {minta: 2C-2D-3D, hossz: {D: 5+}, rel: ["D>C"], forsz: EGY_MENET, prioritas: 50, magyarazat: "Természetes, 5+ káró"}
       - {minta: 2C-2D-3NT, pont: 25-27, elosztas: BAL, prioritas: 52, magyarazat: "25-27 HCP, egyenletes"}
       - {minta: 2C-2D-2M-3M, hossz: {M: 3+}, forsz: GEMFORSZ, prioritas: 52, magyarazat: "Támogatás"}
+      - {minta: 2C-2D-2S-3H, hossz: {H: 5+}, prioritas: 53, forsz: GEMFORSZ, magyarazat: "5+ kőr"}     # a robot
+      - {minta: 2C-2D-2M-3C, alulrol: true, hossz: {C: 5+}, prioritas: 51, forsz: GEMFORSZ, magyarazat: "5+ treff"}
+      - {minta: 2C-2D-2M-3D, alulrol: true, hossz: {D: 5+}, prioritas: 51, forsz: GEMFORSZ, magyarazat: "5+ káró"}
       - {minta: 2C-2D-2M-2NT, hossz: {M: 0-2}, forsz: EGY_MENET, prioritas: 49, magyarazat: "Nincs támogatás"}
 
   - fejezet: A gyenge kettes után

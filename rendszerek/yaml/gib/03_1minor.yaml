@@ -23,7 +23,7 @@ fejezetek:
         forsz: EGY_MENET
         prioritas: 56
         magyarazat: "4+ pikk, 6+ HCP"
-      - {minta: 1m-1NT, pont: 6-10, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
+      - {minta: 1m-1NT, pont: 6-10, hossz: {S: 0-3, H: 0-3}, prioritas: 45,
          magyarazat: "6-10 HCP, egyenletes, nincs 4-es nemes"}                     # kieg.
       - {minta: 1m-2NT, pont: 11-12, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 47,
          magyarazat: "11-12 HCP, egyenletes, nincs 4-es nemes: invit"}             # kieg.
@@ -34,7 +34,11 @@ fejezetek:
          alert: "Gémforsz, 4+ treff", nyers: "1♦: 2♣ response is game forcing"}
       - {minta: 1C-2C, pont: 10+, hossz: {C: 5+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
          alert: "Fordított emelés: 10+ HCP, 5+ treff, kényszerít", nyers: "2♣ response is forcing, inverted"}
-      - {minta: 1D-2D, pont: 10+, hossz: {D: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 52,
+      - {minta: 1C-1NT, kulcs: GIB-1C-1NT-BAL, pont: 6-10, elosztas: BAL, hossz: {S: 0-3, H: 0-3}, prioritas: 55,
+         magyarazat: "6-10 HCP, egyenletes, nincs 4-es nemes (4 káróval is)"}   # a robot
+      - {minta: 1C-1D, kulcs: GIB-1C-1D-HOSSZU, pont: 6+, hossz: {D: 6+}, forsz: EGY_MENET, prioritas: 57,
+         magyarazat: "6+ káró (4-es nemes mellett is)"}                          # a robot
+      - {minta: 1D-2D, pont: 10+, hossz: {D: 4+, S: 0-3, H: 0-3}, forsz: EGY_MENET, prioritas: 54,
          alert: "Fordított emelés: 10+ HCP, 4+ káró, kényszerít", nyers: "2♦ response is forcing, inverted"}
       - {minta: 1C-3C, pont: 0-9, hossz: {C: 5+, S: 0-3, H: 0-3}, forsz: KIZARO, prioritas: 51,
          alert: "Gyenge (kizáró) emelés: 5+ treff"}                                  # kieg.
@@ -49,7 +53,7 @@ fejezetek:
         ha: {ules: [3, 4]}
         hossz: {D: 5+}
         feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
-        vagy: [{tp: 17+, fohonor: {D: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {D: 2+}}]
+        vagy: [{tp: 17+, fohonor: {D: 2+}, hossz: {S: 0-3, H: 0-3, C: 0-3}}, {tp: 17+, fohonor: {D: 3}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {D: 2+}}, {tp: 17+, fohonor: {D: 2+}, hossz: {C: 4+}}]
         forsz: GEMFORSZ
         prioritas: 58
         alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
@@ -58,7 +62,7 @@ fejezetek:
         ha: {ules: [3, 4]}
         hossz: {H: 5+}
         feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
-        vagy: [{tp: 17+, fohonor: {H: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {H: 2+}}]
+        vagy: [{tp: 17+, fohonor: {H: 2+}, hossz: {S: 0-3, D: 0-3, C: 0-3}}, {tp: 17+, fohonor: {H: 3}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {H: 2+}}, {tp: 17+, fohonor: {H: 2+}, hossz: {m: 4+}}]
         forsz: GEMFORSZ
         prioritas: 58
         alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
@@ -67,7 +71,7 @@ fejezetek:
         ha: {ules: [3, 4]}
         hossz: {S: 5+}
         feltetel: {t: OSSZE, op: ">=", bal: {t: ERT, kod: KONTROLL}, jobb: {t: SZAM, v: 4}}
-        vagy: [{tp: 17+, fohonor: {S: 2+}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {S: 2+}}]
+        vagy: [{tp: 17+, fohonor: {S: 2+}, hossz: {H: 0-3, D: 0-3, C: 0-3}}, {tp: 17+, fohonor: {S: 3}}, {pont: 18+, elosztas: ["5332", "6322"], fohonor: {S: 2+}}, {tp: 17+, fohonor: {S: 2+}, hossz: {m: 4+}}]
         forsz: GEMFORSZ
         prioritas: 58
         alert: "Soloway ugró színváltás: erős (17+), 4+ kontroll"
@@ -94,18 +98,20 @@ fejezetek:
       - {minta: 1m-1NT-2NT, pont: 17-18, elosztas: BAL, prioritas: 50,
          magyarazat: "Invit 3NT-re: 17-18 HCP", nyers: "Invitational to 3NT game -- 17-18 HCP"}
       - {minta: 1m-1M-1NT, pont: 11-14, elosztas: BAL, hossz: {M: 0-3}, prioritas: 50, magyarazat: "11-14 HCP, egyenletes"}
-      - {minta: 1m-1H-1S, pont: 11-18, hossz: {S: 4, H: 0-3}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4 pikk, nincs 4 kőr"}
+      - {minta: 1m-1H-1S, pont: 11-18, hossz: {S: 4, H: 0-3}, forsz: EGY_MENET, prioritas: 53, vagy: [{elosztas: NEM_BAL}, {pont: 15-18}], magyarazat: "4 pikk, nincs 4 kőr"}
       - {minta: 1m-1M-2M, tp: 12-15, hossz: {M: 4}, prioritas: 55, magyarazat: "4 lapos támogatás, minimum"}
       - {minta: 1m-1M-3M, tp: 16-18, hossz: {M: 4}, prioritas: 56, magyarazat: "Invit, 4 lapos támogatás"}
-      - {minta: 1m-1M-2m, pont: 11-16, hossz: {m: 6+, M: 0-3}, prioritas: 52, magyarazat: "6+ lap, minimum"}
+      - {minta: 1m-1M-2m, pont: 11-16, hossz: {m: 5+, M: 0-3}, prioritas: 49, magyarazat: "6+ lap, minimum"}
       - {minta: 1m-1M-3m, pont: 17-20, hossz: {m: 6+, M: 0-3}, prioritas: 54,
          magyarazat: "Ugró ismétlés: 6+ lap, 17-20 HCP", nyers: "1♣-1any-3♣ promises 6+ card, 17-20 HCP"}
       - {minta: 1D-1M-2C, pont: 11-16, hossz: {D: 4+, C: 4+, M: 0-3}, prioritas: 51, magyarazat: "4+ treff, 18 alatt"}
       - {minta: 1C-1M-2D, pont: 17+, hossz: {C: 4+, D: 4+, M: 0-3}, rel: ["C>D"], forsz: EGY_MENET, prioritas: 55,
          alert: "Riverz: 17+, kényszerít"}                                          # kieg.
+      - {minta: 1m-1M-2m-3M, pont: 10-12, hossz: {M: 6+}, prioritas: 53, magyarazat: "Invit ugró ismétlés: 6+ lap"}   # a robot
+      - {minta: 1C-1M-2D-2M, hossz: {M: 5+}, forsz: EGY_MENET, prioritas: 52, magyarazat: "5+ lap a riverz után"}          # a robot
       - {minta: 1m-1H-2S, pont: 17+, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 55, alert: "Riverz: 17+, kényszerít"}
       - {minta: 1m-1S-2H, pont: 17+, hossz: {H: 4+, S: 0-3}, forsz: EGY_MENET, prioritas: 55, alert: "Riverz: 17+, kényszerít"}
-      - {minta: 1m-1M-2NT, pont: 18-19, elosztas: BAL, hossz: {M: 0-3}, prioritas: 53, magyarazat: "18-19 HCP, egyenletes"}
+      - {minta: 1m-1M-2NT, pont: 18-19, elosztas: BAL, hossz: {M: 0-3}, prioritas: 56, magyarazat: "18-19 HCP, egyenletes"}
       - {minta: 1D-1M-3C, pont: 19+, hossz: {D: 4+, C: 4+, M: 0-3}, forsz: GEMFORSZ, prioritas: 56, alert: "Ugró színváltás: gémforsz"}
       - {minta: 1C-1D-1H, pont: 11-18, hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4+ kőr"}
       - {minta: 1C-1D-1S, pont: 11-18, hossz: {S: 4+, H: 0-3}, forsz: EGY_MENET, prioritas: 53, magyarazat: "4+ pikk, nincs 4 kőr"}
@@ -114,6 +120,11 @@ fejezetek:
 
   - fejezet: "A fordított minoremelés után"
     szabalyok:                                                                        # kieg. egész fejezet
+      - {minta: 1D-2D-4C, pont: 16+, hossz: {D: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 54, alert: "Splinter: rövid treff, 4+ káró"}   # a robot
+      - {minta: 1D-2C-2NT, pont: 11-14, elosztas: BAL, prioritas: 52, magyarazat: "11-14 HCP, egyenletes"}                          # a robot
+      - {minta: 1D-2C-2H, alulrol: true, hossz: {H: 4+}, elosztas: NEM_BAL, prioritas: 51, magyarazat: "4+ kőr"}
+      - {minta: 1D-2C-2S, alulrol: true, hossz: {S: 4+}, elosztas: NEM_BAL, prioritas: 51, magyarazat: "4+ pikk"}
+      - {minta: 1D-2C-2D, hossz: {D: 6+}, prioritas: 50, magyarazat: "6+ káró"}
       - {minta: 1m-2m-2NT, pont: 11-14, elosztas: BAL, prioritas: 50, magyarazat: "Egyenletes minimum"}
       - {minta: 1m-2m-3m, pont: 11-14, elosztas: NEM_BAL, prioritas: 49, magyarazat: "Minimum, egyenetlen: nem kényszerít"}
       - {minta: 1m-2m-3NT, pont: 18-19, elosztas: BAL, prioritas: 53, magyarazat: "18-19 HCP, egyenletes"}
@@ -124,10 +135,12 @@ fejezetek:
   - fejezet: "Új minor (egyirányú)"
     jegyzet: "1m-1M-1NT után a másik minor 2-es szinten mesterséges, invit vagy erősebb."
     szabalyok:
-      - {minta: 1C-1M-1NT-2D, pont: 11+, hossz: {M: 4+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+      - {minta: 1C-1M-1NT-2D, tp: 12+, vagy: [{hossz: {M: 5+}}, {hossz: {S: 4, H: 4}}], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
          alert: "Új minor: invit+, a nemest kérdezi"}
-      - {minta: 1D-1M-1NT-2C, pont: 11+, hossz: {M: 4+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
+      - {minta: 1D-1M-1NT-2C, tp: 12+, vagy: [{hossz: {M: 5+}}, {hossz: {S: 4, H: 4}}], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 55,
          alert: "Új minor: invit+, a nemest kérdezi"}
+      - {minta: 1m-1M-1NT-3NT, pont: 13-17, hossz: {M: 4}, prioritas: 50, magyarazat: "Gém; 4-es nemessel is"}     # a robot
+      - {minta: 1m-1M-1NT-2M, pont: 6-10, hossz: {M: 5+}, prioritas: 50, magyarazat: "Visszavonulás: 5+ lap, gyenge"}   # a robot
       - {minta: 1C-1M-1NT-2D-2M, hossz: {M: 3}, prioritas: 53, magyarazat: "3 lap a nemesben"}
       - {minta: 1D-1M-1NT-2C-2M, hossz: {M: 3}, prioritas: 53, magyarazat: "3 lap a nemesben"}
       - {minta: 1C-1S-1NT-2D-2H, hossz: {H: 4, S: 0-2}, prioritas: 52, magyarazat: "4 kőr, nincs 3 pikk"}

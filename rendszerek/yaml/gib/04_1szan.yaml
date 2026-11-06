@@ -141,16 +141,16 @@ fejezetek:
 
   - fejezet: "A transzfer után a nyitó"
     szabalyok:                                                               # kieg.
-      - {minta: 1NT-2D-2H-2NT-3NT, pont: 16-17, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 kőr"}
-      - {minta: 1NT-2D-2H-2NT-4H, pont: 16-17, hossz: {H: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ kőr"}
-      - {minta: 1NT-2D-2H-2NT-3H, pont: 15, hossz: {H: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ kőr"}
-      - {minta: 1NT-2H-2S-2NT-3NT, pont: 16-17, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 pikk"}
-      - {minta: 1NT-2H-2S-2NT-4S, pont: 16-17, hossz: {S: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ pikk"}
-      - {minta: 1NT-2H-2S-2NT-3S, pont: 15, hossz: {S: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ pikk"}
+      - {minta: 1NT-2D-2H-2NT-3NT, pont: 17, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 kőr"}
+      - {minta: 1NT-2D-2H-2NT-4H, pont: 17, hossz: {H: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ kőr"}
+      - {minta: 1NT-2D-2H-2NT-3H, pont: 15-16, hossz: {H: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ kőr"}
+      - {minta: 1NT-2H-2S-2NT-3NT, pont: 17, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Maximum, 2 pikk"}
+      - {minta: 1NT-2H-2S-2NT-4S, pont: 17, hossz: {S: 3+}, prioritas: 51, magyarazat: "Maximum, 3+ pikk"}
+      - {minta: 1NT-2H-2S-2NT-3S, pont: 15-16, hossz: {S: 3+}, prioritas: 51, magyarazat: "Minimum, 3+ pikk"}
       - {minta: 1NT-2D-2H-3NT-4H, hossz: {H: 3+}, prioritas: 51, magyarazat: "3+ kőr"}
       - {minta: 1NT-2H-2S-3NT-4S, hossz: {S: 3+}, prioritas: 51, magyarazat: "3+ pikk"}
-      - {minta: 1NT-2D-2H-3H-4H, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
-      - {minta: 1NT-2H-2S-3S-4S, pont: 16-17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2D-2H-3H-4H, pont: 17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
+      - {minta: 1NT-2H-2S-3S-4S, pont: 17, prioritas: 50, magyarazat: "Maximum: elfogadja"}
 
   - fejezet: "Minor Stayman, minor-transzfer, Texas"
     jegyzet: >-

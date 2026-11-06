@@ -615,8 +615,8 @@ def _kez_fa(spec: dict, hely: str) -> dict:
         gy += _sav_fa({"t": "URES_FIGURA"}, lo, hi)
     if "vesztok" in spec:                        # vesztőütés az egész kézben (zónás is)
         gy.append(_pont_fa(spec["vesztok"], {"t": "VESZTO"}, hely))
-    if "tp" in spec:                             # GIB „total points” (TOTAL_POINTS)
-        gy.append(_pont_fa(spec["tp"], {"t": "ERT", "kod": "TOTAL_POINTS"}, hely))
+    if "tp" in spec:                             # GIB „total points” (AP_321: HCP + rövidség — a mérés szerint ez illik jobban)
+        gy.append(_pont_fa(spec["tp"], {"t": "ERT", "kod": "AP_321"}, hely))
     if "jatekutes" in spec:                      # játékütés (J_KLASSZIKUS), zónás is
         gy.append(_pont_fa(spec["jatekutes"], {"t": "ERT", "kod": "J_KLASSZIKUS"}, hely))
     if "gyorsutes" in spec:                      # gyorsütés (AK=2, AQ=1,5, A=1, KQ=1, Kx=0,5)
