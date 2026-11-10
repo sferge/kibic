@@ -95,6 +95,9 @@ class Igeret:
     gf_valodi: bool = False
     # NEGYEDIK SZÍN = HELP: a szín, amelyben fogást kért (nincs fogása)
     help_szin: str | None = None
+    # A SÁV FELE (2026-11-10): a licit az eddig ígért pontsáv alsó /
+    # felső felét vagy tetejét mutatja ({"fele": "felso", "hatar": 0.35})
+    sav_fele: dict | None = None
     # TÖBBÉRTELMŰ LICITEK (2026-10-21): licitenként a lehetséges jelentések
     # listája. A fenti mezők az UNIÓjukat tartják (ami biztos); a lejátszás
     # mintavétele ennél pontosabb: a kéznek legalább EGY változatot ki kell

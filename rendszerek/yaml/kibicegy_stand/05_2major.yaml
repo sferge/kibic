@@ -20,8 +20,21 @@ fejezetek:
          magyarazat: "Küzdelmi emelés, nem kényszerít", nyers: "Emelés | Küzdelmi; NF"}
       - {minta: 2M-3NT, pont: 16+, hossz: {M: 0-1}, prioritas: 51,
          magyarazat: "Leállás", nyers: "3N | t/p"}
-      - {minta: 2M-4M, vagy: [{pont: 16+, hossz: {M: 2+}}, {pont: 0-12, hossz: {M: 4+}}], prioritas: 53,
-         magyarazat: "Leállás (erővel vagy áldozatnak)", nyers: "Gém | t/p"}
+      # Leállás erővel vagy áldozatnak (a szerkesztő, 2026-11-10; 1. és 20.
+      # leosztás). ERŐVEL: a saját FP + a partner ZÓNÁS sávjának alja már
+      # gém (25+), de a sáv tetejével sincs szlemgyanú (FP-ben és a saját
+      # asztali pontommal is 30 alatt), és 3+ adu. Különben 2NT (gém- vagy
+      # szlemkísérlet), biztos szlemnél kulcslapkérdés. ÁLDOZATNAK:
+      # pontkövetelmény nélkül, 4+ adu és rövidség (a mentés mérlegelése —
+      # meddig éri meg — külön kör).
+      - {minta: 2M-4M, kulcs: 2M-4M-ERO, hossz: {M: 3+}, osszesen: {pont_biztos: 25+, pont: 0-29, ap: 0-29},
+         prioritas: 53, magyarazat: "Leállás erővel: a partner minimumával is gém, a maximumával sincs szlem", nyers: "Gém | t/p"}
+      - {minta: 2M-4M, kulcs: 2M-4M-ALDOZAT, pont: 0-12, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}],
+         prioritas: 52, magyarazat: "Leállás áldozatnak: sok adu és rövidség (kevés pont)"}
+      - {minta: 2H-4S, kulcs: 2H-RKC, hossz: {H: 3+}, osszesen: {pont_biztos: 31+}, forsz: EGY_MENET, elvaras: VALASZ,
+         prioritas: 56, alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2S-4NT, kulcs: 2S-RKC, hossz: {S: 3+}, osszesen: {pont_biztos: 31+}, forsz: EGY_MENET, elvaras: VALASZ,
+         prioritas: 56, alert: "Kulcslapkérdés (pikk adu)"}
 
   - fejezet: "2M – 2NT (relé) után a nyitó"
     szabalyok:

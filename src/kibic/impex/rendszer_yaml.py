@@ -1398,6 +1398,12 @@ def szabaly(spec: dict, seq: int, fejezet: str | None,
         elf = "fogadja az invitet" in szoveg and "nem fogadja" not in szoveg
     if elf:
         jelentes["elfogad"] = True
+    ig_ = dict(spec.get("igeret") or {})
+    if ig_.get("pont") in ("also", "felso", "max"):
+        # a MEGÉRTÉSHEZ is (2026-11-10): a licit az eddig ígért pontsáv
+        # alsó / felső felét (tetejét) mutatja — a propagálás szűkít vele
+        jelentes["sav_fele"] = {"fele": ig_["pont"],
+                                **({"hatar": float(ig_["hatar"])} if ig_.get("hatar") is not None else {})}
     if spec.get("alulrol"):
         # több illeszkedő licit közül a LEGOLCSÓBB (Bánky) — szándékos,
         # ezért az ellenőrző nem jelzi ütközésnek
