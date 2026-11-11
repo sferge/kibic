@@ -92,3 +92,27 @@ fejezetek:
          pont: 13+, fogas: [A], prioritas: 54, magyarazat: "Az invit elfogadása: fogás az ellenfél színében — 3NT"}
       - {minta: "(1A) 2B (P) +A (P) +B", kulcs: KN-FELUL-INVIT-MIN, ha: {en_igertem: {B: 5}}, kulonbozo: [A, B],
          pont: 0-12, forsz: NEM, prioritas: 54, magyarazat: "Minimum: a színem ismétlése (passzolható)"}
+
+  - fejezet: "Új szín az ellenfél emelése után: (1A) nB (nA) 3E"
+    jegyzet: >-
+      A szerkesztő (2026-11-11, 2-es asztal #11): (1♥) 2♦ (3♥) 3♠ —
+      természetes, 5+ lap, egy körre kényszerít (a „gyors-lassú” elv: az
+      azonnali gém a gyenge licit; a lassú út szlem felé is nyitva hagyja). A
+      közbeszóló 3+ lappal emel, különben a saját színét ismétli vagy
+      fogással szant mond.
+    szabalyok:
+      - {minta: "(1A) nB (2A) 3E", kulcs: KN-EMELES-UTAN-UJ-SZIN-2, ha: {partner_ugrott: false}, kulonbozo: [A, B, E],
+         pont: 12+, hossz: {E: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Új szín: természetes, 5+, 12+, egy körre kényszerít"}
+      - {minta: "(1A) nB (3A) 3E", kulcs: KN-EMELES-UTAN-UJ-SZIN-3, ha: {partner_ugrott: false}, kulonbozo: [A, B, E],
+         pont: 12+, hossz: {E: 5+}, forsz: EGY_MENET, prioritas: 54,
+         magyarazat: "Új szín: természetes, 5+, 12+, egy körre kényszerít"}
+      # a közbeszóló válasza
+      - {minta: "(1A) nB (nA) 3E (P) 4E", kulcs: KN-EMELES-UTAN-UJ-SZIN-EMEL, kulonbozo: [A, B, E],
+         hossz: {E: 3+}, prioritas: 54, magyarazat: "Emelés: 3+ lap a partner színében"}
+      - {minta: "(1A) nB (nA) 3E (P) 3NT", kulcs: KN-EMELES-UTAN-UJ-SZIN-3NT, kulonbozo: [A, B, E],
+         hossz: {E: 0-2}, fogas: [A], prioritas: 53, magyarazat: "Fogás az ellenfél színében, nincs fit"}
+      - {minta: "(1A) nB (nA) 3E (P) +B", kulcs: KN-EMELES-UTAN-UJ-SZIN-SAJAT, kulonbozo: [A, B, E],
+         hossz: {E: 0-2}, prioritas: 52, magyarazat: "A saját színem ismétlése, nincs fit"}
+      - {minta: "(1A) nB (nA) 3E (4A) 4E", kulcs: KN-EMELES-UTAN-UJ-SZIN-EMEL-4, kulonbozo: [A, B, E],
+         hossz: {E: 3+}, prioritas: 54, magyarazat: "Emelés a közbeszólás fölött: 3+ lap a partner színében"}
