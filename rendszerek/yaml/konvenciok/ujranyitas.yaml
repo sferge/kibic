@@ -1,0 +1,277 @@
+# UJRANYITAS — újranyitás a sor végén: (Nx) P (P) ?  (a szerkesztő, 2026-11-11)
+#
+# Az ellenfél N-es szintű nyitása után két passz: még nem licitáltunk.
+# (A közvetlen helyzet — (Nx) ? — az INFORMATIV_KONTRA / MOHA_INFO_KONTRA.)
+#
+#   * 18+ (a KIBIC_STAND-on 17+, paraméter: ERO_KONTRA_MIN): kontra,
+#     bármilyen elosztással, minden szinten;
+#   * saját szín nyitóerővel: színbemondás; egyenletes lap: „gyengített” szan;
+#   * a nyitóerő közelében a határ N-től függ — N=1-nél a 3./4. helyi
+#     nyitás szerint (minorra a két nemesben 7+ lap, 4-3; nemesre 4+ a
+#     másik nemesben); N>1-nél nő, ha a kontrára várható válasz N+1 szintre
+#     kényszerít.
+#
+#                        N=1              N=2                    N=3
+#   kontra (rövidség)    9+               11+ (3-as válasz: 12+)  13+
+#   szan                 1NT 14-17        2NT 15-18               3NT 16-19
+#   szín az N. szinten   8+, 5+ lap       10+, 5+ lap             13+, 6+ lap
+#   szín az N+1. szinten 10+, 5+ lap      12+, 6+ lap             13+, 6+ lap
+rendszer:
+  kod: UJRANYITAS
+  nev: Újranyitás a sor végén
+  nev_en: Balancing
+  fajta: KONVENCIO
+  leiras: "(Nx) P (P) után: kontra rövidséggel (N=1: 9+, N=2: 11-12+, N=3: 13+) vagy erővel (18+ / 17+); gyengített szan (1NT 14-17, 2NT 15-18, 3NT 16-19); színbemondás."
+fejezetek:
+  - fejezet: "Kontra a sor végén"
+    szabalyok:
+      - {minta: "(1C) P (P) X", pont: "9+", hossz: {C: 0-3}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid treff, a nemesekben 7+ lap (4-3)"}
+      - {minta: "(1D) P (P) X", pont: "9+", hossz: {D: 0-3}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a nemesekben 7+ lap (4-3)"}
+      - {minta: "(1H) P (P) X", pont: "9+", hossz: {H: 0-2, S: 4+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, 4+ pikk"}
+      - {minta: "(1S) P (P) X", pont: "9+", hossz: {S: 0-2, H: 4+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, 4+ kőr"}
+      - {minta: "(2D) P (P) X", pont: "11+", hossz: {D: 0-2}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a nemesekben 7+ lap (4-3)"}
+      - {minta: "(2H) P (P) X", pont: "11+", hossz: {H: 0-2, S: 4+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, 4+ pikk"}
+      - {minta: "(2H) P (P) X", pont: "12+", hossz: {H: 0-2, S: 3, C: 3+, D: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, támogatás a többiben (a válasz a 3-as szinten)"}
+      - {minta: "(2S) P (P) X", pont: "12+", hossz: {S: 0-2, H: 3+, C: 3+, D: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, támogatás a többiben (a válasz a 3-as szinten)"}
+      - {minta: "(3C) P (P) X", pont: "13+", hossz: {C: 0-2}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid treff, a nemesekben 7+ lap"}
+      - {minta: "(3D) P (P) X", pont: "13+", hossz: {D: 0-2}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a nemesekben 7+ lap"}
+      - {minta: "(3H) P (P) X", pont: "13+", hossz: {H: 0-1, C: 3+, D: 3+, S: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, támogatás a többiben"}
+      - {minta: "(3S) P (P) X", pont: "13+", hossz: {S: 0-1, C: 3+, D: 3+, H: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, támogatás a többiben"}
+      - {minta: "(1C) P (P) X", kulcs: "UJRANYITO-ERO-1C", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(1D) P (P) X", kulcs: "UJRANYITO-ERO-1D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(1H) P (P) X", kulcs: "UJRANYITO-ERO-1H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(1S) P (P) X", kulcs: "UJRANYITO-ERO-1S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(2D) P (P) X", kulcs: "UJRANYITO-ERO-2D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(2H) P (P) X", kulcs: "UJRANYITO-ERO-2H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(2S) P (P) X", kulcs: "UJRANYITO-ERO-2S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(3C) P (P) X", kulcs: "UJRANYITO-ERO-3C", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(3D) P (P) X", kulcs: "UJRANYITO-ERO-3D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(3H) P (P) X", kulcs: "UJRANYITO-ERO-3H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+      - {minta: "(3S) P (P) X", kulcs: "UJRANYITO-ERO-3S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Újranyitó kontra: erős lap, bármilyen elosztás"}
+
+  - fejezet: "Gyengített szan a sor végén"
+    szabalyok:
+      - {minta: "(1C) P (P) 1NT", pont: "14-17", elosztas: BAL, fogas: ["C"], prioritas: 56, magyarazat: "Újranyitó szan: 14-17, egyenletes, fogás a színükben"}
+      - {minta: "(1D) P (P) 1NT", pont: "14-17", elosztas: BAL, fogas: ["D"], prioritas: 56, magyarazat: "Újranyitó szan: 14-17, egyenletes, fogás a színükben"}
+      - {minta: "(1H) P (P) 1NT", pont: "14-17", elosztas: BAL, fogas: ["H"], prioritas: 56, magyarazat: "Újranyitó szan: 14-17, egyenletes, fogás a színükben"}
+      - {minta: "(1S) P (P) 1NT", pont: "14-17", elosztas: BAL, fogas: ["S"], prioritas: 56, magyarazat: "Újranyitó szan: 14-17, egyenletes, fogás a színükben"}
+      - {minta: "(2D) P (P) 2NT", pont: "15-18", elosztas: BAL, fogas: ["D"], prioritas: 56, magyarazat: "Újranyitó szan: 15-18, egyenletes, fogás a színükben"}
+      - {minta: "(2H) P (P) 2NT", pont: "15-18", elosztas: BAL, fogas: ["H"], prioritas: 56, magyarazat: "Újranyitó szan: 15-18, egyenletes, fogás a színükben"}
+      - {minta: "(2S) P (P) 2NT", pont: "15-18", elosztas: BAL, fogas: ["S"], prioritas: 56, magyarazat: "Újranyitó szan: 15-18, egyenletes, fogás a színükben"}
+      - {minta: "(3C) P (P) 3NT", pont: "16-19", elosztas: BAL, fogas: ["C"], prioritas: 56, magyarazat: "Újranyitó szan: 16-19, egyenletes, fogás a színükben"}
+      - {minta: "(3D) P (P) 3NT", pont: "16-19", elosztas: BAL, fogas: ["D"], prioritas: 56, magyarazat: "Újranyitó szan: 16-19, egyenletes, fogás a színükben"}
+      - {minta: "(3H) P (P) 3NT", pont: "16-19", elosztas: BAL, fogas: ["H"], prioritas: 56, magyarazat: "Újranyitó szan: 16-19, egyenletes, fogás a színükben"}
+      - {minta: "(3S) P (P) 3NT", pont: "16-19", elosztas: BAL, fogas: ["S"], prioritas: 56, magyarazat: "Újranyitó szan: 16-19, egyenletes, fogás a színükben"}
+
+  - fejezet: "Színbemondás a sor végén"
+    szabalyok:
+      - {minta: "(1C) P (P) 1D", pont: "8+", hossz: {D: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ káró, 8+"}
+      - {minta: "(1C) P (P) 1H", pont: "8+", hossz: {H: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ kőr, 8+"}
+      - {minta: "(1C) P (P) 1S", pont: "8+", hossz: {S: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ pikk, 8+"}
+      - {minta: "(1D) P (P) 2C", pont: "10+", hossz: {C: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ treff, 10+"}
+      - {minta: "(1D) P (P) 1H", pont: "8+", hossz: {H: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ kőr, 8+"}
+      - {minta: "(1D) P (P) 1S", pont: "8+", hossz: {S: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ pikk, 8+"}
+      - {minta: "(1H) P (P) 2C", pont: "10+", hossz: {C: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ treff, 10+"}
+      - {minta: "(1H) P (P) 2D", pont: "10+", hossz: {D: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ káró, 10+"}
+      - {minta: "(1H) P (P) 1S", pont: "8+", hossz: {S: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ pikk, 8+"}
+      - {minta: "(1S) P (P) 2C", pont: "10+", hossz: {C: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ treff, 10+"}
+      - {minta: "(1S) P (P) 2D", pont: "10+", hossz: {D: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ káró, 10+"}
+      - {minta: "(1S) P (P) 2H", pont: "10+", hossz: {H: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ kőr, 10+"}
+      - {minta: "(2D) P (P) 3C", pont: "12+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 12+"}
+      - {minta: "(2D) P (P) 2H", pont: "10+", hossz: {H: 5+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 5+ kőr, 10+"}
+      - {minta: "(2D) P (P) 2S", pont: "10+", hossz: {S: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ pikk, 10+"}
+      - {minta: "(2H) P (P) 3C", pont: "12+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 12+"}
+      - {minta: "(2H) P (P) 3D", pont: "12+", hossz: {D: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ káró, 12+"}
+      - {minta: "(2H) P (P) 2S", pont: "10+", hossz: {S: 5+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 5+ pikk, 10+"}
+      - {minta: "(2S) P (P) 3C", pont: "12+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 12+"}
+      - {minta: "(2S) P (P) 3D", pont: "12+", hossz: {D: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ káró, 12+"}
+      - {minta: "(2S) P (P) 3H", pont: "12+", hossz: {H: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ kőr, 12+"}
+      - {minta: "(3C) P (P) 3D", pont: "13+", hossz: {D: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ káró, 13+"}
+      - {minta: "(3C) P (P) 3H", pont: "13+", hossz: {H: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ kőr, 13+"}
+      - {minta: "(3C) P (P) 3S", pont: "13+", hossz: {S: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ pikk, 13+"}
+      - {minta: "(3D) P (P) 4C", pont: "13+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 13+"}
+      - {minta: "(3D) P (P) 3H", pont: "13+", hossz: {H: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ kőr, 13+"}
+      - {minta: "(3D) P (P) 3S", pont: "13+", hossz: {S: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ pikk, 13+"}
+      - {minta: "(3H) P (P) 4C", pont: "13+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 13+"}
+      - {minta: "(3H) P (P) 4D", pont: "13+", hossz: {D: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ káró, 13+"}
+      - {minta: "(3H) P (P) 3S", pont: "13+", hossz: {S: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ pikk, 13+"}
+      - {minta: "(3S) P (P) 4C", pont: "13+", hossz: {C: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ treff, 13+"}
+      - {minta: "(3S) P (P) 4D", pont: "13+", hossz: {D: 6+}, prioritas: 55, magyarazat: "Újranyitó színbemondás: 6+ káró, 13+"}
+      - {minta: "(3S) P (P) 4H", pont: "13+", hossz: {H: 6+}, prioritas: 54, magyarazat: "Újranyitó színbemondás: 6+ kőr, 13+"}
+
+  - fejezet: "A nyitó újranyitó kontrája: 1x (y) P (P) X"
+    jegyzet: >-
+      A szerkesztő (2026-11-10, a hétfői B4 2. leosztása): rövidség a
+      közbeszólás színében (0-2 lap), 12+ FP — a partner büntető passza
+      (rejtett negatív kontra helyett) ezzel kijöhet; vagy többleterő
+      (18+, a KIBIC_STAND-on 17+), bármilyen elosztással.
+    szabalyok:
+      - {minta: "1C (1D) P (P) X", pont: 12+, hossz: {D: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a partner büntetőre passzolhat"}
+      - {minta: "1C (1D) P (P) X", kulcs: "NYITO-UJRA-ERO-C1D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1C (2D) P (P) X", pont: 12+, hossz: {D: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a partner büntetőre passzolhat"}
+      - {minta: "1C (2D) P (P) X", kulcs: "NYITO-UJRA-ERO-C2D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1C (1H) P (P) X", pont: 12+, hossz: {H: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, a partner büntetőre passzolhat"}
+      - {minta: "1C (1H) P (P) X", kulcs: "NYITO-UJRA-ERO-C1H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1C (2H) P (P) X", pont: 12+, hossz: {H: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, a partner büntetőre passzolhat"}
+      - {minta: "1C (2H) P (P) X", kulcs: "NYITO-UJRA-ERO-C2H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1C (1S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1C (1S) P (P) X", kulcs: "NYITO-UJRA-ERO-C1S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1C (2S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1C (2S) P (P) X", kulcs: "NYITO-UJRA-ERO-C2S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1D (2C) P (P) X", pont: 12+, hossz: {C: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid treff, a partner büntetőre passzolhat"}
+      - {minta: "1D (2C) P (P) X", kulcs: "NYITO-UJRA-ERO-D2C", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1D (1H) P (P) X", pont: 12+, hossz: {H: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, a partner büntetőre passzolhat"}
+      - {minta: "1D (1H) P (P) X", kulcs: "NYITO-UJRA-ERO-D1H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1D (2H) P (P) X", pont: 12+, hossz: {H: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, a partner büntetőre passzolhat"}
+      - {minta: "1D (2H) P (P) X", kulcs: "NYITO-UJRA-ERO-D2H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1D (1S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1D (1S) P (P) X", kulcs: "NYITO-UJRA-ERO-D1S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1D (2S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1D (2S) P (P) X", kulcs: "NYITO-UJRA-ERO-D2S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1H (2C) P (P) X", pont: 12+, hossz: {C: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid treff, a partner büntetőre passzolhat"}
+      - {minta: "1H (2C) P (P) X", kulcs: "NYITO-UJRA-ERO-H2C", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1H (2D) P (P) X", pont: 12+, hossz: {D: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a partner büntetőre passzolhat"}
+      - {minta: "1H (2D) P (P) X", kulcs: "NYITO-UJRA-ERO-H2D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1H (1S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1H (1S) P (P) X", kulcs: "NYITO-UJRA-ERO-H1S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1H (2S) P (P) X", pont: 12+, hossz: {S: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid pikk, a partner büntetőre passzolhat"}
+      - {minta: "1H (2S) P (P) X", kulcs: "NYITO-UJRA-ERO-H2S", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1S (2C) P (P) X", pont: 12+, hossz: {C: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid treff, a partner büntetőre passzolhat"}
+      - {minta: "1S (2C) P (P) X", kulcs: "NYITO-UJRA-ERO-S2C", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1S (2D) P (P) X", pont: 12+, hossz: {D: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid káró, a partner büntetőre passzolhat"}
+      - {minta: "1S (2D) P (P) X", kulcs: "NYITO-UJRA-ERO-S2D", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+      - {minta: "1S (2H) P (P) X", pont: 12+, hossz: {H: 0-2}, forsz: EGY_MENET, prioritas: 53, alert: "Újranyitó kontra: rövid kőr, a partner büntetőre passzolhat"}
+      - {minta: "1S (2H) P (P) X", kulcs: "NYITO-UJRA-ERO-S2H", pont: {param: ERO_KONTRA_MIN, alap: 17}, forsz: EGY_MENET, prioritas: 57, alert: "Újranyitó kontra: többleterő, bármilyen elosztás"}
+
+  - fejezet: "A válaszoló a nyitó újranyitó kontrája után"
+    jegyzet: >-
+      Büntető passz csak erős aduval a közbeszólás színében (4+ lap, 2
+      honőr); különben a legolcsóbb színünk (nemes 4+, minor 5+ lap), vagy
+      szan fogással, ugrás 9-11 ponttal.
+    szabalyok:
+      - {minta: "1C (1D) P (P) X (P) 2C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (1D) P (P) X (P) 3C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (1D) P (P) X (P) 1H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1C (1D) P (P) X (P) 2H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1C (1D) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1C (1D) P (P) X (P) 2S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1C (1D) P (P) X (P) 1NT", pont: "6-10", fogas: ["D"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1C (2D) P (P) X (P) 3C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (2D) P (P) X (P) 4C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (2D) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1C (2D) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1C (2D) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1C (2D) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1C (2D) P (P) X (P) 2NT", pont: "6-10", fogas: ["D"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1C (1H) P (P) X (P) 2C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (1H) P (P) X (P) 3C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (1H) P (P) X (P) 2D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1C (1H) P (P) X (P) 3D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1C (1H) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1C (1H) P (P) X (P) 2S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1C (1H) P (P) X (P) 1NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1C (2H) P (P) X (P) 3C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (2H) P (P) X (P) 4C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (2H) P (P) X (P) 3D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1C (2H) P (P) X (P) 4D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1C (2H) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1C (2H) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1C (2H) P (P) X (P) 2NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1C (1S) P (P) X (P) 2C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (1S) P (P) X (P) 3C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (1S) P (P) X (P) 2D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1C (1S) P (P) X (P) 3D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1C (1S) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1C (1S) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1C (1S) P (P) X (P) 1NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1C (2S) P (P) X (P) 3C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1C (2S) P (P) X (P) 4C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
+      - {minta: "1C (2S) P (P) X (P) 3D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1C (2S) P (P) X (P) 4D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1C (2S) P (P) X (P) 3H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1C (2S) P (P) X (P) 4H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1C (2S) P (P) X (P) 2NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1D (2C) P (P) X (P) 2D", pont: "0-8", hossz: {D: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1D (2C) P (P) X (P) 3D", pont: "9-11", hossz: {D: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ káró, 9-11"}
+      - {minta: "1D (2C) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1D (2C) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1D (2C) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1D (2C) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1D (2C) P (P) X (P) 2NT", pont: "6-10", fogas: ["C"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1D (1H) P (P) X (P) 2C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1D (1H) P (P) X (P) 3C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1D (1H) P (P) X (P) 2D", pont: "0-8", hossz: {D: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1D (1H) P (P) X (P) 3D", pont: "9-11", hossz: {D: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ káró, 9-11"}
+      - {minta: "1D (1H) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1D (1H) P (P) X (P) 2S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1D (1H) P (P) X (P) 1NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1D (2H) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1D (2H) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1D (2H) P (P) X (P) 3D", pont: "0-8", hossz: {D: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1D (2H) P (P) X (P) 4D", pont: "9-11", hossz: {D: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ káró, 9-11"}
+      - {minta: "1D (2H) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1D (2H) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1D (2H) P (P) X (P) 2NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1D (1S) P (P) X (P) 2C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1D (1S) P (P) X (P) 3C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1D (1S) P (P) X (P) 2D", pont: "0-8", hossz: {D: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1D (1S) P (P) X (P) 3D", pont: "9-11", hossz: {D: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ káró, 9-11"}
+      - {minta: "1D (1S) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1D (1S) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1D (1S) P (P) X (P) 1NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1D (2S) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1D (2S) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1D (2S) P (P) X (P) 3D", pont: "0-8", hossz: {D: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1D (2S) P (P) X (P) 4D", pont: "9-11", hossz: {D: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ káró, 9-11"}
+      - {minta: "1D (2S) P (P) X (P) 3H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1D (2S) P (P) X (P) 4H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1D (2S) P (P) X (P) 2NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1H (2C) P (P) X (P) 2D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1H (2C) P (P) X (P) 3D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1H (2C) P (P) X (P) 2H", pont: "0-8", hossz: {H: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1H (2C) P (P) X (P) 3H", pont: "9-11", hossz: {H: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ kőr, 9-11"}
+      - {minta: "1H (2C) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1H (2C) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1H (2C) P (P) X (P) 2NT", pont: "6-10", fogas: ["C"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1H (2D) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1H (2D) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1H (2D) P (P) X (P) 2H", pont: "0-8", hossz: {H: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1H (2D) P (P) X (P) 3H", pont: "9-11", hossz: {H: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ kőr, 9-11"}
+      - {minta: "1H (2D) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ pikk, gyenge"}
+      - {minta: "1H (2D) P (P) X (P) 3S", pont: "9-11", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ pikk, 9-11"}
+      - {minta: "1H (2D) P (P) X (P) 2NT", pont: "6-10", fogas: ["D"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1H (1S) P (P) X (P) 2C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1H (1S) P (P) X (P) 3C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1H (1S) P (P) X (P) 2D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1H (1S) P (P) X (P) 3D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1H (1S) P (P) X (P) 2H", pont: "0-8", hossz: {H: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1H (1S) P (P) X (P) 3H", pont: "9-11", hossz: {H: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ kőr, 9-11"}
+      - {minta: "1H (1S) P (P) X (P) 1NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1H (2S) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1H (2S) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1H (2S) P (P) X (P) 3D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1H (2S) P (P) X (P) 4D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1H (2S) P (P) X (P) 3H", pont: "0-8", hossz: {H: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1H (2S) P (P) X (P) 4H", pont: "9-11", hossz: {H: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ kőr, 9-11"}
+      - {minta: "1H (2S) P (P) X (P) 2NT", pont: "6-10", fogas: ["S"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1S (2C) P (P) X (P) 2D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1S (2C) P (P) X (P) 3D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1S (2C) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1S (2C) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1S (2C) P (P) X (P) 2S", pont: "0-8", hossz: {S: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1S (2C) P (P) X (P) 3S", pont: "9-11", hossz: {S: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ pikk, 9-11"}
+      - {minta: "1S (2C) P (P) X (P) 2NT", pont: "6-10", fogas: ["C"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1S (2D) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1S (2D) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1S (2D) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
+      - {minta: "1S (2D) P (P) X (P) 3H", pont: "9-11", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 4+ kőr, 9-11"}
+      - {minta: "1S (2D) P (P) X (P) 2S", pont: "0-8", hossz: {S: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1S (2D) P (P) X (P) 3S", pont: "9-11", hossz: {S: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ pikk, 9-11"}
+      - {minta: "1S (2D) P (P) X (P) 2NT", pont: "6-10", fogas: ["D"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "1S (2H) P (P) X (P) 3C", pont: "0-8", hossz: {C: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ treff, gyenge"}
+      - {minta: "1S (2H) P (P) X (P) 4C", pont: "9-11", hossz: {C: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ treff, 9-11"}
+      - {minta: "1S (2H) P (P) X (P) 3D", pont: "0-8", hossz: {D: 5+}, alulrol: true, prioritas: 52, magyarazat: "5+ káró, gyenge"}
+      - {minta: "1S (2H) P (P) X (P) 4D", pont: "9-11", hossz: {D: 5+}, alulrol: true, prioritas: 53, magyarazat: "Ugrás: 5+ káró, 9-11"}
+      - {minta: "1S (2H) P (P) X (P) 2S", pont: "0-8", hossz: {S: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
+      - {minta: "1S (2H) P (P) X (P) 3S", pont: "9-11", hossz: {S: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ pikk, 9-11"}
+      - {minta: "1S (2H) P (P) X (P) 2NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
