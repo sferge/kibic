@@ -135,11 +135,37 @@ def _jogosultsag_atjaro(authorization: str | None = Header(default=None)
         raise HTTPException(status_code=401, detail="Érvénytelen titok")
 
 
+def _kod_verzio() -> str | None:
+    """A futó kód git-állapota (a commit rövid azonosítója), ha kiolvasható —
+    ebből látszik, hogy a `git pull` után újraindult-e a szolgáltatás."""
+    from pathlib import Path
+    try:
+        g = Path(__file__).resolve().parents[3] / ".git"
+        fej = (g / "HEAD").read_text().strip()
+        if fej.startswith("ref: "):
+            ref = g / fej[5:]
+            if ref.exists():
+                return ref.read_text().strip()[:7]
+            for sor in (g / "packed-refs").read_text().splitlines():
+                if sor.endswith(fej[5:]):
+                    return sor[:7]
+            return None
+        return fej[:7]
+    except Exception:            # noqa: BLE001
+        return None
+
+
+# a folyamat indulásakor rögzítve: a futó kód, nem a lemezen lévő
+_INDULAS = {"ido": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+            "kod": _kod_verzio()}
+
+
 @app.get("/v1/kibic/allapot")
 def allapot() -> dict:
-    """Életjel: a DDS és a tudásbázis elérhetősége."""
+    """Életjel: a DDS és a tudásbázis elérhetősége; a futó kód verziója."""
     from ..domain import ERTEKELOK
     ki: dict = {"statusz": "ok", "ertekelok": len(ERTEKELOK),
+                "indulas": _INDULAS["ido"], "kod_verzio": _INDULAS["kod"],
                 "betoltott_rendszer": sorted({k[0] for k in _TAR}),
                 "teszt_mod": TESZT_MOD,
                 "atjaro_protokoll": PROTOKOLL}
