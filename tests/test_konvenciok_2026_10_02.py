@@ -527,3 +527,12 @@ def test_1nt_invit_jo_8_ponttal(betolto):
     assert v["call"] != "2NT"          # 8 FP, védtelen ♥D: 7,5
     v = _licit(betolto, "A32.QT9.K8432.32", ["1NT", "P", "2C", "P", "2D", "P"], "S")
     assert v["call"] == "2NT"
+
+
+def test_korr_fp_jo_hossz():
+    # AKxxx = 8 jó pont; védtelen dáma −0,5 (a szerkesztő, 2026-11-11)
+    from kibic.domain.kartya import Kez
+    from kibic.motor.kifejezes import Kontextus, _ertek
+    fa = {"t": "KORR_PONT", "levonas": 0.5, "alap": "HCP", "jo_hossz": 1}
+    assert _ertek(fa, Kez.pbn_bol("AK432.432.432.32"), Kontextus()) == 8
+    assert _ertek(fa, Kez.pbn_bol("KQ432.Q32.432.32"), Kontextus()) == 7.5
