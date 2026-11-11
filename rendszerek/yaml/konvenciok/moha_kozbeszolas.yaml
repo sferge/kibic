@@ -1,0 +1,52 @@
+# MOHA_KOZBESZOLAS — a még nem passzolt kéz első megszólalása az ellenfél
+# nyitására (a szerkesztő, 2026-11-11). A passzolt kézre a KIBIC-szabályok
+# maradnak (a sorok `ha: {ules: [2, 3, 4]}` feltétellel csak a saját
+# helyzetükben írják felül a KIBICEGY_KUZDELMI / GYENGE_UGRO_KOZBESZOLAS sorait).
+#
+#   * sima színbemondás az 1-es szinten: mint a nyitás (12-17), 5+ lap;
+#   * a 2-es szinten szintenként +1,5 pont: 14-17 (13 két felső figurával);
+#   * gyenge ugró közbeszólás: mint passz után, de 1-2 védekező ütéssel
+#     (ász vagy KD — gyorsütés 1-2);
+#   * a szan-közbeszólás közvetlenül 16-19 (a KIBICEGY_KUZDELMI-ben is ez).
+# Generálva: scratchpad gen/kozb.py.
+rendszer:
+  kod: MOHA_KOZBESZOLAS
+  nev: Közbeszólás (Moha, nem passzolt kéz)
+  nev_en: Overcalls (Moha, unpassed hand)
+  fajta: KONVENCIO
+  leiras: "A nem passzolt kéz közbeszólása: 1-es szinten nyitóerő (12-17), 2-es szinten 14-17 (13 két felső figurával), gyenge ugró közbeszólás 1-2 védekező ütéssel."
+fejezetek:
+  - fejezet: "Sima közbeszólás"
+    szabalyok:
+      - {minta: (1C) 1D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, pont: 12-17, prioritas: 56, magyarazat: 'Közbeszólás: 12-17 FP, 5+ káró (mint a nyitás)'}
+      - {minta: (1C) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, pont: 12-17, prioritas: 57, magyarazat: 'Közbeszólás: 12-17 FP, 5+ kőr (mint a nyitás)'}
+      - {minta: (1C) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
+      - {minta: (1D) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
+      - {minta: (1D) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, pont: 12-17, prioritas: 57, magyarazat: 'Közbeszólás: 12-17 FP, 5+ kőr (mint a nyitás)'}
+      - {minta: (1D) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
+      - {minta: (1H) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
+      - {minta: (1H) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {D: 2+}}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ káró'}
+      - {minta: (1H) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
+      - {minta: (1S) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
+      - {minta: (1S) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {D: 2+}}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ káró'}
+      - {minta: (1S) 2H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {H: 2+}}], prioritas: 57, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ kőr'}
+  - fejezet: "Gyenge ugró közbeszólás védekező ütéssel"
+    szabalyok:
+      - {minta: (1C) 2D, hossz: {D: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {D: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1C) 3D, hossz: {D: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {D: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ káró); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1C) 2H, hossz: {H: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {H: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1C) 3H, hossz: {H: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {H: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ kőr); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1C) 2S, hossz: {S: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1C) 3S, hossz: {S: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1D) 3C, hossz: {C: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {C: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1D) 2H, hossz: {H: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {H: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1D) 3H, hossz: {H: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {H: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ kőr); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1D) 2S, hossz: {S: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1D) 3S, hossz: {S: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1H) 3C, hossz: {C: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {C: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1H) 3D, hossz: {D: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {D: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1H) 2S, hossz: {S: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1H) 3S, hossz: {S: 7+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {S: 5+}}], alert: 'Ugró közbeszólás: kizáró (7+ pikk); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1S) 3C, hossz: {C: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {C: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ treff); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1S) 3D, hossz: {D: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {D: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
+      - {minta: (1S) 3H, hossz: {H: 6+}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {H: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ kőr); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
