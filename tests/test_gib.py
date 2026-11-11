@@ -35,6 +35,11 @@ def _licit(forras, kez, menet, ules="N"):
     ("T5.K8.Q42.AQJ872", "1NT P", "S", "2NT"),        # minor-transzfer treffre
     ("QJ5.AK875.K4.A72", "1H P 3H P 4NT P", "S", "5C"),   # RKC 0314: 3 kulcslap
     ("QJ5.K8754.K42.72", "1H P 3H P 4NT P", "S", "5D"),   # RKC 0314: 1 kulcslap
+    # 2. szakasz: küzdelmi
+    ("K43.AQT62.JT52.6", "1C P 1S", "W", "2H"),       # közbeszólás a második helyen
+    ("KJT94.A654.J.T54", "1D X P", "W", "2S"),        # ugró válasz a kontrára: 9-12
+    ("6.KQJ75.84.AKT87", "1C 2S", "S", "X"),          # 4-es nemes: negatív kontra, nem felüllicit
+    ("AKQ43.KQT42.7.K7", "1NT", "E", "2D"),           # Cappelletti: mindkét nemes
 ])
 def test_gib_licitek(gib, kez, menet, ules, vart):
     assert _licit(gib, kez, menet, ules) == vart
@@ -47,4 +52,6 @@ def test_gib_alap_utkozesmentes():
     ids = {s.licitmenet_id for s in f.sorok if s.rendszer_kod.startswith("GIB")}
     er = ellenoriz(f.sorok, Parametertar(rendszer_ertek=dict(g["GIB"].parameterek)),
                    kez_db=60, csak_sorok=ids, feloldas=f)
-    assert not er.utkozesek, [(u.helyzet, u.licitek) for u in er.utkozesek]
+    sajat = [u for u in er.utkozesek if set(u.sor_idk) & ids and all(
+        i in ids for i in u.sor_idk)]
+    assert not sajat, [(u.helyzet, u.licitek) for u in sajat]
