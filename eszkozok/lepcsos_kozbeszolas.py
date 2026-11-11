@@ -11,9 +11,10 @@ szintje a kérdés, nem a szín) állítja elő a közbeszólás utáni változa
               3. lépcső az első szabad licit (L1), 4. lépcső L2 ...
   DOPI-ROPI   ugyanez, az 1. és a 2. lépcső felcserélve.
 
-A relé a „tetszik” válasz utáni közbeszólásnál:
-  PODI: passz = relé (amit mondtam volna), kontra = büntető;
-  DOPI: kontra = relé, passz = forszírozó passz.
+RELÉ-helyzet (a YAML-sor `rele: n` kulcsa; a relé sorszáma hordozza a
+kérdést, nem a licit színe), közbeszólás után:
+  PODI: 1. relé = passz, n. relé = az (n-1). szabad licit, kontra = büntető;
+  DOPI: 1. relé = kontra, passz = forszírozó passz.
 A relé-passz (PODI) után a válaszoló nem passzolhat (az a közbeszólás
 szerződése volna): kontra = 1. lépcső, utána az első szabad licit = 2. lépcső.
 A DOPI relé-kontrája után: az első szabad licit = 1. lépcső.
@@ -79,9 +80,12 @@ def lepcsos_sor(s: dict) -> bool:
     return any(isinstance(v, dict) and "aszok" in v for v in s.get("vagy") or [])
 
 
-def rele_sor(s: dict) -> bool:
-    a = s.get("alert") or s.get("magyarazat") or ""
-    return isinstance(a, str) and a.startswith("Relé")
+def rele_sor(s: dict) -> int:
+    """A relé sorszáma (a YAML `rele:` kulcsa), vagy 0."""
+    try:
+        return int(s.get("rele") or 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 def betolt():
@@ -181,43 +185,52 @@ def general(mod: str) -> list[tuple[str, list[dict]]]:
                     f"{mod} ({szep(kb)} után, {k}. lépcső)"))
     fejezetek.append((f"Lépcsős válasz a közbeszólás után ({mod})", valaszok))
 
-    # 2) a relé a „tetszik” utáni közbeszólásnál, és a relé válaszai
+    # 2) RELÉ-helyzet (`rele: n`): a partner licitje után közbeszólás — a relé
+    # a sorszámától függ (nem attól, mire szóltak közbe): PODI: 1. relé =
+    # passz, n. relé = az (n-1). szabad licit, kontra = büntető; DOPI: 1. relé
+    # = kontra, passz = forszírozó. Utána a relé válaszai lépcsőkben.
     rele, relevalasz = [], []
     for kod, s in sorok:
-        if not rele_sor(s):
+        n = rele_sor(s)
+        if not n:
             continue
         eleje, mi = tokenek(str(s["minta"]))
-        if len(mi) < 3:
+        if len(mi) < 2 or rang(mi[-2]) is None:
             continue
-        elo, tetszik, r = mi[:-2], mi[-2], mi[-1]
-        if (eleje, tuple(elo)) not in cs:
-            continue
-        # a relé válaszcsoportja
+        elo, r = mi[:-1], mi[-1]
         vcs = cs.get((eleje, tuple(mi)), [])
-        for kb in ["X"] + [licit(x) for x in range(rang(tetszik) + 1, min(rang(r) + 3, 34) + 1)]:
-            alap = kompetitiv(eleje, elo + [tetszik]) + f" ({kb})"
-            if mod == "PODI":
-                rh, mas = "P", ("XX" if kb == "X" else "X")
+        for kb in ["X"] + [licit(x) for x in range(rang(elo[-1]) + 1, min(rang(r) + 3, 34) + 1)]:
+            alap = kompetitiv(eleje, list(elo)) + f" ({kb})"
+            elso = "P" if mod == "PODI" else ("XX" if kb == "X" else "X")
+            if n == 1:
+                rh = elso
             else:
-                rh, mas = ("XX" if kb == "X" else "X"), "P"
+                rr = (rang(elo[-1]) if kb == "X" else rang(kb)) + (n - 1)
+                if rr >= 35:
+                    continue
+                rh = licit(rr)
             rele.append(sor_masol(s, f"{alap} {rh}", f"{kulcs_alap(s)}-{mod}-{kb}",
-                                  f"{mod} ({szep(kb)} után): {szep(rh)} = relé"))
-            if mod == "PODI" and kb != "X":
+                                  f"{mod} ({szep(kb)} után): {szep(rh)} = {n}. relé"))
+            if n == 1 and mod == "PODI" and kb != "X":
                 rele.append({"minta": f"{alap} X", "kulcs": f"{kulcs_alap(s)}-{mod}-{kb}-BUNTETO",
                              "prioritas": 9, "pont": "0+", "hossz": {kb[1:]: "4+"} if kb[1:] in "CDHS" else {},
                              "magyarazat": f"PODI: a kontra büntető ({szep(kb)})"})
-            if mod == "DOPI":
+            if n == 1 and mod == "DOPI":
                 rele.append({"minta": f"{alap} P", "kulcs": f"{kulcs_alap(s)}-{mod}-{kb}-FORSZPASSZ",
                              "prioritas": 9, "pont": "0+",
                              "magyarazat": "DOPI: forszírozó passz (nem kérdezek relével)"})
-            # a relé válaszai: a relé-passz / -kontra után a válaszoló
+            # a relé válaszai: a passz-relé után a válaszoló nem passzolhat
+            # (kontra = 1. lépcső); licit-relé után a lépcsők a relé fölött
             for v in vcs:
                 k = rang(tokenek(str(v["minta"]))[1][-1]) - rang(r)
-                tol = rang(tetszik) if kb == "X" else rang(kb)
-                if mod == "PODI":
+                if rh == "P":
+                    tol = rang(elo[-1]) if kb == "X" else rang(kb)
                     h = ("XX" if kb == "X" else "X") if k == 1 else licit(tol + k - 1)
-                else:
+                elif rh in ("X", "XX"):
+                    tol = rang(elo[-1]) if kb == "X" else rang(kb)
                     h = licit(tol + k)
+                else:
+                    h = licit(rang(rh) + k)
                 if rang(h) is not None and rang(h) >= 35:
                     continue
                 relevalasz.append(sor_masol(
@@ -226,7 +239,7 @@ def general(mod: str) -> list[tuple[str, list[dict]]]:
     # 3) a közbeszólás a KÉRDÉS után, a „tetszik” az 1. lépcsővel (PODI: passz,
     # DOPI: kontra) — utána a relé az első szabad licit, a válaszai onnan lépcsők
     for kod, s in sorok:
-        if not rele_sor(s):
+        if rele_sor(s) != 1:
             continue
         eleje, mi = tokenek(str(s["minta"]))
         if len(mi) < 3:
