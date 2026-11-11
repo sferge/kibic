@@ -46,15 +46,16 @@ fejezetek:
          alert: "Új szín (mint 1-re 2): még egy megszólalást ígér, 3D-ig kötelez"}
   - fejezet: "A 2-es szintű közbeszólás: a partner új színe"
     szabalyok:
-      # magasabb szín ugyanazon a szinten — mint az 1-re 1: egy körre kényszerít
-      - {minta: "(1D) 2C (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
-      - {minta: "(1D) 2C (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
-      - {minta: "(1H) 2C (*) 2D", pont: "8+", hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
-      - {minta: "(1H) 2C (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
-      - {minta: "(1S) 2C (*) 2D", pont: "8+", hossz: {D: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
-      - {minta: "(1S) 2C (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
-      - {minta: "(1H) 2D (*) 2S", pont: "8+", hossz: {S: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♠)"}
-      - {minta: "(1S) 2D (*) 2H", pont: "8+", hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♥)"}
+      # magasabb szín ugyanazon a szinten — mint az 1-re 1: 4+ lap, 6+, egy körre
+      # kényszerít (a szerkesztő, 2026-11-11, #19: sima válaszerővel természetes)
+      - {minta: "(1D) 2C (*) 2H", pont: "6+", hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
+      - {minta: "(1D) 2C (*) 2S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
+      - {minta: "(1H) 2C (*) 2D", pont: "6+", hossz: {D: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
+      - {minta: "(1H) 2C (*) 2S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♠)"}
+      - {minta: "(1S) 2C (*) 2D", pont: "6+", hossz: {D: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♦)"}
+      - {minta: "(1S) 2C (*) 2H", pont: "6+", hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♣-1♥)"}
+      - {minta: "(1H) 2D (*) 2S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♠)"}
+      - {minta: "(1S) 2D (*) 2H", pont: "6+", hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 53, magyarazat: "Új szín: természetes, F1 (mint 1♦-1♥)"}
       # alacsonyabb szín a következő szinten — a 2/1 megfelelője: kvázi gémforsz
       - {minta: "(1H) 2D (*) 3C", pont: "11+", hossz: {C: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4C"}, prioritas: 53,
          alert: "Új szín (mint 2/1): kvázi gémforsz, 4 minorig"}
@@ -136,3 +137,15 @@ fejezetek:
          hossz: {E: 0-2}, prioritas: 52, magyarazat: "A saját színem ismétlése, nincs fit"}
       - {minta: "(1A) nB (nA) 3E (4A) 4E", kulcs: KN-EMELES-UTAN-UJ-SZIN-EMEL-4, kulonbozo: [A, B, E],
          hossz: {E: 3+}, prioritas: 54, magyarazat: "Emelés a közbeszólás fölött: 3+ lap a partner színében"}
+
+  - fejezet: "A közbeszóló viszontválasza a partner F1 új színére: (1A) 2B (*) 2E (*) ?"
+    jegyzet: >-
+      Mint a nyitó viszontválasza az 1-re 1 után (a szerkesztő, 2026-11-11,
+      #19): 4+ lappal emelés, fogással 2NT, egyébként a saját szín ismétlése.
+    szabalyok:
+      - {minta: "(1A) 2B (*) 2E (*) 3E", kulcs: KN-VISZONT-EMEL, kulonbozo: [A, B, E], hossz: {E: 4+},
+         prioritas: 54, magyarazat: "Emelés: 4+ lap a partner színében"}
+      - {minta: "(1A) 2B (*) 2E (*) 2NT", kulcs: KN-VISZONT-2NT, kulonbozo: [A, B, E], pont: 12-15, hossz: {E: 0-3},
+         fogas: [A], prioritas: 53, magyarazat: "Fogás az ellenfél színében, nincs fit"}
+      - {minta: "(1A) 2B (*) 2E (*) 3B", kulcs: KN-VISZONT-SAJAT, kulonbozo: [A, B, E], hossz: {E: 0-3},
+         prioritas: 52, magyarazat: "A saját szín ismétlése, nincs fit"}

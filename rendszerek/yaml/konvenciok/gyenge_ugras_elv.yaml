@@ -32,8 +32,8 @@
 # ha az ugrás konkrétan definiált, vagy splinter-helyzet, az előbb jár
 # (`ha: {eros_ugras: true}`).
 #
-# NYITOTT (kieg.): a zónás pontsáv és a hossz (egyszeres ugrás 6-7 lap,
-# dupla 7+) a klubdokumentum ugró közbeszólásából átvéve; a szín
+# NYITOTT (kieg.): a zónás pontsáv és a hossz (egyszeres ugrás 6+ lap —
+# 2026-11-11, #19: 8 lappal is a 3-as szinten —, dupla 7+) a klubdokumentum ugró közbeszólásából átvéve; a szín
 # minősége nincs előírva.
 rendszer:
   kod: GYENGE_UGRAS_ELV
@@ -46,10 +46,10 @@ fejezetek:
   - fejezet: "Gyenge ugrás új színben"
     szabalyok:
       - {minta: ".. 2B", kulcs: GYENGE-UGRAS-2-1, fajta: ELV, prioritas: 5,
-         ha: {gyenge_ugras: 1}, hossz: {B: 6-7}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         ha: {gyenge_ugras: 1}, hossz: {B: 6+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
          forsz: KIZARO, alert: "Gyenge ugrás: 6+ lap, gyenge (kizáró) — nem erő"}
       - {minta: ".. 3B", kulcs: GYENGE-UGRAS-3-1, fajta: ELV, prioritas: 5,
-         ha: {gyenge_ugras: 1}, hossz: {B: 6-7}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
+         ha: {gyenge_ugras: 1}, hossz: {B: 6+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},
          forsz: KIZARO, alert: "Gyenge ugrás: 6+ lap, gyenge (kizáró) — nem erő"}
       - {minta: ".. 4B", kulcs: GYENGE-UGRAS-4-1, fajta: ELV, prioritas: 5,
          ha: {gyenge_ugras: 1}, hossz: {B: 7+}, pont: {O: 2-10, A: 3-10, M: 4-10, S: 5-10},

@@ -378,3 +378,4 @@ fejezetek:
       - {minta: "1S (2C) 3C", kulcs: NEG-X-AZONNALI-FELUL-SC, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
       - {minta: "1S (2D) 3D", kulcs: NEG-X-AZONNALI-FELUL-SD, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
       - {minta: "1S (2H) 3H", kulcs: NEG-X-AZONNALI-FELUL-SH, prioritas: 51, pont: 13+, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+
