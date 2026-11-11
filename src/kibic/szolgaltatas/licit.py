@@ -591,7 +591,10 @@ def licit_elemzes(keres: dict, betolto) -> dict:
     # kulcslicitnek vagy ászkérdésnek).
     if keres.get("spiral", True) is not False:
         from ..motor.spiral import spiral_dontes
-        sp = spiral_dontes(kez, allas, er, licitek, engedelyezett)
+        kozbe_mod = ("DOPI" if any(getattr(s_, "rendszer_kod", None) == "DOPI" for s_ in sorok)
+                     else "PODI" if any(getattr(s_, "rendszer_kod", None) == "PODI" for s_ in sorok)
+                     else None)
+        sp = spiral_dontes(kez, allas, er, licitek, engedelyezett, kozbe_mod)
         if sp is not None:
             valasz["call"] = sp.licit
             valasz["source"] = "SPIRAL"

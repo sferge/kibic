@@ -182,7 +182,8 @@ def _hcp(kez) -> int:
 
 
 def spiral_dontes(kez, allas, er, licitek: list[dict],
-                  engedelyezett: list[str] | None = None) -> SpiralDontes | None:
+                  engedelyezett: list[str] | None = None,
+                  kozbe_mod: str | None = None) -> SpiralDontes | None:
     """
     Ha a menet a kulcslap-válasz után a spirálban jár, és én következem,
     a spirál szerinti licit; különben None (a többi réteg dönt).
@@ -209,20 +210,42 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     if adu not in _SZIMB:
         return None
 
-    # 2. a válasz utáni licitek: az ellenfél közbeszólása vagy a mi passzunk = vége
-    sor: list[tuple[str, str]] = []
-    for e in licitek[i_v + 1:]:
+    # 2. a válasz utáni licitek. Közbeszólás után a lépcsők a PODI-PORI /
+    # DOPI-ROPI szerint (a szerkesztő, 2026-11-11; `kozbe_mod`); ha nincs
+    # ilyen megállapodás, a közbeszólás (és a mi passzunk) a spirál vége.
+    #   mod: "" = zavartalan; "K" = közbeszólás volt a partnerünk licitje óta;
+    #        "R" = a partner a közbeszólás után passzal relézett (PODI), azóta
+    #        az ellenfél passzolt — a válaszoló nem passzolhat: kontra = L1.
+    def _legmagasabb(lista) -> str | None:
+        m = None
+        for e in lista:
+            l_ = str(e.get("licit", "")).upper()
+            if _rang(l_) is not None and (m is None or _rang(l_) > _rang(m)):
+                m = l_
+        return m
+
+    sor: list[tuple[str, str, str, str]] = []      # (ülés, licit, mód, a legmagasabb licit előtte)
+    mod_, kozbe_hivas = "", None
+    if kozbe_mod and str(licitek[i_v].get("licit", "")).upper() in ("P", "PASS", "X", "XX"):
+        mod_ = ""                                    # a válasz maga PODI-lépcső volt
+    for j in range(i_v + 1, len(licitek)):
+        e = licitek[j]
         u, lic = e.get("ules"), str(e.get("licit", "")).upper()
+        lic = "P" if lic == "PASS" else lic
         if u in mieink:
-            if lic in ("P", "PASS"):
+            if lic == "P" and mod_ != "K":
                 return None
-            sor.append((u, lic))
-        elif lic not in ("P", "PASS"):
-            return None
+            sor.append((u, lic, mod_, _legmagasabb(licitek[:j])))
+            mod_ = "R" if (lic == "P" and mod_ == "K") else ""
+        elif lic != "P":
+            if not kozbe_mod:
+                return None
+            mod_, kozbe_hivas = "K", lic
     # felváltva: kérdező, válaszoló, ...
-    for k, (u, _) in enumerate(sor):
+    for k, (u, *_r) in enumerate(sor):
         if u != (kerdezo if k % 2 == 0 else valaszolo):
             return None
+    elso_lepcso, masodik_lepcso = ("P", "X") if kozbe_mod != "DOPI" else ("X", "P")
 
     # posszibilisen játszható színek (az adun kívül): összeemelt (a vonal
     # ismert össz-hossza 7+), vagy valamelyikünk önállóan (6+ lappal) licitálta
@@ -241,36 +264,59 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
     megvan: set[int] = set()
     hianyzik: set[int] = set()
 
-    # 3. visszajátszás
+    # 3. visszajátszás (lépcsőkben)
     pos = 0
-    utolso = licitek[i_v]["licit"].upper()
+    utolso = _legmagasabb(licitek[:i_v + 1]) or licitek[i_v]["licit"].upper()
     leallt = False
-    for k, (u, lic) in enumerate(sor):
+    for k, (u, lic, md, felso) in enumerate(sor):
+        alap = felso or utolso
         if u == kerdezo:
-            lepcsok = _rele_lepcsok(utolso, adu, jatszhato)
-            if lic not in lepcsok:
+            lepcsok = _rele_lepcsok(alap, adu, jatszhato)
+            if md == "K":
+                if lic == elso_lepcso:
+                    n = 1
+                elif lic in ("X", "XX", "P"):
+                    return None                  # büntető / forszpassz: nem spirál
+                elif lic in lepcsok:
+                    n = lepcsok.index(lic) + 2
+                else:
+                    n = None
+            else:
+                n = lepcsok.index(lic) + 1 if lic in lepcsok else None
+            if n is None:
                 leallt = True                    # adu szín / 4NT: leállás
                 if k != len(sor) - 1:
                     return None
                 break
-            n = lepcsok.index(lic) + 1
             if n > 1:
                 cel = _reteg(min(pos, len(t_lista) - 1), retegek) + (n - 1)
                 if cel >= len(retegek):
                     return None
                 pos = retegek[cel]
-            utolso = lic
+            utolso = alap
         else:
-            r_u, r_l = _rang(utolso), _rang(lic)
-            if r_u is None or r_l is None or r_l <= r_u:
+            r_u = _rang(alap)
+            if md == "K":
+                s_ = 1 if lic == elso_lepcso else 2 if lic in ("X", "XX", "P") else \
+                    (2 + _rang(lic) - r_u if _rang(lic) is not None else None)
+            elif md == "R":
+                s_ = 1 if lic in ("X", "XX") else \
+                    (1 + _rang(lic) - r_u if _rang(lic) is not None else None)
+            else:
+                s_ = _rang(lic) - r_u if _rang(lic) is not None and r_u is not None else None
+            if s_ is None or s_ <= 0:
                 return None
-            s = r_l - r_u
+            s = s_
             for j in range(pos, min(pos + s - 1, len(t_lista))):
                 megvan.add(j)
             if pos + s - 1 < len(t_lista):
                 hianyzik.add(pos + s - 1)
             pos = min(pos + s, len(t_lista))
-            utolso = lic
+            utolso = _legmagasabb(licitek) if md else (lic if _rang(lic) is not None else alap)
+
+    # a mostani döntés módja és alapja
+    most_mod = mod_
+    utolso = _legmagasabb(licitek) or utolso
 
     van_e = lambda lic: (not engedelyezett) or lic in engedelyezett  # noqa: E731
 
@@ -321,10 +367,17 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
         while pos + db < len(t_lista) and _van(kez, t_lista[pos + db], sajat_siken):
             db += 1
         s = db + 1
-        r = _rang(utolso) + s
-        if r > 34:
-            return None
-        lic = _licit_rangbol(r)
+        if most_mod == "K" and s <= 2:
+            lic = elso_lepcso if s == 1 else (
+                "XX" if kozbe_hivas == "X" and masodik_lepcso == "X" else masodik_lepcso)
+        else:
+            r = _rang(utolso) + s - (2 if most_mod == "K" else 1 if most_mod == "R" else 0)
+            if most_mod == "R" and s == 1:
+                lic = "X"
+            else:
+                if r > 34:
+                    return None
+                lic = _licit_rangbol(r)
         if not van_e(lic):
             return None
         if pos >= len(t_lista):
@@ -396,7 +449,7 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
         r = _rang(lic)
         if r > r_last and van_e(lic):
             return SpiralDontes(lic, "kerdezo", indok)
-        if r == r_last:
+        if r == r_last and most_mod != "K":
             return SpiralDontes("P", "kerdezo", indok + " (a partner licitje épp ez)")
         if szint == 5:
             return cel(6, indok + "; az 5-ös szint már elmúlt")
@@ -410,8 +463,20 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
         """Az n. relé, ha a tagadó (L1) válasz a `hatar` rang alatt marad."""
         if len(lepcsok) < n:
             return None
-        lic = lepcsok[n - 1]
-        if _rang(lic) + 1 > hatar or not van_e(lic):
+        if most_mod == "K":
+            if n == 1:
+                lic = elso_lepcso
+                if not van_e(lic):
+                    return None
+                return SpiralDontes(lic, "kerdezo",
+                                    f"Spirál-relé (R1, {kozbe_mod}: a közbeszólás után "
+                                    f"{'passz' if lic == 'P' else 'kontra'}): kérdezi: {mit}")
+            if len(lepcsok) < n - 1:
+                return None
+            lic = lepcsok[n - 2]
+        else:
+            lic = lepcsok[n - 1]
+        if (most_mod != "K" and _rang(lic) + 1 > hatar) or not van_e(lic):
             return None
         nev = "relé" if n == 1 else "szuper-relé"
         return SpiralDontes(lic, "kerdezo", f"Spirál-{nev} (R{n}): kérdezi: {mit}")
