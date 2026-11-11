@@ -1,0 +1,52 @@
+"""PODI-PORI a lépcsős válaszoknál és a spirálban (a szerkesztő, 2026-11-11).
+
+1. lépcső passz, 2. lépcső kontra (rekontra), 3. lépcsőtől az első szabad
+licit. A kérdező (relé): passz = relé, kontra = büntető. A relé-passz után a
+válaszoló kontrával mutatja az 1. lépcsőt.
+"""
+import pytest
+
+from test_konvenciok_2026_10_04 import KERDEZO, RELE, T7, _licit, _pbn, kibic_stand  # noqa: F401
+
+
+@pytest.mark.parametrize("kozbe, kez, vart", [
+    ("4D", "AQT32.J2.A32.J32", "4S"),     # 4♣ ORKC (4♦): P tetszik, X 0/3, 4♥ 1/4, 4♠ 2 dáma nélkül
+    ("4D", "QJT32.J2.Q32.J32", "X"),      # 0 kulcslap: 2. lépcső = kontra
+    ("X", "QJT32.J2.A32.J32", "4D"),      # (X): P, XX, 4♦ = 3. lépcső (1/4)
+])
+def test_orkc_valasz_kozbeszolas_utan(kibic_stand, kozbe, kez, vart):
+    v = _licit(kibic_stand.sorok, _pbn(kez), T7 + ["4C", kozbe])
+    assert v["call"] == vart
+
+
+def test_spiral_kerdezo_passzal_relez(kibic_stand):
+    # a válasz (5♣) után közbeszólás: a relé (a ♠K-t kérdezi) = passz
+    v = _licit(kibic_stand.sorok, _pbn(KERDEZO), RELE + ["5C", "5D"])
+    assert v["call"] == "P" and v["source"] == "SPIRAL"
+
+
+@pytest.mark.parametrize("kez, vart", [
+    ("AKT32.Q2.A32.J32", "5H"),        # ♠K megvan, ♥K nincs: L2 = az első szabad licit
+    ("AQT32.J2.A32.J32", "X"),         # a ♠K nincs: L1 = kontra
+])
+def test_spiral_valasz_rele_passz_utan(kibic_stand, kez, vart):
+    v = _licit(kibic_stand.sorok, _pbn(kez), RELE + ["5C", "5D", "P", "P"])
+    assert v["call"] == vart and v["source"] == "SPIRAL"
+
+
+@pytest.mark.parametrize("kez, vart", [
+    ("AKT32.Q2.A32.J32", "X"),         # L2 = kontra
+    ("AQT32.J2.A32.J32", "P"),         # L1 = passz
+])
+def test_spiral_valasz_kozbeszolas_utan(kibic_stand, kez, vart):
+    v = _licit(kibic_stand.sorok, _pbn(kez), RELE + ["5C", "P", "5D", "5H"])
+    assert v["call"] == vart and v["source"] == "SPIRAL"
+
+
+@pytest.mark.parametrize("valasz, vart", [
+    ("5H", "7C"),                      # L2: a ♠K megvan
+    ("X", "6NT"),                      # L1: a ♠K nincs
+])
+def test_spiral_kerdezo_erti(kibic_stand, valasz, vart):
+    v = _licit(kibic_stand.sorok, _pbn(KERDEZO), RELE + ["5C", "5D", "P", "P", valasz, "P"])
+    assert v["call"] == vart and v["source"] == "SPIRAL"
