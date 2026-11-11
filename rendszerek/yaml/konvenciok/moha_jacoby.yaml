@@ -90,9 +90,15 @@ fejezetek:
       indulónak is van rövidsége ("jó fit": rövidség a mi xxx színünkkel
       szemben), kevés figuraponttal is lehet gém.
     szabalyok:
+      # A szerkesztő (2026-11-10): a 2NT gémkísérlet (csak a partner
+      # maximumával gém), szlemkísérlet (a maximummal 30+ FP, vagy a saját
+      # asztali pontommal), vagy 2 aduval gémerőnél a jó gém keresése.
       - minta: 2M-2NT
         vagy:
-          - {hossz: {M: 3+}, osszesen: {ap: 25+}}
+          - {hossz: {M: 2+}, osszesen: {pont_biztos: 0-24, pont: 25+}}
+          - {hossz: {M: 2+}, osszesen: {pont: 30+}}
+          - {hossz: {M: 2+}, osszesen: {ap: 30+, pont_biztos: 25+}}
+          - {hossz: {M: 2}, osszesen: {pont_biztos: 25+}}
           - {szkor: A, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}]}
           - {szkor: O, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}]}
         forsz: EGY_MENET
@@ -116,11 +122,117 @@ fejezetek:
          magyarazat: "Gém: legfeljebb 3 maradék vesztő (jó fit)"}
       - {minta: 2M-2NT-nNT-4M, maradek_vesztok: 0-3.5, prioritas: 51,
          magyarazat: "Gém: legfeljebb 3 maradék vesztő (jó fit)"}
-      - {minta: 2M-2NT-nA-+M, licit_alatt: {gem: M}, maradek_vesztok: 4+, prioritas: 50,
+      - {minta: 2M-2NT-nA-+M, licit_alatt: {gem: M}, maradek_vesztok: 4+, osszesen: {pont_biztos: 0-24}, prioritas: 50,
          magyarazat: "Leállás: nincs gém"}
+      # pontból (2026-11-10): a válasz utáni minimummal gém -> 4M; FP-ben
+      # gém, a kérdező adui üresek és egyenletes -> 3NT (szanban nincs
+      # asztali pont); biztos szlem -> kulcslapkérdés.
+      - {minta: 2M-2NT-nA-4M, kulcs: 2M-2NT-GEM-PONT, hossz: {M: 2+}, osszesen: {pont_biztos: 25+}, prioritas: 51,
+         magyarazat: "Gém: a partner válasz utáni minimumával is gémerő"}
+      # gémkísérlet után a NEM minimális válasz = elfogadás: gém, ha a
+      # partner maximumával gémerő (2026-11-10)
+      - {minta: 2M-2NT-3D-4M, kulcs: 2M-2NT-3D-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      - {minta: 2M-2NT-3oM-4M, kulcs: 2M-2NT-3oM-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      - {minta: 2M-2NT-3NT-4M, kulcs: 2M-2NT-3NT-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      - {minta: 2M-2NT-3M-4M, kulcs: 2M-2NT-3M-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      - {minta: 2M-2NT-4C-4M, kulcs: 2M-2NT-4C-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      - {minta: 2M-2NT-4D-4M, kulcs: 2M-2NT-4D-ELFOGAD, hossz: {M: 2+}, osszesen: {pont: 25+}, prioritas: 51,
+         magyarazat: "Gém: a gémkísérletet a partner elfogadta (nem minimális)"}
+      # A partner JÓ rövidsége (2026-11-10): ha a mutatott szingli/sikén a
+      # mi „üres” színünkkel (xxx, xxxx, Axx — K/D/B nélkül) szemben van,
+      # az ő asztali pontjai is számítanak: szinglinél +2, sikénnél +3.
+      - {minta: 2M-2NT-3D-4M, kulcs: 2M-2NT-3D-JORUVID, hossz: {M: 2+, D: 3+}, vagy: [{figura: {D: 0}}, {figura: {D: 4}, lapok: [DA]}], osszesen: {pont_biztos: 23+}, prioritas: 51,
+         magyarazat: "Gém: a partner rövidsége az üres színünkkel szemben (+2 asztali pont)"}
+      - {minta: 2M-2NT-3oM-4M, kulcs: 2M-2NT-3oM-JORUVID, hossz: {M: 2+, oM: 3+}, vagy: [{figura: {oM: 0}}, {figura: {oM: 4}, fohonor: {oM: 1}}], osszesen: {pont_biztos: 23+}, prioritas: 51,
+         magyarazat: "Gém: a partner rövidsége az üres színünkkel szemben (+2 asztali pont)"}
+      - {minta: 2M-2NT-3NT-4M, kulcs: 2M-2NT-3NT-JORUVID, hossz: {M: 2+, C: 3+}, vagy: [{figura: {C: 0}}, {figura: {C: 4}, lapok: [CA]}], osszesen: {pont_biztos: 23+}, prioritas: 51,
+         magyarazat: "Gém: a partner rövidsége az üres színünkkel szemben (+2 asztali pont)"}
+      - {minta: 2M-2NT-4C-4M, kulcs: 2M-2NT-4C-JORUVID, hossz: {M: 2+, C: 3+}, vagy: [{figura: {C: 0}}, {figura: {C: 4}, lapok: [CA]}], osszesen: {pont_biztos: 22+}, prioritas: 51,
+         magyarazat: "Gém: a partner rövidsége az üres színünkkel szemben (+3 asztali pont)"}
+      - {minta: 2M-2NT-4D-4M, kulcs: 2M-2NT-4D-JORUVID, hossz: {M: 2+, D: 3+}, vagy: [{figura: {D: 0}}, {figura: {D: 4}, lapok: [DA]}], osszesen: {pont_biztos: 22+}, prioritas: 51,
+         magyarazat: "Gém: a partner rövidsége az üres színünkkel szemben (+3 asztali pont)"}
+      - {minta: 2M-2NT-nA-3NT, kulcs: 2M-2NT-3NT-PONT, elosztas: BAL, figura: {M: 0}, osszesen: {pont_biztos: 25+}, prioritas: 52,
+         magyarazat: "3NT: gémerő, üres adukkal, egyenletes lap"}
+      - {minta: 2H-2NT-nA-4S, kulcs: 2H-2NT-RKC, hossz: {H: 2+}, osszesen: {pont_biztos: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2S-2NT-nA-4NT, kulcs: 2S-2NT-RKC, hossz: {S: 2+}, osszesen: {pont_biztos: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      # nem minimális válasz után a szlemgyanú (a maximummal 31+) már elég
+      # a kulcslapkérdéshez (20. leosztás: a hosszú adu ütéseket ad)
+      - {minta: 2H-2NT-3D-4S, kulcs: 2H-2NT-3D-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2H-2NT-3S-4S, kulcs: 2H-2NT-3S-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2H-2NT-3NT-4S, kulcs: 2H-2NT-3NT-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2H-2NT-3H-4S, kulcs: 2H-2NT-3H-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2H-2NT-4C-4S, kulcs: 2H-2NT-4C-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2H-2NT-4D-4S, kulcs: 2H-2NT-4D-RKC, hossz: {H: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (kőr adu)"}
+      - {minta: 2S-2NT-3D-4NT, kulcs: 2S-2NT-3D-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      - {minta: 2S-2NT-3H-4NT, kulcs: 2S-2NT-3H-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      - {minta: 2S-2NT-3NT-4NT, kulcs: 2S-2NT-3NT-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      - {minta: 2S-2NT-3S-4NT, kulcs: 2S-2NT-3S-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      - {minta: 2S-2NT-4C-4NT, kulcs: 2S-2NT-4C-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      - {minta: 2S-2NT-4D-4NT, kulcs: 2S-2NT-4D-RKC, hossz: {S: 2+}, osszesen: {pont: 31+}, forsz: EGY_MENET, prioritas: 54,
+         alert: "Kulcslapkérdés (pikk adu)"}
+      # A válaszok a 2M-2NT után ugyanazok, mint az 1M-2NT után, de NEM
+      # gémforszok (2026-11-10, 1. leosztás): egy körre kényszerítenek, a
+      # kérdező 3M-je leállás.
+      - {minta: 2M-2NT-3C, kulcs: 2M-2NT-MIN, igeret: {pont: also}, forsz: EGY_MENET, prioritas: 49,
+         alert: "Minimum (az ígért sáv alsó fele)"}
+      - {minta: 2M-2NT-3D, kulcs: 2M-2NT-SZ-D, igeret: {pont: felso}, hossz: {D: 1}, forsz: EGY_MENET, prioritas: 53,
+         alert: "Nem minimális, szingli káró"}
+      - {minta: 2M-2NT-3oM, kulcs: 2M-2NT-SZ-OM, igeret: {pont: felso}, hossz: {oM: 1}, forsz: EGY_MENET, prioritas: 52,
+         alert: "Nem minimális, szingli a másik nemesben"}
+      - {minta: 2M-2NT-3NT, kulcs: 2M-2NT-SZ-C, igeret: {pont: felso}, hossz: {C: 1}, forsz: EGY_MENET, prioritas: 51,
+         alert: "Nem minimális, szingli treff"}
+      - {minta: 2M-2NT-3M, kulcs: 2M-2NT-MAX, igeret: {pont: felso}, hossz: {S: 2+, H: 2+, D: 2+, C: 2+},
+         forsz: NEM, prioritas: 50, alert: "Nem minimális, nincs rövidség (a 3M passzolható)"}
+      - {minta: 2M-2NT-4C, kulcs: 2M-2NT-SI-C, igeret: {pont: felso}, hossz: {C: 0}, prioritas: 54,
+         alert: "Nem minimális, sikén treff"}
+      - {minta: 2M-2NT-4D, kulcs: 2M-2NT-SI-D, igeret: {pont: felso}, hossz: {D: 0}, prioritas: 54,
+         alert: "Nem minimális, sikén káró"}
       # az alaprendszer Ogust-válaszai helyett (a folytatás mint az 1M-2NT után)
       - {minta: 2M-2NT-3C, kivalt: true}
       - {minta: 2M-2NT-3D, kivalt: true}
       - {minta: 2M-2NT-3H, kivalt: true}
       - {minta: 2M-2NT-3S, kivalt: true}
       - {minta: 2M-2NT-3NT, kivalt: true}
+
+  - fejezet: "2M után a kulcslapkérdés válaszai"
+    jegyzet: >-
+      A gyenge kettes után a válaszoló kulcslapkérdése (2♠ után 4NT, 2♥
+      után 4♠ — közvetlenül vagy a 2NT válasza után) a nyitó színét teszi
+      aduvá akkor is, ha a kérdező csak 2 lapot ígért (a nyitó 6 lapjával
+      így is fit). Válasz a Moha RKC szerint (0/3, 1/4, 2 dáma nélkül, 2
+      dámával).
+    szabalyok:
+      - {minta: 2S-4NT-5C, kulcslapok: [0, 3], kulcs_adu: S, jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null}}, prioritas: 20, alert: "0 vagy 3 kulcslap"}
+      - {minta: 2S-4NT-5D, kulcslapok: [1, 4], kulcs_adu: S, jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null}}, prioritas: 20, alert: "1 vagy 4 kulcslap"}
+      - {minta: 2S-4NT-5H, kulcslapok: 2, kulcs_adu: S, adu_dama: false, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false}}, prioritas: 20, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: 2S-4NT-5S, kulcslapok: 2, kulcs_adu: S, adu_dama: true, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true}}, prioritas: 20, alert: "2 kulcslap, adu dámával"}
+      - {minta: 2S-2NT-nA-4NT-5C, kulcslapok: [0, 3], kulcs_adu: S, jelentes: {kulcslap: {adu: S, ertek: [0, 3], dama: null}}, prioritas: 20, alert: "0 vagy 3 kulcslap"}
+      - {minta: 2S-2NT-nA-4NT-5D, kulcslapok: [1, 4], kulcs_adu: S, jelentes: {kulcslap: {adu: S, ertek: [1, 4], dama: null}}, prioritas: 20, alert: "1 vagy 4 kulcslap"}
+      - {minta: 2S-2NT-nA-4NT-5H, kulcslapok: 2, kulcs_adu: S, adu_dama: false, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: false}}, prioritas: 20, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: 2S-2NT-nA-4NT-5S, kulcslapok: 2, kulcs_adu: S, adu_dama: true, jelentes: {kulcslap: {adu: S, ertek: [2, 5], dama: true}}, prioritas: 20, alert: "2 kulcslap, adu dámával"}
+      - {minta: 2H-4S-4NT, kulcslapok: [0, 3], kulcs_adu: H, jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null}}, prioritas: 20, alert: "0 vagy 3 kulcslap"}
+      - {minta: 2H-4S-5C, kulcslapok: [1, 4], kulcs_adu: H, jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null}}, prioritas: 20, alert: "1 vagy 4 kulcslap"}
+      - {minta: 2H-4S-5D, kulcslapok: 2, kulcs_adu: H, adu_dama: false, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false}}, prioritas: 20, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: 2H-4S-5H, kulcslapok: 2, kulcs_adu: H, adu_dama: true, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true}}, prioritas: 20, alert: "2 kulcslap, adu dámával"}
+      - {minta: 2H-2NT-nA-4S-4NT, kulcslapok: [0, 3], kulcs_adu: H, jelentes: {kulcslap: {adu: H, ertek: [0, 3], dama: null}}, prioritas: 20, alert: "0 vagy 3 kulcslap"}
+      - {minta: 2H-2NT-nA-4S-5C, kulcslapok: [1, 4], kulcs_adu: H, jelentes: {kulcslap: {adu: H, ertek: [1, 4], dama: null}}, prioritas: 20, alert: "1 vagy 4 kulcslap"}
+      - {minta: 2H-2NT-nA-4S-5D, kulcslapok: 2, kulcs_adu: H, adu_dama: false, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: false}}, prioritas: 20, alert: "2 kulcslap, adu dáma nélkül"}
+      - {minta: 2H-2NT-nA-4S-5H, kulcslapok: 2, kulcs_adu: H, adu_dama: true, jelentes: {kulcslap: {adu: H, ertek: [2, 5], dama: true}}, prioritas: 20, alert: "2 kulcslap, adu dámával"}

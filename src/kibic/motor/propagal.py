@@ -190,6 +190,8 @@ def alkalmaz(ig: Igeret, jelentes: dict,
             ig.help_szin = hsz
     if jelentes.get("gf_hatar"):           # kvázi gémforsz: eddig a licitig kötelez
         ig.gf_hatar = str(jelentes["gf_hatar"])
+    if isinstance(jelentes.get("sav_fele"), dict):
+        ig.sav_fele = dict(jelentes["sav_fele"])
     kl = jelentes.get("kulcslap")          # kulcslap-válasz (a spirál kiindulópontja)
     if isinstance(kl, dict) and kl.get("adu"):
         sz = _szinkod(str(kl["adu"]), kotesek)
@@ -278,6 +280,8 @@ def egyesit(valtozatok: list[Igeret]) -> Igeret:
     # valódi gémforszt csak az egyöntetű, határ nélküli gémforsz adja
     gh = {v.gf_hatar for v in valtozatok if v.gf_hatar}
     ki.gf_hatar = gh.pop() if len(gh) == 1 else (max(gh) if gh else None)
+    sf = [v.sav_fele for v in valtozatok]
+    ki.sav_fele = dict(sf[0]) if sf[0] and all(x == sf[0] for x in sf) else None
     kl = [v.kulcslap for v in valtozatok if v.kulcslap is not None]
     if kl and all(k == kl[0] for k in kl):
         ki.kulcslap = dict(kl[0])
@@ -639,6 +643,8 @@ class Propagalo:
             partner_ = {"N": "S", "S": "N", "E": "W", "W": "E"}.get(u)
             kvazi_ = bool(partner_ and er.kenyszertar[partner_].gf_hatar
                           and not er.kenyszertar[partner_].gf_valodi)
+            if uj.sav_fele:
+                uj = sav_fele_szukit(er.kenyszertar[u], uj)
             _osszefesul(er.kenyszertar[u], uj, kvazi_)
             if len(valtozatok) > 1:
                 # a változatok a saját (szabályon belüli `vagy:`) ágaikkal együtt
@@ -965,6 +971,35 @@ def definialo(szabalyok, elozmeny, elo_kotes, allas, paramtar=None):
         tar[hivas] = ered
         return ered
     return van
+
+def sav_fele_szukit(eddig: Igeret, uj: Igeret) -> Igeret:
+    """
+    A „minimum / nem minimális” licit (`igeret: {pont: also|felso|max}`)
+    MEGÉRTÉSE: az eddig ígért pontsávot a felénél (széles sávnál a 35%-ánál,
+    nyitottnál az alja + 2,5) kettévágja — ugyanazzal a határral, amivel a
+    kéz-feltétel (kifejezes.IGERET_FELE) dönt. Másolatot ad vissza.
+    """
+    lo, hi = eddig.pont_min, eddig.pont_max
+    if not eddig.nyilatkozott or (hi >= 40 and lo <= 0):
+        return uj
+    sf = uj.sav_fele or {}
+    if hi >= 40:
+        kozep = lo + 2.5
+    else:
+        arany = sf.get("hatar")
+        if arany is None:
+            arany = 0.35 if hi - lo >= 7 else 0.5
+        kozep = lo + (hi - lo) * float(arany)
+    ki = deepcopy(uj)
+    fele = sf.get("fele")
+    if fele == "also":
+        ki.pont_max = min(ki.pont_max, kozep)
+    elif fele == "felso":
+        ki.pont_min = max(ki.pont_min, kozep)
+    elif fele == "max" and hi < 40:
+        ki.pont_min = max(ki.pont_min, hi)
+    return ki
+
 
 def _osszefesul(cel: Igeret, uj: Igeret, kvazi: bool = False) -> None:
     """
