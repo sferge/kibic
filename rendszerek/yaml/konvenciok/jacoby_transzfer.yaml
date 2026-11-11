@@ -10,6 +10,8 @@ fejezetek:
     szabalyok:
       - {minta: 1NT-2D, hossz: {H: 5+}, rel: ["H>=S"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 57,
          alert: "Jacoby-transzfer: 5+ kőr", nyers: "2♦! | Jacoby transzfer; 5+ kőr"}
+      - {minta: 1NT-2H, kulcs: 1NT-2H-55-GF, pont: 10+, hossz: {S: 5+, H: 5+}, forsz: EGY_MENET, elvaras: VALASZ, prioritas: 58,
+         alert: "Transzfer: 5+ pikk (5-5 nemessel gémforsz: utána 3♥)"}
       - {minta: 1NT-2H, hossz: {S: 5+}, rel: ["S>H"], forsz: EGY_MENET, elvaras: VALASZ, prioritas: 57,
          alert: "Jacoby-transzfer: 5+ pikk", nyers: "2♥! | Jacoby transzfer; 5+ pikk"}
       # a nyitó
@@ -85,14 +87,36 @@ fejezetek:
          magyarazat: "Természetes, gémforsz, 5-4+", nyers: "Új szín | NAT; GF; 5-4 +"}
       - {minta: 1NT-2D-2H-3D, pont: 10+, hossz: {H: 5+, D: 4+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 51,
          magyarazat: "Természetes, gémforsz, 5-4+"}
-      - {minta: 1NT-2D-2H-2S, pont: 10+, hossz: {H: 5+, S: 4+}, forsz: GEMFORSZ, prioritas: 52,
-         magyarazat: "Természetes, gémforsz, 5-4+"}
+      # 5-5 nemessel (a szerkesztő, 2026-11-11): invit 2♦ majd 2♠, gémforsz 2♥
+      # majd 3♥; az 5-4 a Staymanen megy (Smolen)
+      - {minta: 1NT-2D-2H-2S, pont: 8-9, hossz: {H: 5+, S: 5+}, forsz: NEM, prioritas: 52,
+         alert: "5-5 nemes, invit: a nyitó választ (minimummal 2♠ passz / 3♥, maximummal gém)"}
+      - {minta: 1NT-2D-2H-2S-P, pont: 15-15, hossz: {S: 3+}, rel: ["S>=H"], prioritas: 50, magyarazat: "Minimum, pikk"}
+      - {minta: 1NT-2D-2H-2S-3H, pont: 15-15, rel: ["H>S"], prioritas: 50, magyarazat: "Minimum, kőr"}
+      - {minta: 1NT-2D-2H-2S-4H, pont: 16-17, rel: ["H>=S"], prioritas: 50, magyarazat: "Fogadja: 4♥"}
+      - {minta: 1NT-2D-2H-2S-4S, pont: 16-17, rel: ["S>H"], prioritas: 50, magyarazat: "Fogadja: 4♠"}
       - {minta: 1NT-2H-2S-3C, pont: 10+, hossz: {S: 5+, C: 4+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 51,
          magyarazat: "Természetes, gémforsz, 5-4+"}
       - {minta: 1NT-2H-2S-3D, pont: 10+, hossz: {S: 5+, D: 4+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 51,
          magyarazat: "Természetes, gémforsz, 5-4+"}
-      - {minta: 1NT-2H-2S-3H, pont: 10+, hossz: {S: 5+, H: 4+}, forsz: GEMFORSZ, prioritas: 52,
-         magyarazat: "Természetes, gémforsz, 5-4+"}
+      - {minta: 1NT-2H-2S-3H, pont: 10+, hossz: {S: 5+, H: 5+}, forsz: GEMFORSZ, prioritas: 52,
+         alert: "5-5 nemes, gémforsz: a nyitó választ"}
+      # gyenge lappal (0-7) a transzfer után passz (2026-11-11; 7 ponttal nem invitálunk)
+      - {minta: 1NT-2D-2H-P, pont: 0-7, prioritas: 49, magyarazat: "Gyenge lap: leállás"}
+      - {minta: 1NT-2H-2S-P, pont: 0-7, prioritas: 49, magyarazat: "Gyenge lap: leállás"}
+      # az invit elfogadása: a nyitó minimummal (15) nem fogadja (2026-11-11)
+      - {minta: 1NT-2D-2H-2NT-P, pont: 15-15, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Minimum: nem fogadja"}
+      - {minta: 1NT-2D-2H-2NT-3H, pont: 15-15, hossz: {H: 3+}, prioritas: 50, magyarazat: "Minimum, kőr fit"}
+      - {minta: 1NT-2D-2H-2NT-3NT, pont: 16-17, hossz: {H: 0-2}, prioritas: 50, magyarazat: "Fogadja"}
+      - {minta: 1NT-2D-2H-2NT-4H, pont: 16-17, hossz: {H: 3+}, prioritas: 50, magyarazat: "Fogadja, kőr fit"}
+      - {minta: 1NT-2H-2S-2NT-P, pont: 15-15, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Minimum: nem fogadja"}
+      - {minta: 1NT-2H-2S-2NT-3S, pont: 15-15, hossz: {S: 3+}, prioritas: 50, magyarazat: "Minimum, pikk fit"}
+      - {minta: 1NT-2H-2S-2NT-3NT, pont: 16-17, hossz: {S: 0-2}, prioritas: 50, magyarazat: "Fogadja"}
+      - {minta: 1NT-2H-2S-2NT-4S, pont: 16-17, hossz: {S: 3+}, prioritas: 50, magyarazat: "Fogadja, pikk fit"}
+      - {minta: 1NT-2D-2H-3H-P, pont: 15-15, prioritas: 50, magyarazat: "Minimum: nem fogadja"}
+      - {minta: 1NT-2D-2H-3H-4H, pont: 16-17, prioritas: 50, magyarazat: "Fogadja"}
+      - {minta: 1NT-2H-2S-3S-P, pont: 15-15, prioritas: 50, magyarazat: "Minimum: nem fogadja"}
+      - {minta: 1NT-2H-2S-3S-4S, pont: 16-17, prioritas: 50, magyarazat: "Fogadja"}
 
   - fejezet: Transzfer a 2NT-re
     szabalyok:
