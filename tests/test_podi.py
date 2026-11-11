@@ -70,3 +70,20 @@ def test_rele_kulcs():
     g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
     sor = next(s for s in g["RKC"].sorok if s.kulcs == "ORKC-TREFF-RELE")
     assert sor.jelentes.get("rele") == 1
+
+
+def test_6nt_az_ures_kiraly_vedelmeben():
+    # 2-es asztal #20 (2026-11-11): E A8.AK7.KT54.AK84 a ♦K védelmében 6NT, nem 6♠
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND"].parameterek))
+    v = licit_elemzes({"hand": _pbn("A8.AK7.KT54.AK84"), "seat": "E", "dealer": "W",
+                       "vulnerability": "both",
+                       "auction": ["2S", "P", "2NT", "P", "3H", "P", "4NT", "P", "5D", "P"],
+                       "system": "MOHA_STAND", "test_mode": True}, lambda k, p, t=None: (f.sorok, pt))
+    assert v["call"] == "6NT"

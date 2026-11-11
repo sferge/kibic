@@ -171,6 +171,19 @@ def _van(kez, t: tuple[str, str], sikenek: set[str]) -> bool:
     return any(l.szin == sz and l.ertek == fig for l in kez.lapok)
 
 
+def ures_kiraly(kez, adu: str) -> str | None:
+    """Van-e nálam a külső színben ÜRES király (ász és dáma nélkül): a
+    szerkesztő (2026-11-11, 2-es asztal #20) szerint a 6NT-t ilyenkor én
+    mondjam — a kezdő kijátszás a királyomhoz jön, nem rajta keresztül."""
+    for sz in _KULSO_RENDBEN:
+        if sz == adu:
+            continue
+        lapok = {l.ertek for l in kez.lapok if l.szin == sz}
+        if "K" in lapok and not lapok & {"A", "Q"}:
+            return sz
+    return None
+
+
 def _szan_szlem_jo(kez, tar_partner, adu: str, adu_hossz: int) -> bool:
     """A szlem szanban (a szerkesztő, 2026-10-25): a 6NT mindig szóba jön, ha
     a lapok nem elosztásosak, és a partit nem lopásra / keresztlopásra /
@@ -181,8 +194,13 @@ def _szan_szlem_jo(kez, tar_partner, adu: str, adu_hossz: int) -> bool:
     az adu minor, vagy a nemes fit legfeljebb 8 lapos."""
     if any(kez.hossz(sz) <= 1 for sz in _KULSO_RENDBEN):
         return False
+    # Üres király nálam (2026-11-11): a 6NT a király védelme — a nemes fit
+    # hossza nem számít, és a partner rövidsége sem, ha azt a színt én fogom
+    # (a rövid aduból lopás szanban sem hiányzik, a szerkesztő szerint).
+    kiraly = ures_kiraly(kez, adu)
     if tar_partner is not None:
-        if any(tar_partner.hossz(sz)[1] <= 1 for sz in _KULSO_RENDBEN):
+        if any(tar_partner.hossz(sz)[1] <= 1 and not (kiraly and fogas_kezben(kez, sz))
+               for sz in _KULSO_RENDBEN):
             return False
         # a partner ígért hosszaiból következő elosztás: ha két színe legalább
         # 10 lapos (5-5, 6-4), a maradék két színben biztosan van 0-1 lapos
@@ -200,7 +218,7 @@ def _szan_szlem_jo(kez, tar_partner, adu: str, adu_hossz: int) -> bool:
                                         or sz in (tar_partner.fogas or ())):
             continue
         return False
-    return adu in ("C", "D") or adu_hossz <= 8
+    return adu in ("C", "D") or adu_hossz <= 8 or kiraly is not None
 
 
 def _partner_max_pont(kez, adu: str, kizart, v: int) -> int:
@@ -482,8 +500,10 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
 
     def cel(szint: int, indok: str) -> SpiralDontes:
         if szint == 6 and szlem_szan and _rang("6NT") > r_last and van_e("6NT"):
-            return SpiralDontes("6NT", "kerdezo", indok + " — szanban (nem elosztásos "
-                                "lapok, a szanban nincs lopásveszély)")
+            k_ = ures_kiraly(kez, adu)
+            return SpiralDontes("6NT", "kerdezo", indok + (
+                f" — szanban, nálam a felvétel: az üres {_SZIMB[k_]}K-hoz jön a kijátszás"
+                if k_ else " — szanban (nem elosztásos lapok, a szanban nincs lopásveszély)"))
         if szint == 5 and szan_leallas and _rang("4NT") > r_last and van_e("4NT"):
             return SpiralDontes("4NT", "kerdezo",
                                 indok + f" — leállás 4NT-ben (legfeljebb {adu_hossz} lapos "
