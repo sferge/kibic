@@ -146,9 +146,13 @@ fejezetek:
   - fejezet: "A válaszoló a nyitó újranyitó kontrája után"
     jegyzet: >-
       Büntető passz csak erős aduval a közbeszólás színében (4+ lap, 2
-      honőr); különben a legolcsóbb színünk (nemes 4+, minor 5+ lap), vagy
-      szan fogással, ugrás 9-11 ponttal.
+      honőr, vagy 5+ lap honőrrel) — a döntést a szimuláció (büntetés vagy
+      saját kontraktus) hozza; különben a legolcsóbb színünk (nemes 4+,
+      minor 5+ lap), vagy szan fogással, ugrás 9-11 ponttal.
     szabalyok:
+      - {minta: "1A (nB) P (P) X (P) P", kulcs: NYITO-UJRA-X-BUNTETO-PASSZ, prioritas: 60, dontesi_mod: MERLEGELO,
+         hossz: {B: 4+}, vagy: [{fohonor: {B: 2+}}, {hossz: {B: 5+}, fohonor: {B: 1+}}],
+         magyarazat: "Büntető passz: erős aduk a közbeszólás színében"}
       - {minta: "1C (1D) P (P) X (P) 2C", pont: "0-8", hossz: {C: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
       - {minta: "1C (1D) P (P) X (P) 3C", pont: "9-11", hossz: {C: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ treff, 9-11"}
       - {minta: "1C (1D) P (P) X (P) 1H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 52, magyarazat: "4+ kőr, gyenge"}
@@ -275,3 +279,93 @@ fejezetek:
       - {minta: "1S (2H) P (P) X (P) 2S", pont: "0-8", hossz: {S: 3+}, alulrol: true, prioritas: 51, magyarazat: "Visszatérés a nyitó színére"}
       - {minta: "1S (2H) P (P) X (P) 3S", pont: "9-11", hossz: {S: 3+}, alulrol: true, prioritas: 52, magyarazat: "Ugrás: 3+ pikk, 9-11"}
       - {minta: "1S (2H) P (P) X (P) 2NT", pont: "6-10", fogas: ["H"], prioritas: 50, magyarazat: "Fogás a színükben, 6-10"}
+
+  - fejezet: "A partner az újranyitó kontra után: (Nx) P (P) X (P) ?"
+    jegyzet: >-
+      Mint az információs kontrára, de a partner kevesebb erőt mutatott:
+      a legolcsóbb szín 0-8, ugrás 9-12, szan fogással; büntető passz erős
+      aduval a színükben (a szimuláció dönt).
+    szabalyok:
+      - {minta: "(1C) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-1C", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {C: 4+}, vagy: [{fohonor: {C: 2+}}, {hossz: {C: 5+}, fohonor: {C: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(1C) P (P) X (P) 1D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(1C) P (P) X (P) 2D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(1C) P (P) X (P) 1H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(1C) P (P) X (P) 2H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(1C) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(1C) P (P) X (P) 2S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(1C) P (P) X (P) 1NT", pont: "6-10", fogas: ["C"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(1D) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-1D", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {D: 4+}, vagy: [{fohonor: {D: 2+}}, {hossz: {D: 5+}, fohonor: {D: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(1D) P (P) X (P) 2C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(1D) P (P) X (P) 3C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(1D) P (P) X (P) 1H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(1D) P (P) X (P) 2H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(1D) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(1D) P (P) X (P) 2S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(1D) P (P) X (P) 1NT", pont: "6-10", fogas: ["D"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(1H) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-1H", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {H: 4+}, vagy: [{fohonor: {H: 2+}}, {hossz: {H: 5+}, fohonor: {H: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(1H) P (P) X (P) 2C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(1H) P (P) X (P) 3C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(1H) P (P) X (P) 2D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(1H) P (P) X (P) 3D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(1H) P (P) X (P) 1S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(1H) P (P) X (P) 2S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(1H) P (P) X (P) 1NT", pont: "6-10", fogas: ["H"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(1S) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-1S", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {S: 4+}, vagy: [{fohonor: {S: 2+}}, {hossz: {S: 5+}, fohonor: {S: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(1S) P (P) X (P) 2C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(1S) P (P) X (P) 3C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(1S) P (P) X (P) 2D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(1S) P (P) X (P) 3D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(1S) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(1S) P (P) X (P) 3H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(1S) P (P) X (P) 1NT", pont: "6-10", fogas: ["S"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(2D) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-2D", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {D: 4+}, vagy: [{fohonor: {D: 2+}}, {hossz: {D: 5+}, fohonor: {D: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(2D) P (P) X (P) 3C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(2D) P (P) X (P) 4C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(2D) P (P) X (P) 2H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(2D) P (P) X (P) 3H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(2D) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(2D) P (P) X (P) 3S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(2D) P (P) X (P) 2NT", pont: "6-10", fogas: ["D"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(2H) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-2H", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {H: 4+}, vagy: [{fohonor: {H: 2+}}, {hossz: {H: 5+}, fohonor: {H: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(2H) P (P) X (P) 3C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(2H) P (P) X (P) 4C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(2H) P (P) X (P) 3D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(2H) P (P) X (P) 4D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(2H) P (P) X (P) 2S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(2H) P (P) X (P) 3S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(2H) P (P) X (P) 2NT", pont: "6-10", fogas: ["H"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(2S) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-2S", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {S: 4+}, vagy: [{fohonor: {S: 2+}}, {hossz: {S: 5+}, fohonor: {S: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(2S) P (P) X (P) 3C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(2S) P (P) X (P) 4C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(2S) P (P) X (P) 3D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(2S) P (P) X (P) 4D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(2S) P (P) X (P) 3H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(2S) P (P) X (P) 4H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(2S) P (P) X (P) 2NT", pont: "6-10", fogas: ["S"], prioritas: 51, magyarazat: "Fogás a színükben, 6-10"}
+      - {minta: "(3C) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-3C", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {C: 4+}, vagy: [{fohonor: {C: 2+}}, {hossz: {C: 5+}, fohonor: {C: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(3C) P (P) X (P) 3D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(3C) P (P) X (P) 4D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(3C) P (P) X (P) 3H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(3C) P (P) X (P) 4H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(3C) P (P) X (P) 3S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(3C) P (P) X (P) 4S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(3D) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-3D", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {D: 4+}, vagy: [{fohonor: {D: 2+}}, {hossz: {D: 5+}, fohonor: {D: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(3D) P (P) X (P) 4C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(3D) P (P) X (P) 5C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(3D) P (P) X (P) 3H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
+      - {minta: "(3D) P (P) X (P) 4H", pont: "9-12", hossz: {H: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ kőr, 9-12"}
+      - {minta: "(3D) P (P) X (P) 3S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(3D) P (P) X (P) 4S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(3H) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-3H", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {H: 4+}, vagy: [{fohonor: {H: 2+}}, {hossz: {H: 5+}, fohonor: {H: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(3H) P (P) X (P) 4C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(3H) P (P) X (P) 5C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(3H) P (P) X (P) 4D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(3H) P (P) X (P) 5D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(3H) P (P) X (P) 3S", pont: "0-8", hossz: {S: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ pikk, 0-8"}
+      - {minta: "(3H) P (P) X (P) 4S", pont: "9-12", hossz: {S: 4+}, alulrol: true, prioritas: 56, magyarazat: "Ugró válasz: 4+ pikk, 9-12"}
+      - {minta: "(3S) P (P) X (P) P", kulcs: "UJRA-X-BUNTETO-3S", prioritas: 60, dontesi_mod: MERLEGELO, hossz: {S: 4+}, vagy: [{fohonor: {S: 2+}}, {hossz: {S: 5+}, fohonor: {S: 1+}}], magyarazat: "Büntető passz: erős aduk a színükben"}
+      - {minta: "(3S) P (P) X (P) 4C", pont: "0-8", hossz: {C: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ treff, 0-8"}
+      - {minta: "(3S) P (P) X (P) 5C", pont: "9-12", hossz: {C: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ treff, 9-12"}
+      - {minta: "(3S) P (P) X (P) 4D", pont: "0-8", hossz: {D: 4+}, alulrol: true, prioritas: 52, magyarazat: "Válasz: 4+ káró, 0-8"}
+      - {minta: "(3S) P (P) X (P) 5D", pont: "9-12", hossz: {D: 4+}, alulrol: true, prioritas: 55, magyarazat: "Ugró válasz: 4+ káró, 9-12"}
+      - {minta: "(3S) P (P) X (P) 4H", pont: "0-8", hossz: {H: 4+}, alulrol: true, prioritas: 53, magyarazat: "Válasz: 4+ kőr, 0-8"}
