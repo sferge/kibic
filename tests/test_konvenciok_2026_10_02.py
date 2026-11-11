@@ -154,13 +154,19 @@ def test_a_kibic_stand_lebensohlt_jatszik(betolto):
 def test_junk_stayman_gyengevel(betolto):
     v = _licit(betolto, "J432.Q432.432.32", ["1NT", "P"], "S")
     assert v["call"] == "2C" and "Junk" in _alert(v)
-    v = _licit(betolto, "J8432.Q9432.32.2", ["1NT", "P", "2C", "P", "2D", "P"], "S")
+    # 5-4 nemessel is (a szerkesztő, 2026-11-11); az 5-5 a transzferen megy
+    v = _licit(betolto, "J8432.Q943.432.2", ["1NT", "P", "2C", "P", "2D", "P"], "S")
     assert v["call"] == "2H"
+    v = _licit(betolto, "J8432.Q9432.32.2", ["1NT", "P"], "S")
+    assert v["call"] == "2D"
 
 
-def test_junk_stayman_5_4_invit_fogadas(betolto):
-    v = _licit(betolto, "KQ2.AQ2.K32.Q432", ["1NT", "P", "2C", "P", "2D", "P", "2S", "P"], "N")
-    assert v["call"] == "3H"
+def test_junk_stayman_invit_minimummal_nem(betolto):
+    # a nyitó minimummal (15) nem fogadja az invitet, 16-17-tel igen (2026-11-11)
+    v = _licit(betolto, "KQ2.AQ2.K32.J432", ["1NT", "P", "2C", "P", "2D", "P", "2NT", "P"], "N")
+    assert v["call"] == "P"
+    v = _licit(betolto, "KQ2.AQ2.K32.Q432", ["1NT", "P", "2C", "P", "2D", "P", "2NT", "P"], "N")
+    assert v["call"] == "3NT"
 
 
 # --- a törvény --------------------------------------------------------
@@ -342,8 +348,9 @@ def test_walsh_1m_csak_nagyon_egyenetlen_lappal(betolto):
 
 
 def test_junk_2pikk_utan_3kor_termeszetes(betolto):
+    # 2026-11-11: invittel és fittel emelés (a 3♥ 5-4 sor kikerült)
     v = _licit(betolto, "Q432.KQJ32.43.32", ["1NT", "P", "2C", "P", "2S", "P"], "S")
-    assert v["call"] == "3H" and v.get("alert") is None
+    assert v["call"] == "3S"
 
 
 # --- este: pozitív szabad licit, negatív kontra „minden más”, következtetés --
@@ -512,3 +519,20 @@ def test_eros_ugras_masodik_megszolalaskent():
     c = allas(["1S", "P", "1NT", "P", "2C", "P"], "S")
     c.kenyszertar["S"].szukit_pont(maximum=12)
     assert kiertekel(n, c, {"_licit": "3H", "_definialt": nincs}) is False
+
+
+def test_1nt_invit_jo_8_ponttal(betolto):
+    # a 8-9 pontos invit csak „jó” ponttal: a védtelen dáma/bubi −0,5 (2026-11-11)
+    v = _licit(betolto, "K2.QT9.K8432.432", ["1NT", "P", "2C", "P", "2D", "P"], "S")
+    assert v["call"] != "2NT"          # 8 FP, védtelen ♥D: 7,5
+    v = _licit(betolto, "A32.QT9.K8432.32", ["1NT", "P", "2C", "P", "2D", "P"], "S")
+    assert v["call"] == "2NT"
+
+
+def test_korr_fp_jo_hossz():
+    # AKxxx = 8 jó pont; védtelen dáma −0,5 (a szerkesztő, 2026-11-11)
+    from kibic.domain.kartya import Kez
+    from kibic.motor.kifejezes import Kontextus, _ertek
+    fa = {"t": "KORR_PONT", "levonas": 0.5, "alap": "HCP", "jo_hossz": 1}
+    assert _ertek(fa, Kez.pbn_bol("AK432.432.432.32"), Kontextus()) == 8
+    assert _ertek(fa, Kez.pbn_bol("KQ432.Q32.432.32"), Kontextus()) == 7.5

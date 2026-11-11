@@ -181,7 +181,7 @@ _SZABALY_KULCSOK = {
     "kontrollok", "nanopont", "kulonbozo", "folytatas", "onallo_adu",
     "maradek_vesztok", "osszesen", "leghosszabb", "fit",
     "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
-    "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "gyenge_fogas", "help_fogas",
+    "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "korr_fp", "gyenge_fogas", "help_fogas",
     "gem_eselytelen", "eros_fogas", "leghosszabb_partner_szin", "misfit", "menekulo",
     "nt_pont", "tp",
 }
@@ -194,7 +194,7 @@ _KEZ_KULCSOK = {"pont", "ap", "hossz", "rel", "elosztas", "szkor", "vagy",
                 "szlem", "ot_biztos", "kontrollok", "nanopont", "kulonbozo",
                 "onallo_adu", "maradek_vesztok", "osszesen", "leghosszabb", "fit",
                 "jatekutes", "gyorsutes", "gemeselyes", "splinter_tamogatas",
-                "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont",
+                "fogas_maradek", "nincs_fit", "ures_figura", "ketseg", "korr_pont", "korr_fp",
                 "gyenge_fogas", "help_fogas", "gem_eselytelen", "eros_fogas",
                 "leghosszabb_partner_szin", "misfit", "menekulo", "nt_pont", "tp"}
 
@@ -591,6 +591,9 @@ def _kez_fa(spec: dict, hely: str) -> dict:
     if "korr_pont" in spec:                      # FP + hosszúsági pont − 0.5 × üres figura
         lo, hi = sav(spec["korr_pont"])
         gy += _sav_fa({"t": "KORR_PONT", "levonas": 0.5}, lo, hi)
+    if "korr_fp" in spec:                        # FP − 0.5 × védtelen (üres) dáma/bubi, +1 AK/KD vezetésű 5+ lapos szín (2026-11-11)
+        lo, hi = sav(spec["korr_fp"])
+        gy += _sav_fa({"t": "KORR_PONT", "levonas": 0.5, "alap": "HCP", "jo_hossz": 1}, lo, hi)
     if "leghosszabb_partner_szin" in spec:       # a partner színei közül ebben vagyok a leghosszabb
         gy.append({"t": "LEGHOSSZABB_PARTNER_SZIN", "szin": _szin_kod(str(spec["leghosszabb_partner_szin"]))})
     for sz in spec.get("eros_fogas") or []:      # biztos fogás: ász, vagy kétszeres
