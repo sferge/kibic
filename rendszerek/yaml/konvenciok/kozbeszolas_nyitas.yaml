@@ -93,20 +93,40 @@ fejezetek:
       - {minta: "(1A) 2B (P) +A (P) +B", kulcs: KN-FELUL-INVIT-MIN, ha: {en_igertem: {B: 5}}, kulonbozo: [A, B],
          pont: 0-12, forsz: NEM, prioritas: 54, magyarazat: "Minimum: a színem ismétlése (passzolható)"}
 
-  - fejezet: "Új szín az ellenfél emelése után: (1A) nB (nA) 3E"
+  - fejezet: "Pozitív szabad licit a közbeszóló partnerénél: (1A) 2B (*) 3E"
     jegyzet: >-
-      A szerkesztő (2026-11-11, 2-es asztal #11): (1♥) 2♦ (3♥) 3♠ —
-      természetes, 5+ lap, egy körre kényszerít (a „gyors-lassú” elv: az
-      azonnali gém a gyenge licit; a lassú út szlem felé is nyitva hagyja). A
-      közbeszóló 3+ lappal emel, különben a saját színét ismétli vagy
-      fogással szant mond.
+      A szerkesztő (2026-11-11, 2-es asztal #11): a közbeszólás egyenértékű a
+      nyitással, és a pozitív szabad licit a közbeszóló partnerére is áll: a
+      licitek megtartják eredeti jelentésüket. A közbeszólás szintje fölötti
+      új szín (2♦ – 3♠) az „1-re 2”: SZABAD_LICIT_MIN+ (MOHA: 11), 5+ lap,
+      nemesben gémforsz, minorban kvázi gémforsz (4m-ig) — akkor is, ha a
+      magasabb szintre az ellenfél licitje kényszerített. Kevesebb ponttal
+      kontra. (Az alacsonyabb szín a következő szinten: az előző fejezet.)
     szabalyok:
-      - {minta: "(1A) nB (2A) 3E", kulcs: KN-EMELES-UTAN-UJ-SZIN-2, ha: {partner_ugrott: false}, kulonbozo: [A, B, E],
-         pont: 12+, hossz: {E: 5+}, forsz: EGY_MENET, prioritas: 54,
-         magyarazat: "Új szín: természetes, 5+, 12+, egy körre kényszerít"}
-      - {minta: "(1A) nB (3A) 3E", kulcs: KN-EMELES-UTAN-UJ-SZIN-3, ha: {partner_ugrott: false}, kulonbozo: [A, B, E],
-         pont: 12+, hossz: {E: 5+}, forsz: EGY_MENET, prioritas: 54,
-         magyarazat: "Új szín: természetes, 5+, 12+, egy körre kényszerít"}
+      - {minta: "(1C) 2D (*) 3H", kulcs: KN-SZABAD-1RE2-CDH, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1C) 2D (*) 3S", kulcs: KN-SZABAD-1RE2-CDS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1C) 2H (*) 3S", kulcs: KN-SZABAD-1RE2-CHS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1D) 2C (*) 3H", kulcs: KN-SZABAD-1RE2-DCH, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1D) 2C (*) 3S", kulcs: KN-SZABAD-1RE2-DCS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1D) 2H (*) 3S", kulcs: KN-SZABAD-1RE2-DHS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1H) 2C (*) 3D", kulcs: KN-SZABAD-1RE2-HCD, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4D"}, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): kvázi gémforsz, 4♦-ig"}
+      - {minta: "(1H) 2C (*) 3S", kulcs: KN-SZABAD-1RE2-HCS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1H) 2D (*) 3S", kulcs: KN-SZABAD-1RE2-HDS, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {S: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1S) 2C (*) 3D", kulcs: KN-SZABAD-1RE2-SCD, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {D: 5+}, forsz: GEMFORSZ, jelentes: {gf_hatar: "4D"}, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): kvázi gémforsz, 4♦-ig"}
+      - {minta: "(1S) 2C (*) 3H", kulcs: KN-SZABAD-1RE2-SCH, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
+      - {minta: "(1S) 2D (*) 3H", kulcs: KN-SZABAD-1RE2-SDH, ha: {ugras: false}, pont: {param: SZABAD_LICIT_MIN, alap: 10}, hossz: {H: 5+}, forsz: GEMFORSZ, prioritas: 54,
+         alert: "Új szín (pozitív szabad licit, mint 1-re 2): gémforsz"}
       # a közbeszóló válasza
       - {minta: "(1A) nB (nA) 3E (P) 4E", kulcs: KN-EMELES-UTAN-UJ-SZIN-EMEL, kulonbozo: [A, B, E],
          hossz: {E: 3+}, prioritas: 54, magyarazat: "Emelés: 3+ lap a partner színében"}
