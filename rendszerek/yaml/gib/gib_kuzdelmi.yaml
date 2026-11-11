@@ -256,3 +256,14 @@ fejezetek:
       - {minta: "(2S) P (P) 3C", alulrol: true, pont: 10-16, hossz: {C: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ treff"}
       - {minta: "(2S) P (P) 3D", alulrol: true, pont: 10-16, hossz: {D: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ káró"}
       - {minta: "(2S) P (P) 3H", alulrol: true, pont: 10-16, hossz: {H: 5+}, prioritas: 53, magyarazat: "Újranyitó: 5+ kőr"}
+
+  - fejezet: "Újranyitó kontra az 1-es nyitásra"
+    szabalyok:
+      - {minta: "(1C) P (P) X", pont: 9+, hossz: {C: 0-3}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(1D) P (P) X", pont: 9+, hossz: {D: 0-3}, vagy: [{hossz: {H: 4+, S: 3+}}, {hossz: {S: 4+, H: 3+}}], forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(1H) P (P) X", pont: 9+, hossz: {H: 0-2, C: 3+, D: 3+, S: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(1S) P (P) X", pont: 9+, hossz: {S: 0-2, C: 3+, D: 3+, H: 3+}, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 53, alert: "Információs kontra (újranyitó)"}
+      - {minta: "(1C) P (P) X", kulcs: GIB-UJRA-ERO-C, pont: 17+, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Információs kontra (újranyitó): erős lap"}
+      - {minta: "(1D) P (P) X", kulcs: GIB-UJRA-ERO-D, pont: 17+, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Információs kontra (újranyitó): erős lap"}
+      - {minta: "(1H) P (P) X", kulcs: GIB-UJRA-ERO-H, pont: 17+, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Információs kontra (újranyitó): erős lap"}
+      - {minta: "(1S) P (P) X", kulcs: GIB-UJRA-ERO-S, pont: 17+, forsz: EGY_MENET, elvaras: VALASSZ, prioritas: 57, alert: "Információs kontra (újranyitó): erős lap"}

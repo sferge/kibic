@@ -35,7 +35,7 @@ fejezetek:
       # meddig éri meg — külön kör).
       - {minta: 2M-4M, kulcs: 2M-4M-ERO, hossz: {M: 3+}, osszesen: {pont_biztos: 25+, pont: 0-29, ap: 0-29},
          prioritas: 53, magyarazat: "Leállás erővel: a partner minimumával is gém, a maximumával sincs szlem", nyers: "Gém | t/p"}
-      - {minta: 2M-4M, kulcs: 2M-4M-ALDOZAT, pont: 0-12, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}],
+      - {minta: 2M-4M, kulcs: 2M-4M-ALDOZAT, pont: 0-11, hossz: {M: 4+}, vagy: [{hossz: {oM: 0-1}}, {hossz: {C: 0-1}}, {hossz: {D: 0-1}}],
          prioritas: 52, magyarazat: "Leállás áldozatnak: sok adu és rövidség (kevés pont)"}
       - {minta: 2H-4S, kulcs: 2H-RKC, hossz: {H: 3+}, osszesen: {pont_biztos: 31+}, forsz: EGY_MENET, elvaras: VALASZ,
          prioritas: 56, alert: "Kulcslapkérdés (kőr adu)"}

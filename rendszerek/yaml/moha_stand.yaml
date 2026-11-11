@@ -23,6 +23,7 @@ parameterek:
   JATEKUTES_METRIKA: J_KLASSZIKUS
   INDULOERO_KESZLET: NYITAS_ERO
   SZABAD_LICIT_MIN: "11"        # pozitív szabad licit: 11+ (a KIBIC_STAND-on 10)
+  ERO_KONTRA_MIN: "18"          # erős (bármilyen) újranyitó kontra: 18+ (a KIBIC_STAND-on 17)
 hivatkozasok:
   - LOTT                        # a Moha-kör stílusa: licitáld az aduid számát
   - FELMENTES                   # elv: az 1./2. kézben a 8 vesztős (13 FP alatt) és a rossz 11-12 pont nem induló erő
@@ -31,6 +32,7 @@ hivatkozasok:
   - MOHA_NONFORCE_1NT           # 1M-1NT és az egyszerű emelés fedőütéssel (2026-09-30; eddig lemaradt)
   - MOHA_FEDOKERESO             # fedőkereső invit 1M-2M után (2026-09-30; eddig lemaradt)
   - {kod: LIMITALT_UJ_SZIN, ervenyes: ["1M-1NT"]}   # elv: a limitált lap új színe lezárás (2026-10-19)
+  - UJRANYITAS                  # újranyitás a sor végén: (Nx) P (P) ? (2026-11-11)
   - MOHA_INFO_KONTRA            # információs kontra a Moha szerint: induló erő, 18+ (2026-10-21)
   - KIBIC_STAND
 
