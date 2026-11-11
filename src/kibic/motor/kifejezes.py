@@ -546,7 +546,7 @@ def _ertek(csp: dict, kez: Kez, ktx: Kontextus) -> float | None:
         return float(ures_figura(kez)) * float(csp.get("szorzo", 1))
 
     if t == "KORR_PONT":           # FELMENTÉS: FP + hosszúsági pont (5+ lapos szín) − levonás × üres figura
-        fv = ERTEKELOK.get("P_HOSSZ")
+        fv = ERTEKELOK.get(csp.get("alap") or "P_HOSSZ")
         if fv is None:
             return None
         return float(fv(kez)) - float(csp.get("levonas", 0.5)) * ures_figura(kez)
@@ -1152,6 +1152,8 @@ def _kif_leiras(csp: dict) -> str:
     if t == "KORR_PONT":
         lv = csp.get("levonas", 0.5)
         lv = "{" + str(lv["sablon"]) + "}" if isinstance(lv, dict) else f"{float(lv):g}"
+        if csp.get("alap") == "HCP":
+            return f"korrigált figurapont (FP − {lv} × védtelen dáma/bubi)"
         return f"korrigált pont (FP + hosszúsági pont − {lv} × üres dáma/bubi)"
     if t == "URES_FIGURA":
         sz_ = csp.get("szorzo", 1)

@@ -51,10 +51,10 @@ fejezetek:
     szabalyok:
       - minta: 1NT-2C
         vagy:
-          - {pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 4}}, {hossz: {S: 4, H: 5}}]}
+          - {korr_fp: 0-7.5, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 4}}, {hossz: {S: 4, H: 5}}]}
           # pontosan 4-es nemessel (a 4-5 a Smolen); az 5+ / 6+ lapos nemes
           # egyszínű lappal a transzferen megy (a szerkesztő, 2026-10-31)
-          - {pont: 8+, vagy: [{hossz: {S: 4, H: 0-5}}, {hossz: {H: 4, S: 0-5}}]}
+          - {pont: 8+, korr_fp: 8+, vagy: [{hossz: {S: 4, H: 0-5}}, {hossz: {H: 4, S: 0-5}}]}
           # 4-es nemes nélkül is (a szerkesztő, 2026-10-24): az egyenletes
           # invit a 2♣-n megy, mert a 2NT káró-transzfer (MOHA_1NT). 8 ponttal
           # 4-es nemes nélkül passz (rossz 8, 2026-10-23), így ez 9 pont.
@@ -75,11 +75,11 @@ fejezetek:
 
   - fejezet: "2♦ után (nincs 4-es nemes)"
     szabalyok:
-      - {minta: 1NT-2C-2D-2H, pont: 0-7, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 4}}, {hossz: {S: 4, H: 5}}],
+      - {minta: 1NT-2C-2D-2H, korr_fp: 0-7.5, vagy: [{hossz: {S: 4, H: 4}}, {hossz: {S: 5, H: 4}}, {hossz: {S: 4, H: 5}}],
          prioritas: 53, alert: "Leállás 4-4 vagy 5-4 nemessel (nem invit): passz vagy javíts 2♠-re"}
       - {minta: 1NT-2C-2D-2H-P, rel: ["H>=S"], prioritas: 50, magyarazat: "A kőr legalább olyan hosszú"}
       - {minta: 1NT-2C-2D-2H-2S, rel: ["S>H"], prioritas: 50, magyarazat: "Javítás: hosszabb pikk"}
-      - {minta: 1NT-2C-2D-2NT, pont: 8-9, prioritas: 50,
+      - {minta: 1NT-2C-2D-2NT, pont: 8-9, korr_fp: 8+, prioritas: 50,
          magyarazat: "Invit (lehet 4-4 vagy 5-4 nemes is)"}
       - {minta: 1NT-2C-2D-2NT-P, pont: 15-15, prioritas: 50, magyarazat: "Minimum: nem fogadja az invitet"}
       - {minta: 1NT-2C-2D-2NT-3NT, pont: 16-17, prioritas: 50, magyarazat: "Fogadja az invitet"}
@@ -106,13 +106,13 @@ fejezetek:
 
   - fejezet: "2♥ után (4-es kőr, lehet 4-es pikk is)"
     szabalyok:
-      - {minta: 1NT-2C-2H-2NT, pont: 8-9, hossz: {H: 0-3}, prioritas: 50,
+      - {minta: 1NT-2C-2H-2NT, pont: 8-9, korr_fp: 8+, hossz: {H: 0-3}, prioritas: 50,
          magyarazat: "Invit, nem ígér pikket"}
       - {minta: 1NT-2C-2H-3C, pont: 10+, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 52,
          alert: "Gémforsz+: egyenletes 5-6 treff, vagy kőr fit és 5+ treff, vagy 4 pikk és 6+ treff"}
       - {minta: 1NT-2C-2H-3D, pont: 10+, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 52,
          alert: "Gémforsz+: egyenletes 5-6 káró, vagy kőr fit és 5+ káró, vagy 4 pikk és 6+ káró"}
-      - {minta: 1NT-2C-2H-3H, pont: 8-9, hossz: {H: 4+}, prioritas: 51, magyarazat: "Invit, kőr fit"}
+      - {minta: 1NT-2C-2H-3H, pont: 8-9, korr_fp: 8+, hossz: {H: 4+}, prioritas: 51, magyarazat: "Invit, kőr fit"}
       - {minta: 1NT-2C-2H-3S, pont: 10+, hossz: {H: 4+, S: 0-1}, forsz: GEMFORSZ, prioritas: 53,
          alert: "Splinter: kőr fit, pikk rövidség, gémforsz+"}
       - {minta: 1NT-2C-2H-4C, pont: 10+, hossz: {H: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
@@ -126,13 +126,13 @@ fejezetek:
 
   - fejezet: "2♠ után (4-es pikk, nincs 4-es kőr)"
     szabalyok:
-      - {minta: 1NT-2C-2S-2NT, pont: 8-9, hossz: {S: 0-3}, prioritas: 50,
+      - {minta: 1NT-2C-2S-2NT, pont: 8-9, korr_fp: 8+, hossz: {S: 0-3}, prioritas: 50,
          magyarazat: "Invit, nem ígér kőrt"}
       - {minta: 1NT-2C-2S-3C, pont: 10+, hossz: {C: 5+}, rel: ["C>=D"], forsz: GEMFORSZ, prioritas: 52,
          alert: "Gémforsz+: egyenletes 5-6 treff, vagy pikk fit és 5+ treff, vagy 4 kőr és 6+ treff"}
       - {minta: 1NT-2C-2S-3D, pont: 10+, hossz: {D: 5+}, rel: ["D>C"], forsz: GEMFORSZ, prioritas: 52,
          alert: "Gémforsz+: egyenletes 5-6 káró, vagy pikk fit és 5+ káró, vagy 4 kőr és 6+ káró"}
-      - {minta: 1NT-2C-2S-3S, pont: 8-9, hossz: {S: 4+}, prioritas: 51, magyarazat: "Invit, pikk fit"}
+      - {minta: 1NT-2C-2S-3S, pont: 8-9, korr_fp: 8+, hossz: {S: 4+}, prioritas: 51, magyarazat: "Invit, pikk fit"}
       - {minta: 1NT-2C-2S-3NT, pont: 10-15, hossz: {S: 0-3, H: 4}, prioritas: 50,
          magyarazat: "4 lap kőr, nincs pikk fit"}
       - {minta: 1NT-2C-2S-4C, pont: 10+, hossz: {S: 4+, C: 0-1}, forsz: GEMFORSZ, prioritas: 53,
@@ -148,10 +148,12 @@ fejezetek:
       4-4 / 5-4 nemessel először 2♣. Gyenge lappal passz (a 2♦-ra 2♥: nem
       invit); invittel 2NT vagy emelés; gémforsszal a 2♦-ra Smolen (3M = a
       4-es nemes) vagy 3NT, a 2M-re 4M. A nyitó minimummal (15) nem fogadja
-      az invitet.
+      az invitet. Az invit 8-9 pontja „jó” pont: a védtelen (ász és király
+      nélküli, legfeljebb 3 lapos színben álló) dáma és bubi −0,5 (`korr_fp`).
     szabalyok:
-      - {minta: 1NT-2C-2H-P, pont: 0-7, prioritas: 52, magyarazat: "Gyenge lap: passz"}
-      - {minta: 1NT-2C-2S-P, pont: 0-7, prioritas: 52, magyarazat: "Gyenge lap: passz"}
+      - {minta: 1NT-2C-2D-P, korr_fp: 0-7.5, hossz: {S: 0-4, H: 0-4}, prioritas: 52, magyarazat: "Gyenge lap, nincs 5-ös nemes: passz"}
+      - {minta: 1NT-2C-2H-P, korr_fp: 0-7.5, prioritas: 52, magyarazat: "Gyenge lap: passz"}
+      - {minta: 1NT-2C-2S-P, korr_fp: 0-7.5, prioritas: 52, magyarazat: "Gyenge lap: passz"}
       - {minta: 1NT-2C-2H-2NT-P, pont: 15-15, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Minimum: nem fogadja az invitet"}
       - {minta: 1NT-2C-2H-2NT-3NT, pont: 16-17, hossz: {S: 0-3}, prioritas: 50, magyarazat: "Fogadja az invitet"}
       - {minta: 1NT-2C-2H-2NT-3S, pont: 15-15, hossz: {S: 4}, prioritas: 51, magyarazat: "Minimum, 4-es pikk is (a válaszolónak 4 pikkje van)"}

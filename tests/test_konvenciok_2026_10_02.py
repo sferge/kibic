@@ -519,3 +519,11 @@ def test_eros_ugras_masodik_megszolalaskent():
     c = allas(["1S", "P", "1NT", "P", "2C", "P"], "S")
     c.kenyszertar["S"].szukit_pont(maximum=12)
     assert kiertekel(n, c, {"_licit": "3H", "_definialt": nincs}) is False
+
+
+def test_1nt_invit_jo_8_ponttal(betolto):
+    # a 8-9 pontos invit csak „jó” ponttal: a védtelen dáma/bubi −0,5 (2026-11-11)
+    v = _licit(betolto, "K2.QT9.K8432.432", ["1NT", "P", "2C", "P", "2D", "P"], "S")
+    assert v["call"] != "2NT"          # 8 FP, védtelen ♥D: 7,5
+    v = _licit(betolto, "A32.QT9.K8432.32", ["1NT", "P", "2C", "P", "2D", "P"], "S")
+    assert v["call"] == "2NT"
