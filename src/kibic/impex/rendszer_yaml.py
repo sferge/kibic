@@ -169,7 +169,7 @@ YAML_SPECIFIKUSSAG = 100
 
 _SZABALY_KULCSOK = {
     "minta", "pont", "hossz", "rel", "elosztas", "szkor", "vagy",
-    "feltetel", "jelentes", "tagad", "forsz", "elvaras", "ha", "alert",
+    "feltetel", "jelentes", "tagad", "forsz", "elvaras", "ha", "alert", "rele",
     "magyarazat", "en", "nyers", "alfejezet", "kulcs", "prioritas",
     "dontesi_mod", "fajta", "allapot", "megjegyzes",
     "lapok", "nincs", "fohonor", "figura", "fogas", "nincs_fogas", "aszok",
@@ -1372,6 +1372,14 @@ def szabaly(spec: dict, seq: int, fejezet: str | None,
     jelentes["forsz"] = forsz            # mindig van: így minden sor "ért"
     if spec.get("jelentes"):
         jelentes.update(spec["jelentes"])
+    if spec.get("rele"):
+        # RELÉ-helyzet (a szerkesztő, 2026-11-11): a licit a relé sorszáma
+        # (1. relé, 2. relé ...), nem a színe hordozza a kérdést — a
+        # közbeszólás utáni PODI/DOPI-változat innen generálódik.
+        try:
+            jelentes["rele"] = int(spec["rele"])
+        except (TypeError, ValueError):
+            raise ForrasHiba(f"{hely}: a `rele` a relé sorszáma (1, 2, ...)") from None
     f_ = spec.get("folytatas")
     if f_:
         # "mint X után": {mint: "2NT", pont: 2} vagy csak "2NT"
