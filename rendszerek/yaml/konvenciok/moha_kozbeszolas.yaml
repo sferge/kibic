@@ -3,8 +3,10 @@
 # maradnak (a sorok `ha: {ules: [2, 3, 4]}` feltétellel csak a saját
 # helyzetükben írják felül a KIBICEGY_KUZDELMI / GYENGE_UGRO_KOZBESZOLAS sorait).
 #
-#   * sima színbemondás az 1-es szinten: mint a nyitás (12-17), 5+ lap;
-#   * a 2-es szinten szintenként +1,5 pont: 14-17 (13 két felső figurával);
+#   * sima színbemondás az 1-es szinten: mint a nyitás (13-17, vagy 11-12
+#     induló erős lappal: legfeljebb 7 vesztő, nem rossz lap), 5+ lap;
+#   * a 2-es szinten szintenként +1,5 pont: 14-17, vagy 12-13 legfeljebb 6
+#     vesztővel, nem rossz lappal;
 #   * gyenge ugró közbeszólás: mint passz után, de 1-2 védekező ütéssel
 #     (ász vagy KD — gyorsütés 1-2);
 #   * a szan-közbeszólás közvetlenül 16-19 (a KIBICEGY_KUZDELMI-ben is ez).
@@ -14,22 +16,22 @@ rendszer:
   nev: Közbeszólás (Moha, nem passzolt kéz)
   nev_en: Overcalls (Moha, unpassed hand)
   fajta: KONVENCIO
-  leiras: "A nem passzolt kéz közbeszólása: 1-es szinten nyitóerő (12-17), 2-es szinten 14-17 (13 két felső figurával), gyenge ugró közbeszólás 1-2 védekező ütéssel."
+  leiras: "A nem passzolt kéz közbeszólása: 1-es szinten induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 2-es szinten 14-17 (12-13 legfeljebb 6 vesztővel), gyenge ugró közbeszólás 1-2 védekező ütéssel."
 fejezetek:
   - fejezet: "Sima közbeszólás"
     szabalyok:
-      - {minta: (1C) 1D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, pont: 12-17, prioritas: 56, magyarazat: 'Közbeszólás: 12-17 FP, 5+ káró (mint a nyitás)'}
-      - {minta: (1C) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, pont: 12-17, prioritas: 57, magyarazat: 'Közbeszólás: 12-17 FP, 5+ kőr (mint a nyitás)'}
-      - {minta: (1C) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
-      - {minta: (1D) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
-      - {minta: (1D) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, pont: 12-17, prioritas: 57, magyarazat: 'Közbeszólás: 12-17 FP, 5+ kőr (mint a nyitás)'}
-      - {minta: (1D) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
-      - {minta: (1H) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
-      - {minta: (1H) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {D: 2+}}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ káró'}
-      - {minta: (1H) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, pont: 12-17, prioritas: 58, magyarazat: 'Közbeszólás: 12-17 FP, 5+ pikk (mint a nyitás)'}
-      - {minta: (1S) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {C: 2+}}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ treff'}
-      - {minta: (1S) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {D: 2+}}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ káró'}
-      - {minta: (1S) 2H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, vagy: [{pont: 14-17}, {pont: '13', fohonor: {H: 2+}}], prioritas: 57, magyarazat: 'Közbeszólás a 2-es szinten: 14-17 FP (13 két felső figurával), 5+ kőr'}
+      - {minta: (1C) 1D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 56, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ káró'}
+      - {minta: (1C) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 57, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ kőr'}
+      - {minta: (1C) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 58, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ pikk'}
+      - {minta: (1D) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ treff'}
+      - {minta: (1D) 1H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 57, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ kőr'}
+      - {minta: (1D) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 58, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ pikk'}
+      - {minta: (1H) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ treff'}
+      - {minta: (1H) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ káró'}
+      - {minta: (1H) 1S, ha: {ules: [2, 3, 4]}, hossz: {S: 5+}, figura: {S: 4+}, vagy: [{pont: 13-17}, {pont: 11-12, vesztok: 0-7, minoseg: nem_rossz, feltetel: {t: VAGY, gy: [{t: OSSZE, op: <=, bal: {t: URES_FIGURA}, jobb: {t: SZAM, v: 0}}, {t: OSSZE, op: '>=', bal: {t: KORR_PONT, levonas: 0.5}, jobb: {t: SZAM, v: 13}}]}}], prioritas: 58, magyarazat: 'Közbeszólás: induló erő (13-17, vagy 11-12 legfeljebb 7 vesztővel), 5+ pikk'}
+      - {minta: (1S) 2C, ha: {ules: [2, 3, 4]}, hossz: {C: 5+}, figura: {C: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 55, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ treff'}
+      - {minta: (1S) 2D, ha: {ules: [2, 3, 4]}, hossz: {D: 5+}, figura: {D: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 56, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ káró'}
+      - {minta: (1S) 2H, ha: {ules: [2, 3, 4]}, hossz: {H: 5+}, figura: {H: 4+}, vagy: [{pont: 14-17}, {pont: 12-13, vesztok: 0-6, minoseg: nem_rossz}], prioritas: 57, magyarazat: 'Közbeszólás a 2-es szinten: 14-17, vagy 12-13 legfeljebb 6 vesztővel, 5+ kőr'}
   - fejezet: "Gyenge ugró közbeszólás védekező ütéssel"
     szabalyok:
       - {minta: (1C) 2D, hossz: {D: '6'}, forsz: KIZARO, prioritas: 53, vagy: [{szkor: A, pont: 5-10}, {szkor: M, pont: 6-10}, {szkor: O, pont: 4-10}, {szkor: S, pont: 12-16, figura: {D: 5+}}], alert: 'Ugró közbeszólás: kizáró (6+ káró); bell-mans zónában indulóerő — 1-2 védekező ütés (ász vagy KD)', ha: {ules: [2, 3, 4]}, gyorsutes: 1-2}
