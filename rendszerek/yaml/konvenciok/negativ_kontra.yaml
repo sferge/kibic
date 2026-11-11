@@ -357,3 +357,24 @@ fejezetek:
       - {minta: "1A (nB) X (P) 2A (P) +B", kulcs: NEG-X-MASODIK-FELUL-SAJAT, prioritas: 56, kulonbozo: [A, B],
          pont: 13+, forsz: GEMFORSZ,
          alert: "Felüllicit: gémforsz"}
+
+  - fejezet: "A válaszoló azonnali felüllicitje: 1A (2B) 3B"
+    jegyzet: >-
+      A szerkesztő (2026-11-11, 2-es asztal #6): a közbeszóló színének
+      felüllicitje nemes nyitásnál GÉMFORSZ, minor nyitásnál kvázi gémforsz
+      (4 minorig). Fogást keres a színükben, és rendszerint a nyitó színét
+      támogatja; 4 lapos szabad nemessel előbb negatív kontra (utána
+      felüllicit). A nyitó fogással 3NT-t mond, utána 4♣ ORKC.
+    szabalyok:
+      - {minta: "1C (2D) 3D", kulcs: NEG-X-AZONNALI-FELUL-CD, prioritas: 51, pont: 13+, hossz: {H: 0-3, S: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♣-ig), fogást keres a színükben"}
+      - {minta: "1C (2H) 3H", kulcs: NEG-X-AZONNALI-FELUL-CH, prioritas: 51, pont: 13+, hossz: {S: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♣-ig), fogást keres a színükben"}
+      - {minta: "1C (2S) 3S", kulcs: NEG-X-AZONNALI-FELUL-CS, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♣-ig), fogást keres a színükben"}
+      - {minta: "1D (2C) 3C", kulcs: NEG-X-AZONNALI-FELUL-DC, prioritas: 51, pont: 13+, hossz: {H: 0-3, S: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♦-ig), fogást keres a színükben"}
+      - {minta: "1D (2H) 3H", kulcs: NEG-X-AZONNALI-FELUL-DH, prioritas: 51, pont: 13+, hossz: {S: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♦-ig), fogást keres a színükben"}
+      - {minta: "1D (2S) 3S", kulcs: NEG-X-AZONNALI-FELUL-DS, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: EGY_MENET, alert: "Felüllicit: kvázi gémforsz (4♦-ig), fogást keres a színükben"}
+      - {minta: "1H (2C) 3C", kulcs: NEG-X-AZONNALI-FELUL-HC, prioritas: 51, pont: 13+, hossz: {S: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+      - {minta: "1H (2D) 3D", kulcs: NEG-X-AZONNALI-FELUL-HD, prioritas: 51, pont: 13+, hossz: {S: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+      - {minta: "1H (2S) 3S", kulcs: NEG-X-AZONNALI-FELUL-HS, prioritas: 51, pont: 13+, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+      - {minta: "1S (2C) 3C", kulcs: NEG-X-AZONNALI-FELUL-SC, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+      - {minta: "1S (2D) 3D", kulcs: NEG-X-AZONNALI-FELUL-SD, prioritas: 51, pont: 13+, hossz: {H: 0-3}, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
+      - {minta: "1S (2H) 3H", kulcs: NEG-X-AZONNALI-FELUL-SH, prioritas: 51, pont: 13+, forsz: GEMFORSZ, alert: "Felüllicit: gémforsz, fogást keres a színükben"}
