@@ -339,3 +339,21 @@ fejezetek:
          hossz: {A: 3+}, magyarazat: "Kényszerből: a saját színem (a passz büntető volna), 12-16"}
       - {minta: "1A (nB) X (P) +E", kulcs: NEG-X-KIN-UJ, prioritas: 39, kulonbozo: [A, B, E],
          ha: {riverz: false}, pont: 12-17, vagy: [{pont: 12-16}, {pont: 17, minoseg: rossz}], hossz: {E: 3+}, magyarazat: "Kényszerből: a legolcsóbb hármas szín (a passz büntető volna)"}
+
+  - fejezet: "A negatív kontrázó második licitje: felüllicit"
+    jegyzet: >-
+      A szerkesztő (2026-11-11, 2-es asztal #6): 1♣ (2♦) X (P) 2♠ (P) 3♦ —
+      a felüllicit GÉMFORSZ, és nem ígér fitet a nyitó második színével;
+      erős (szlem felé is nyitott) lapnál ez a „lassú” út, nem az azonnali
+      gém. A folytatás természetes: fogással 3NT, utána 4♣ ORKC. Csak a nyitó
+      1-es / 2-es szintű második licitje után (gém fölött nincs értelme).
+    szabalyok:
+      - {minta: "1A (nB) X (P) 1E (P) +B", kulcs: NEG-X-MASODIK-FELUL-1, prioritas: 56, kulonbozo: [A, B, E],
+         pont: 13+, hossz: {E: 0-3}, forsz: GEMFORSZ,
+         alert: "Felüllicit: gémforsz, a nyitó második színével nincs fit"}
+      - {minta: "1A (nB) X (P) 2E (P) +B", kulcs: NEG-X-MASODIK-FELUL-2, prioritas: 56, kulonbozo: [A, B, E],
+         pont: 13+, hossz: {E: 0-3}, forsz: GEMFORSZ,
+         alert: "Felüllicit: gémforsz, a nyitó második színével nincs fit"}
+      - {minta: "1A (nB) X (P) 2A (P) +B", kulcs: NEG-X-MASODIK-FELUL-SAJAT, prioritas: 56, kulonbozo: [A, B],
+         pont: 13+, forsz: GEMFORSZ,
+         alert: "Felüllicit: gémforsz"}
