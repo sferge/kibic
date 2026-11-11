@@ -151,6 +151,18 @@ class Hezag:
                 hi = min(hi, lo + GF_FEKEZES)
         return lo, int(max(lo, hi))
 
+    def mesterseges(self, licit: str) -> bool:
+        """A rendszerünkben ebben a helyzetben a licitnek mesterséges (alertálandó)
+        jelentése van-e — akkor a hézag-elv nem használhatja természetes licitként."""
+        if self.prop is None or not licit:
+            return False
+        try:
+            sorok = self.prop.jelentes_sorokkal(self.licitek, self.ules, licit,
+                                                self.tar, self.oszto)
+        except Exception:          # noqa: BLE001
+            return False
+        return any(getattr(s_, "alert", False) for s_, _ in sorok)
+
     def _partner_licitjei(self) -> int:
         return sum(1 for e in self.licitek if e.get("ules") == self.partner
                    and str(e.get("licit", "")).upper() not in ("P", "PASS"))
@@ -882,6 +894,11 @@ class Hezag:
                 return HezagDontes("P", pont, indok + f" — a {utolso} játszható, passz")
             if fit is not None:
                 h = self.legolcsobb(fit)
+                if h and self.mesterseges(h):
+                    # a természetes javítás helyén mesterséges licit áll
+                    # (pl. passzolt lappal a 2♣ Drury; a szerkesztő, 2026-11-11)
+                    return HezagDontes("P", pont, indok + f" — a {h} nálunk mesterséges "
+                                                          f"(nem természetes javítás): passz")
                 if h:
                     return HezagDontes(h, pont, indok + f" — a {utolso} helyett a jobb fit: {h}")
             return HezagDontes("P", pont, indok + " — nincs jobb, passz")

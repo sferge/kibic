@@ -99,7 +99,7 @@ def test_szokatlan_4nt_vesztokkel(zona, vart):
 # --- 2026-10-21 (3.): Michaels vesztő-alapon, exclusion, kvázi GF vége -------
 
 @pytest.mark.parametrize("kez, menet, ules, oszto, zona, vart", [
-    ("AKT54.QJT3.862.6", "P 1D", "W", "E", "ew", "1S"),            # 7 vesztő: nem Michaels
+    ("AKT54.QJT3.862.6", "P 1D", "W", "E", "ew", "P"),             # 7 vesztő: nem Michaels; 10 FP: a MOHA-ban nincs közbeszólás (2026-11-11)
     ("AKJ54.KQJ53.8.62", "P 1D", "W", "E", "none", "2D"),          # 5-5, 5 vesztő: Michaels
     ("AKJ54.KQJ53.8.62", "P 1D 2D P 3S P", "W", "E", "none", "P"), # a 3♠ blokk: passz
     ("AKJ54.AKQ53.8.62", "P 1D 2D P 3S P", "W", "E", "none", "P"), # a 3♠ blokk: passz

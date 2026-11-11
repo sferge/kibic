@@ -536,3 +536,17 @@ def test_korr_fp_jo_hossz():
     fa = {"t": "KORR_PONT", "levonas": 0.5, "alap": "HCP", "jo_hossz": 1}
     assert _ertek(fa, Kez.pbn_bol("AK432.432.432.32"), Kontextus()) == 8
     assert _ertek(fa, Kez.pbn_bol("KQ432.Q32.432.32"), Kontextus()) == 7.5
+
+
+@pytest.mark.parametrize("kez, menet, ules, vart", [
+    (".AQ986432.J8.975", ["1S", "2D"], "N", "3H"),          # #19: gyenge ugrás 8 lappal is
+    ("K9542.KJT7.752.6", ["1S", "2D", "P"], "E", "2H"),     # #19: 4+ kőr, 6+ (mint 1♦-1♥)
+    ("93.AKJ.9876.K873", ["P", "P", "1S", "P"], "N", "2NT"),  # #25: passzolt lap, 11-12, nincs fit
+    ("K42.97.J9.J98765", ["P", "P", "1H", "P"], "S", "P"),  # #23: a 2♣ Drury — mesterséges, nem javítás
+])
+def test_tabla2_2026_11_11(betolto, kez, menet, ules, vart):
+    from kibic.szolgaltatas.licit import licit_elemzes
+    oszto = {"N": "S", "E": "S", "S": "S"}[ules] if menet[0] != "P" else ("N" if ules == "N" else "S")
+    v = licit_elemzes({"hand": _pbn(kez), "seat": ules, "dealer": oszto, "vulnerability": "none",
+                       "auction": menet, "system": "MOHA_STAND", "test_mode": True}, betolto)
+    assert v["call"] == vart

@@ -20,3 +20,17 @@ fejezetek:
          magyarazat: "Normális nyitóerő"}
       - {minta: 1M-2C-4M, kulcs: DRURY_1M-2C-4M, ha: {ules: [3, 4]}, pont: 15+, prioritas: 53,
          magyarazat: "Gém"}
+  - fejezet: "Passzolt lap támogatás nélkül (a szerkesztő, 2026-11-11, 2-es asztal #25)"
+    szabalyok:
+      - {minta: 1M-2NT, kulcs: DRURY_1M-2NT-PASSZOLT, ha: {ules: [1, 2]}, pont: 11-12, hossz: {M: 0-2},
+         elosztas: BAL, forsz: NEM, prioritas: 56,
+         magyarazat: "Maximális passzolt lap, nincs 3-as támogatás: 11-12, természetes, nem kényszerít"}
+      # a nyitó a passzolt lap 2NT-jére (nem Jacoby: természetes, 11-12)
+      - {minta: 1M-2NT-P, kulcs: DRURY_1M-2NT-P, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 0-5}, prioritas: 57,
+         magyarazat: "Minimum, nincs hosszú szín: passz"}
+      - {minta: 1M-2NT-3M, kulcs: DRURY_1M-2NT-3M, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 6+}, prioritas: 57,
+         magyarazat: "Minimum, 6+ lap: leállás"}
+      - {minta: 1M-2NT-3NT, kulcs: DRURY_1M-2NT-3NT, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 0-5}, prioritas: 57,
+         magyarazat: "Gém szanban"}
+      - {minta: 1M-2NT-4M, kulcs: DRURY_1M-2NT-4M, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 6+}, prioritas: 57,
+         magyarazat: "Gém a 6+ lapos nemesben"}

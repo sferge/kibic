@@ -35,38 +35,38 @@ fejezetek:
   - fejezet: "Válaszok az információs kontrára"
     szabalyok:
       - {minta: "(1C) X (P) 1D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
-      - {minta: "(1C) X (P) 2D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1C) X (P) 2D", pont: "9-11", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
       - {minta: "(1C) X (P) 1H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
-      - {minta: "(1C) X (P) 2H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1C) X (P) 2H", pont: "9-11", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
       - {minta: "(1C) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
-      - {minta: "(1C) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1C) X (P) 2S", pont: "9-11", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
       - {minta: "(1C) X (P) 1NT", pont: "6-9", fogas: ["C"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
       - {minta: "(1C) X (P) 2NT", pont: "10-12", fogas: ["C"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
       - {minta: "(1C) X (P) 2C", pont: "12+", forsz: "GEMFORSZ", prioritas: 50, alert: "Felüllicit: gémerő, kérdez"}
       - {minta: "(1D) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
-      - {minta: "(1D) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1D) X (P) 3C", pont: "9-11", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
       - {minta: "(1D) X (P) 1H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
-      - {minta: "(1D) X (P) 2H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1D) X (P) 2H", pont: "9-11", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
       - {minta: "(1D) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
-      - {minta: "(1D) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1D) X (P) 2S", pont: "9-11", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
       - {minta: "(1D) X (P) 1NT", pont: "6-9", fogas: ["D"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
       - {minta: "(1D) X (P) 2NT", pont: "10-12", fogas: ["D"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
       - {minta: "(1D) X (P) 2D", pont: "12+", forsz: "GEMFORSZ", prioritas: 51, alert: "Felüllicit: gémerő, kérdez"}
       - {minta: "(1H) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
-      - {minta: "(1H) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1H) X (P) 3C", pont: "9-11", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
       - {minta: "(1H) X (P) 2D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
-      - {minta: "(1H) X (P) 3D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1H) X (P) 3D", pont: "9-11", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
       - {minta: "(1H) X (P) 1S", pont: "0-8", hossz: {"S": "4+"}, prioritas: 54, magyarazat: "Kényszerválasz, 0-8 FP, pikk"}
-      - {minta: "(1H) X (P) 2S", pont: "10-12", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
+      - {minta: "(1H) X (P) 2S", pont: "9-11", hossz: {"S": "4+"}, prioritas: 59, magyarazat: "Ugró válasz, 9-11 FP, 4+ pikk"}
       - {minta: "(1H) X (P) 1NT", pont: "6-9", fogas: ["H"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
       - {minta: "(1H) X (P) 2NT", pont: "10-12", fogas: ["H"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
       - {minta: "(1H) X (P) 2H", pont: "12+", forsz: "GEMFORSZ", prioritas: 53, alert: "Felüllicit: gémerő, kérdez"}
       - {minta: "(1S) X (P) 2C", pont: "0-8", hossz: {"C": "3+"}, prioritas: 50, magyarazat: "Kényszerválasz, 0-8 FP, treff"}
-      - {minta: "(1S) X (P) 3C", pont: "10-12", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
+      - {minta: "(1S) X (P) 3C", pont: "9-11", hossz: {"C": "4+"}, prioritas: 55, magyarazat: "Ugró válasz, 9-11 FP, 4+ treff"}
       - {minta: "(1S) X (P) 2D", pont: "0-8", hossz: {"D": "3+"}, prioritas: 51, magyarazat: "Kényszerválasz, 0-8 FP, káró"}
-      - {minta: "(1S) X (P) 3D", pont: "10-12", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
+      - {minta: "(1S) X (P) 3D", pont: "9-11", hossz: {"D": "4+"}, prioritas: 56, magyarazat: "Ugró válasz, 9-11 FP, 4+ káró"}
       - {minta: "(1S) X (P) 2H", pont: "0-8", hossz: {"H": "4+"}, prioritas: 53, magyarazat: "Kényszerválasz, 0-8 FP, kőr"}
-      - {minta: "(1S) X (P) 3H", pont: "10-12", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
+      - {minta: "(1S) X (P) 3H", pont: "9-11", hossz: {"H": "4+"}, prioritas: 58, magyarazat: "Ugró válasz, 9-11 FP, 4+ kőr"}
       - {minta: "(1S) X (P) 1NT", pont: "6-9", fogas: ["S"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 52, magyarazat: "6-9 FP, fogás az ellenfél színében"}
       - {minta: "(1S) X (P) 2NT", pont: "10-12", fogas: ["S"], hossz: {"H": "0-3", "S": "0-3"}, prioritas: 57, magyarazat: "10-12 FP, fogás, invit"}
       - {minta: "(1S) X (P) 2S", pont: "12+", forsz: "GEMFORSZ", prioritas: 54, alert: "Felüllicit: gémerő, kérdez"}

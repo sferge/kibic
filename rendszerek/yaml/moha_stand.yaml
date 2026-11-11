@@ -33,6 +33,8 @@ hivatkozasok:
   - MOHA_FEDOKERESO             # fedőkereső invit 1M-2M után (2026-09-30; eddig lemaradt)
   - {kod: LIMITALT_UJ_SZIN, ervenyes: ["1M-1NT"]}   # elv: a limitált lap új színe lezárás (2026-10-19)
   - UJRANYITAS                  # újranyitás a sor végén: (Nx) P (P) ? (2026-11-11)
+  - MOHA_MINOR_KIZARAS          # minor kizárónyitás a Moha szerint: vesztők és szkórhelyzet (2026-11-11)
+  - MOHA_KOZBESZOLAS            # a nem passzolt kéz közbeszólása: nyitóerő, 2-es szinten +1,5 (2026-11-11)
   - MOHA_INFO_KONTRA            # információs kontra a Moha szerint: induló erő, 18+ (2026-10-21)
   - KIBIC_STAND
 
