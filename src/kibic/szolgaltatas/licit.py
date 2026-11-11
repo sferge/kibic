@@ -594,7 +594,7 @@ def licit_elemzes(keres: dict, betolto) -> dict:
         kozbe_mod = ("DOPI" if any(getattr(s_, "rendszer_kod", None) == "DOPI" for s_ in sorok)
                      else "PODI" if any(getattr(s_, "rendszer_kod", None) == "PODI" for s_ in sorok)
                      else None)
-        sp = spiral_dontes(kez, allas, er, licitek, engedelyezett, kozbe_mod)
+        sp = spiral_dontes(kez, allas, er, licitek, engedelyezett, kozbe_mod, paramtar)
         if sp is not None:
             valasz["call"] = sp.licit
             valasz["source"] = "SPIRAL"

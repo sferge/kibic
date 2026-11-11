@@ -50,3 +50,23 @@ def test_spiral_valasz_kozbeszolas_utan(kibic_stand, kez, vart):
 def test_spiral_kerdezo_erti(kibic_stand, valasz, vart):
     v = _licit(kibic_stand.sorok, _pbn(KERDEZO), RELE + ["5C", "5D", "P", "P", valasz, "P"])
     assert v["call"] == vart and v["source"] == "SPIRAL"
+
+
+def test_spiral_parameterek():
+    # a spirál változata a rendszer paramétereiben rögzíthető (2026-11-11)
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.spiral import spiral_beallitas, tetelek
+    alap, r = tetelek("H", False, spiral_beallitas(None))
+    assert alap[:4] == [("Q", "H"), ("K", "S"), ("K", "D"), ("K", "C")] and r == [0, 1, 4, 7]
+    b = spiral_beallitas(Parametertar(rendszer_ertek={"SPIRAL_SZINSOR": "CDHS",
+                                                      "SPIRAL_SIKEN": "KIMARAD"}))
+    t, r = tetelek("H", True, b, {"D"})
+    assert t[:2] == [("K", "C"), ("K", "S")] and r == [0, 2, 4]
+
+
+def test_rele_kulcs():
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    sor = next(s for s in g["RKC"].sorok if s.kulcs == "ORKC-TREFF-RELE")
+    assert sor.jelentes.get("rele") == 1

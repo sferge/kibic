@@ -77,20 +77,58 @@ def _tetel_nev(t: tuple[str, str], adu: str) -> str:
     return f"{_SZIMB[sz]}{_FIG[fig]}"
 
 
-def tetelek(adu: str, dama_ismert: bool) -> tuple[list[tuple[str, str]], list[int]]:
+# A SPIRÁL MEGÁLLAPODÁSA paraméterekből (a szerkesztő, 2026-11-11): a
+# rendszer a saját változatát a `parameterek`-ben rögzítheti; az alapérték a
+# Moha-féle spirál.
+#   SPIRAL_RETEGEK  a rétegek, `|`-vel: QA = adu dáma (ha a kulcslap-válaszból
+#                   nem derült ki), K / Q / J = a külső színek királyai /
+#                   dámái / bubijai, JA = adu bubi; egy rétegen belül `,`
+#   SPIRAL_SZINSOR  a külső színek sorrendje (S, H, D, C betűkkel)
+#   SPIRAL_SIKEN    a válaszoló tudott sikénje: KIRALY (királynak számít)
+#                   vagy KIMARAD (a szín kimarad a sorból)
+SPIRAL_ALAP = {"SPIRAL_RETEGEK": "QA|K|Q|JA,J", "SPIRAL_SZINSOR": "SHDC",
+               "SPIRAL_SIKEN": "KIRALY"}
+
+
+def spiral_beallitas(paramtar=None) -> dict[str, str]:
+    """A spirál-paraméterek (a rendszeréi, különben az alapértékek)."""
+    ki = dict(SPIRAL_ALAP)
+    for k in ki:
+        try:
+            v = paramtar.ertek(k) if paramtar is not None else None
+        except Exception:            # noqa: BLE001 — ismeretlen paraméter: alapérték
+            v = None
+        if isinstance(v, str) and v.strip():
+            ki[k] = v.strip().upper()
+    sor = ki["SPIRAL_SZINSOR"]
+    if sorted(sor) != sorted("SHDC"):
+        ki["SPIRAL_SZINSOR"] = SPIRAL_ALAP["SPIRAL_SZINSOR"]
+    if ki["SPIRAL_SIKEN"] not in ("KIRALY", "KIMARAD"):
+        ki["SPIRAL_SIKEN"] = SPIRAL_ALAP["SPIRAL_SIKEN"]
+    return ki
+
+
+def tetelek(adu: str, dama_ismert: bool, beallitas: dict[str, str] | None = None,
+            kimarad: set[str] | None = None) -> tuple[list[tuple[str, str]], list[int]]:
     """A spirál tételei és a rétegek kezdő indexei."""
-    kulso = [sz for sz in _KULSO_RENDBEN if sz != adu]
+    b = beallitas or SPIRAL_ALAP
+    kulso = [sz for sz in b["SPIRAL_SZINSOR"] if sz != adu and sz not in (kimarad or ())]
     t: list[tuple[str, str]] = []
     retegek: list[int] = []
-    if not dama_ismert:
-        retegek.append(len(t))
-        t.append(("Q", adu))
-    retegek.append(len(t))
-    t += [("K", sz) for sz in kulso]
-    retegek.append(len(t))
-    t += [("Q", sz) for sz in kulso]
-    retegek.append(len(t))
-    t += [("J", adu)] + [("J", sz) for sz in kulso]
+    for reteg in b["SPIRAL_RETEGEK"].split("|"):
+        resz: list[tuple[str, str]] = []
+        for elem in reteg.split(","):
+            elem = elem.strip()
+            if elem == "QA":
+                if not dama_ismert:
+                    resz.append(("Q", adu))
+            elif elem in ("KA", "JA"):
+                resz.append((elem[0], adu))
+            elif elem in ("K", "Q", "J"):
+                resz += [(elem, sz) for sz in kulso]
+        if resz:
+            retegek.append(len(t))
+            t += resz
     return t, retegek
 
 
@@ -183,7 +221,8 @@ def _hcp(kez) -> int:
 
 def spiral_dontes(kez, allas, er, licitek: list[dict],
                   engedelyezett: list[str] | None = None,
-                  kozbe_mod: str | None = None) -> SpiralDontes | None:
+                  kozbe_mod: str | None = None,
+                  paramtar=None) -> SpiralDontes | None:
     """
     Ha a menet a kulcslap-válasz után a spirálban jár, és én következem,
     a spirál szerinti licit; különben None (a többi réteg dönt).
@@ -258,9 +297,13 @@ def spiral_dontes(kez, allas, er, licitek: list[dict],
             jatszhato.add(sz)
 
     dama = kl.get("dama")
-    t_lista, retegek = tetelek(adu, dama is not None)
     sikenek_v = {sz for sz in _KULSO_RENDBEN
                  if tar.get(valaszolo) is not None and tar[valaszolo].hossz(sz)[1] == 0}
+    beall = spiral_beallitas(paramtar)
+    t_lista, retegek = tetelek(adu, dama is not None, beall,
+                               sikenek_v if beall["SPIRAL_SIKEN"] == "KIMARAD" else None)
+    if beall["SPIRAL_SIKEN"] == "KIMARAD":
+        sikenek_v = set()
     megvan: set[int] = set()
     hianyzik: set[int] = set()
 
