@@ -16,8 +16,14 @@ fejezetek:
          magyarazat: "Természetes, nem kényszerít"}
       - {minta: 2S-3H, pont: 12+, hossz: {H: 5+}, forsz: EGY_MENET, prioritas: 52,
          magyarazat: "Természetes, 1 menetre kényszerít", nyers: "3♥ (2♠-re) | NAT, F1"}
-      - {minta: 2M-3M, pont: 0-14, hossz: {M: 3+}, forsz: KIZARO, prioritas: 51,
-         magyarazat: "Küzdelmi emelés, nem kényszerít", nyers: "Emelés | Küzdelmi; NF"}
+      # A szerkesztő (2026-11-11): a 3M további kizárás — a partner zónás
+      # maximumával sincs gém (saját FP + a sáv teteje legfeljebb 19). Ha a
+      # maximummal már közel (20-24): most passz, és ha az ellenvonal a sor
+      # végén újranyit, 3M (bizonytalan invit: maximum + szuper fit).
+      - {minta: 2M-3M, hossz: {M: 3+}, osszesen: {pont: 0-19}, forsz: KIZARO, prioritas: 51,
+         magyarazat: "Küzdelmi emelés (további kizárás), nem kényszerít", nyers: "Emelés | Küzdelmi; NF"}
+      - {minta: "2M (P) P (?) P (?) 3M", kulcs: 2M-PASSZ-UTAN-3M, hossz: {M: 3+}, osszesen: {pont: 20-24}, prioritas: 55,
+         magyarazat: "Késleltetett emelés: a maximummal és jó fittel lehet gém (bizonytalan invit)"}
       - {minta: 2M-3NT, pont: 16+, hossz: {M: 0-1}, prioritas: 51,
          magyarazat: "Leállás", nyers: "3N | t/p"}
       # Leállás erővel vagy áldozatnak (a szerkesztő, 2026-11-10; 1. és 20.
