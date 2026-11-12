@@ -38,3 +38,14 @@ fejezetek:
       - {minta: 1M-3C, kulcs: DRURY_1M-3C-TERMESZETES, ha: {ules: [1, 2]}, pont: 11-12, hossz: {C: 5+, M: 0-2},
          forsz: NEM, prioritas: 56,
          magyarazat: "Passzolt lap: 11-12, 5+ treff (a 2♣ itt Drury), nem kényszerít"}
+  - fejezet: "Passzolt lap 4-es aduval, Drury-erő alatt (a szerkesztő, 2026-11-12)"
+    szabalyok:
+      - {minta: 1M-2M, kulcs: DRURY_1M-2M-NEGYES, ha: {ules: [1, 2]}, pont: 5-9, hossz: {M: 4+},
+         fedoutes: {M: 2+}, prioritas: 58,
+         magyarazat: "Passzolt lap: 4+ adu, 2+ fedőütés (ász, király, rövidség)"}
+      - {minta: 1M-1NT, kulcs: DRURY_1M-1NT-NEGYES, ha: {ules: [1, 2]}, pont: 8-10, hossz: {M: 4+},
+         fedoutes: {M: 0-1.75}, prioritas: 57,
+         magyarazat: "Passzolt lap: 4+ adu, 8-10, csak 1 fedőütés"}
+      - {minta: 1M-3M, kulcs: DRURY_1M-3M-NEGYES, ha: {ules: [1, 2]}, pont: 6-7, hossz: {M: 4+},
+         fedoutes: {M: 0-1.75}, prioritas: 57,
+         magyarazat: "Passzolt lap: 4+ adu, 6-7, kizáró emelés"}
