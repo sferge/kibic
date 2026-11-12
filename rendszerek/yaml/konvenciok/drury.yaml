@@ -34,3 +34,15 @@ fejezetek:
          magyarazat: "Gém szanban"}
       - {minta: 1M-2NT-4M, kulcs: DRURY_1M-2NT-4M, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 6+}, prioritas: 57,
          magyarazat: "Gém a 6+ lapos nemesben"}
+      # passzolt lappal a 3♣ veszi át a természetes 2♣ jelentését (a 2♣ itt Drury)
+      - {minta: 1M-3C, kulcs: DRURY_1M-3C-TERMESZETES, ha: {ules: [1, 2]}, pont: 11-12, hossz: {C: 5+, M: 0-2},
+         forsz: NEM, prioritas: 56,
+         magyarazat: "Passzolt lap: 11-12, 5+ treff (a 2♣ itt Drury), nem kényszerít"}
+      - {minta: 1M-3C-P, kulcs: DRURY_1M-3C-P, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 0-5}, prioritas: 57,
+         magyarazat: "Minimum: passz"}
+      - {minta: 1M-3C-3M, kulcs: DRURY_1M-3C-3M, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 6+}, prioritas: 57,
+         magyarazat: "Minimum, 6+ lap"}
+      - {minta: 1M-3C-3NT, kulcs: DRURY_1M-3C-3NT, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 0-5}, prioritas: 57,
+         magyarazat: "Gém szanban"}
+      - {minta: 1M-3C-4M, kulcs: DRURY_1M-3C-4M, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 6+}, prioritas: 57,
+         magyarazat: "Gém a 6+ lapos nemesben"}

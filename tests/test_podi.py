@@ -105,3 +105,24 @@ def test_hezag_dd_mintaval_sem_mesterseges():
                        "system": "MOHA_STAND_ELV", "test_mode": True, "simulate": True},
                       lambda k, p, t=None: (f.sorok, pt))
     assert v["call"] == "P"
+
+
+@pytest.mark.parametrize("kez, nyitas, vart", [
+    ("K42.97.J9.J98765", "1H", "P"),   # 5 FP: válaszerő alatt passz (2026-11-12, #23)
+    ("A3.5.T95.AKT9863", "1S", "3C"),  # passzolt lap: 3♣ = 11-12, 5+ treff (a 2♣ Drury)
+])
+def test_drury_helyzet_passzolt_lap(kez, nyitas, vart):
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND_ELV")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND_ELV"].parameterek))
+    for sim in (False, True):
+        v = licit_elemzes({"hand": _pbn(kez), "seat": "S", "dealer": "S",
+                           "vulnerability": "none", "auction": ["P", "P", nyitas, "P"],
+                           "system": "MOHA_STAND_ELV", "test_mode": True, "simulate": sim},
+                          lambda k, p, t=None: (f.sorok, pt))
+        assert v["call"] == vart, (sim, v["explanation"])
