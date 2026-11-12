@@ -1,8 +1,9 @@
 # MOHA_KONTRA_UTAN — a kontra nem változtat a licitek jelentésén (system on;
 # a szerkesztő, 2026-11-12, #7). A MOHA rendszerekben a KIBICEGY_KUZDELMI
 # „Információs kontra a nyitásunkra” fejezetének megfelelő sorai helyett.
-#   * új szín az 1-es szinten: 4+ lap, 6+ (mint kontra nélkül) — 1♥ (X) 1♠
-#     4 pikkel, a káró hosszától függetlenül;
+#   * új szín az 1-es szinten: 5+ lap, vagy 4 lap kétszínű (nem egyenletes)
+#     lappal, 6+ — 1♥ (X) 1♠ 4 pikkel, a káró hosszától függetlenül;
+#     egyenletes lappal 1NT (minor nyitásra: fogás legalább az egyik nemesben);
 #   * 1M (X) 1NT: 6-10(11), nem kényszerít, de FOGÁST ígér a nem licitált
 #     nemesben; fogás nélkül 8+ ponttal rekontra, 6-7 ponttal passz;
 #   * passzolt lappal a Drury kontra után is él (2♣ 3 lapos, 2♦ 4+ lapos adu);
@@ -18,12 +19,14 @@ rendszer:
 fejezetek:
   - fejezet: "Az információs kontra után"
     szabalyok:
-      - {minta: "1C (X) 1D", pont: "6+", hossz: {D: 4+}, forsz: EGY_MENET, prioritas: 55, magyarazat: "Új szín: 4+ káró, 6+ (a kontra nem változtat)"}
-      - {minta: "1C (X) 1H", pont: "6+", hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 56, magyarazat: "Új szín: 4+ kőr, 6+ (a kontra nem változtat)"}
-      - {minta: "1C (X) 1S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 4+ pikk, 6+ (a kontra nem változtat)"}
-      - {minta: "1D (X) 1H", pont: "6+", hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 56, magyarazat: "Új szín: 4+ kőr, 6+ (a kontra nem változtat)"}
-      - {minta: "1D (X) 1S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 4+ pikk, 6+ (a kontra nem változtat)"}
-      - {minta: "1H (X) 1S", pont: "6+", hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 4+ pikk, 6+ (a kontra nem változtat)"}
+      - {minta: "1C (X) 1D", pont: "6+", vagy: [{hossz: {D: 5+}}, {hossz: {D: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 55, magyarazat: "Új szín: 5+ káró, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1C (X) 1H", pont: "6+", vagy: [{hossz: {H: 5+}}, {hossz: {H: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 56, magyarazat: "Új szín: 5+ kőr, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1C (X) 1S", pont: "6+", vagy: [{hossz: {S: 5+}}, {hossz: {S: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 5+ pikk, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1D (X) 1H", pont: "6+", vagy: [{hossz: {H: 5+}}, {hossz: {H: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 56, magyarazat: "Új szín: 5+ kőr, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1D (X) 1S", pont: "6+", vagy: [{hossz: {S: 5+}}, {hossz: {S: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 5+ pikk, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1H (X) 1S", pont: "6+", vagy: [{hossz: {S: 5+}}, {hossz: {S: 4}, elosztas: NEM_BAL}], forsz: EGY_MENET, prioritas: 57, magyarazat: "Új szín: 5+ pikk, vagy 4 lap kétszínű lappal; 6+ (a kontra nem változtat)"}
+      - {minta: "1C (X) 1NT", pont: "6-10", elosztas: BAL, vagy: [{fogas: ["S"]}, {fogas: ["H"]}], forsz: NEM, prioritas: 53, magyarazat: "6-10, egyenletes, fogás legalább az egyik nemesben"}
+      - {minta: "1D (X) 1NT", pont: "6-10", elosztas: BAL, vagy: [{fogas: ["S"]}, {fogas: ["H"]}], forsz: NEM, prioritas: 53, magyarazat: "6-10, egyenletes, fogás legalább az egyik nemesben"}
       - {minta: "1H (X) 1NT", pont: "6-11", hossz: {H: 0-2}, fogas: ["S"], forsz: NEM, prioritas: 53, magyarazat: "6-10(11), nem kényszerít; fogás pikkban"}
       - {minta: "1H (X) XX", kulcs: "1H-X-XX-FOGASNELKUL", pont: "8-11", hossz: {H: 0-2, S: 0-3}, prioritas: 52, alert: "Rekontra: 8+, nincs fogás pikkban (az 1NT helyett)"}
       - {minta: "1H (X) P", kulcs: "1H-X-P-6-7", pont: "6-7", hossz: {H: 0-2, S: 0-3}, prioritas: 51, magyarazat: "6-7, nincs fogás pikkban: passz"}
