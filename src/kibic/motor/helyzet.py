@@ -724,6 +724,9 @@ def kiertekel(csp: dict, allas: Allas,
             return False
         if b in allas._mondott.get(allas.ules, set()):
             return False                       # a saját színem is: nem preferencia
+        kt = allas.kenyszertar or {}
+        if any(getattr(kt.get(u_), "gemforsz", False) for u_ in (allas.ules, allas.partner)):
+            return False                       # gémforszban a visszatérés támogatás (adu-megállapodás)
         kov = allas.kovetkezo_licit(b)
         return kov is not None and int(licit[0]) == kov[0]
 
