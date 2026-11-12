@@ -143,3 +143,24 @@ def test_valaszero_alatt_emeles_fedoutessel():
                        "system": "MOHA_STAND_ELV", "test_mode": True},
                       lambda k, p, t=None: (f.sorok, pt))
     assert v["call"] == "2S", v["explanation"]
+
+
+@pytest.mark.parametrize("kez, vart", [
+    ("K32.43.AQ63.K432", "2C"),        # 3 lapos adu, 12 FP: 2♣
+    ("K432.43.AQ6.K432", "2D"),        # 4 lapos adu, 12 FP: 2♦
+    ("32.4.AKJ632.K432", "3D"),        # 11-12, 5+ káró, nincs fit
+])
+def test_ketutas_drury_moha(kez, vart):
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND"].parameterek))
+    v = licit_elemzes({"hand": _pbn(kez), "seat": "S", "dealer": "S",
+                       "vulnerability": "none", "auction": ["P", "P", "1S", "P"],
+                       "system": "MOHA_STAND", "test_mode": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    assert v["call"] == vart, v["explanation"]

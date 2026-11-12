@@ -1,0 +1,29 @@
+# MOHA_DRURY — kétutas Drury (a szerkesztő, 2026-11-12): passzolt lappal a
+# 3./4. kézbeli 1M nyitásra
+#   2♣  10-12, 3 lapos adu
+#   2♦  10-12, 4+ lapos adu
+#   3♦  11-12, 5+ káró (természetes; a 2♦ itt Drury)
+# A többi (a 2NT, a 3♣ és a 4 lapos adu Drury-erő alatt) a DRURY-é.
+rendszer:
+  kod: MOHA_DRURY
+  nev: Kétutas Drury (Moha)
+  nev_en: Two-way Drury (Moha)
+  fajta: KONVENCIO
+  alapja: DRURY
+  viszony: VALTOZAT
+  leiras: "Passzolt lappal az 1M-re: 2♣ = 10-12 3 lapos aduval, 2♦ = 10-12 4+ lapos aduval, 3♦ = 11-12 5+ káró."
+fejezetek:
+  - fejezet: "Kétutas Drury"
+    szabalyok:
+      - {minta: 1M-2C, kulcs: DRURY_1M-2C, kivalt: true}     # az egyutas 2♣ (3+ adu) helyett:
+      - {minta: 1M-2C, kulcs: MOHA_DRURY_1M-2C, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 3},
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 3 lapos adu"}
+      - {minta: 1M-2D, kulcs: DRURY_1M-2D, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 4+},
+         forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 4+ lapos adu"}
+      - {minta: 1M-3D, kulcs: DRURY_1M-3D, ha: {ules: [1, 2]}, pont: 11-12, hossz: {D: 5+, M: 0-2},
+         forsz: NEM, prioritas: 56, magyarazat: "Passzolt lap: 11-12, 5+ káró (a 2♦ itt Drury)"}
+      # a nyitó a 4 lapos Drury-ra
+      - {minta: 1M-2D-2M, kulcs: DRURY_1M-2D-2M, ha: {ules: [3, 4]}, pont: 0-13, prioritas: 51,
+         magyarazat: "Nincs gém"}
+      - {minta: 1M-2D-4M, kulcs: DRURY_1M-2D-4M, ha: {ules: [3, 4]}, pont: 14+, prioritas: 53,
+         magyarazat: "Gém"}
