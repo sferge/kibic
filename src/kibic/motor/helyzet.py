@@ -708,6 +708,25 @@ def kiertekel(csp: dict, allas: Allas,
         lista = ertek if isinstance(ertek, list) else [ertek]
         return allas.ules_szam in [int(x) for x in lista]
 
+    if t == "PREFERENCIA":
+        # PREFERENCIA (a szerkesztő, 2026-11-13): a partner két színt mondott,
+        # és a licit a KORÁBBI színére tér vissza a legolcsóbb szinten — ez
+        # választás a kettő közül (2+ lap), nem emelés (pl. 1♥-1NT-2♣-2♥)
+        licit = (kotesek or {}).get("_licit")
+        if not licit or not licit[0].isdigit() or licit[1:] not in SZINEK:
+            return False
+        b = licit[1:]
+        p_szinek = [str(e.get("licit", ""))[1:] for e in allas.licitek
+                    if e.get("ules") == allas.partner
+                    and str(e.get("licit", ""))[:1].isdigit()
+                    and str(e.get("licit", ""))[1:] in SZINEK]
+        if len(p_szinek) < 2 or p_szinek[-1] == b or b not in p_szinek[:-1]:
+            return False
+        if b in allas._mondott.get(allas.ules, set()):
+            return False                       # a saját színem is: nem preferencia
+        kov = allas.kovetkezo_licit(b)
+        return kov is not None and int(licit[0]) == kov[0]
+
     if t == "PASSZOLT":
         u = allas.ules if csp.get("ki") == "en" else allas.partner
         return allas.passzolt(u) == bool(csp.get("ertek", True))
@@ -1375,6 +1394,8 @@ def leiras(csp: dict) -> str:
     if t == "ULES":
         e = csp["ertek"]
         return f"{e if not isinstance(e, list) else '/'.join(map(str, e))}. ülés"
+    if t == "PREFERENCIA":
+        return "preferencia a partner korábbi színére"
     if t == "PASSZOLT":
         ki = "passzolt lappal" if csp.get("ki") == "en" else "passzos partnertől"
         return ki if csp.get("ertek", True) else "nem " + ki
