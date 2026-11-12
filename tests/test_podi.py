@@ -164,3 +164,30 @@ def test_ketutas_drury_moha(kez, vart):
                        "system": "MOHA_STAND", "test_mode": True},
                       lambda k, p, t=None: (f.sorok, pt))
     assert v["call"] == vart, v["explanation"]
+
+
+def test_passzolt_feltetel():
+    # „passzos” (2026-11-12): az első lehetőségén, minden nyitás előtt passzolt
+    from kibic.motor.helyzet import Allas
+    lic = [{"ules": u, "licit": l} for u, l in zip("WNES", ["P", "P", "1H", "X"])]
+    a = Allas(licitek=lic, ules="W", oszto="W")
+    assert a.passzolt("W") and a.passzolt("N") and not a.passzolt("E") and not a.passzolt("S")
+
+
+@pytest.mark.parametrize("kez, menet, vart", [
+    ("8752.Q7.KQJT2.A6", ["P", "P", "1H", "X"], "1S"),     # #7: system on, 4 pikkel 1♠
+    ("932.Q72.KQJ3.A62", ["P", "P", "1H", "X"], "2C"),     # passzolt lap: Drury kontra után is
+])
+def test_moha_kontra_utan(kez, menet, vart):
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND"].parameterek))
+    v = licit_elemzes({"hand": _pbn(kez), "seat": "W", "dealer": "W", "vulnerability": "none",
+                       "auction": menet, "system": "MOHA_STAND", "test_mode": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    assert v["call"] == vart, v["explanation"]

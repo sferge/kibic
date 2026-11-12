@@ -34,6 +34,7 @@ hivatkozasok:
   - {kod: FOGASMUTATAS, ervenyes: ["1M-2m-2M"]}
   - {kod: LIMITALT_UJ_SZIN, ervenyes: ["1M-1NT"]}   # elv: a limitált lap új színe lezárás (2026-10-19)
   - UJRANYITAS                  # újranyitás a sor végén: (Nx) P (P) ? (2026-11-11)
+  - MOHA_KONTRA_UTAN            # a kontra után a licitek megtartják jelentésüket (system on, 2026-11-12)
   - MOHA_DRURY                  # kétutas Drury: 2♣ 3 lapos, 2♦ 4 lapos adu, 3♦ természetes (2026-11-12)
   - MOHA_MINOR_KIZARAS          # minor kizárónyitás a Moha szerint: vesztők és szkórhelyzet (2026-11-11)
   - MOHA_KOZBESZOLAS            # a nem passzolt kéz közbeszólása: nyitóerő, 2-es szinten +1,5 (2026-11-11)

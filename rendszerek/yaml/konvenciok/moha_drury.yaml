@@ -16,14 +16,14 @@ fejezetek:
   - fejezet: "Kétutas Drury"
     szabalyok:
       - {minta: 1M-2C, kulcs: DRURY_1M-2C, kivalt: true}     # az egyutas 2♣ (3+ adu) helyett:
-      - {minta: 1M-2C, kulcs: MOHA_DRURY_1M-2C, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 3},
+      - {minta: 1M-2C, kulcs: MOHA_DRURY_1M-2C, ha: {passzolt: igen}, pont: 10-12, hossz: {M: 3},
          forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 3 lapos adu"}
-      - {minta: 1M-2D, kulcs: DRURY_1M-2D, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 4+},
+      - {minta: 1M-2D, kulcs: DRURY_1M-2D, ha: {passzolt: igen}, pont: 10-12, hossz: {M: 4+},
          forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 4+ lapos adu"}
-      - {minta: 1M-3D, kulcs: DRURY_1M-3D, ha: {ules: [1, 2]}, pont: 11-12, hossz: {D: 5+, M: 0-2},
+      - {minta: 1M-3D, kulcs: DRURY_1M-3D, ha: {passzolt: igen}, pont: 11-12, hossz: {D: 5+, M: 0-2},
          forsz: NEM, prioritas: 56, magyarazat: "Passzolt lap: 11-12, 5+ káró (a 2♦ itt Drury)"}
       # a nyitó a 4 lapos Drury-ra
-      - {minta: 1M-2D-2M, kulcs: DRURY_1M-2D-2M, ha: {ules: [3, 4]}, pont: 0-13, prioritas: 51,
+      - {minta: 1M-2D-2M, kulcs: DRURY_1M-2D-2M, ha: {partner_passzolt: igen}, pont: 0-13, prioritas: 51,
          magyarazat: "Nincs gém"}
-      - {minta: 1M-2D-4M, kulcs: DRURY_1M-2D-4M, ha: {ules: [3, 4]}, pont: 14+, prioritas: 53,
+      - {minta: 1M-2D-4M, kulcs: DRURY_1M-2D-4M, ha: {partner_passzolt: igen}, pont: 14+, prioritas: 53,
          magyarazat: "Gém"}

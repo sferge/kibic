@@ -12,40 +12,40 @@ rendszer:
 fejezetek:
   - fejezet: Drury
     szabalyok:
-      - {minta: 1M-2C, kulcs: DRURY_1M-2C, ha: {ules: [1, 2]}, pont: 10-12, hossz: {M: 3+},
+      - {minta: 1M-2C, kulcs: DRURY_1M-2C, ha: {passzolt: igen}, pont: 10-12, hossz: {M: 3+},
          forsz: EGY_MENET, elvaras: VALASZ, prioritas: 60, alert: "Drury: 10-12 FP, 3+ adu"}
-      - {minta: 1M-2C-2D, kulcs: DRURY_1M-2C-2D, ha: {ules: [3, 4]}, pont: 0-11, prioritas: 52,
+      - {minta: 1M-2C-2D, kulcs: DRURY_1M-2C-2D, ha: {partner_passzolt: igen}, pont: 0-11, prioritas: 52,
          alert: "Szubminimum nyitás"}
-      - {minta: 1M-2C-2M, kulcs: DRURY_1M-2C-2M, ha: {ules: [3, 4]}, pont: 12-14, prioritas: 51,
+      - {minta: 1M-2C-2M, kulcs: DRURY_1M-2C-2M, ha: {partner_passzolt: igen}, pont: 12-14, prioritas: 51,
          magyarazat: "Normális nyitóerő"}
-      - {minta: 1M-2C-4M, kulcs: DRURY_1M-2C-4M, ha: {ules: [3, 4]}, pont: 15+, prioritas: 53,
+      - {minta: 1M-2C-4M, kulcs: DRURY_1M-2C-4M, ha: {partner_passzolt: igen}, pont: 15+, prioritas: 53,
          magyarazat: "Gém"}
   - fejezet: "Passzolt lap támogatás nélkül (a szerkesztő, 2026-11-11, 2-es asztal #25)"
     szabalyok:
-      - {minta: 1M-2NT, kulcs: DRURY_1M-2NT-PASSZOLT, ha: {ules: [1, 2]}, pont: 11-12, hossz: {M: 0-2},
+      - {minta: 1M-2NT, kulcs: DRURY_1M-2NT-PASSZOLT, ha: {passzolt: igen}, pont: 11-12, hossz: {M: 0-2},
          elosztas: BAL, forsz: NEM, prioritas: 56,
          magyarazat: "Maximális passzolt lap, nincs 3-as támogatás: 11-12, természetes, nem kényszerít"}
       # a nyitó a passzolt lap 2NT-jére (nem Jacoby: természetes, 11-12)
-      - {minta: 1M-2NT-P, kulcs: DRURY_1M-2NT-P, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 0-5}, prioritas: 57,
+      - {minta: 1M-2NT-P, kulcs: DRURY_1M-2NT-P, ha: {partner_passzolt: igen}, pont: 0-13, hossz: {M: 0-5}, prioritas: 57,
          magyarazat: "Minimum, nincs hosszú szín: passz"}
-      - {minta: 1M-2NT-3M, kulcs: DRURY_1M-2NT-3M, ha: {ules: [3, 4]}, pont: 0-13, hossz: {M: 6+}, prioritas: 57,
+      - {minta: 1M-2NT-3M, kulcs: DRURY_1M-2NT-3M, ha: {partner_passzolt: igen}, pont: 0-13, hossz: {M: 6+}, prioritas: 57,
          magyarazat: "Minimum, 6+ lap: leállás"}
-      - {minta: 1M-2NT-3NT, kulcs: DRURY_1M-2NT-3NT, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 0-5}, prioritas: 57,
+      - {minta: 1M-2NT-3NT, kulcs: DRURY_1M-2NT-3NT, ha: {partner_passzolt: igen}, pont: 14+, hossz: {M: 0-5}, prioritas: 57,
          magyarazat: "Gém szanban"}
-      - {minta: 1M-2NT-4M, kulcs: DRURY_1M-2NT-4M, ha: {ules: [3, 4]}, pont: 14+, hossz: {M: 6+}, prioritas: 57,
+      - {minta: 1M-2NT-4M, kulcs: DRURY_1M-2NT-4M, ha: {partner_passzolt: igen}, pont: 14+, hossz: {M: 6+}, prioritas: 57,
          magyarazat: "Gém a 6+ lapos nemesben"}
       # passzolt lappal a 3♣ veszi át a természetes 2♣ jelentését (a 2♣ itt Drury)
-      - {minta: 1M-3C, kulcs: DRURY_1M-3C-TERMESZETES, ha: {ules: [1, 2]}, pont: 11-12, hossz: {C: 5+, M: 0-2},
+      - {minta: 1M-3C, kulcs: DRURY_1M-3C-TERMESZETES, ha: {passzolt: igen}, pont: 11-12, hossz: {C: 5+, M: 0-2},
          forsz: NEM, prioritas: 56,
          magyarazat: "Passzolt lap: 11-12, 5+ treff (a 2♣ itt Drury), nem kényszerít"}
   - fejezet: "Passzolt lap 4-es aduval, Drury-erő alatt (a szerkesztő, 2026-11-12)"
     szabalyok:
-      - {minta: 1M-2M, kulcs: DRURY_1M-2M-NEGYES, ha: {ules: [1, 2]}, pont: 5-9, hossz: {M: 4+},
+      - {minta: 1M-2M, kulcs: DRURY_1M-2M-NEGYES, ha: {passzolt: igen}, pont: 5-9, hossz: {M: 4+},
          fedoutes: {M: 2+}, prioritas: 58,
          magyarazat: "Passzolt lap: 4+ adu, 2+ fedőütés (ász, király, rövidség)"}
-      - {minta: 1M-1NT, kulcs: DRURY_1M-1NT-NEGYES, ha: {ules: [1, 2]}, pont: 8-10, hossz: {M: 4+},
+      - {minta: 1M-1NT, kulcs: DRURY_1M-1NT-NEGYES, ha: {passzolt: igen}, pont: 8-10, hossz: {M: 4+},
          fedoutes: {M: 0-1.75}, prioritas: 57,
          magyarazat: "Passzolt lap: 4+ adu, 8-10, csak 1 fedőütés"}
-      - {minta: 1M-3M, kulcs: DRURY_1M-3M-NEGYES, ha: {ules: [1, 2]}, pont: 6-7, hossz: {M: 4+},
+      - {minta: 1M-3M, kulcs: DRURY_1M-3M-NEGYES, ha: {passzolt: igen}, pont: 6-7, hossz: {M: 4+},
          fedoutes: {M: 0-1.75}, prioritas: 57,
          magyarazat: "Passzolt lap: 4+ adu, 6-7, kizáró emelés"}

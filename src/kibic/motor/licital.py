@@ -384,6 +384,11 @@ class Licitmotor:
                            for j_ in d.jeloltek + d.merlegelendo):
             from .minta import zavartalan_menet
             zm = zavartalan_menet(licitek, ules)
+            if zm is not None and self._korabbi_versenyjelentes(licitek, ules, allas):
+                # a vonalunk egy korábbi licitjének a versenyhelyzetben SAJÁT
+                # jelentése volt (pl. 1♥ (X) 2♦ = természetes F1): a páros menet
+                # (ahol a 2♦ Drury volna) nem érvényes (a szerkesztő, 2026-11-12, #7)
+                zm = None
             if zm is not None:
                 from .propagal import definialo
                 def_verseny = definialo(self.szabalyok, elozmeny, elo_kotes,
@@ -465,6 +470,30 @@ class Licitmotor:
         return d
 
     # -- segédek --
+
+    def _korabbi_versenyjelentes(self, licitek, ules, allas) -> bool:
+        """Volt-e a vonalunknak az ellenfél akciója UTÁN olyan licitje,
+        amelyet a versenyhelyzetre írt saját sor definiál?"""
+        from ..domain import vonal
+        from .propagal import definialo
+        mienk = vonal(ules)
+        volt_ellen = False
+        for j, b in enumerate(licitek):
+            h = str(b.get("licit", "")).upper()
+            if vonal(b.get("ules")) != mienk:
+                if h not in ("P", "PASS"):
+                    volt_ellen = True
+                continue
+            if not volt_ellen or h in ("P", "PASS"):
+                continue
+            try:
+                _, el = kanonizal(licitek[:j], b["ules"])
+                if definialo(self.szabalyok, el, None, allas,
+                             self.ktx.parametertar)(h):
+                    return True
+            except Exception:          # noqa: BLE001
+                continue
+        return False
 
     @staticmethod
     def _elozmeny_illesztes(minta: Minta, elozmeny: list[Token],
