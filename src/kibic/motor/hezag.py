@@ -236,6 +236,13 @@ class Hezag:
         h = f"{kov[0]}{kov[1]}"
         return h if h in self.legalis else None
 
+    def termeszetes(self, szin: str) -> str | None:
+        """A legolcsóbb licit a színben, ha nálunk itt NEM mesterséges — a
+        lezárásnál (játszható felvétel keresése) csak ez jöhet szóba (a
+        szerkesztő, 2026-11-11, #23: passzolt lappal a 2♣ Drury)."""
+        h = self.legolcsobb(szin)
+        return None if h is None or self.mesterseges(h) else h
+
     def fogas(self, sz: str) -> bool:
         """Van-e fogásom a színben (A, Kx, Qxx, Jxxx)."""
         lapok = {l.ertek for l in self.kez.lapok if l.szin == sz}
@@ -876,7 +883,7 @@ class Hezag:
             # DD-mintavétellel, ha van rá idő (szimuláció): a passz (a mostani
             # felvétel marad) vagy a legolcsóbb javítás a játszható fitekbe
             if self.vegkontraktus is not None:
-                jeloltek = ["P"] + [h for h in (self.legolcsobb(m) for m in SZINEK
+                jeloltek = ["P"] + [h for h in (self.termeszetes(m) for m in SZINEK
                                                 if m != szin and self.fit(m) >= 7)
                                     if h and _gem_alatt(h)]
                 if len(jeloltek) > 1:
@@ -893,12 +900,7 @@ class Hezag:
             if jatszhato and not sokkal_jobb:
                 return HezagDontes("P", pont, indok + f" — a {utolso} játszható, passz")
             if fit is not None:
-                h = self.legolcsobb(fit)
-                if h and self.mesterseges(h):
-                    # a természetes javítás helyén mesterséges licit áll
-                    # (pl. passzolt lappal a 2♣ Drury; a szerkesztő, 2026-11-11)
-                    return HezagDontes("P", pont, indok + f" — a {h} nálunk mesterséges "
-                                                          f"(nem természetes javítás): passz")
+                h = self.termeszetes(fit)
                 if h:
                     return HezagDontes(h, pont, indok + f" — a {utolso} helyett a jobb fit: {h}")
             return HezagDontes("P", pont, indok + " — nincs jobb, passz")

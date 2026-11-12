@@ -87,3 +87,21 @@ def test_6nt_az_ures_kiraly_vedelmeben():
                        "auction": ["2S", "P", "2NT", "P", "3H", "P", "4NT", "P", "5D", "P"],
                        "system": "MOHA_STAND", "test_mode": True}, lambda k, p, t=None: (f.sorok, pt))
     assert v["call"] == "6NT"
+
+
+def test_hezag_dd_mintaval_sem_mesterseges():
+    # 2-es asztal #23 (2026-11-11): szimulációval (DD-minta) sem választ a
+    # hézag-elv mesterséges licitet (passzolt lappal a 2♣ Drury)
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND_ELV")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND_ELV"].parameterek))
+    v = licit_elemzes({"hand": _pbn("K42.97.J9.J98765"), "seat": "S", "dealer": "S",
+                       "vulnerability": "both", "auction": ["P", "P", "1H", "P"],
+                       "system": "MOHA_STAND_ELV", "test_mode": True, "simulate": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    assert v["call"] == "P"
