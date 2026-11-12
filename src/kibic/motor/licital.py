@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from ..domain import Kez
 from .feloldas import Sor
 from .kifejezes import Kontextus, kiertekel
-from .minta import (negyedik_kotes, alias_elozmenyek, aliasok_sorokbol, JELENTESEK, VALTOZOK, Minta, MintaHiba, Token, _szin_feloldas,
+from .minta import (zavartalan_menet, negyedik_kotes, alias_elozmenyek, aliasok_sorokbol, JELENTESEK, VALTOZOK, Minta, MintaHiba, Token, _szin_feloldas,
                     illeszkedik, kanonizal, minta_parse)
 
 MODOK = ("SORREND", "SPECIFIKUSSAG", "MERLEGELO")
@@ -488,11 +488,36 @@ class Licitmotor:
                 continue
             try:
                 _, el = kanonizal(licitek[:j], b["ules"])
-                if definialo(self.szabalyok, el, None, allas,
-                             self.ktx.parametertar)(h):
+                if not definialo(self.szabalyok, el, None, allas,
+                                 self.ktx.parametertar)(h):
+                    continue
+                # csak akkor zavar, ha a PÁROS menetben ugyanez a licit
+                # mesterséges (pl. a passzolt lap 2♦-je Drury): a természetes
+                # jelentés (1♣ (1♥) 1♠ = 1♣-1♠) nem tér el
+                zm_j = zavartalan_menet(licitek[:j], b["ules"])
+                if zm_j is not None and self._mesterseges_a_paros_menetben(zm_j[0], h, allas):
                     return True
             except Exception:          # noqa: BLE001
                 continue
+        return False
+
+    def _mesterseges_a_paros_menetben(self, elozmeny, hivas, allas) -> bool:
+        from .helyzet import kiertekel as helyzet_kiertekel
+        for minta, sor in self.szabalyok:
+            if not getattr(sor, "alert", None):
+                continue
+            tal = self._elozmeny_illesztes(minta, elozmeny, None)
+            if tal is None:
+                continue
+            from .propagal import Propagalo
+            k = Propagalo._licit_illik(minta.tokenek[-1], hivas, tal, elozmeny, allas)
+            if k is None:
+                continue
+            if sor.ha_feltetel is not None and helyzet_kiertekel(
+                    sor.ha_feltetel, allas, dict(k, _licit=hivas),
+                    self.ktx.parametertar) is False:
+                continue
+            return True
         return False
 
     @staticmethod
