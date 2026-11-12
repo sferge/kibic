@@ -63,6 +63,7 @@ fejezetek:
         fedoutes: {M: 2+}
         vagy: [{aszok: 1+}, {lapok: [SK]}, {lapok: [HK]}, {lapok: [DK]}, {lapok: [CK]}]
         prioritas: 59
+        jelentes: {csak_dontes: true}     # a partner továbbra is 6-10-et ért (a sáv nem tágul)
         magyarazat: "Egyszerű emelés 4-5 FP-vel: ász vagy király, 2 fedőütés, 3+ adu"
       - minta: 1M-2M
         kulcs: 1M-2M-NEGYES

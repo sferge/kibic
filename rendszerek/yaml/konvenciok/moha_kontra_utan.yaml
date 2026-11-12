@@ -7,8 +7,8 @@
 #   * 1M (X) 1NT: 6-10(11), nem kényszerít, de FOGÁST ígér a nem licitált
 #     nemesben; fogás nélkül 8+ ponttal rekontra, 6-7 ponttal passz;
 #   * passzolt lappal a Drury kontra után is él (2♣ 3 lapos, 2♦ 4+ lapos adu);
-#   * közbeszólás (2m) után: nem passzolt laptól a kontra negatív (8+, nem ígér
-#     nemes támogatást); passzolt laptól Drury (invit erő, támogatás: a (2♣)
+#   * közbeszólás (2m) után: nem passzolt laptól a kontra negatív (a
+#     NEGATIV_KONTRA szerint: 8+, nem ígér nemes támogatást); passzolt laptól Drury (invit erő, támogatás: a (2♣)
 #     után 3, a (2♦) után 4+ lap).
 rendszer:
   kod: MOHA_KONTRA_UTAN
@@ -44,10 +44,6 @@ fejezetek:
   - fejezet: "Kontra a minor közbeszólás után: (1M) (2m) X"
     szabalyok:
       - {minta: "1H (2C) X", kulcs: "1H-2C-X-DRURY", ha: {passzolt: igen}, pont: 10-12, hossz: {H: 3}, forsz: EGY_MENET, prioritas: 60, alert: "Drury kontrával: 10-12, 3 lapos adu"}
-      - {minta: "1H (2C) X", kulcs: "1H-2C-X-NEGATIV", ha: {passzolt: nem}, pont: 8+, prioritas: 55, alert: "Negatív kontra: 8+, nem ígér kőr támogatást"}
       - {minta: "1H (2D) X", kulcs: "1H-2D-X-DRURY", ha: {passzolt: igen}, pont: 10-12, hossz: {H: 4+}, forsz: EGY_MENET, prioritas: 60, alert: "Drury kontrával: 10-12, 4+ lapos adu"}
-      - {minta: "1H (2D) X", kulcs: "1H-2D-X-NEGATIV", ha: {passzolt: nem}, pont: 8+, prioritas: 55, alert: "Negatív kontra: 8+, nem ígér kőr támogatást"}
       - {minta: "1S (2C) X", kulcs: "1S-2C-X-DRURY", ha: {passzolt: igen}, pont: 10-12, hossz: {S: 3}, forsz: EGY_MENET, prioritas: 60, alert: "Drury kontrával: 10-12, 3 lapos adu"}
-      - {minta: "1S (2C) X", kulcs: "1S-2C-X-NEGATIV", ha: {passzolt: nem}, pont: 8+, prioritas: 55, alert: "Negatív kontra: 8+, nem ígér pikk támogatást"}
       - {minta: "1S (2D) X", kulcs: "1S-2D-X-DRURY", ha: {passzolt: igen}, pont: 10-12, hossz: {S: 4+}, forsz: EGY_MENET, prioritas: 60, alert: "Drury kontrával: 10-12, 4+ lapos adu"}
-      - {minta: "1S (2D) X", kulcs: "1S-2D-X-NEGATIV", ha: {passzolt: nem}, pont: 8+, prioritas: 55, alert: "Negatív kontra: 8+, nem ígér pikk támogatást"}

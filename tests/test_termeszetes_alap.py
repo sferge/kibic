@@ -190,7 +190,7 @@ def test_michaels_valaszok(kez, menet, ules, vart):
 # --- 2026-10-22: fogáskérés az ellenfél (kontrával ígért) színében ----------
 
 @pytest.mark.parametrize("kez, menet, ules, vart", [
-    ("T94.AJT96.A7.KT8", "P P 1H X 2D P", "E", "3S"),          # csak ígérték: ugró fogáskérés
+    ("T94.AJT96.A7.KT8", "P P 1H X 2D P", "E", "2H"),   # 2026-11-12: a passzolt lap 2♦-je kontra után is Drury          # csak ígérték: ugró fogáskérés
     ("Q652.K82.KQJ84.3", "P P 1H X 2D P 3S P", "W", "3NT"),    # fogással 3NT
     ("652.K82.KQJ84.A3", "P P 1H X 2D P 3S P", "W", "4D"),     # anélkül a közös fitbe
     ("KJ985.KJ2.A6.J53", "P P 1S 2C 3C P", "E", "4S"),         # a 3♣ itt emelés, nem fogáskérés
