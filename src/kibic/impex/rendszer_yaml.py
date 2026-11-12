@@ -321,6 +321,10 @@ _SAV_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)?\s*(?:(-)\s*(\d+(?:\.\d+)?)?|(\+))?\s
 # fele_a_szinben: az üres dáma/bubi leértékelése (színenként), 2026-10-05
 FELE_URES_LEVONAS = 0.5
 
+def _igen(v) -> bool:
+    return v is True or str(v).strip().lower() in ("igen", "true", "1", "yes")
+
+
 def sav(s) -> tuple[float | None, float | None]:
     """
     "15-17" -> (15, 17);  "12+" -> (12, None);  "0-7" -> (0, 7);
@@ -894,6 +898,11 @@ def _ha_fa(ha, hely: str) -> dict | None:
     for k, v in ha.items():
         if k == "ules":
             gy.append({"t": "ULES", "ertek": v if isinstance(v, list) else [v]})
+        elif k in ("passzolt", "partner_passzolt"):
+            # PASSZOS kéz (a szerkesztő, 2026-11-12): az első lehetőségén, még
+            # minden nyitás előtt passzolt (Drury-helyzet: a partner passzos)
+            gy.append({"t": "PASSZOLT", "ki": "en" if k == "passzolt" else "partner",
+                       "ertek": _igen(v)})
         elif k == "szkor":
             lista = v if isinstance(v, list) else [v]
             agak = [{"t": "SZKOR", "ertek": str(x)} for x in lista]
@@ -1066,6 +1075,10 @@ def _ha_szoveg(ha) -> str | None:
         if k == "ules":
             lista = v if isinstance(v, list) else [v]
             reszek.append("/".join(f"{x}." for x in lista) + " kézben")
+        elif k == "passzolt":
+            reszek.append("passzolt lappal" if _igen(v) else "nem passzolt lappal")
+        elif k == "partner_passzolt":
+            reszek.append("passzos partnertől" if _igen(v) else "nem passzos partnertől")
         elif k == "szkor":
             lista = v if isinstance(v, list) else [v]
             reszek.append("zóna: " + " vagy ".join(_ZONA_NEV.get(str(x), str(x))

@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from ..domain import Kez
 from .feloldas import Sor
 from .kifejezes import Kontextus, kiertekel
-from .minta import (negyedik_kotes, alias_elozmenyek, aliasok_sorokbol, JELENTESEK, VALTOZOK, Minta, MintaHiba, Token, _szin_feloldas,
+from .minta import (zavartalan_menet, negyedik_kotes, alias_elozmenyek, aliasok_sorokbol, JELENTESEK, VALTOZOK, Minta, MintaHiba, Token, _szin_feloldas,
                     illeszkedik, kanonizal, minta_parse)
 
 MODOK = ("SORREND", "SPECIFIKUSSAG", "MERLEGELO")
@@ -384,6 +384,11 @@ class Licitmotor:
                            for j_ in d.jeloltek + d.merlegelendo):
             from .minta import zavartalan_menet
             zm = zavartalan_menet(licitek, ules)
+            if zm is not None and self._korabbi_versenyjelentes(licitek, ules, allas):
+                # a vonalunk egy korábbi licitjének a versenyhelyzetben SAJÁT
+                # jelentése volt (pl. 1♥ (X) 2♦ = természetes F1): a páros menet
+                # (ahol a 2♦ Drury volna) nem érvényes (a szerkesztő, 2026-11-12, #7)
+                zm = None
             if zm is not None:
                 from .propagal import definialo
                 def_verseny = definialo(self.szabalyok, elozmeny, elo_kotes,
@@ -465,6 +470,55 @@ class Licitmotor:
         return d
 
     # -- segédek --
+
+    def _korabbi_versenyjelentes(self, licitek, ules, allas) -> bool:
+        """Volt-e a vonalunknak az ellenfél akciója UTÁN olyan licitje,
+        amelyet a versenyhelyzetre írt saját sor definiál?"""
+        from ..domain import vonal
+        from .propagal import definialo
+        mienk = vonal(ules)
+        volt_ellen = False
+        for j, b in enumerate(licitek):
+            h = str(b.get("licit", "")).upper()
+            if vonal(b.get("ules")) != mienk:
+                if h not in ("P", "PASS"):
+                    volt_ellen = True
+                continue
+            if not volt_ellen or h in ("P", "PASS"):
+                continue
+            try:
+                _, el = kanonizal(licitek[:j], b["ules"])
+                if not definialo(self.szabalyok, el, None, allas,
+                                 self.ktx.parametertar)(h):
+                    continue
+                # csak akkor zavar, ha a PÁROS menetben ugyanez a licit
+                # mesterséges (pl. a passzolt lap 2♦-je Drury): a természetes
+                # jelentés (1♣ (1♥) 1♠ = 1♣-1♠) nem tér el
+                zm_j = zavartalan_menet(licitek[:j], b["ules"])
+                if zm_j is not None and self._mesterseges_a_paros_menetben(zm_j[0], h, allas):
+                    return True
+            except Exception:          # noqa: BLE001
+                continue
+        return False
+
+    def _mesterseges_a_paros_menetben(self, elozmeny, hivas, allas) -> bool:
+        from .helyzet import kiertekel as helyzet_kiertekel
+        for minta, sor in self.szabalyok:
+            if not getattr(sor, "alert", None):
+                continue
+            tal = self._elozmeny_illesztes(minta, elozmeny, None)
+            if tal is None:
+                continue
+            from .propagal import Propagalo
+            k = Propagalo._licit_illik(minta.tokenek[-1], hivas, tal, elozmeny, allas)
+            if k is None:
+                continue
+            if sor.ha_feltetel is not None and helyzet_kiertekel(
+                    sor.ha_feltetel, allas, dict(k, _licit=hivas),
+                    self.ktx.parametertar) is False:
+                continue
+            return True
+        return False
 
     @staticmethod
     def _elozmeny_illesztes(minta: Minta, elozmeny: list[Token],

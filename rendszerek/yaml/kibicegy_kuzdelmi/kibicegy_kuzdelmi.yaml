@@ -95,9 +95,9 @@ fejezetek:
       - {minta: "1D (X) 2S", pont: "0-6", hossz: {"S": "6+"}, forsz: "KIZARO", prioritas: 49, magyarazat: "Ugró új szín: kizáró"}
       - {minta: "1H (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
       - {minta: "1H (X) 2H", pont: "6-9", hossz: {"H": "3"}, prioritas: 55, alert: "6-9, 3-as fit"}
-      - {minta: "1H (X) 2NT", pont: "13+", hossz: {"H": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
-      - {minta: "1H (X) 3C", pont: "7-9", hossz: {"H": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
-      - {minta: "1H (X) 3D", pont: "10-12", hossz: {"H": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
+      - {minta: "1H (X) 2NT", ha: {passzolt: nem}, pont: "13+", hossz: {"H": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
+      - {minta: "1H (X) 3C", ha: {passzolt: nem}, pont: "7-9", hossz: {"H": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
+      - {minta: "1H (X) 3D", ha: {passzolt: nem}, pont: "10-12", hossz: {"H": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
       - {minta: "1H (X) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 51, magyarazat: "Új szín: természetes, F1"}
       - {minta: "1H (X) 3C", pont: "0-6", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 46, magyarazat: "Ugró új szín: kizáró"}
       - {minta: "1H (X) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}
@@ -106,9 +106,9 @@ fejezetek:
       - {minta: "1H (X) 2S", pont: "0-6", hossz: {"S": "6+"}, forsz: "KIZARO", prioritas: 49, magyarazat: "Ugró új szín: kizáró"}
       - {minta: "1S (X) XX", pont: "10+", forsz: "EGY_MENET", prioritas: 50, alert: "Rekontra: két színt meg tud kontrázni, vagy invit+ 3-as fittel, vagy egyenletes gémforsz"}
       - {minta: "1S (X) 2S", pont: "6-9", hossz: {"S": "3"}, prioritas: 55, alert: "6-9, 3-as fit"}
-      - {minta: "1S (X) 2NT", pont: "13+", hossz: {"S": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
-      - {minta: "1S (X) 3C", pont: "7-9", hossz: {"S": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
-      - {minta: "1S (X) 3D", pont: "10-12", hossz: {"S": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
+      - {minta: "1S (X) 2NT", ha: {passzolt: nem}, pont: "13+", hossz: {"S": "4+"}, forsz: "GEMFORSZ", prioritas: 56, alert: "Jacoby 2NT (változatlan)"}
+      - {minta: "1S (X) 3C", ha: {passzolt: nem}, pont: "7-9", hossz: {"S": "4+"}, prioritas: 56, alert: "Gyenge Bergen (változatlan)"}
+      - {minta: "1S (X) 3D", ha: {passzolt: nem}, pont: "10-12", hossz: {"S": "4+"}, prioritas: 56, alert: "Erős Bergen (változatlan)"}
       - {minta: "1S (X) 2C", pont: "10+", hossz: {"C": "5+"}, forsz: "EGY_MENET", prioritas: 51, magyarazat: "Új szín: természetes, F1"}
       - {minta: "1S (X) 3C", pont: "0-6", hossz: {"C": "6+"}, forsz: "KIZARO", prioritas: 46, magyarazat: "Ugró új szín: kizáró"}
       - {minta: "1S (X) 2D", pont: "10+", hossz: {"D": "5+"}, forsz: "EGY_MENET", prioritas: 52, magyarazat: "Új szín: természetes, F1"}

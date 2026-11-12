@@ -24,21 +24,21 @@ rendszer:
 fejezetek:
   - fejezet: "1M – 2NT után a nyitó"
     szabalyok:
-      - {minta: 1M-2NT-3C, igeret: {pont: also}, forsz: GEMFORSZ, prioritas: 49,
+      - {minta: 1M-2NT-3C, ha: {partner_passzolt: nem}, igeret: {pont: also}, forsz: GEMFORSZ, prioritas: 49,
          alert: "Minimum (az ígért sáv alsó fele); a válaszoló rövidségét kérdezi"}
-      - {minta: 1M-2NT-3D, igeret: {pont: felso}, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
+      - {minta: 1M-2NT-3D, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
          alert: "Nem minimális, szingli káró"}
-      - {minta: 1M-2NT-3oM, igeret: {pont: felso}, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
+      - {minta: 1M-2NT-3oM, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
          alert: "Nem minimális, szingli a másik nemesben"}
-      - {minta: 1M-2NT-3NT, igeret: {pont: felso}, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
+      - {minta: 1M-2NT-3NT, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
          alert: "Nem minimális, szingli treff"}
-      - {minta: 1M-2NT-3M, igeret: {pont: felso}, hossz: {S: 2+, H: 2+, D: 2+, C: 2+},
+      - {minta: 1M-2NT-3M, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {S: 2+, H: 2+, D: 2+, C: 2+},
          forsz: GEMFORSZ, prioritas: 50, alert: "Nem minimális, nincs rövidség: szleminvit"}
-      - {minta: 1M-2NT-4C, igeret: {pont: felso}, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 54,
+      - {minta: 1M-2NT-4C, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 54,
          alert: "Nem minimális, sikén treff"}
-      - {minta: 1M-2NT-4D, igeret: {pont: felso}, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 54,
+      - {minta: 1M-2NT-4D, ha: {partner_passzolt: nem}, igeret: {pont: felso}, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 54,
          alert: "Nem minimális, sikén káró"}
-      - {minta: 1M-2NT-4M, igeret: {pont: also}, elosztas: BAL, prioritas: 50,
+      - {minta: 1M-2NT-4M, ha: {partner_passzolt: nem}, igeret: {pont: also}, elosztas: BAL, prioritas: 50,
          magyarazat: "Minimum, egyenletes: leállás"}
 
   - fejezet: "1M – 2NT – 3♣ után: a 3♦ rövidségkérdés"
@@ -56,27 +56,28 @@ fejezetek:
       (16+ FP az 1M-2NT után).
     szabalyok:
       - minta: 1M-2NT-3C-3D
+        ha: {partner_passzolt: nem}
         vagy:
           - {maradek_vesztok: 4-4.5}
           - {pont: 16+}
         forsz: GEMFORSZ
         prioritas: 52
         alert: "Gémforsz; az induló rövidségét kérdezi (nincs rövidség: 4M)"
-      - {minta: 1M-2NT-3C-3D-3M, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
+      - {minta: 1M-2NT-3C-3D-3M, ha: {partner_passzolt: nem}, hossz: {D: 1}, forsz: GEMFORSZ, prioritas: 53,
          alert: "Szingli káró"}
-      - {minta: 1M-2NT-3C-3D-3oM, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
+      - {minta: 1M-2NT-3C-3D-3oM, ha: {partner_passzolt: nem}, hossz: {oM: 1}, forsz: GEMFORSZ, prioritas: 52,
          alert: "Szingli a másik nemesben"}
       - {minta: 1H-2NT-3C-3D-3S, hossz: {S: 0}, forsz: GEMFORSZ, prioritas: 54,
          alert: "Sikén pikk (kőr adunál a 4♥ a 'nincs rövidség')"}
-      - {minta: 1M-2NT-3C-3D-3NT, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
+      - {minta: 1M-2NT-3C-3D-3NT, ha: {partner_passzolt: nem}, hossz: {C: 1}, forsz: GEMFORSZ, prioritas: 51,
          alert: "Szingli treff"}
-      - {minta: 1M-2NT-3C-3D-4C, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 55,
+      - {minta: 1M-2NT-3C-3D-4C, ha: {partner_passzolt: nem}, hossz: {C: 0}, forsz: GEMFORSZ, prioritas: 55,
          alert: "Sikén treff"}
-      - {minta: 1M-2NT-3C-3D-4D, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 55,
+      - {minta: 1M-2NT-3C-3D-4D, ha: {partner_passzolt: nem}, hossz: {D: 0}, forsz: GEMFORSZ, prioritas: 55,
          alert: "Sikén káró"}
       - {minta: 1S-2NT-3C-3D-4H, hossz: {H: 0}, forsz: GEMFORSZ, prioritas: 54,   # két sikénnel az alsó
          alert: "Sikén kőr"}
-      - {minta: 1M-2NT-3C-3D-4M, hossz: {S: 2+, H: 2+, D: 2+, C: 2+}, prioritas: 50,
+      - {minta: 1M-2NT-3C-3D-4M, ha: {partner_passzolt: nem}, hossz: {S: 2+, H: 2+, D: 2+, C: 2+}, prioritas: 50,
          alert: "Nincs rövidség"}
 
   - fejezet: "2M – 2NT (módosított Jacoby)"

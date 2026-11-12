@@ -281,6 +281,17 @@ class Allas:
             return len(self.licitek) % 4 + 1
         return (ULESEK.index(self.ules) - ULESEK.index(self.oszto)) % 4 + 1
 
+    def passzolt(self, u: str) -> bool:
+        """PASSZOS-e az ülés: az első licitje passz volt, és előtte mindenki
+        passzolt (az első lehetőségén, minden nyitás előtt passzolt)."""
+        for elem in self.licitek:
+            licit = str(elem.get("licit", "")).upper()
+            if elem.get("ules") == u:
+                return licit in ("P", "PASS")
+            if licit not in ("P", "PASS"):
+                return False
+        return False
+
     @property
     def szint(self) -> int:
         """A pillanatnyi licitszint (0, ha még nem licitált senki)."""
@@ -696,6 +707,10 @@ def kiertekel(csp: dict, allas: Allas,
         ertek = csp["ertek"]
         lista = ertek if isinstance(ertek, list) else [ertek]
         return allas.ules_szam in [int(x) for x in lista]
+
+    if t == "PASSZOLT":
+        u = allas.ules if csp.get("ki") == "en" else allas.partner
+        return allas.passzolt(u) == bool(csp.get("ertek", True))
 
     if t == "SZKOR":
         return _szkorhelyzet(allas) == csp["ertek"]
@@ -1360,6 +1375,9 @@ def leiras(csp: dict) -> str:
     if t == "ULES":
         e = csp["ertek"]
         return f"{e if not isinstance(e, list) else '/'.join(map(str, e))}. ülés"
+    if t == "PASSZOLT":
+        ki = "passzolt lappal" if csp.get("ki") == "en" else "passzos partnertől"
+        return ki if csp.get("ertek", True) else "nem " + ki
     if t == "SZKOR":
         return {"M": "mindkét vonal beliben", "A": "senki nincs beliben",
                 "S": "csak mi vagyunk beliben",

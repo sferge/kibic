@@ -53,6 +53,18 @@ fejezetek:
         fedoutes: {M: 2-3.75}
         prioritas: 60
         magyarazat: "Egyszerű emelés: 3-as adu, 6-10 asztali pont, 2-3 fedőütés"
+      # kivétel a válaszerő alól (a szerkesztő, 2026-11-12): 4-5 FP ász vagy
+      # király mellett, 2 konstruktív fedőütéssel és 3+ adutámogatással
+      # (pl. 1♠-re Axx.x.xxxxx.xxxx: 2♠)
+      - minta: 1M-2M
+        kulcs: 1M-2M-FEDO
+        pont: "4-5"
+        hossz: {M: 3+}
+        fedoutes: {M: 2+}
+        vagy: [{aszok: 1+}, {lapok: [SK]}, {lapok: [HK]}, {lapok: [DK]}, {lapok: [CK]}]
+        prioritas: 59
+        jelentes: {csak_dontes: true}     # a partner továbbra is 6-10-et ért (a sáv nem tágul)
+        magyarazat: "Egyszerű emelés 4-5 FP-vel: ász vagy király, 2 fedőütés, 3+ adu"
       - minta: 1M-2M
         kulcs: 1M-2M-NEGYES
         ap: "(5)6(7)"

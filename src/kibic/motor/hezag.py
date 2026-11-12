@@ -71,6 +71,10 @@ class HezagDontes:
     indok: str
 
 
+# a válaszerő alsó határa (FP): ez alatt a partner nyitására nem „javítunk”
+VALASZERO = 6
+
+
 def _hcp(kez) -> int:
     return sum(_HCP.get(l.ertek, 0) for l in kez.lapok)
 
@@ -162,6 +166,10 @@ class Hezag:
         except Exception:          # noqa: BLE001
             return False
         return any(getattr(s_, "alert", False) for s_, _ in sorok)
+
+    def _sajat_licitjei(self) -> int:
+        return sum(1 for e in self.licitek if e.get("ules") == self.ules
+                   and str(e.get("licit", "")).upper() not in ("P", "PASS"))
 
     def _partner_licitjei(self) -> int:
         return sum(1 for e in self.licitek if e.get("ules") == self.partner
@@ -878,6 +886,11 @@ class Hezag:
         ki_mondta, utolso = self.utolso_licit()
         fit = self.legjobb_fit()
         mienk = ki_mondta is not None and vonal(ki_mondta) == vonal(self.ules)
+        if mienk and not kenyszer and ki_mondta == self.partner and self._partner_licitjei() == 1 \
+                and self._sajat_licitjei() == 0 and self.sajat() < VALASZERO:
+            # a partner nyitására válaszerő (6 FP) alatt nem javítunk: passz
+            # (a szerkesztő, 2026-11-12, 2-es asztal #23)
+            return HezagDontes("P", pont, indok + f" — válaszerő ({VALASZERO} FP) alatt passz")
         if mienk and not kenyszer:
             szin = _bont(utolso)[1]
             # DD-mintavétellel, ha van rá idő (szimuláció): a passz (a mostani
