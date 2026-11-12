@@ -126,3 +126,20 @@ def test_drury_helyzet_passzolt_lap(kez, nyitas, vart):
                            "system": "MOHA_STAND_ELV", "test_mode": True, "simulate": sim},
                           lambda k, p, t=None: (f.sorok, pt))
         assert v["call"] == vart, (sim, v["explanation"])
+
+
+def test_valaszero_alatt_emeles_fedoutessel():
+    # 1♠-re Axx.x.xxxxx.xxxx: 2♠ (4 FP, ász, 2 fedőütés, 3 adu; 2026-11-12)
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND_ELV")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND_ELV"].parameterek))
+    v = licit_elemzes({"hand": _pbn("A32.4.76532.5432"), "seat": "S", "dealer": "N",
+                       "vulnerability": "none", "auction": ["1S", "P"],
+                       "system": "MOHA_STAND_ELV", "test_mode": True},
+                      lambda k, p, t=None: (f.sorok, pt))
+    assert v["call"] == "2S", v["explanation"]

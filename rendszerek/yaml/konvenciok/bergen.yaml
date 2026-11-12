@@ -8,12 +8,14 @@ rendszer:
 fejezetek:
   - fejezet: Bergen
     szabalyok:
-      - {minta: 1M-3C, pont: 7-9, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
+      # csak „normál” helyzetben: a válaszoló nem passzolt (3./4. ülés); passzolt
+      # lappal a Drury él (a szerkesztő, 2026-11-12)
+      - {minta: 1M-3C, ha: {ules: [3, 4]}, pont: 7-9, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
          alert: "Gyenge Bergen: 7-10 FP, 4+ adu", nyers: "3♣ | Gyenge Bergen (utána új szín, invit)"}
-      - {minta: 1M-3D, pont: 10-12, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
+      - {minta: 1M-3D, ha: {ules: [3, 4]}, pont: 10-12, hossz: {M: 4+}, forsz: EGY_MENET, prioritas: 59,
          alert: "Erős Bergen: 10-12 FP, 4+ adu", nyers: "3♦ | Erős Bergen (utána új szín, invit)"}
       # a nyitó (kieg.)
-      - {minta: 1M-3C-3M, pont: 12-14, prioritas: 50, magyarazat: "Leállás"}
-      - {minta: 1M-3C-4M, pont: 15+, prioritas: 51, magyarazat: "Gém"}
-      - {minta: 1M-3D-3M, pont: 12-13, prioritas: 50, magyarazat: "Leállás"}
-      - {minta: 1M-3D-4M, pont: 14+, prioritas: 51, magyarazat: "Gém"}
+      - {minta: 1M-3C-3M, ha: {ules: [1, 2]}, pont: 12-14, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1M-3C-4M, ha: {ules: [1, 2]}, pont: 15+, prioritas: 51, magyarazat: "Gém"}
+      - {minta: 1M-3D-3M, ha: {ules: [1, 2]}, pont: 12-13, prioritas: 50, magyarazat: "Leállás"}
+      - {minta: 1M-3D-4M, ha: {ules: [1, 2]}, pont: 14+, prioritas: 51, magyarazat: "Gém"}
