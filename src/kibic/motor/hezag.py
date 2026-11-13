@@ -201,10 +201,11 @@ class Hezag:
                 or self.kez.hossz(sz) >= 6)
 
     def lezaro_pont(self, sz: str, szint_most: int, szin_most: str) -> float:
-        """Szimuláció nélküli összevetés a lezáráshoz: a biztos közös lapszám,
+        """Szimuláció nélküli összevetés a lezáráshoz: a (mondott színben
+        valószínű) közös lapszám,
         −1 ha egy szinttel magasabban kell játszani, gyenge lapnál +1 az 5+
         lapos színért (az 5-2 jobb a 4-3-nál, sőt a 4-4-nél is)."""
-        pont_ = float(self.biztos_fit(sz))
+        pont_ = float(self.fit(sz))
         if szin_most in _RANG and _RANG[sz] < _RANG[szin_most]:
             pont_ -= 1
         if self.sajat() < INVITERO and max(self.kez.hossz(sz), self.p.hossz(sz)[0]) >= 5:
@@ -918,7 +919,7 @@ class Hezag:
             if self.vegkontraktus is not None:
                 jeloltek = ["P"] + [h for h in (self.termeszetes(m) for m in SZINEK
                                                 if m != szin and self.mondott(m)
-                                                and (self.biztos_fit(m) >= 7 or self.kez.hossz(m) >= 6))
+                                                and (self.fit(m) >= 7 or self.kez.hossz(m) >= 6))
                                     if h and _gem_alatt(h)]
                 if len(jeloltek) > 1:
                     try:
@@ -932,7 +933,7 @@ class Hezag:
             # csak „mondott” színbe, a szintet és az 5-2 előnyét is számolva
             szint_most = _bont(utolso)[0]
             jeloltek_ = [m for m in SZINEK if m != szin and self.mondott(m)
-                         and (self.biztos_fit(m) >= 7 or self.kez.hossz(m) >= 6)]
+                         and (self.fit(m) >= 7 or self.kez.hossz(m) >= 6)]
             fit = max(jeloltek_, key=lambda m: (self.lezaro_pont(m, szint_most, szin),
                                                 m in NEMES, _RANG[m]), default=None)
             mostani = self.lezaro_pont(szin, szint_most, szin) if szin in _RANG else 7
