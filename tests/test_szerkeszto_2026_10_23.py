@@ -21,7 +21,7 @@ def _h(f, kez, menet, oszto="N"):
 @pytest.mark.parametrize("kez, menet, oszto, vart", [
     ("7.AKQ984.AJ5.K65", "P 1D P 1H P 1S P 2C P 2NT P", "N", "3H"),   # #48: nem a 4♦ ORKC; lassan
     ("KJT.QT7.AQJ952.8", "P P 1D P 1S P 2D P 2NT P", "S", "3NT"),     # #138: nem splinter
-    ("7.AQ9653.AT4.AJ2", "P 1H P 1NT P", "N", "P"),                    # #254: 3 lappal nem új szín
+    ("7.AQ9653.AT4.AJ2", "P 1H P 1NT P", "N", "2H"),                   # #254: 3 lappal nem új szín; 6 kőrrel 2♥ (2026-11-13: az 1NT-t csak egyenletes minimum passzolja)
 ])
 def test_hezag_nem_valaszt_alertos_licitet(kibic_stand, kez, menet, oszto, vart):
     assert _h(kibic_stand, kez, menet, oszto) == vart

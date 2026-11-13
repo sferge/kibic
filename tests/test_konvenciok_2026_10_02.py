@@ -300,9 +300,11 @@ def test_splinter_elv_es_nincs_alert_3nt_folott(betolto):
 
 
 def test_junk_stayman_3m_nem_fogadja(betolto):
+    # 2026-11-13: a hézag-elv csak MONDOTT színbe javít; a 2♦ itt tagadás
+    # (nem káró), így a nyitó nem „javít” káróra
     v = _licit(betolto, "K2.Q32.AQJ32.K32",
                ["1NT", "P", "2C", "P", "2D", "P", "2S", "P"], "N")
-    assert v["call"] == "3D"
+    assert v["call"] != "3D"
 
 
 # --- délután: negyedik szín, gémesély, Walsh egyenetlen, Junk 3♥ ---------
