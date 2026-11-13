@@ -42,11 +42,36 @@ fejezetek:
       ELV: a helyzetet a `ha: {splinter: true}` dönti el (motor/helyzet.py),
       nem egy konkrét menet; konkrét szabály előtte jár.
     szabalyok:
-      - {minta: ".. 3B", kulcs: SPL-ELV-3, fajta: ELV, prioritas: 6,
+      # a szingli ász nem szingli (a szerkesztő, 2026-11-13): színenként, `nincs: [xA]`
+      - {minta: ".. 3C", kulcs: SPL-ELV-3-C, fajta: ELV, prioritas: 6,
          ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
-         hossz: {B: 0-1}, forsz: GEMFORSZ,
+         hossz: {C: 0-1}, nincs: [CA], forsz: GEMFORSZ,
          alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
-      - {minta: ".. 4B", kulcs: SPL-ELV-4, fajta: ELV, prioritas: 6,
+      - {minta: ".. 3D", kulcs: SPL-ELV-3-D, fajta: ELV, prioritas: 6,
          ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
-         hossz: {B: 0-1}, forsz: GEMFORSZ,
+         hossz: {D: 0-1}, nincs: [DA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 3H", kulcs: SPL-ELV-3-H, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {H: 0-1}, nincs: [HA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 3S", kulcs: SPL-ELV-3-S, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {S: 0-1}, nincs: [SA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 4C", kulcs: SPL-ELV-4-C, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {C: 0-1}, nincs: [CA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 4D", kulcs: SPL-ELV-4-D, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {D: 0-1}, nincs: [DA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 4H", kulcs: SPL-ELV-4-H, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {H: 0-1}, nincs: [HA], forsz: GEMFORSZ,
+         alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}
+      - {minta: ".. 4S", kulcs: SPL-ELV-4-S, fajta: ELV, prioritas: 6,
+         ha: {splinter: true}, splinter_tamogatas: true, osszesen: {ap_biztos: 25+},
+         hossz: {S: 0-1}, nincs: [SA], forsz: GEMFORSZ,
          alert: "Splinter: szingli/sikén ebben a színben, és fit a partner nemesében"}

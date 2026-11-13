@@ -73,6 +73,8 @@ class HezagDontes:
 
 # a válaszerő alsó határa (FP): ez alatt a partner nyitására nem „javítunk”
 VALASZERO = 6
+# az invit erő alja (FP): ez alatt „gyenge” a lap a lezárásnál
+INVITERO = 10
 
 
 def _hcp(kez) -> int:
@@ -190,6 +192,24 @@ class Hezag:
 
     def biztos_fit(self, sz: str) -> int:
         return self.kez.hossz(sz) + self.p.hossz(sz)[0]
+
+    def mondott(self, sz: str) -> bool:
+        """„Mondott” szín (a szerkesztő, 2026-11-13): a partner vagy én (egy-
+        vagy kétszínű licittel) tudottan 4+ lapot ígértünk benne, vagy nálam
+        6+ lap van (a saját 6 lapos szín passzkérő). A „sejthető” szín nem."""
+        return (self.p.hossz(sz)[0] >= 4 or self.tar[self.ules].hossz(sz)[0] >= 4
+                or self.kez.hossz(sz) >= 6)
+
+    def lezaro_pont(self, sz: str, szint_most: int, szin_most: str) -> float:
+        """Szimuláció nélküli összevetés a lezáráshoz: a biztos közös lapszám,
+        −1 ha egy szinttel magasabban kell játszani, gyenge lapnál +1 az 5+
+        lapos színért (az 5-2 jobb a 4-3-nál, sőt a 4-4-nél is)."""
+        pont_ = float(self.biztos_fit(sz))
+        if szin_most in _RANG and _RANG[sz] < _RANG[szin_most]:
+            pont_ -= 1
+        if self.sajat() < INVITERO and max(self.kez.hossz(sz), self.p.hossz(sz)[0]) >= 5:
+            pont_ += 1
+        return pont_
 
     def legjobb_fit(self) -> str | None:
         jelolt = [(self.fit(sz), sz in NEMES, _RANG[sz], sz) for sz in SZINEK]
@@ -897,7 +917,8 @@ class Hezag:
             # felvétel marad) vagy a legolcsóbb javítás a játszható fitekbe
             if self.vegkontraktus is not None:
                 jeloltek = ["P"] + [h for h in (self.termeszetes(m) for m in SZINEK
-                                                if m != szin and self.fit(m) >= 7)
+                                                if m != szin and self.mondott(m)
+                                                and (self.biztos_fit(m) >= 7 or self.kez.hossz(m) >= 6))
                                     if h and _gem_alatt(h)]
                 if len(jeloltek) > 1:
                     try:
@@ -908,11 +929,18 @@ class Hezag:
                         return HezagDontes(r["best"], pont, indok + f" — DD-minta ({r.get('samples')} "
                                                                     f"leosztás): {r.get('options')}")
             jatszhato = self.jatszhato(szin)
-            sokkal_jobb = fit is not None and fit != szin and \
-                self.fit(fit) >= (self.fit(szin) if szin != "NT" else 7) + 2
+            # csak „mondott” színbe, a szintet és az 5-2 előnyét is számolva
+            szint_most = _bont(utolso)[0]
+            jeloltek_ = [m for m in SZINEK if m != szin and self.mondott(m)
+                         and (self.biztos_fit(m) >= 7 or self.kez.hossz(m) >= 6)]
+            fit = max(jeloltek_, key=lambda m: (self.lezaro_pont(m, szint_most, szin),
+                                                m in NEMES, _RANG[m]), default=None)
+            mostani = self.lezaro_pont(szin, szint_most, szin) if szin in _RANG else 7
+            sokkal_jobb = fit is not None and \
+                self.lezaro_pont(fit, szint_most, szin) > mostani
             if jatszhato and not sokkal_jobb:
                 return HezagDontes("P", pont, indok + f" — a {utolso} játszható, passz")
-            if fit is not None:
+            if fit is not None and sokkal_jobb:
                 h = self.termeszetes(fit)
                 if h:
                     return HezagDontes(h, pont, indok + f" — a {utolso} helyett a jobb fit: {h}")
