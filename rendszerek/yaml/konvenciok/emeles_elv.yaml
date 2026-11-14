@@ -19,7 +19,13 @@ rendszer:
 fejezetek:
   - fejezet: Emelés
     szabalyok:
-      - {minta: ".. nA", kulcs: EMELES-5, fajta: ELV, ha: {partner_szin: {A: 5}},
+      # PREFERENCIA (a szerkesztő, 2026-11-13, MB őszi kupa 9/4): a partner két
+      # színt mondott, és a korábbira térünk vissza a legolcsóbb szinten — ez
+      # választás (2+ lap, a leggyengébb válasz), nem emelés: 1♥-1NT-2♣-2♥
+      - {minta: ".. nA", kulcs: EMELES-PREFERENCIA, fajta: ELV, ha: {preferencia: true},
+         hossz: {A: 2+}, jelentes: {tartalek: true}, prioritas: 2,
+         magyarazat: "Preferencia: 2+ lap a partner korábbi színében, nem ígér erőt"}
+      - {minta: ".. nA", kulcs: EMELES-5, fajta: ELV, ha: {partner_szin: {A: 5}, preferencia: false},
          hossz: {A: 3+}, jelentes: {tartalek: true}, prioritas: 1, magyarazat: "Emelés: 3+ lapos támogatás"}
-      - {minta: ".. nA", kulcs: EMELES-4, fajta: ELV, ha: {partner_szin: A},
+      - {minta: ".. nA", kulcs: EMELES-4, fajta: ELV, ha: {partner_szin: A, preferencia: false},
          hossz: {A: 4+}, jelentes: {tartalek: true}, prioritas: 1, magyarazat: "Emelés: 4+ lapos támogatás"}

@@ -926,6 +926,9 @@ def _ha_fa(ha, hely: str) -> dict | None:
         elif k == "en_nyilatkoztam":       # licitáltam-e már (nem passzt)
             n = {"t": "NYILATKOZOTT", "ki": "en"}
             gy.append(n if v else {"t": "NEM", "gy": [n]})
+        elif k == "preferencia":           # visszatérés a partner KORÁBBI színére (2026-11-13)
+            n = {"t": "PREFERENCIA"}
+            gy.append(n if _igen(v) else {"t": "NEM", "gy": [n]})
         elif k == "partner_szin":          # a partner 4+ (vagy {A: 5}: 5+) lapot ígért
             parok = v.items() if isinstance(v, dict) else [(v, 4)]
             for sz_, db in parok:
@@ -1098,6 +1101,8 @@ def _ha_szoveg(ha) -> str | None:
             reszek.append("a partner géminvitet adott" if v else "a partner nem invitált")
         elif k == "en_nyilatkoztam":
             reszek.append("már licitáltam" if v else "még nem licitáltam")
+        elif k == "preferencia":
+            reszek.append("preferencia a partner korábbi színére" if _igen(v) else "nem preferencia")
         elif k == "partner_szin":
             parok = v.items() if isinstance(v, dict) else [(v, 4)]
             reszek += [f"a partner {db}+ lapot ígért: {_SZIN_MAGYAR.get(str(sz_), '{'+str(sz_)+'}')}"

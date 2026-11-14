@@ -34,6 +34,8 @@ fejezetek:
   - fejezet: Válasz az 1M nyitásra
     szabalyok:
       - minta: 1M-1NT
+        ha: {passzolt: nem}
+        alert: "Kvázi kényszerítő 1NT: 6-10(11) FP; a nyitó minimummal, egyenletes lappal passzolhat"
         pont: "6-10(11)"
         vagy:
           - {hossz: {M: 0-2}}

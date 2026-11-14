@@ -191,3 +191,24 @@ def test_moha_kontra_utan(kez, menet, vart):
                        "auction": menet, "system": "MOHA_STAND", "test_mode": True},
                       lambda k, p, t=None: (f.sorok, pt))
     assert v["call"] == vart, v["explanation"]
+
+
+@pytest.mark.parametrize("kez, ules, menet, vart", [
+    # MB őszi kupa 9/4 (2026-11-13): 1♥-1NT-2♣-2♥ preferencia, a nyitó 4 vesztővel 4♥
+    ("Q92.54.Q9643.A95", "W", ["P", "P", "1H", "P", "1NT", "P", "2C", "P"], "2H"),
+    ("J4.AQT863.A.KQ43", "E", ["P", "P", "1H", "P", "1NT", "P", "2C", "P", "2H", "P"], "4H"),
+])
+def test_moha_1m_1nt_folytatas(kez, ules, menet, vart):
+    from pathlib import Path
+    from kibic.impex.rendszer_yaml import betolt
+    from kibic.motor.kriterium import Parametertar
+    from kibic.motor.rendszercheck import feloldas_forrasokbol
+    from kibic.szolgaltatas.licit import licit_elemzes
+    g = betolt([Path(__file__).resolve().parents[1] / "rendszerek" / "yaml"])
+    f, _ = feloldas_forrasokbol(g, "MOHA_STAND_ELV")
+    pt = Parametertar(rendszer_ertek=dict(g["MOHA_STAND_ELV"].parameterek))
+    for sim in (False, True):
+        v = licit_elemzes({"hand": _pbn(kez), "seat": ules, "dealer": "W", "vulnerability": "both",
+                           "auction": menet, "system": "MOHA_STAND_ELV", "test_mode": True,
+                           "simulate": sim}, lambda k, p, t=None: (f.sorok, pt))
+        assert v["call"] == vart, (sim, v["explanation"])

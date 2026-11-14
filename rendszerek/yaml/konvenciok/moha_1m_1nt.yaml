@@ -1,0 +1,82 @@
+# MOHA_1M_1NT — az 1M-1NT folytatásai a Moha-kör szerint (a szerkesztő,
+# 2026-11-13, MB őszi kupa 9/4). Generálva: scratchpad gen/m1nt.py.
+#
+#   1M-1NT        kvázi kényszerítő (alert), az 1./2. kézbeli nyitásra is;
+#                 passzos partnertől nem kényszerít, legfeljebb 10 FP.
+#                 A nyitó minimummal (14, rossz 15) és egyenletes lappal passzolhat.
+#   1M-1NT-2x     (x alacsonyabb, mint M): nem többleterő, csak egyenetlen,
+#                 kétszínű lap.
+#   1M-1NT-2x-?   ugrás nélküli saját szín: nem invit (6+ lap, gyenge);
+#                 2M: leállás (2 lap, vagy 3 lap legfeljebb 1 fedőütéssel —
+#                 az 1M-2M kettőt ígér); 2NT és az x emelése: invit.
+#                 (Az 1M-1NT-2x-3M nincs: ellentmondana az 1M-2M-nek.)
+#   1M-1NT-2x-2M-3M  invit 6 lapos M-mel, (15)16 FP, 5 vesztő; a partner 2
+#                 fedőütéssel (ász, király, DB) gémet mond. 4 vesztővel a nyitó
+#                 egyenesen 4M.
+rendszer:
+  kod: MOHA_1M_1NT
+  nev: 1M-1NT folytatások (Moha)
+  nev_en: 1M-1NT continuations (Moha)
+  fajta: KONVENCIO
+  leiras: "1M-1NT kvázi kényszerítő; a nyitó minimummal egyenletes lappal passzolhat; 1M-1NT-2x kétszínű, nem erő; a válaszoló 2M-je leállás, a saját színe nem invit, 2NT / az x emelése invit; 1M-1NT-2x-2M-3M invit."
+fejezetek:
+  - fejezet: "1M-1NT"
+    szabalyok:
+      - {minta: 1H-1NT, kulcs: MOHA-1H-1NT-PASSZOS, ha: {passzolt: true}, pont: 6-10, vagy: [{hossz: {H: 0-2}}, {hossz: {H: '3'}, fedoutes: {H: 0-1.75}}], forsz: NEM, prioritas: 41, magyarazat: 'Passzolt lap: 6-10 FP, nem kényszerít'}
+      - {minta: 1H-1NT-P, kulcs: MOHA-1H-1NT-P, ha: {partner_passzolt: false}, vagy: [{pont: 0-14}, {pont: '15', minoseg: rossz}], elosztas: BAL, prioritas: 49, magyarazat: 'Minimum (14, rossz 15), egyenletes lap: passz'}
+      - {minta: 1H-1NT-2C, kulcs: 1M-1NT-2C, pont: 12-17, hossz: {C: 4+}, rel: [C>=D], elosztas: NEM_BAL, prioritas: 51, magyarazat: 'Kétszínű, egyenetlen lap (4+ treff), nem ígér többleterőt'}
+      - {minta: 1H-1NT-2D, kulcs: 1M-1NT-2D, pont: 12-17, hossz: {D: 4+}, rel: [D>C], elosztas: NEM_BAL, prioritas: 51, magyarazat: 'Kétszínű, egyenetlen lap (4+ káró), nem ígér többleterőt'}
+      - {minta: 1S-1NT, kulcs: MOHA-1S-1NT-PASSZOS, ha: {passzolt: true}, pont: 6-10, vagy: [{hossz: {S: 0-2}}, {hossz: {S: '3'}, fedoutes: {S: 0-1.75}}], forsz: NEM, prioritas: 41, magyarazat: 'Passzolt lap: 6-10 FP, nem kényszerít'}
+      - {minta: 1S-1NT-P, kulcs: MOHA-1S-1NT-P, ha: {partner_passzolt: false}, vagy: [{pont: 0-14}, {pont: '15', minoseg: rossz}], elosztas: BAL, prioritas: 49, magyarazat: 'Minimum (14, rossz 15), egyenletes lap: passz'}
+      - {minta: 1S-1NT-2C, kulcs: 1M-1NT-2C, pont: 12-17, hossz: {C: 4+}, rel: [C>=D], elosztas: NEM_BAL, prioritas: 51, magyarazat: 'Kétszínű, egyenetlen lap (4+ treff), nem ígér többleterőt'}
+      - {minta: 1S-1NT-2D, kulcs: 1M-1NT-2D, pont: 12-17, hossz: {D: 4+}, rel: [D>C], elosztas: NEM_BAL, prioritas: 51, magyarazat: 'Kétszínű, egyenetlen lap (4+ káró), nem ígér többleterőt'}
+      - {minta: 1S-1NT-2H, kulcs: MOHA-1S-1NT-2H, pont: 12-17, hossz: {H: 4+}, elosztas: NEM_BAL, prioritas: 51, magyarazat: 'Kétszínű, egyenetlen lap (4+ kőr), nem ígér többleterőt'}
+  - fejezet: "A válaszoló az 1M-1NT-2x után"
+    szabalyok:
+      - {minta: 1H-1NT-2C-2H, kulcs: MOHA-1H-1NT-2C-2H, vagy: [{hossz: {H: '2'}}, {hossz: {H: '3'}, fedoutes: {H: 0-1.75}}], pont: 0-10, prioritas: 52, magyarazat: 'Leállás: 2 kőr, vagy 3 legfeljebb 1 fedőütéssel (preferencia)'}
+      - {minta: 1H-1NT-2C-2NT, kulcs: MOHA-1H-1NT-2C-2NT, pont: 10-11, hossz: {H: 0-2}, prioritas: 53, magyarazat: 'Invit: 10-11 FP'}
+      - {minta: 1H-1NT-2C-3C, kulcs: MOHA-1H-1NT-2C-3C, pont: 9-11, hossz: {C: 4+, H: 0-2}, prioritas: 54, magyarazat: 'Invit: 4+ treff, 9-11 FP'}
+      - {minta: 1H-1NT-2C-2D, kulcs: MOHA-1H-1NT-2C-2D, pont: 0-10, hossz: {D: 6+, H: 0-2, C: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ káró, gyenge (nem invit)'}
+      - {minta: 1H-1NT-2C-2S, kulcs: MOHA-1H-1NT-2C-2S, pont: 0-10, hossz: {S: 6+, H: 0-2, C: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ pikk, gyenge (nem invit)'}
+      - {minta: 1H-1NT-2D-2H, kulcs: MOHA-1H-1NT-2D-2H, vagy: [{hossz: {H: '2'}}, {hossz: {H: '3'}, fedoutes: {H: 0-1.75}}], pont: 0-10, prioritas: 52, magyarazat: 'Leállás: 2 kőr, vagy 3 legfeljebb 1 fedőütéssel (preferencia)'}
+      - {minta: 1H-1NT-2D-2NT, kulcs: MOHA-1H-1NT-2D-2NT, pont: 10-11, hossz: {H: 0-2}, prioritas: 53, magyarazat: 'Invit: 10-11 FP'}
+      - {minta: 1H-1NT-2D-3D, kulcs: MOHA-1H-1NT-2D-3D, pont: 9-11, hossz: {D: 4+, H: 0-2}, prioritas: 54, magyarazat: 'Invit: 4+ káró, 9-11 FP'}
+      - {minta: 1H-1NT-2D-3C, kulcs: MOHA-1H-1NT-2D-3C, pont: 0-10, hossz: {C: 6+, H: 0-2, D: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ treff, gyenge (nem invit)'}
+      - {minta: 1H-1NT-2D-2S, kulcs: MOHA-1H-1NT-2D-2S, pont: 0-10, hossz: {S: 6+, H: 0-2, D: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ pikk, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2C-2S, kulcs: MOHA-1S-1NT-2C-2S, vagy: [{hossz: {S: '2'}}, {hossz: {S: '3'}, fedoutes: {S: 0-1.75}}], pont: 0-10, prioritas: 52, magyarazat: 'Leállás: 2 pikk, vagy 3 legfeljebb 1 fedőütéssel (preferencia)'}
+      - {minta: 1S-1NT-2C-2NT, kulcs: MOHA-1S-1NT-2C-2NT, pont: 10-11, hossz: {S: 0-2}, prioritas: 53, magyarazat: 'Invit: 10-11 FP'}
+      - {minta: 1S-1NT-2C-3C, kulcs: MOHA-1S-1NT-2C-3C, pont: 9-11, hossz: {C: 4+, S: 0-2}, prioritas: 54, magyarazat: 'Invit: 4+ treff, 9-11 FP'}
+      - {minta: 1S-1NT-2C-2D, kulcs: MOHA-1S-1NT-2C-2D, pont: 0-10, hossz: {D: 6+, S: 0-2, C: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ káró, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2C-2H, kulcs: MOHA-1S-1NT-2C-2H, pont: 0-10, hossz: {H: 6+, S: 0-2, C: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ kőr, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2D-2S, kulcs: MOHA-1S-1NT-2D-2S, vagy: [{hossz: {S: '2'}}, {hossz: {S: '3'}, fedoutes: {S: 0-1.75}}], pont: 0-10, prioritas: 52, magyarazat: 'Leállás: 2 pikk, vagy 3 legfeljebb 1 fedőütéssel (preferencia)'}
+      - {minta: 1S-1NT-2D-2NT, kulcs: MOHA-1S-1NT-2D-2NT, pont: 10-11, hossz: {S: 0-2}, prioritas: 53, magyarazat: 'Invit: 10-11 FP'}
+      - {minta: 1S-1NT-2D-3D, kulcs: MOHA-1S-1NT-2D-3D, pont: 9-11, hossz: {D: 4+, S: 0-2}, prioritas: 54, magyarazat: 'Invit: 4+ káró, 9-11 FP'}
+      - {minta: 1S-1NT-2D-3C, kulcs: MOHA-1S-1NT-2D-3C, pont: 0-10, hossz: {C: 6+, S: 0-2, D: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ treff, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2D-2H, kulcs: MOHA-1S-1NT-2D-2H, pont: 0-10, hossz: {H: 6+, S: 0-2, D: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ kőr, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2H-2S, kulcs: MOHA-1S-1NT-2H-2S, vagy: [{hossz: {S: '2'}}, {hossz: {S: '3'}, fedoutes: {S: 0-1.75}}], pont: 0-10, prioritas: 52, magyarazat: 'Leállás: 2 pikk, vagy 3 legfeljebb 1 fedőütéssel (preferencia)'}
+      - {minta: 1S-1NT-2H-2NT, kulcs: MOHA-1S-1NT-2H-2NT, pont: 10-11, hossz: {S: 0-2}, prioritas: 53, magyarazat: 'Invit: 10-11 FP'}
+      - {minta: 1S-1NT-2H-3H, kulcs: MOHA-1S-1NT-2H-3H, pont: 9-11, hossz: {H: 4+, S: 0-2}, prioritas: 54, magyarazat: 'Invit: 4+ kőr, 9-11 FP'}
+      - {minta: 1S-1NT-2H-3C, kulcs: MOHA-1S-1NT-2H-3C, pont: 0-10, hossz: {C: 6+, S: 0-2, H: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ treff, gyenge (nem invit)'}
+      - {minta: 1S-1NT-2H-3D, kulcs: MOHA-1S-1NT-2H-3D, pont: 0-10, hossz: {D: 6+, S: 0-2, H: 0-3}, prioritas: 53, magyarazat: 'Saját szín: 6+ káró, gyenge (nem invit)'}
+  - fejezet: "A nyitó az 1M-1NT-2x-2M után"
+    szabalyok:
+      - {minta: 1H-1NT-2C-2H-3H, kulcs: MOHA-1H-1NT-2C-2H-3H, pont: 15-17, hossz: {H: 6+}, vesztok: 5-5, prioritas: 54, magyarazat: 'Invit: 6 lapos kőr, (15)16 FP, 5 vesztő'}
+      - {minta: 1H-1NT-2C-2H-4H, kulcs: MOHA-1H-1NT-2C-2H-4H, hossz: {H: 6+}, vesztok: 0-4, prioritas: 55, magyarazat: 'Gém: 6 lapos kőr, 4 vesztő'}
+      - {minta: 1H-1NT-2C-2H-3H-4H, kulcs: MOHA-1H-1NT-2C-2H-3H-4H, fedoutes: {H: 2+}, prioritas: 54, magyarazat: 'Elfogadja: 2 fedőütés (ász, király, DB)'}
+      - {minta: 1H-1NT-2C-2H-3H-P, kulcs: MOHA-1H-1NT-2C-2H-3H-P, fedoutes: {H: 0-1.75}, prioritas: 53, magyarazat: 'Nincs 2 fedőütés: passz'}
+      - {minta: 1H-1NT-2D-2H-3H, kulcs: MOHA-1H-1NT-2D-2H-3H, pont: 15-17, hossz: {H: 6+}, vesztok: 5-5, prioritas: 54, magyarazat: 'Invit: 6 lapos kőr, (15)16 FP, 5 vesztő'}
+      - {minta: 1H-1NT-2D-2H-4H, kulcs: MOHA-1H-1NT-2D-2H-4H, hossz: {H: 6+}, vesztok: 0-4, prioritas: 55, magyarazat: 'Gém: 6 lapos kőr, 4 vesztő'}
+      - {minta: 1H-1NT-2D-2H-3H-4H, kulcs: MOHA-1H-1NT-2D-2H-3H-4H, fedoutes: {H: 2+}, prioritas: 54, magyarazat: 'Elfogadja: 2 fedőütés (ász, király, DB)'}
+      - {minta: 1H-1NT-2D-2H-3H-P, kulcs: MOHA-1H-1NT-2D-2H-3H-P, fedoutes: {H: 0-1.75}, prioritas: 53, magyarazat: 'Nincs 2 fedőütés: passz'}
+      - {minta: 1S-1NT-2C-2S-3S, kulcs: MOHA-1S-1NT-2C-2S-3S, pont: 15-17, hossz: {S: 6+}, vesztok: 5-5, prioritas: 54, magyarazat: 'Invit: 6 lapos pikk, (15)16 FP, 5 vesztő'}
+      - {minta: 1S-1NT-2C-2S-4S, kulcs: MOHA-1S-1NT-2C-2S-4S, hossz: {S: 6+}, vesztok: 0-4, prioritas: 55, magyarazat: 'Gém: 6 lapos pikk, 4 vesztő'}
+      - {minta: 1S-1NT-2C-2S-3S-4S, kulcs: MOHA-1S-1NT-2C-2S-3S-4S, fedoutes: {S: 2+}, prioritas: 54, magyarazat: 'Elfogadja: 2 fedőütés (ász, király, DB)'}
+      - {minta: 1S-1NT-2C-2S-3S-P, kulcs: MOHA-1S-1NT-2C-2S-3S-P, fedoutes: {S: 0-1.75}, prioritas: 53, magyarazat: 'Nincs 2 fedőütés: passz'}
+      - {minta: 1S-1NT-2D-2S-3S, kulcs: MOHA-1S-1NT-2D-2S-3S, pont: 15-17, hossz: {S: 6+}, vesztok: 5-5, prioritas: 54, magyarazat: 'Invit: 6 lapos pikk, (15)16 FP, 5 vesztő'}
+      - {minta: 1S-1NT-2D-2S-4S, kulcs: MOHA-1S-1NT-2D-2S-4S, hossz: {S: 6+}, vesztok: 0-4, prioritas: 55, magyarazat: 'Gém: 6 lapos pikk, 4 vesztő'}
+      - {minta: 1S-1NT-2D-2S-3S-4S, kulcs: MOHA-1S-1NT-2D-2S-3S-4S, fedoutes: {S: 2+}, prioritas: 54, magyarazat: 'Elfogadja: 2 fedőütés (ász, király, DB)'}
+      - {minta: 1S-1NT-2D-2S-3S-P, kulcs: MOHA-1S-1NT-2D-2S-3S-P, fedoutes: {S: 0-1.75}, prioritas: 53, magyarazat: 'Nincs 2 fedőütés: passz'}
+      - {minta: 1S-1NT-2H-2S-3S, kulcs: MOHA-1S-1NT-2H-2S-3S, pont: 15-17, hossz: {S: 6+}, vesztok: 5-5, prioritas: 54, magyarazat: 'Invit: 6 lapos pikk, (15)16 FP, 5 vesztő'}
+      - {minta: 1S-1NT-2H-2S-4S, kulcs: MOHA-1S-1NT-2H-2S-4S, hossz: {S: 6+}, vesztok: 0-4, prioritas: 55, magyarazat: 'Gém: 6 lapos pikk, 4 vesztő'}
+      - {minta: 1S-1NT-2H-2S-3S-4S, kulcs: MOHA-1S-1NT-2H-2S-3S-4S, fedoutes: {S: 2+}, prioritas: 54, magyarazat: 'Elfogadja: 2 fedőütés (ász, király, DB)'}
+      - {minta: 1S-1NT-2H-2S-3S-P, kulcs: MOHA-1S-1NT-2H-2S-3S-P, fedoutes: {S: 0-1.75}, prioritas: 53, magyarazat: 'Nincs 2 fedőütés: passz'}
