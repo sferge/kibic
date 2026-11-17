@@ -48,3 +48,31 @@ def test_elerhetetlen_robot():
     with pytest.raises(KulsoHiba):
         for _ in range(10):
             fv(k)                    # öt kapcsolati hiba után leáll, nem a vészlapot méri
+
+
+def test_rossz_szerver_leall():
+    """Ha a szerver válaszol, de még egyszer sem adott szabályos lapot (pl. 400-as hiba),
+    öt hiba után leáll, és a hibaüzenetet mutatja."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    import pytest
+    from kibic.cli.kulso_felvevo import KulsoHiba, kulso_dontes
+
+    class H(BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            b = b'{"error":"unsupported_protocol"}'
+            self.send_response(400); self.send_header("Content-Length", str(len(b))); self.end_headers()
+            self.wfile.write(b)
+
+        def log_message(self, *a):
+            pass
+    srv = HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        fv = kulso_dontes(f"http://127.0.0.1:{srv.server_port}", 1000, "t", ido_s=5)
+        with pytest.raises(KulsoHiba, match="unsupported_protocol"):
+            for _ in range(10):
+                fv(_keres([]))
+    finally:
+        srv.shutdown()

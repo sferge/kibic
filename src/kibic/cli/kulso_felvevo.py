@@ -104,7 +104,7 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
     `naplo`: JSONL-fájl, döntésenként egy sor (a robot forrása: terv / tartalék / hiba)."""
     futas = futas or uuid.uuid4().hex[:8]
     vegpont = url.rstrip("/") + "/v1/bridge/play"
-    szamlalo = {"n": 0, "hiba_sorozat": 0}
+    szamlalo = {"n": 0, "hiba_sorozat": 0, "siker": 0}
 
     def jegyez(sor: dict) -> None:
         if naplo:
@@ -130,6 +130,7 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
                 raise ValueError(f"nem szabályos lap: {lap!r}")
             meta = {k: v.get(k) for k in ("explanation", "meta") if k in v}
             szamlalo["hiba_sorozat"] = 0
+            szamlalo["siker"] += 1
             m = v.get("meta") or {}
             jegyez({"keres": keres["request_id"], "lap": lap, "ms": int((time.time() - t0) * 1000),
                     "pipeline": m.get("pipeline"), "source": m.get("source"),
@@ -142,9 +143,12 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
             jegyez({"keres": keres["request_id"], "lap": lap, "hiba": szoveg})
             # a kapcsolat hibája (nem a robot egyedi „nem tudom” válasza) sorozatban: leállunk,
             # különben a mérés a vészlapot (a legkisebbet) mérné a robot helyett
-            if isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError):
-                szamlalo["hiba_sorozat"] += 1
-                if szamlalo["hiba_sorozat"] >= MAX_HIBA_SOROZAT:
-                    raise KulsoHiba(f"A külső robot {MAX_HIBA_SOROZAT}-ször egymás után nem válaszolt: {szoveg}")
+            # és ha a robot még egyszer sem adott szabályos választ (pl. rossz szerver, rossz
+            # kérésformátum), az első öt hiba után is
+            szamlalo["hiba_sorozat"] += 1
+            kapcsolat = isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError)
+            if szamlalo["hiba_sorozat"] >= MAX_HIBA_SOROZAT and (kapcsolat or not szamlalo["siker"]):
+                raise KulsoHiba(f"A külső robot {MAX_HIBA_SOROZAT}-ször egymás után hibát adott "
+                                f"({vegpont}): {szoveg}")
             return lap, {"kulso": {"hiba": szoveg}}
     return fv
