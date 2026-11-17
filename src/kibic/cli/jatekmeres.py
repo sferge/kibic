@@ -74,9 +74,14 @@ _MUNKAS: dict = {}
 
 def _munkas_init(rendszer: str, ido_s: float, minta: int, kov_ms: int = 15000,
                  mag: int | None = None, kulso: tuple | None = None) -> None:
-    if kulso:                                    # (url, határidő_ms, futás-azonosító)
+    if kulso:                                    # (url-ek, határidő_ms, futás-azonosító, napló, végpont)
+        import multiprocessing as mp
         from .kulso_felvevo import kulso_dontes
-        _MUNKAS["fv"] = kulso_dontes(kulso[0], kulso[1], kulso[2], naplo=kulso[3], vegpont=kulso[4])
+        urlek = kulso[0]
+        # A munkások sorban osztoznak a robotpéldányokon; egy parti végig ugyanannál marad.
+        sorszam = (mp.current_process()._identity or (1,))[0] - 1
+        _MUNKAS["fv"] = kulso_dontes(urlek[sorszam % len(urlek)], kulso[1], kulso[2],
+                                     naplo=kulso[3], vegpont=kulso[4])
         return
     _MUNKAS["fv"] = yaml_dontes(rendszer, ido_s, minta, kov_ms, mag)
 
@@ -287,9 +292,10 @@ def main(argv=None) -> int:
                     help="teljes lejátszás: a valódi indulás után a kibic játssza végig a felvevőt, "
                          "a védők tökéletesen (DD); partinként egy eredmény")
     ap.add_argument("--reszletes", action="store_true")
-    ap.add_argument("--kulso-felvevo", metavar="URL",
-                    help="a felvevő lapjait egy külső robot adja (MB-felület, /v1/bridge/play), "
-                         "pl. http://127.0.0.1:9050 — a --teljes --oldal felvevo méréshez")
+    ap.add_argument("--kulso-felvevo", metavar="URL", nargs="+",
+                    help="a felvevő lapjait egy külső robot adja (MB-felület), pl. http://127.0.0.1:9055 "
+                         "— a --teljes --oldal felvevo méréshez. Több robotpéldány is megadható "
+                         "(szóközzel vagy vesszővel elválasztva); a munkások szétoszlanak köztük.")
     ap.add_argument("--kulso-hatarido-ms", type=int, default=60000,
                     help="a külső robotnak küldött határidő döntésenként (alap 60000)")
     ap.add_argument("--kulso-naplo", help="a külső robot döntései ide (JSONL: terv / tartalék / hiba)")
@@ -310,15 +316,22 @@ def main(argv=None) -> int:
     if a.kulso_felvevo:
         import uuid
         from .kulso_felvevo import ellenoriz
+        urlek = [u for x in a.kulso_felvevo for u in x.split(",") if u.strip()]
         try:
             from .kulso_felvevo import titok
-            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)} · titok: "
-                  f"{'van (Authorization: Bearer …)' if titok() else 'NINCS (KIBIC_KULSO_TITOK / ROBI_SHARED_SECRET nincs exportálva)'}",
+            for u in urlek:
+                print(f"külső felvevő: {u} → {ellenoriz(u)}", file=sys.stderr)
+            print(f"titok: {'van (Authorization: Bearer …)' if titok() else 'NINCS (KIBIC_KULSO_TITOK / ROBI_SHARED_SECRET nincs exportálva)'}",
                   file=sys.stderr)
         except RuntimeError as e:
             print(e, file=sys.stderr)
             return 2
-        kulso = (a.kulso_felvevo, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo, a.kulso_vegpont)
+        if a.parhuzamos > 2 * len(urlek):
+            print(f"figyelem: {a.parhuzamos} munkás, de csak {len(urlek)} robotpéldány. A robot egyszerre "
+                  f"egy döntést számol, a többi kérés sorban áll, és a várakozás a határidőbe számít "
+                  f"(deadline_exceeded → a mérő a legkisebb lapot teszi). Javasolt: --parhuzamos "
+                  f"{2 * len(urlek)} vagy több robotpéldány.", file=sys.stderr)
+        kulso = (urlek, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo, a.kulso_vegpont)
     if a.mag is not None and not a.idokorlat:
         a.ido = max(a.ido, PONTOS_IDO_S)
         a.kovetkeztetes_ms = max(a.kovetkeztetes_ms, PONTOS_KOVETKEZTETES_MS) if a.kovetkeztetes_ms else 0
