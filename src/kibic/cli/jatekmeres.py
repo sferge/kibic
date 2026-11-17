@@ -76,7 +76,7 @@ def _munkas_init(rendszer: str, ido_s: float, minta: int, kov_ms: int = 15000,
                  mag: int | None = None, kulso: tuple | None = None) -> None:
     if kulso:                                    # (url, határidő_ms, futás-azonosító)
         from .kulso_felvevo import kulso_dontes
-        _MUNKAS["fv"] = kulso_dontes(kulso[0], kulso[1], kulso[2], naplo=kulso[3])
+        _MUNKAS["fv"] = kulso_dontes(kulso[0], kulso[1], kulso[2], naplo=kulso[3], vegpont=kulso[4])
         return
     _MUNKAS["fv"] = yaml_dontes(rendszer, ido_s, minta, kov_ms, mag)
 
@@ -293,6 +293,9 @@ def main(argv=None) -> int:
     ap.add_argument("--kulso-hatarido-ms", type=int, default=60000,
                     help="a külső robotnak küldött határidő döntésenként (alap 60000)")
     ap.add_argument("--kulso-naplo", help="a külső robot döntései ide (JSONL: terv / tartalék / hiba)")
+    ap.add_argument("--kulso-vegpont", choices=("step", "play"), default="step",
+                    help="step: a robot tervműhelye (/v1/bridge/step, tervezés és végrehajtás; alap); "
+                         "play: az MB-végpont")
     ap.add_argument("--limit", type=int, help="--db: legfeljebb ennyi parti")
     ap.add_argument("--adatbazis", default=os.getenv("KIBIC_DB", "kibic"))
     ap.add_argument("--host", default=os.getenv("KIBIC_HOST", "localhost"))
@@ -308,11 +311,14 @@ def main(argv=None) -> int:
         import uuid
         from .kulso_felvevo import ellenoriz
         try:
-            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)}", file=sys.stderr)
+            from .kulso_felvevo import titok
+            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)} · titok: "
+                  f"{'van (Authorization: Bearer …)' if titok() else 'NINCS (KIBIC_KULSO_TITOK / ROBI_SHARED_SECRET nincs exportálva)'}",
+                  file=sys.stderr)
         except RuntimeError as e:
             print(e, file=sys.stderr)
             return 2
-        kulso = (a.kulso_felvevo, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo)
+        kulso = (a.kulso_felvevo, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo, a.kulso_vegpont)
     if a.mag is not None and not a.idokorlat:
         a.ido = max(a.ido, PONTOS_IDO_S)
         a.kovetkeztetes_ms = max(a.kovetkeztetes_ms, PONTOS_KOVETKEZTETES_MS) if a.kovetkeztetes_ms else 0

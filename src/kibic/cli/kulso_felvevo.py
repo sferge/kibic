@@ -107,12 +107,15 @@ MAX_HIBA_SOROZAT = 5
 
 
 def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, ido_s: float = 300.0,
-                 naplo: str | None = None):
+                 naplo: str | None = None, vegpont: str = "step"):
     """A mérőpad döntés-függvénye (`fv(keres) -> (lap, meta)`) a külső robottal.
     Hiba (elérhetetlen robot, rossz válasz) esetén a legkisebb szabályos lap, a meta jelzi.
-    `naplo`: JSONL-fájl, döntésenként egy sor (a robot forrása: terv / tartalék / hiba)."""
+    `naplo`: JSONL-fájl, döntésenként egy sor (a robot forrása: terv / tartalék / hiba).
+    `vegpont`: "step" (a BridzsRobot tervműhelye: tárolt terv, megfigyelés, következő lépés —
+    automatikus tervezéssel és újratervezéssel) vagy "play" (az MB-végpont; a robot a
+    felvevőnél alapból ugyanazt a terv-lépés utat hívja)."""
     futas = futas or uuid.uuid4().hex[:8]
-    vegpont = url.rstrip("/") + "/v1/bridge/play"
+    vegpont = url.rstrip("/") + f"/v1/bridge/{vegpont}"
     szamlalo = {"n": 0, "hiba_sorozat": 0, "siker": 0}
 
     def jegyez(sor: dict) -> None:
@@ -137,13 +140,15 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
                 v = json.loads(r.read())
             lap = (v.get("action") or {}).get("card")
             if lap not in legal:
-                raise ValueError(f"nem szabályos lap: {lap!r}")
-            meta = {k: v.get(k) for k in ("explanation", "meta") if k in v}
+                raise ValueError(f"nincs szabályos lap a válaszban (status={v.get('status')!r}, "
+                                 f"reason={v.get('reason')!r}): {lap!r}")
+            meta = {k: v.get(k) for k in ("explanation", "meta", "status", "plan_id") if k in v}
             szamlalo["hiba_sorozat"] = 0
             szamlalo["siker"] += 1
             m = v.get("meta") or {}
             jegyez({"keres": keres["request_id"], "lap": lap, "ms": int((time.time() - t0) * 1000),
-                    "pipeline": m.get("pipeline"), "source": m.get("source"),
+                    "pipeline": m.get("pipeline"), "source": m.get("source") or v.get("source"),
+                    "status": v.get("status"), "plan_id": v.get("plan_id"),
                     "fallback": m.get("fallback_reason"), "magyarazat": (v.get("explanation") or "")[:200]})
             return lap, {"kulso": {"ms": int((time.time() - t0) * 1000), **meta}}
         except (urllib.error.URLError, ValueError, TimeoutError, OSError) as e:
