@@ -306,6 +306,12 @@ def main(argv=None) -> int:
     kulso = None
     if a.kulso_felvevo:
         import uuid
+        from .kulso_felvevo import ellenoriz
+        try:
+            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)}", file=sys.stderr)
+        except RuntimeError as e:
+            print(e, file=sys.stderr)
+            return 2
         kulso = (a.kulso_felvevo, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo)
     if a.mag is not None and not a.idokorlat:
         a.ido = max(a.ido, PONTOS_IDO_S)
