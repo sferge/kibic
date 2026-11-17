@@ -36,3 +36,15 @@ def test_szan_es_szinnyeres():
     k = mb10_keres(kr, "f", 1, 1000)
     assert k["state"]["contract"]["strain"] == "N"
     assert k["state"]["completed_tricks"][0]["winner"] == "N"     # szanban a kőr nem üt
+
+
+def test_elerhetetlen_robot():
+    import pytest
+    from kibic.cli.kulso_felvevo import KulsoHiba, ellenoriz, kulso_dontes
+    with pytest.raises(RuntimeError):
+        ellenoriz("http://127.0.0.1:9", ido_s=1)
+    fv = kulso_dontes("http://127.0.0.1:9", 1000, "t", ido_s=1)
+    k = _keres([])
+    with pytest.raises(KulsoHiba):
+        for _ in range(10):
+            fv(k)                    # öt kapcsolati hiba után leáll, nem a vészlapot méri

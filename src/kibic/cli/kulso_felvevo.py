@@ -80,6 +80,23 @@ def mb10_keres(keres: dict, futas: str, sorszam: int, hatarido_ms: int) -> dict:
     }
 
 
+def ellenoriz(url: str, ido_s: float = 10.0) -> str:
+    """A robot elérhető-e (GET /healthz); a válasz szövege, vagy RuntimeError érthető üzenettel."""
+    try:
+        with urllib.request.urlopen(url.rstrip("/") + "/healthz", timeout=ido_s) as r:
+            return r.read().decode(errors="replace")[:200]
+    except (urllib.error.URLError, OSError) as e:
+        raise RuntimeError(f"A külső robot nem érhető el itt: {url} ({e}). Fut a szerver "
+                           f"(python -m bridzsrobot.mb_gateway --host 127.0.0.1 --port 9050)?") from None
+
+
+class KulsoHiba(RuntimeError):
+    """A külső robot sorozatosan nem válaszol: a mérés értelmetlen, leállunk."""
+
+
+MAX_HIBA_SOROZAT = 5
+
+
 def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, ido_s: float = 300.0,
                  naplo: str | None = None):
     """A mérőpad döntés-függvénye (`fv(keres) -> (lap, meta)`) a külső robottal.
@@ -87,7 +104,7 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
     `naplo`: JSONL-fájl, döntésenként egy sor (a robot forrása: terv / tartalék / hiba)."""
     futas = futas or uuid.uuid4().hex[:8]
     vegpont = url.rstrip("/") + "/v1/bridge/play"
-    szamlalo = {"n": 0}
+    szamlalo = {"n": 0, "hiba_sorozat": 0}
 
     def jegyez(sor: dict) -> None:
         if naplo:
@@ -112,6 +129,7 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
             if lap not in legal:
                 raise ValueError(f"nem szabályos lap: {lap!r}")
             meta = {k: v.get(k) for k in ("explanation", "meta") if k in v}
+            szamlalo["hiba_sorozat"] = 0
             m = v.get("meta") or {}
             jegyez({"keres": keres["request_id"], "lap": lap, "ms": int((time.time() - t0) * 1000),
                     "pipeline": m.get("pipeline"), "source": m.get("source"),
@@ -122,5 +140,11 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
             szoveg = hiba().decode(errors="replace")[:300] if hiba else str(e)[:300]
             lap = min(legal, key=lambda c: ("23456789TJQKA".index(c[1]), c[0]))
             jegyez({"keres": keres["request_id"], "lap": lap, "hiba": szoveg})
+            # a kapcsolat hibája (nem a robot egyedi „nem tudom” válasza) sorozatban: leállunk,
+            # különben a mérés a vészlapot (a legkisebbet) mérné a robot helyett
+            if isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError):
+                szamlalo["hiba_sorozat"] += 1
+                if szamlalo["hiba_sorozat"] >= MAX_HIBA_SOROZAT:
+                    raise KulsoHiba(f"A külső robot {MAX_HIBA_SOROZAT}-ször egymás után nem válaszolt: {szoveg}")
             return lap, {"kulso": {"hiba": szoveg}}
     return fv
