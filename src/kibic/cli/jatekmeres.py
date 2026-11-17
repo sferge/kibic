@@ -73,7 +73,11 @@ _MUNKAS: dict = {}
 
 
 def _munkas_init(rendszer: str, ido_s: float, minta: int, kov_ms: int = 15000,
-                 mag: int | None = None) -> None:
+                 mag: int | None = None, kulso: tuple | None = None) -> None:
+    if kulso:                                    # (url, határidő_ms, futás-azonosító)
+        from .kulso_felvevo import kulso_dontes
+        _MUNKAS["fv"] = kulso_dontes(kulso[0], kulso[1], kulso[2], naplo=kulso[3])
+        return
     _MUNKAS["fv"] = yaml_dontes(rendszer, ido_s, minta, kov_ms, mag)
 
 
@@ -283,6 +287,12 @@ def main(argv=None) -> int:
                     help="teljes lejátszás: a valódi indulás után a kibic játssza végig a felvevőt, "
                          "a védők tökéletesen (DD); partinként egy eredmény")
     ap.add_argument("--reszletes", action="store_true")
+    ap.add_argument("--kulso-felvevo", metavar="URL",
+                    help="a felvevő lapjait egy külső robot adja (MB-felület, /v1/bridge/play), "
+                         "pl. http://127.0.0.1:9050 — a --teljes --oldal felvevo méréshez")
+    ap.add_argument("--kulso-hatarido-ms", type=int, default=60000,
+                    help="a külső robotnak küldött határidő döntésenként (alap 60000)")
+    ap.add_argument("--kulso-naplo", help="a külső robot döntései ide (JSONL: terv / tartalék / hiba)")
     ap.add_argument("--limit", type=int, help="--db: legfeljebb ennyi parti")
     ap.add_argument("--adatbazis", default=os.getenv("KIBIC_DB", "kibic"))
     ap.add_argument("--host", default=os.getenv("KIBIC_HOST", "localhost"))
@@ -293,6 +303,10 @@ def main(argv=None) -> int:
         os.environ["KIBIC_KOVETKEZTETES_SULY"] = ",".join(a.suly)
     from ..motor import lejatszas_meres as lm
 
+    kulso = None
+    if a.kulso_felvevo:
+        import uuid
+        kulso = (a.kulso_felvevo, a.kulso_hatarido_ms, uuid.uuid4().hex[:8], a.kulso_naplo)
     if a.mag is not None and not a.idokorlat:
         a.ido = max(a.ido, PONTOS_IDO_S)
         a.kovetkeztetes_ms = max(a.kovetkeztetes_ms, PONTOS_KOVETKEZTETES_MS) if a.kovetkeztetes_ms else 0
@@ -350,11 +364,11 @@ def main(argv=None) -> int:
             import multiprocessing as mp
             with mp.get_context("spawn").Pool(a.parhuzamos, _munkas_init,
                                               (a.rendszer, a.ido, a.minta, a.kovetkeztetes_ms,
-                                               a.mag)) as pool:
+                                               a.mag, kulso)) as pool:
                 for m in pool.imap_unordered(_munkas_parti, feladatok):
                     jegyez(m)
         else:
-            _munkas_init(a.rendszer, a.ido, a.minta, a.kovetkeztetes_ms, a.mag)
+            _munkas_init(a.rendszer, a.ido, a.minta, a.kovetkeztetes_ms, a.mag, kulso)
             for f in feladatok:
                 jegyez(_munkas_parti(f))
         print(file=sys.stderr)
