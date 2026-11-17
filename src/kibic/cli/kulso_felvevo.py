@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -95,8 +96,12 @@ def ellenoriz(url: str, ido_s: float = 10.0) -> str:
         with urllib.request.urlopen(url.rstrip("/") + "/healthz", timeout=ido_s) as r:
             return r.read().decode(errors="replace")[:200]
     except (urllib.error.URLError, OSError) as e:
-        raise RuntimeError(f"A külső robot nem érhető el itt: {url} ({e}). Fut a szerver "
-                           f"(python -m bridzsrobot.mb_gateway --host 127.0.0.1 --port 9050)?") from None
+        if "," in url:
+            raise RuntimeError(f"Több cím egyben érkezett ({url}): ezt a mérő régi változata nem "
+                               f"bontja szét. git pull, majd újra.") from None
+        p = urllib.parse.urlsplit(url)
+        raise RuntimeError(f"A külső robot nem érhető el itt: {url} ({e}). Fut a szerver ezen a címen "
+                           f"(python -m bridzsrobot.mb_gateway --host {p.hostname} --port {p.port})?") from None
 
 
 class KulsoHiba(RuntimeError):
