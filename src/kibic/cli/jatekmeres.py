@@ -308,7 +308,10 @@ def main(argv=None) -> int:
         import uuid
         from .kulso_felvevo import ellenoriz
         try:
-            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)}", file=sys.stderr)
+            from .kulso_felvevo import titok
+            print(f"külső felvevő: {ellenoriz(a.kulso_felvevo)} · titok: "
+                  f"{'van (Authorization: Bearer …)' if titok() else 'NINCS (KIBIC_KULSO_TITOK / ROBI_SHARED_SECRET nincs exportálva)'}",
+                  file=sys.stderr)
         except RuntimeError as e:
             print(e, file=sys.stderr)
             return 2
