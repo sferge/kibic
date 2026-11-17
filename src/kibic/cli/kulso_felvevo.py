@@ -1,6 +1,7 @@
 """
 Külső felvevő a mérőpadon (2026-11-17): a felvevő (és az asztal) lapjait egy másik,
-ugyanarra az MB-felületre írt robot adja HTTP-n (pl. a BridzsRobot `/v1/bridge/play`),
+ugyanarra az MB-felületre írt robot adja HTTP-n (pl. a BridzsRobot `/v1/bridge/play`;
+ha a robot titokkal fut: KIBIC_KULSO_TITOK vagy ROBI_SHARED_SECRET),
 a védők a mérőpad szerint (DD) játszanak. Így két felvevő ugyanazon a mércén mérhető:
 
     # a robot fut (külön terminálban):
@@ -23,7 +24,15 @@ import urllib.error
 import urllib.request
 import uuid
 
+import os
+
 ULESEK = "NESW"
+
+
+def titok() -> str | None:
+    """A külső robot közös titka (Authorization: Bearer …): KIBIC_KULSO_TITOK, különben
+    ROBI_SHARED_SECRET (a BridzsRobot ezt várja, ha a szerver titokkal indult)."""
+    return os.environ.get("KIBIC_KULSO_TITOK") or os.environ.get("ROBI_SHARED_SECRET") or None
 _PROTOKOLL = "mohabridzs-ai/1.0"
 
 
@@ -122,7 +131,8 @@ def kulso_dontes(url: str, hatarido_ms: int = 60000, futas: str | None = None, i
             req = urllib.request.Request(vegpont, data=json.dumps(kr).encode(),
                                          headers={"Content-Type": "application/json",
                                                   "X-MohaBridzs-Protocol": "1.0",
-                                                  "Idempotency-Key": kr["request_id"]})
+                                                  "Idempotency-Key": kr["request_id"],
+                                                  **({"Authorization": f"Bearer {t}"} if (t := titok()) else {})})
             with urllib.request.urlopen(req, timeout=ido_s) as r:
                 v = json.loads(r.read())
             lap = (v.get("action") or {}).get("card")
