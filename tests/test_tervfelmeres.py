@@ -32,3 +32,18 @@ def test_hosszu_adu_minden_lapja_biztos():
     sz = {s.szin: s for s in f.szinek}
     assert sz["C"].biztos == 6 and sz["S"].kiado == 2
     assert (f.biztos, f.hiany, f.egyenleg) == (10, 1, 0)
+
+
+def test_forrasok_negy_pikk():
+    """MB 4♠: a források a játékos szemével — két biztos dobás a ♥AK-ra, a ♣ lopás
+    kiadás után (biztos, egy kiadással), a ♦ szöktetés és a ♣ impassz kb. 50%."""
+    from kibic.motor.tervforras import forrasok
+    from kibic.motor.tervsema import Allas, technikak_betoltese
+    E, W = _kez("K8752..Q982.AKJ2"), _kez("Q43.AKJ.AT43.543")
+    kint = MIND - E - W - {Lap.parse("H5")}
+    a = Allas("E", "S", {"E": set(E), "W": set(W)}, kint, 10, 13, "W")
+    fk = {f.nev: f for f in forrasok(a, technikak_betoltese(), {"N": 13, "S": 12})}
+    assert fk["♥ vesztőcsere (dobás)"].hozam == 2 and fk["♥ vesztőcsere (dobás)"].biztos
+    assert fk["♣ lopás a rövid kézben (kiadás után)"].biztos
+    assert 0.45 < fk["♦ szöktetés"].esely < 0.6 and 0.45 < fk["♣ impassz"].esely < 0.6
+    assert fk["♦ szöktetés (felső előbb)"].esely > fk["♦ szöktetés"].esely

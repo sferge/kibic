@@ -487,6 +487,29 @@ def _felmeres_html(h: Helyzet, rek: Rekord) -> str:
               "nélkül); a biztosan kiadó: a kint lévő lapok a legnagyobb lapunk fölött.</p>")
 
 
+def _forrasok(h: Helyzet, rek: Rekord):
+    from ..motor.tervforras import forrasok
+    allas, kint = _allas(h, rek.lejatszott)
+    v1, v2 = h.vedok
+    ures = {u: 13 - sum(1 for uu, _ in rek.lejatszott if uu == u) for u in (v1, v2)}
+    return forrasok(allas, technikak_betoltese(), ures, _szinhianyok(rek.lejatszott, h.vedok))
+
+
+def _forras_html(h: Helyzet, rek: Rekord) -> str:
+    fk = _forrasok(h, rek)
+    if not fk:
+        return "<p>Nincs alkalmazható technika.</p>"
+    sorok = "".join(
+        f"<tr><td>{html.escape(f.nev)}</td><td>{f.hozam}</td>"
+        f"<td>{'biztos' if f.biztos else f'{100 * f.esely:.0f}%'}</td><td>{f.kudarc}</td>"
+        f"<td class=\"halv\">{html.escape(f.p.sema.nev)}</td></tr>" for f in fk)
+    return ("<table><tr><th>Forrás</th><th>Hozam</th><th>Esély</th><th>Kudarc költsége</th>"
+            f"<th>Technika</th></tr>{sorok}</table>"
+            "<p class=\"halv\">Az esély a kint lévő lapok elosztásain, a szabad helyek szerint "
+            "súlyozva (keresés nélkül). „Biztos”: nincs rejtett feltétele; a kockázata a "
+            "végrehajtásé (ellopás, időzítés).</p>")
+
+
 def _felmeres_adat(h: Helyzet, rek: Rekord) -> dict:
     from ..motor.tervfelmeres import felmeres_jatekbol
     f = felmeres_jatekbol(_jatek(h, rek.lejatszott), 6 + rek.kontraktus.szint)
@@ -501,6 +524,7 @@ def _terv_nezet(h: Helyzet, rek: Rekord) -> dict:
     return _html("kibic — játékterv", [
         ("A helyzet", _helyzet_html(h, rek)),
         ("A helyzetfelmérés", _felmeres_html(h, rek)),
+        ("A források (a hiányzó ütések és a vesztők)", _forras_html(h, rek)),
         ("A jelölt tervek", _terv_html(rek)),
         ("A választott terv egységei", _egysegek_html(rek.terv)),
         ("Korlátok", "<ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in KORLATOK) + "</ul>")])
@@ -523,7 +547,10 @@ def plan_valasz(keres: dict, dd_zar=None) -> dict:
                      "Egyik terv sem teljesít egyik sorsolt világban sem; a lépéskérésre a kibic "
                      "általános lejátszója ad lapot.")
     v.update(plan_id=rek.plan_id, plan_revision=rek.revizio, analysis_result="new_plan",
-             plan=_terv_adat(rek), assessment=dict(_jeloltek_adat(rek), situation=_felmeres_adat(h, rek)),
+             plan=_terv_adat(rek), assessment=dict(
+                 _jeloltek_adat(rek), situation=_felmeres_adat(h, rek),
+                 sources=[{"name": _szep(f.nev), "yield": f.hozam, "probability": round(f.esely, 3),
+                           "failure_cost": f.kudarc, "sure": f.biztos} for f in _forrasok(h, rek)]),
              presentation=_terv_nezet(h, rek))
     v["meta"]["elapsed_ms"] = int(rek.ido_s * 1000)
     return v

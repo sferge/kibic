@@ -195,3 +195,87 @@
       # korlátlan átmenettel; a pontos elemzés csak a legjobb jelöltekre (TERVEZES)
       becsles: kulon_szinek
 
+
+# --- 2026-11-18: a tervkészítés átépítése (a szerkesztő leírása szerint) ---------------
+# Új körfajta: `kiad` — a hívó kéz a színből a legkisebb szabad lapját hívja, a kört
+# átengedjük (a kiadás a megengedett kiadásból fogy). A `hasznal` lapjait nem adja.
+
+- technika: SZOKTETES
+  nev: "Szöktetés: kicsi a magányos figura felé (a hiányzó nagyobb figura a második kéznél)"
+  # A szerkesztő (2026-11-18, MB 4♠): ♦Q982 / ♦A1043 — „a ♦D-t szöktetésre kell
+  # játszanom”. A figura (V) kezében nincs fölötte lap (különben villa: IMPASSZ_VILLA);
+  # a felső lap (pl. az A) a másik kézben lehet. A hívás a másik kézből jön.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    V: "kozvetlen_alatta(SZ, F)"
+    VK: "keze(V)"
+    HK: "partner(VK)"
+    FELETTE: "felettunk_kezben(HK, SZ, F)"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(felettunk_kezben(VK, SZ, F)) == 0",
+                 "kezhossz(HK, SZ) >= hossz(FELETTE) + 1", "kezhossz(VK, SZ) >= 2"]
+  korok:
+    - {fajta: impassz, hivo: HK, lap: V}
+    - {ismetles: "hossz(FELETTE)", fajta: lehiv, lap: FELETTE, begyujtes: igen}
+  siker: "birtokos(F) == bal(HK)"
+  kudarc_koltseg: 1
+  hozam: 1
+  hasznal: ["[V]", FELETTE]
+  elfogyaszt: ["[V]", FELETTE]
+
+- valtozat: SZOKTETES_FELSO_ELOBB
+  alap: SZOKTETES
+  nev: "Szöktetés, előbb a felső lap (a szingli figura ellen; ha az átmenetek engedik)"
+  # A szerkesztő: „ha szingli K üti a D-t … az Ász lehívásával és utána D szöktetés”.
+  felulir:
+    alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(felettunk_kezben(VK, SZ, F)) == 0",
+                   "hossz(FELETTE) >= 1", "kezhossz(HK, SZ) >= 2", "kezhossz(VK, SZ) >= 2"]
+    korok:
+      - {fajta: lehiv, lap: "elso(FELETTE)"}
+      - {fajta: impassz, hivo: HK, lap: V}
+      - {ismetles: "hossz(FELETTE) - 1", fajta: lehiv, lap: "tobbi(FELETTE)", begyujtes: igen}
+    siker: "birtokos(F) == bal(HK) or figura_hossz(F) == 1"
+
+- technika: VESZTOCSERE
+  nev: "Vesztőcsere: a másik kéz többletnyerőire vesztőt dobunk"
+  # Játékmód: VESZTOCSERE (jatekmodok.yaml). Az egyik kéz nyerői a színben több,
+  # mint ahány lapja a partnernek van: a többletre a partner a többi színből dob
+  # (MB 4♠: az asztal ♥AK-ja, Kelet kőrből színhiányos). Kockázat: a védő lophat, ha
+  # színhiányos és van adója (az ELLOPÁS általános szabály) — ezért a kiaduzás
+  # után a legbiztosabb, ha az átmenetek engedik.
+  szerepek:
+    NYK: "tobbletnyero_kez(SZ)"
+    DK: "partner(NYK)"
+    NYERO: "nyerok_kezben(NYK, SZ)"
+    TOBBLET: "hossz(NYERO) - kezhossz(DK, SZ)"
+  alkalmazhato: ["nem_adu(SZ)", "van(NYK)", "TOBBLET >= 1"]
+  korok:
+    - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
+  siker: "True"
+  kudarc_koltseg: 0
+  hozam: "TOBBLET"
+  hasznal: [NYERO]
+  elfogyaszt: [NYERO]
+
+- technika: LOPAS_ROVID_KIADASSAL
+  nev: "Lopás a rövid adus kézben, kiadás után: előbb egy kört átengedünk, hogy a rövid kéz kiürüljön"
+  # MB 4♠: ♣AKJ2 / ♣543 — az A, K után egy treffet kiadunk, a negyediket az asztal
+  # lopja. A LOPAS_ROVID_KEZBEN párja, ha a felső lapjaink nem elegendők a rövid kéz
+  # kiürítéséhez.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    L: "rovid_adu_lopo(SZ)"
+    MK: "partner(L)"
+    N: "kezhossz(L, SZ)"
+    NYERO: "felettunk(SZ, F)"
+    KIAD: "N - hossz(NYERO)"
+    R: "min(kezhossz(MK, SZ) - N, adu_kezben(L), max(1, hiany()))"
+  alkalmazhato: ["nem_adu(SZ)", "van(L)", "KIAD >= 1", "KIAD <= 1", "R >= 1"]
+  korok:
+    - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
+    - {ismetles: "KIAD", fajta: kiad, hivo: MK}
+    - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
+  siker: "True"
+  kudarc_koltseg: 1
+  hozam: "R"
+  hasznal: [NYERO]
+  elfogyaszt: [NYERO]

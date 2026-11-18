@@ -231,7 +231,25 @@ def fogalmak(allas: Allas) -> dict:
         aL, aM = len(a.szin(L, a.adu)), len(a.szin(M, a.adu))
         return L if 0 < aL <= aM else None
 
+    def nyerok_kezben(kez, sz):
+        """A kéz lapjai a színben, amelyek minden kint lévő lapnál nagyobbak."""
+        if kez is None:
+            return []
+        f = legnagyobb_kint(sz)
+        return [l for l in a.szin(kez, sz) if f is None or l.rang > f.rang]
+
+    def tobbletnyero_kez(sz):
+        """Az a kezünk, amelynek a színben több nyerője van, mint ahány lapja a
+        partnerének: a többletre a partner (a másik színekből) vesztőt dobhat."""
+        for k in a.kezek:
+            p = kovetkezo_ules(k, 2)
+            if len(nyerok_kezben(k, sz)) > len(a.szin(p, sz)):
+                return k
+        return None
+
     return {
+        "nyerok_kezben": nyerok_kezben,
+        "tobbletnyero_kez": tobbletnyero_kez,
         "legnagyobb_kint": legnagyobb_kint,
         "rovid_adu_lopo": rovid_adu_lopo,
         "kint_db": lambda sz: len(a.kint_szin(sz)),
@@ -425,7 +443,10 @@ class Peldany:
              "IMPASSZ_ATENGEDES_FELSO_ELOBB": "impassz (felső előbb)",
              "LOPASOS_KIMAGASITAS": "lopásos kimagasítás",
              "LOPAS_ROVID_KEZBEN": "lopás a rövid kézben",
-             "LOPASOS_KIMAGASITAS_HOSSZ": "lopásos kimagasítás (hosszú lap)"}.get(self.sema.azon, self.sema.azon)
+             "LOPASOS_KIMAGASITAS_HOSSZ": "lopásos kimagasítás (hosszú lap)",
+             "SZOKTETES": "szöktetés", "SZOKTETES_FELSO_ELOBB": "szöktetés (felső előbb)",
+             "VESZTOCSERE": "vesztőcsere (dobás)",
+             "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)"}.get(self.sema.azon, self.sema.azon)
         return f"{'♠♥♦♣'['SHDC'.index(self.szin)]} {r}"
 
     def siker_kornyezet(self) -> dict:
