@@ -471,9 +471,36 @@ def _uj_terv(keres: dict, h: Helyzet, kulcs: tuple, dd_zar, ok: str,
     return rek
 
 
+def _felmeres_html(h: Helyzet, rek: Rekord) -> str:
+    from ..motor.tervfelmeres import felmeres_jatekbol
+    f = felmeres_jatekbol(_jatek(h, rek.lejatszott), 6 + rek.kontraktus.szint)
+    sorok = "".join(
+        f"<tr><td>{SZIN[s.szin]}</td><td>{s.mi[0]}–{s.mi[1]}</td><td>{s.kint}</td><td>{s.biztos}</td>"
+        f"<td>{s.kiado}</td>" + (f"<td>{s.vesztok:.1f} ({s.vesztok_max})</td>" if f.adu else "") + "</tr>"
+        for s in f.szinek)
+    fej = ("<tr><th>Szín</th><th>Mi (felvevő–asztal)</th><th>Kint</th><th>Biztos ütés</th>"
+           "<th>Biztosan kiadó</th>" + ("<th>Vesztő a fő kézből (legrosszabb)</th>" if f.adu else "") + "</tr>")
+    return (f"<table>{fej}{sorok}</table>"
+            + "".join(f"<p>{html.escape(x.replace(f.fo_kez or '~', KEZ_NEV.get(f.fo_kez, '')) if f.fo_kez else x)}</p>"
+                      for x in f.sorok())
+            + "<p class=\"halv\">A vesztők elosztásonként, a felső lapokkal lejátszva (impassz és lopás "
+              "nélkül); a biztosan kiadó: a kint lévő lapok a legnagyobb lapunk fölött.</p>")
+
+
+def _felmeres_adat(h: Helyzet, rek: Rekord) -> dict:
+    from ..motor.tervfelmeres import felmeres_jatekbol
+    f = felmeres_jatekbol(_jatek(h, rek.lejatszott), 6 + rek.kontraktus.szint)
+    return {"needed": f.cel, "remaining": f.hatra, "sure_tricks": f.biztos, "missing": f.hiany,
+            "allowed_losers": f.megengedett, "sure_losers": f.kiado, "balance": f.egyenleg,
+            "expected_losers": round(f.vesztok, 2) if f.adu else None,
+            "suits": {s.szin: {"sure_tricks": s.biztos, "sure_losers": s.kiado,
+                               "expected_losers": round(s.vesztok, 2)} for s in f.szinek}}
+
+
 def _terv_nezet(h: Helyzet, rek: Rekord) -> dict:
     return _html("kibic — játékterv", [
         ("A helyzet", _helyzet_html(h, rek)),
+        ("A helyzetfelmérés", _felmeres_html(h, rek)),
         ("A jelölt tervek", _terv_html(rek)),
         ("A választott terv egységei", _egysegek_html(rek.terv)),
         ("Korlátok", "<ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in KORLATOK) + "</ul>")])
@@ -496,7 +523,8 @@ def plan_valasz(keres: dict, dd_zar=None) -> dict:
                      "Egyik terv sem teljesít egyik sorsolt világban sem; a lépéskérésre a kibic "
                      "általános lejátszója ad lapot.")
     v.update(plan_id=rek.plan_id, plan_revision=rek.revizio, analysis_result="new_plan",
-             plan=_terv_adat(rek), assessment=_jeloltek_adat(rek), presentation=_terv_nezet(h, rek))
+             plan=_terv_adat(rek), assessment=dict(_jeloltek_adat(rek), situation=_felmeres_adat(h, rek)),
+             presentation=_terv_nezet(h, rek))
     v["meta"]["elapsed_ms"] = int(rek.ido_s * 1000)
     return v
 
