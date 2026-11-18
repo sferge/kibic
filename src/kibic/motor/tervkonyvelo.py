@@ -37,9 +37,11 @@ SZINJEL = dict(zip("SHDC", "♠♥♦♣"))
 
 @dataclass
 class KTerv:
-    """Egységek sora (az esélyek sora): az első próba, a többi akkor jön, ha az
-    előző nem sikerült."""
+    """A terv egységei: a biztos egységek (mindig), és utánuk az esélyes egységek
+    sorban — amíg a megszerzett hozam el nem éri az igényt (a hiányzó ütések, illetve
+    a vesztőtöbblet)."""
     lepesek: list[Peldany]
+    igeny: int = 1
 
     @property
     def nev(self) -> str:
@@ -74,7 +76,11 @@ def _utkozik(a: Peldany, b: Peldany) -> bool:
     return bool((a.hasznal | a.elfogyaszt) & (b.hasznal | b.elfogyaszt)) or a.szin == b.szin
 
 
-def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60) -> list[KTerv]:
+def max_hozam(lepesek: list[Peldany]) -> int:
+    return sum(p.hozam for p in lepesek)
+
+
+def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1) -> list[KTerv]:
     """A jelölt tervek: a biztos egységek (vesztőcsere, lopás — nincs rejtett
     feltételük) egy ütközésmentes készlete, és utánuk egy- vagy kételemű esélysor a
     többi technikából (az első próba: a kudarca nem kerül ütésbe, és nem fogyaszthatja
@@ -96,11 +102,16 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60) -> list[KTerv]
     latott = set()
 
     def hozzaad(lepesek):
+        # a terv csak akkor jelölt, ha minden egysége sikere esetén fedi az igényt
+        if max_hozam(lepesek) < igeny:
+            return
         kulcs = tuple(id(p) for p in lepesek)
         if kulcs not in latott:
             latott.add(kulcs)
-            ki.append(KTerv(list(lepesek)))
+            ki.append(KTerv(list(lepesek), igeny))
 
+    if igeny <= 0:
+        hozzaad([])
     for alap in keszletek:
         eleje = len(ki)
         hozzaad(alap)
@@ -116,6 +127,14 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60) -> list[KTerv]
                 if a is b or a.elfogyaszt & (b.hasznal | b.elfogyaszt):
                     continue
                 hozzaad(alap + [a, b])
+    if not ki:
+        # egyik terv sem fedi az igényt: a legtöbbet hozók (a tartalék dönt majd)
+        osszes = sorted(P, key=lambda p: -p.hozam)
+        valasztott: list[Peldany] = []
+        for p in osszes:
+            if not any(_utkozik(p, q) for q in valasztott):
+                valasztott.append(p)
+        ki.append(KTerv(valasztott, igeny))
     return ki[:max_db]
 
 
@@ -133,6 +152,9 @@ class Vegrehajto:
         self.szandek_utes = -1
         self.naplo = naplo
         self.cel = None                      # az összes kell ütés (a lejátszó adja)
+        self.igeny = terv.igeny
+        # a megszerzett hozam: a biztos egységeké előre beszámít
+        self.megszerzett = sum(e.p.hozam for e in self.egysegek if e.biztos)
         self.kitekintes = False              # előrenézés (egyszerű védőkkel): még nem segít, lásd a doksit
         self.kitekintes_db = 5
         self.kitekintes_vilag = 4
@@ -231,6 +253,9 @@ class Vegrehajto:
         # az esélyek sora: ha egy sikerült, a többi elmarad (a lapjaik szabadok)
         if e.biztos:
             return
+        self.megszerzett += e.p.hozam
+        if self.megszerzett < self.igeny:
+            return                               # még hiányzik: a többi esély is kell
         for x in self.egysegek:
             if x is not e and x.allapot == "var" and not x.biztos:
                 x.allapot = "elmarad"
@@ -553,6 +578,8 @@ class Vegrehajto:
         kl.szandek_utes = self.szandek_utes
         kl.naplo = None
         kl.cel = self.cel
+        kl.igeny = self.igeny
+        kl.megszerzett = self.megszerzett
         kl.kitekintes = False
         kl.kitekintes_db = self.kitekintes_db
         kl.kitekintes_vilag = self.kitekintes_vilag

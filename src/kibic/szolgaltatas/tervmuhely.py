@@ -120,7 +120,8 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
                            "kontra": rek.kontraktus.kontra},
             "kezek": {u: _lapok(x) for u, x in rek.kezek.items()},
             "lejatszott": [[u, str(l)] for u, l in rek.lejatszott],
-            "terv": {"nev": rek.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in rek.terv.lepesek]},
+            "terv": {"nev": rek.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in rek.terv.lepesek],
+                     "igeny": rek.terv.igeny},
             "jeloltek": [{"nev": r.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in r.terv.lepesek],
                           "esely": round(r.esely, 4), "n": r.n, "utesek": r.utesek}
                          for r in rek.eredmenyek],
@@ -150,9 +151,11 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         return None
     pld = {(p.sema.azon, p.szin): p for p in _peldanyok(h, lejatszott)}
 
+    ig = adat["terv"].get("igeny", 1)
+
     def terv(egysegek):
         try:
-            return KTerv([pld[(a, sz)] for a, sz in egysegek])
+            return KTerv([pld[(a, sz)] for a, sz in egysegek], ig)
         except KeyError:
             return None
     fo = terv(adat["terv"]["egysegek"])
@@ -258,6 +261,17 @@ def _allas(h: Helyzet, lejatszott: list) -> tuple[Allas, set[Lap]]:
     return allas, kint
 
 
+def igeny(h: Helyzet, lejatszott: list) -> int:
+    """Hány ütést (szanban) / vesztőt (színjátékban) kell a forrásoknak hozniuk: a
+    helyzetfelmérés hiánya, illetve vesztőtöbblete."""
+    import math
+    from ..motor.tervfelmeres import felmeres_jatekbol
+    f = felmeres_jatekbol(_jatek(h, lejatszott), 6 + h.kontraktus.szint)
+    if f.adu:
+        return max(0, math.ceil(f.vesztotobblet - 0.25))
+    return f.hiany
+
+
 def _peldanyok(h: Helyzet, lejatszott: list):
     from ..motor.tervsema import peldanyok
     return peldanyok(_allas(h, lejatszott)[0], technikak_betoltese())
@@ -269,7 +283,7 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     vilag_db = vilag_db or VILAG
     cel = 6 + h.kontraktus.szint
     allas, kint = _allas(h, h.lejatszott)
-    tervek = tervjeloltek(allas, technikak_betoltese())
+    tervek = tervjeloltek(allas, technikak_betoltese(), igeny=igeny(h, h.lejatszott))
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
     v1, v2 = sorted(h.vedok)
     jatszott_v = {u: {l for uu, l in h.lejatszott if uu == u} for u in (v1, v2)}
@@ -454,8 +468,10 @@ def _egysegek_html(terv: KTerv, v: Vegrehajto | None = None) -> str:
                f"<span class=\"halv\">{html.escape(p.sema.nev)}</span><br>"
                f"körök: {'; '.join(korok)}<br><span class=\"halv\">feltétel (rejtett): {siker}"
                f"{'; kudarca egy ütés' if p.sema.kudarc_koltseg else ''}</span></li>")
-    return ki + "</ol><p class=\"halv\">Ha egy egység sikerült, a többi elmarad; ha nem, a következő jön. " \
-                "Az átmeneteket és az aduköröket a végrehajtó körről körre illeszti be.</p>"
+    return ki + (f"</ol><p class=\"halv\">Igény: {terv.igeny} (a hiányzó ütések, illetve a vesztőtöbblet). "
+                 "A biztos egységek mindig a terv részei; az esélyesek sorban jönnek, amíg a "
+                 "megszerzett hozam el nem éri az igényt — ha egy nem sikerül, a következő. "
+                 "Az átmeneteket és az aduköröket a végrehajtó körről körre illeszti be.</p>")
 
 
 def _uj_terv(keres: dict, h: Helyzet, kulcs: tuple, dd_zar, ok: str,

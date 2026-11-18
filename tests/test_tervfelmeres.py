@@ -44,6 +44,6 @@ def test_forrasok_negy_pikk():
     a = Allas("E", "S", {"E": set(E), "W": set(W)}, kint, 10, 13, "W")
     fk = {f.nev: f for f in forrasok(a, technikak_betoltese(), {"N": 13, "S": 12})}
     assert fk["♥ vesztőcsere (dobás)"].hozam == 2 and fk["♥ vesztőcsere (dobás)"].biztos
-    assert fk["♣ lopás a rövid kézben (kiadás után)"].biztos
+    assert not fk["♣ lopás a rövid kézben (kiadás után)"].biztos       # csak ha a 4. treff nem magas
     assert 0.45 < fk["♦ szöktetés"].esely < 0.6 and 0.45 < fk["♣ impassz"].esely < 0.6
     assert fk["♦ szöktetés (felső előbb)"].esely > fk["♦ szöktetés"].esely

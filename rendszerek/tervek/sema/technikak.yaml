@@ -274,8 +274,12 @@
     - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
     - {ismetles: "KIAD", fajta: kiad, hivo: MK}
     - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
-  siker: "True"
-  kudarc_koltseg: 1
+  # A szerkesztő (2026-11-18): ha a védők lapjai a rövid kéz köreire elfogynak, a
+  # hosszú kéz lapja magas — a lopás nem hoz semmit. Csak akkor ér, ha a védők hosszabb
+  # fele hosszabb a rövid kéznél. Ára: a rövid kéz aduit félre kell tenni (nem lehet
+  # kiaduzni), és a kiadás után a védők aduval vághatnak.
+  siker: "max_vedo_hossz(SZ) > N"
+  kudarc_koltseg: 0
   hozam: "R"
   hasznal: [NYERO]
   elfogyaszt: [NYERO]
