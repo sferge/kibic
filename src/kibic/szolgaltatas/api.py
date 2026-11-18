@@ -555,6 +555,38 @@ async def bridge_play(
     return valasz
 
 
+@app.post("/v1/bridge/plan", dependencies=[Depends(_jogosultsag_atjaro)])
+async def bridge_plan(
+    keres: dict,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> dict:
+    """Tervműhely: a felvevő játékterve (motor/tervkonyvelo.py); lapot nem ad."""
+    from starlette.concurrency import run_in_threadpool
+    from .tervmuhely import plan_valasz
+    kesz = _idempotencia(keres, idempotency_key)
+    if kesz is not None:
+        return kesz
+    valasz = await run_in_threadpool(plan_valasz, keres, _DDS_ZAR)
+    _IDEM.ir(idempotency_key, keres, valasz)
+    return valasz
+
+
+@app.post("/v1/bridge/step", dependencies=[Depends(_jogosultsag_atjaro)])
+async def bridge_step(
+    keres: dict,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> dict:
+    """Tervműhely: a terv következő lapja és az indoka (ha kell, előbb újratervez)."""
+    from starlette.concurrency import run_in_threadpool
+    from .tervmuhely import step_valasz
+    kesz = _idempotencia(keres, idempotency_key)
+    if kesz is not None:
+        return kesz
+    valasz = await run_in_threadpool(step_valasz, keres, _DDS_ZAR)
+    _IDEM.ir(idempotency_key, keres, valasz)
+    return valasz
+
+
 @app.post("/v1/bridge/urge", dependencies=[Depends(_jogosultsag_atjaro)])
 async def bridge_urge(keres: dict) -> dict:
     """

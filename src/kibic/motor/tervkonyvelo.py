@@ -483,6 +483,12 @@ class Vegrehajto:
 
     # -- hozzátevés --
     def _kovetes(self, u: str) -> Lap:
+        lap, ok = self._kovetes_ok(u)
+        self._jegyez(ok)
+        return lap
+
+    def _kovetes_ok(self, u: str) -> tuple[Lap, str]:
+        """A hozzátevés és az oka (a tanári asztal ezt mutatja)."""
         j, adu = self.j, self.adu
         utes = j.aktualis()
         hivott = utes[0][1].szin
@@ -493,24 +499,22 @@ class Vegrehajto:
         if sz is not None:
             if sz[0] == "lap" and sz[1] in j.kezek[u] and (sz[1].szin == hivott or not van):
                 if j.mi(nyu) or _ut(sz[1], nyl, adu):
-                    return sz[1]
+                    return sz[1], f"a kör lapja: {sz[1]}"
                 fole = [l for l in van if _ut(l, nyl, adu)]
-                return fole[0] if fole else sz[1]
+                return (fole[0], f"fölé: {fole[0]}") if fole else (sz[1], f"a kör lapja: {sz[1]}")
             if sz[0] == "impassz" and van and sz[1] in j.kezek[u]:
                 if j.mi(nyu):
-                    return van[0]
+                    return van[0], "a partnerünk üt: kicsi"
                 if _ut(sz[1], nyl, adu):
-                    return sz[1]
+                    return sz[1], f"impassz: {sz[1]}"
                 fole = [l for l in van if _ut(l, nyl, adu)]
-                return fole[0] if fole else van[0]
+                return (fole[0], f"a védő fedett: fölé {fole[0]}") if fole else (van[0], "kicsi")
             if sz[0] == "lop" and not van:
                 adu_l = [l for l in j.szin(u, adu) if _ut(l, nyl, adu)] if adu else []
                 if adu_l:
-                    return adu_l[0]
+                    return adu_l[0], f"lopás: {adu_l[0]}"
         partner_nyer = j.mi(nyu)
         if van and len(utes) == 1:
-            # második kéz: kicsi, hacsak a partner nem tud biztosan ütni, és már
-            # nincs tartalékunk — akkor a legolcsóbb biztos nyerő
             P = j.partner(u)
             p_legjobb = max((l.rang for l in j.szin(P, hivott)), default=0)
             kint_felett = [x for x in j.kint(hivott) if x != nyl and x.rang > p_legjobb]
@@ -518,20 +522,24 @@ class Vegrehajto:
             if kint_felett and not p_lop and self._tartalek() <= 0:
                 nyerok = [l for l in van if self._nyero(l) and l.rang > nyl.rang]
                 if nyerok:
-                    return nyerok[0]
-            return self._legkisebb(van, fogl)
+                    return nyerok[0], f"második kéz: üt a nyerővel ({nyerok[0]}) — nincs tartalék"
+            l = self._legkisebb(van, fogl)
+            return l, "második kéz: kicsi" + _megtart(l, van, fogl)
         if van:
             if partner_nyer:
-                return self._legkisebb(van, fogl)
+                l = self._legkisebb(van, fogl)
+                return l, "a partnerünk üt: kicsi" + _megtart(l, van, fogl)
             fole = [l for l in van if _ut(l, nyl, adu)]
             if fole:
-                return fole[0]
-            return self._legkisebb(van, fogl)
+                return fole[0], f"üt a legolcsóbbal: {fole[0]}"
+            l = self._legkisebb(van, fogl)
+            return l, "nem tud ütni: kicsi" + _megtart(l, van, fogl)
         if not partner_nyer and adu and hivott != adu:
             adu_l = [l for l in j.szin(u, adu) if _ut(l, nyl, adu)]
             if adu_l:
-                return adu_l[0]
-        return self._dobas(u, fogl)
+                return adu_l[0], f"lop: {adu_l[0]}"
+        l = self._dobas(u, fogl)
+        return l, f"dobás: {l}" + (" (a foglalt és a nyerő lapokat megtartja)" if fogl & j.kezek[u] else "")
 
     def _legkisebb(self, lapok: list[Lap], fogl: set[Lap]) -> Lap:
         szabad = [l for l in lapok if l not in fogl]
@@ -578,6 +586,14 @@ def _egyszeru_vedo(j: tj.Jatek, u: str) -> Lap:
             return adu_l[0]
     hossz = {sz: len(j.szin(u, sz)) for sz in "SHDC"}
     return min(lapok, key=lambda l: (l.szin == j.adu, -hossz[l.szin], l.rang))
+
+
+def _megtart(l: Lap, van: list[Lap], fogl: set[Lap]) -> str:
+    if l in fogl:
+        return " (minden lapja foglalt; a legkisebbet adja)"
+    if any(x in fogl for x in van):
+        return " (a foglalt lapokat megtartja)"
+    return ""
 
 
 def j_keze(j: tj.Jatek, l: Lap) -> str | None:
