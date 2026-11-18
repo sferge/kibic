@@ -47,7 +47,7 @@ from ..domain.kartya import Kez
 from ..motor import lejatszas as lj
 from ..motor import tervjatszo as tj
 from ..motor.tervellenorzo import vilagok
-from ..motor.tervkonyvelo import Eredmeny, KTerv, Vegrehajto, lejatszik, tervjeloltek
+from ..motor.tervkonyvelo import Eredmeny, KTerv, Vegrehajto, ertekel_lepcsos, lejatszik, tervjeloltek
 from ..motor.tervsema import Allas, technikak_betoltese
 from ..motor.tervszamolo import Korlat
 
@@ -57,10 +57,11 @@ ARANY = float(os.getenv("KIBIC_TERVMUHELY_ARANY", "0.45"))
 # újratervezéskor a régi terv marad, ha az új legjobb ennél kevesebbel jobb (ugyanazokon a
 # világokon): a mintavétel zaja ne ugráltassa a tervet
 TURES = float(os.getenv("KIBIC_TERVMUHELY_TURES", "0.05"))
-# hibrid döntés (a problémaleírás 7. peremfeltétele): ha a legjobb terv esélye ennyivel
-# elmarad a DD-felső határtól (a mindent látó felvevő aránya ugyanazokon a világokon),
-# a technikák nem fedik a partit — a kibic általános lejátszója dönt. 1: kikapcsolva.
-HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "0.25"))
+# hibrid döntés: ha a legjobb terv esélye ennyivel elmarad a DD-felső határtól (a mindent
+# látó felvevő aránya ugyanazokon a világokon), a kibic általános lejátszója dönt. A
+# tanári asztalon alapból KI (1): ott a tervet vizsgáljuk; tartalék csak akkor, ha nincs
+# megoldás (a szerkesztő menete, 2026-11-18). Éles játékhoz a mérés dönt majd a küszöbről.
+HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "1"))
 TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
@@ -101,6 +102,10 @@ def _lapok(xs) -> list[str]:
     return [str(l) for l in sorted(xs, key=str)]
 
 
+def _egysegek_lista(t: KTerv) -> list:
+    return [[p.sema.azon, p.szin] + ([t.fazis[i]] if t.fazis else []) for i, p in enumerate(t.lepesek)]
+
+
 def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> None:
     """A terv a fájlba (atomi írással); a korábbi tervek okai a `tortenet`-ben maradnak."""
     TAR.mkdir(parents=True, exist_ok=True)
@@ -120,9 +125,9 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
                            "kontra": rek.kontraktus.kontra},
             "kezek": {u: _lapok(x) for u, x in rek.kezek.items()},
             "lejatszott": [[u, str(l)] for u, l in rek.lejatszott],
-            "terv": {"nev": rek.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in rek.terv.lepesek],
+            "terv": {"nev": rek.terv.nev, "egysegek": _egysegek_lista(rek.terv),
                      "igeny": rek.terv.igeny},
-            "jeloltek": [{"nev": r.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in r.terv.lepesek],
+            "jeloltek": [{"nev": r.terv.nev, "egysegek": _egysegek_lista(r.terv),
                           "esely": round(r.esely, 4), "n": r.n, "utesek": r.utesek}
                          for r in rek.eredmenyek],
             "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "dd_felso": rek.dd_felso,
@@ -155,9 +160,11 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
 
     def terv(egysegek):
         try:
-            return KTerv([pld[(a, sz)] for a, sz in egysegek], ig)
+            lep = [pld[(x[0], x[1])] for x in egysegek]
         except KeyError:
             return None
+        fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 for x in egysegek) else None
+        return KTerv(lep, ig, fazis)
     fo = terv(adat["terv"]["egysegek"])
     if fo is None:
         return None
@@ -166,7 +173,7 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         t = terv(x["egysegek"])
         if t is None:
             continue
-        if t.nev == fo.nev:
+        if t.nev == fo.nev and t.fazis == fo.fazis:
             t = fo
         r = Eredmeny(t, teljesult=round(x["esely"] * x["n"]), n=x["n"], utesek=x["utesek"])
         ered.append(r)
@@ -296,28 +303,21 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     k = h.kontraktus
     vl = vilagok(lo, h.lejatszott, kint, vilag_db, _szinhianyok(h.lejatszott, h.vedok),
                  mag=len(h.lejatszott) + 1, vedok=(v1, v2))
-    ered = [Eredmeny(t) for t in tervek]
     tar = tj.DDTar(dd_fv, k)
     keret = max(1.0, hatarido_s - (time.time() - t0))
-    hasznalt = 0
-    dd_tel = 0
     jatek0 = _jatek(h, h.lejatszott)
     mi_jon = jatek0.mi(jatek0.soron())
-    for i, w in enumerate(vl):
-        if i >= 8 and time.time() - t0 > keret:
-            break                                # a határidő: az eddigi világok döntenek
-        hasznalt += 1
-        dd = tar(i, w, h.lejatszott)
-        ossz = [e.felvevo_osszesen for e in dd]
-        dd_tel += (max(ossz) if mi_jon else min(ossz)) >= cel
-        for r in ered:
-            def dd_vedo(jj, i=i, w=w):
-                return tj._vedo_lap(tar(i, w, jj.lapok))
-            n = lejatszik(r.terv, w, h.felvevo, h.adu, h.lejatszott, dd_vedo, cel=cel)
-            r.n += 1
-            r.utesek += n
-            r.teljesult += n >= cel
-    ered.sort(key=lambda r: (-r.esely, -(r.utesek / r.n if r.n else 0), len(r.terv.lepesek)))
+    dd = {"tel": 0, "n": 0}
+
+    def dd_felso(i, w):
+        ossz = [e.felvevo_osszesen for e in tar(i, w, h.lejatszott)]
+        dd["n"] += 1
+        dd["tel"] += (max(ossz) if mi_jon else min(ossz)) >= cel
+
+    ered = ertekel_lepcsos(tervek, vl, h.felvevo, h.adu, h.lejatszott, tar, cel, keret_s=keret,
+                           t0=t0, utana=dd_felso)
+    hasznalt = max((r.n for r in ered), default=0)
+    dd_tel = dd["tel"]
     if elozo is not None:
         # a régi terv (az egységei szerint) marad, ha nem érezhetően rosszabb
         for i, r in enumerate(ered):
@@ -327,7 +327,7 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
                 break
     return Rekord(uuid.uuid4().hex, 1, ered[0].terv, ered, list(h.lejatszott),
                   {u: set(h.kezek[u]) for u in (h.felvevo, h.asztal)}, h.felvevo, k, hasznalt,
-                  time.time() - t0, dd_felso=dd_tel / hasznalt if hasznalt else None)
+                  time.time() - t0, dd_felso=dd_tel / dd['n'] if dd['n'] else None)
 
 
 def _dd_fv(dd_zar):

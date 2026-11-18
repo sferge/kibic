@@ -52,9 +52,12 @@
     VK: "keze(V)"
     HK: "partner(VK)"
     FELETTE: "felettunk_kezben(VK, SZ, F)"
-    DEBLOKK: "felettunk_kezben(HK, SZ, F)"
+    # deblokk csak akkor kell, ha a hívó kéz a rövidebb: a hosszú kéz felső lapja nem
+    # blokkol (4V01 #1: ♥KJ / ♥AT943 — az ász előzetes lehívása tönkretenné a villát)
+    DEBLOKK: "ha(kezhossz(HK, SZ) <= kezhossz(VK, SZ), felettunk_kezben(HK, SZ, F), [])"
   alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(FELETTE) >= 1",
-                 "kezhossz(HK, SZ) > hossz(DEBLOKK)"]
+                 "kezhossz(HK, SZ) > hossz(DEBLOKK)",
+                 "kezhossz(VK, SZ) > hossz(FELETTE) + hossz(DEBLOKK) or hossz(DEBLOKK) == 0"]
   korok:
     - {ismetles: "hossz(DEBLOKK)", fajta: lehiv, lap: DEBLOKK}
     - {fajta: impassz, hivo: HK, lap: V}

@@ -32,6 +32,11 @@ from .tervsema import Allas, Kor, Peldany, peldanyok
 
 SZINJEL = dict(zip("SHDC", "♠♥♦♣"))
 
+import os as _os
+# a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
+SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
+           ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ")}
+
 
 # --- 1. A terv -----------------------------------------------------------------------
 
@@ -42,10 +47,43 @@ class KTerv:
     a vesztőtöbblet)."""
     lepesek: list[Peldany]
     igeny: int = 1
+    # a sorrend: egységenként "E" (a kiaduzás előtt) vagy "U" (utána); None: a régi,
+    # körönkénti döntés
+    fazis: tuple | None = None
 
     @property
     def nev(self) -> str:
-        return " → ".join(p.rovid for p in self.lepesek) or "csak begyűjtés"
+        if not self.lepesek:
+            return "csak begyűjtés"
+        if self.fazis is None:
+            return " → ".join(p.rovid for p in self.lepesek)
+        elotte = [p.rovid for p, f in zip(self.lepesek, self.fazis) if f == "E"]
+        utana = [p.rovid for p, f in zip(self.lepesek, self.fazis) if f != "E"]
+        return " → ".join(elotte + (["kiaduzás"] if self.lepesek and elotte else []) + utana)
+
+
+def alap_fazis(p: Peldany) -> str:
+    """Az alapsorrend: a lopás a kiaduzás előtt (a lopó kéz aduja kell hozzá), minden más utána."""
+    return "E" if any(k.fajta == "lop" for k in p.korok) else "U"
+
+
+def szakasz_valtozatok(t: KTerv, max_db: int = 8) -> list[KTerv]:
+    """A terv sorrendváltozatai: az egységek a kiaduzás előtt vagy után (az alapsorrend
+    az első). A lopásos egység mindig előtte marad."""
+    from itertools import product
+    alap = tuple(alap_fazis(p) for p in t.lepesek)
+    ki = [KTerv(t.lepesek, t.igeny, alap)]
+    szabad = [i for i, p in enumerate(t.lepesek) if alap[i] == "U"]
+    for valaszt in product("UE", repeat=len(szabad)):
+        f = list(alap)
+        for i, v in zip(szabad, valaszt):
+            f[i] = v
+        f = tuple(f)
+        if f != alap:
+            ki.append(KTerv(t.lepesek, t.igeny, f))
+        if len(ki) >= max_db:
+            break
+    return ki
 
 
 @dataclass
@@ -53,6 +91,7 @@ class Egyseg:
     p: Peldany
     i: int = 0
     allapot: str = "var"            # var / siker / kudarc / elmarad / kesz
+    fazis: str | None = None        # "E": a kiaduzás előtt, "U": utána, None: nincs megadva
 
     def kor(self) -> Kor | None:
         return self.p.korok[self.i] if self.i < len(self.p.korok) else None
@@ -108,7 +147,8 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         kulcs = tuple(id(p) for p in lepesek)
         if kulcs not in latott:
             latott.add(kulcs)
-            ki.append(KTerv(list(lepesek), igeny))
+            ki.append(KTerv(list(lepesek), igeny,
+                        tuple(alap_fazis(p) for p in lepesek) if SZABALY["SZAKASZ"] else None))
 
     if igeny <= 0:
         hozzaad([])
@@ -134,7 +174,7 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         for p in osszes:
             if not any(_utkozik(p, q) for q in valasztott):
                 valasztott.append(p)
-        ki.append(KTerv(valasztott, igeny))
+        ki.append(KTerv(valasztott, igeny, tuple(alap_fazis(p) for p in valasztott)))
     return ki[:max_db]
 
 
@@ -144,7 +184,9 @@ class Vegrehajto:
     """A felvevő oldal politikája egy világon: a terv egységei körökre bontva."""
 
     def __init__(self, terv: KTerv, j: tj.Jatek, naplo: list | None = None):
-        self.egysegek = [Egyseg(p) for p in terv.lepesek]
+        self.egysegek = [Egyseg(p, fazis=(terv.fazis[i] if terv.fazis else None))
+                         for i, p in enumerate(terv.lepesek)]
+        self.szakaszos = terv.fazis is not None
         self.j = j
         self.adu = j.adu
         self.folyo: tuple | None = None      # (egység, kör, az ütés kezdő indexe)
@@ -271,13 +313,20 @@ class Vegrehajto:
             return self._hivas(u)
         return self._kovetes(u)
 
-    def _kovetkezo_kor(self) -> tuple[Egyseg, Kor] | None:
+    def _elotte_aktiv(self) -> bool:
+        """Van-e még élő, kiaduzás előtti egység (a szakaszos tervben)."""
+        return self.szakaszos and any(e.el and e.fazis == "E" and e.kor() is not None
+                                      for e in self.egysegek)
+
+    def _kovetkezo_kor(self, csak: str | None = None) -> tuple[Egyseg, Kor] | None:
         """Az esélyek sorában az első élő egység soron következő köre. A már lement
         lapok köreit (átmenetként vagy védői hívásra tettük le) átlépi; a `csak_ha:
         siker` körnél dönt: a lap most nyerő-e (megfigyelt tény)."""
         j = self.j
         mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
         for e in self.egysegek:
+            if csak is not None and e.fazis != csak:
+                continue
             while e.el:
                 k = e.kor()
                 if k is None:
@@ -314,8 +363,9 @@ class Vegrehajto:
         """Melyik kezünkből indul a terv következő köre (mellékhatás nélkül)."""
         j = self.j
         mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
+        elotte = self._elotte_aktiv()
         for e in self.egysegek:
-            if not e.el:
+            if not e.el or (elotte and e.fazis != "E"):
                 continue
             for k in e.p.korok[e.i:]:
                 if k.lap is not None and k.lap not in mieink:
@@ -365,6 +415,8 @@ class Vegrehajto:
         self._jegyez(v.leiras)
 
     def _jeloltek(self, H: str) -> list["Jelolt"]:
+        if self.szakaszos:
+            return self._jeloltek_szakaszos(H)
         out: list[Jelolt] = []
         kk = self._kovetkezo_kor()
         if self._kint_adu() and self._adukor_mehet():
@@ -387,6 +439,51 @@ class Vegrehajto:
             kk = self._kovetkezo_kor()
         if kk is None:
             out += self._begyujtes_jeloltek(H, 1)
+        if not out:
+            out.append(self._feladas(H))
+        out.sort(key=lambda v: v.ar)
+        egyedi, latott = [], set()
+        for v in out:
+            if v.lap not in latott:
+                latott.add(v.lap)
+                egyedi.append(v)
+        return egyedi
+
+    def _jeloltek_szakaszos(self, H: str) -> list["Jelolt"]:
+        """A szakaszos terv: előbb a kiaduzás előtti egységek (aduzás nélkül), aztán a
+        kiaduzás (felső aduval vagy a felső adu kiütésével), aztán a többi egység és a
+        begyűjtés."""
+        out: list[Jelolt] = []
+        kk = None
+        if self._elotte_aktiv():
+            kk = self._kovetkezo_kor("E")
+            while kk is not None:
+                e, k = kk
+                ej = self._egyseg_jeloltek(H, e, k, 1)
+                if ej:
+                    out += ej
+                    break
+                e.allapot = "kudarc"
+                self._jegyez(f"{e.p.rovid}: nem játszható (nincs átmenet)")
+                kk = self._kovetkezo_kor("E")
+        if not out:
+            if self._kint_adu() and self._adukor_mehet():
+                adu = self._adukor_jeloltek(H, 0)
+                for v in adu:
+                    v.ar = -1.0
+                out += adu
+            kk = self._kovetkezo_kor()
+            while kk is not None:
+                e, k = kk
+                ej = self._egyseg_jeloltek(H, e, k, 1)
+                if ej:
+                    out += ej
+                    break
+                e.allapot = "kudarc"
+                self._jegyez(f"{e.p.rovid}: nem játszható (nincs átmenet)")
+                kk = self._kovetkezo_kor()
+            if kk is None:
+                out += self._begyujtes_jeloltek(H, 1)
         if not out:
             out.append(self._feladas(H))
         out.sort(key=lambda v: v.ar)
@@ -427,7 +524,9 @@ class Vegrehajto:
                 return [Jelolt(k.lap, ar, cim, folyo=(ei, k))]
             ki = []
             kicsi = self._kicsi(H, k.szin, fogl)
-            if kicsi is not None and kicsi.rang < k.lap.rang:
+            # a hívó kéz kis lapja nem lehet az egység saját kulcslapja (pl. a villa lapja)
+            if kicsi is not None and kicsi.rang < k.lap.rang \
+                    and kicsi not in (e.p.hasznal | e.p.elfogyaszt):
                 ki.append(Jelolt(kicsi, ar, cim, {P: ("lap", k.lap)}, (ei, k)))
             return ki + self._atmenet_jeloltek(H, X, e, ar + 0.5)
         if k.fajta == "impassz":
@@ -574,7 +673,8 @@ class Vegrehajto:
 
     def _klon(self, j2: tj.Jatek) -> "Vegrehajto":
         kl = Vegrehajto.__new__(Vegrehajto)
-        kl.egysegek = [Egyseg(e.p, e.i, e.allapot) for e in self.egysegek]
+        kl.egysegek = [Egyseg(e.p, e.i, e.allapot, e.fazis) for e in self.egysegek]
+        kl.szakaszos = self.szakaszos
         kl.j = j2
         kl.adu = self.adu
         kl.folyo = None
@@ -651,13 +751,29 @@ class Vegrehajto:
             p_legjobb = max((l.rang for l in j.szin(P, hivott)), default=0)
             kint_felett = [x for x in j.kint(hivott) if x != nyl and x.rang > p_legjobb]
             p_lop = not j.szin(P, hivott) and adu and hivott != adu and j.szin(P, adu)
-            if kint_felett and not p_lop and self._tartalek() <= 0:
+            if kint_felett and not p_lop:
+                # a partner nem tud biztosan ütni: ha van biztos nyerőnk, nem adjuk a
+                # harmadik kéznek az ütést („második kéz kicsi” csak ott jó, ahol a
+                # partner fedez, vagy nincs nyerőnk)
                 nyerok = [l for l in van if self._nyero(l) and l.rang > nyl.rang]
-                if nyerok:
-                    return nyerok[0], f"második kéz: üt a nyerővel ({nyerok[0]}) — nincs tartalék"
+                if nyerok and (self._tartalek() <= 0 or (SZABALY["MASODIK"] and (
+                        not any(l in fogl for l in nyerok) or len(nyerok) >= 2))):
+                    return nyerok[0], (f"második kéz: üt a nyerővel ({nyerok[0]}) — a partner "
+                                       "nem tudja biztosan megütni")
             l = self._legkisebb(van, fogl)
             return l, "második kéz: kicsi" + _megtart(l, van, fogl)
         if van:
+            if SZABALY["HARMADIK"] and partner_nyer and len(utes) == 2 and nyl.szin == hivott \
+                    and not self._nyero(nyl) \
+                    and [x for x in j.kint(hivott) if x.rang > nyl.rang]:
+                # harmadik kéz: a partner lapja áll, de a negyedik (védő) megütheti
+                biztos = [l for l in van if self._nyero(l)]
+                if biztos:
+                    return biztos[0], f"harmadik kéz: a nyerővel ({biztos[0]}) — a partner lapját megüthetik"
+                fole = [l for l in van if l.rang > nyl.rang]
+                if fole and not all(l in fogl for l in fole):
+                    l = [x for x in fole if x not in fogl][-1]
+                    return l, f"harmadik kéz: magasan ({l})"
             if partner_nyer:
                 l = self._legkisebb(van, fogl)
                 return l, "a partnerünk üt: kicsi" + _megtart(l, van, fogl)
@@ -670,7 +786,8 @@ class Vegrehajto:
             adu_l = [l for l in j.szin(u, adu) if _ut(l, nyl, adu)]
             if adu_l:
                 vesztoje = self._dobhato_veszto(u, fogl)
-                if vesztoje is not None and self._fo_kez() == u and self._kint_adu():
+                if SZABALY["HOSSZU_LOP"] and vesztoje is not None and self._fo_kez() == u \
+                        and self._kint_adu():
                     # a hosszú adus kézben a lopás nem hoz plusz ütést (az adu úgyis ütne),
                     # csak a kontrollt rontja: vesztőt dobunk (vesztő a vesztőre)
                     return vesztoje, f"nem lop a hosszú adus kézben: vesztő a vesztőre ({vesztoje})"
@@ -709,9 +826,15 @@ class Vegrehajto:
         élő egység (annak a vesztőit a terv máshogy kezeli), a hosszabból, kicsit."""
         j = self.j
         hossz = {sz: len(j.szin(u, sz)) for sz in "SHDC"}
-        terv_szin = {e.p.szin for e in self._aktiv() if e.kor() is not None}
+        # a vesztők színenként ebben a kézben: a kéz lapjai, mínusz a két kezünk nyerői
+        vesztok = {}
+        for sz in "SHDC":
+            ny = sum(1 for k_ in (j.felvevo, j.asztal) for l in j.szin(k_, sz) if self._nyero(l))
+            vesztok[sz] = max(0, hossz[sz] - ny)
+        if not SZABALY["DOBAS"]:
+            vesztok = {sz: 0 for sz in "SHDC"}
         return min(j.kezek[u], key=lambda l: (l in fogl, self._nyero(l), l.szin == self.adu,
-                                              l.szin in terv_szin, -hossz[l.szin], l.rang))
+                                              -vesztok[l.szin], -hossz[l.szin], l.rang))
 
 
 @dataclass
@@ -827,3 +950,71 @@ def ertekel(tervek: list[KTerv], vilagok: list, felvevo: str, kontraktus, lejats
             r.teljesult += n >= cel
         ki.append(r)
     return ki
+
+
+def ertekel_lepcsos(tervek: list[KTerv], vilagok: list, felvevo: str, adu: str | None,
+                    lejatszott: list, dd_tar, cel: int, keret_s: float | None = None,
+                    elso: int = 20, legjobb: int = 3, vege: int = 4, t0: float | None = None,
+                    utana=None) -> list[Eredmeny]:
+    """Lépcsős értékelés (a sorrendtervező):
+      1. minden jelölt az első `elso` világon;
+      2. a `legjobb` tervek sorrendváltozatai (az egységek a kiaduzás előtt / után)
+         ugyanezeken a világokon;
+      3. a `vege` legjobb a többi világon is, amíg az időkeret engedi.
+    A DD-tár a világ sorszámával gyorsítótáraz, ezért a lépcsők közös elejei egyszer
+    számolódnak. `utana(i, w)`: világonként egyszer hívódik (pl. a DD-felső határhoz)."""
+    import time
+    t0 = t0 or time.time()
+    ered: dict[int, Eredmeny] = {}
+    sorrend: list[KTerv] = []
+
+    def regisztral(t):
+        if id(t) not in ered:
+            ered[id(t)] = Eredmeny(t)
+            sorrend.append(t)
+
+    def futtat(ts, idx):
+        for i in idx:
+            w = vilagok[i]
+            if utana is not None:
+                utana(i, w)
+
+            def dd_vedo(j, i=i, w=w):
+                return tj._vedo_lap(dd_tar(i, w, j.lapok))
+            for t in ts:
+                r = ered[id(t)]
+                n = lejatszik(t, w, felvevo, adu, lejatszott, dd_vedo, cel=cel)
+                r.n += 1
+                r.utesek += n
+                r.teljesult += n >= cel
+
+    def kulcs(r):
+        return (-r.esely, -(r.utesek / r.n if r.n else 0), len(r.terv.lepesek))
+
+    for t in tervek:
+        regisztral(t)
+    n1 = min(elso, len(vilagok))
+    futtat(tervek, range(n1))
+    rang = sorted(ered.values(), key=kulcs)
+    uj = []
+    for r in (rang[:legjobb] if SZABALY["SZAKASZ"] else []):
+        for v in szakasz_valtozatok(r.terv)[1:]:
+            if all(v.fazis != x.fazis or v.lepesek != x.lepesek for x in sorrend):
+                regisztral(v)
+                uj.append(v)
+    futtat_uj = [t for t in uj]
+    if futtat_uj:
+        # az utana-hívás csak egyszer világonként: itt már nem kell
+        mentett, utana = utana, None
+        futtat(futtat_uj, range(n1))
+        utana = mentett
+    rang = sorted(ered.values(), key=kulcs)
+    elol = [r.terv for r in rang[:vege]]
+    for i in range(n1, len(vilagok)):
+        if keret_s is not None and time.time() - t0 > keret_s:
+            break
+        futtat(elol, [i])
+    vegso = sorted((ered[id(t)] for t in elol), key=kulcs)
+    elol_id = {id(t) for t in elol}
+    tobbi = [r for r in rang if id(r.terv) not in elol_id]
+    return vegso + tobbi

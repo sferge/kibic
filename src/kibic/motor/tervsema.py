@@ -248,6 +248,8 @@ def fogalmak(allas: Allas) -> dict:
         return None
 
     return {
+        # feltételes érték: ha(feltétel, akkor, különben)
+        "ha": lambda f, x, y: x if f else y,
         "nyerok_kezben": nyerok_kezben,
         "tobbletnyero_kez": tobbletnyero_kez,
         "legnagyobb_kint": legnagyobb_kint,

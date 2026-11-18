@@ -43,7 +43,8 @@ def test_foglalas_a_kisero_es_a_kez_fele_hivott_kis_lap():
 
 def test_masodik_kez_ut_ha_nincs_tartalek():
     """Nyugat kárót hív, az asztal (Észak) ♦AK2, a felvevő (Dél) nem tudja a ♦D-t
-    megütni, és már nincs tartalék: a második kéz a nyerőjével üt."""
+    megütni: a második kéz a nyerőjével üt (tartalék nélkül mindig; tartalékkal is,
+    ha két biztos nyerője van)."""
     j = tj.Jatek({u: set(KEZEK[u]) for u in "NESW"}, "S", "C", [("W", Lap.parse("D7"))], tj.Terv(()))
     v = Vegrehajto(KTerv([]), j)
     v.cel = 13
@@ -52,7 +53,8 @@ def test_masodik_kez_ut_ha_nincs_tartalek():
     j2 = tj.Jatek({u: set(KEZEK[u]) for u in "NESW"}, "S", "C", [("W", Lap.parse("D7"))], tj.Terv(()))
     v2 = Vegrehajto(KTerv([]), j2)
     v2.cel = 11
-    assert v2.lap("N") == Lap.parse("D2")                       # van tartalék: kicsi
+    # tartalékkal is üt, ha két biztos nyerője van (a ♦D-t a harmadik kéz se vigye)
+    assert v2.lap("N") in {Lap.parse("DA"), Lap.parse("DK")}
 
 
 def test_vegigjatszik_es_a_naplo_az_egysegeket_koveti():
