@@ -95,3 +95,63 @@ def test_vedoi_utesek_versenyszin():
     assert e._menetek("H", 3, 4)[:4] == ("M", "V", "V", "V")
     assert e.vedoi_utesek(egy, 1) == 0
     assert e.vedoi_utesek(egy, 2) == 3
+
+
+def test_lopas_a_rovid_kezben():
+    """7 lapos végállás, ♠ adu: a felső ütések 5, a 6. a ♥ lopása az asztalon (a rövid adus
+    kéz). A lopó kéz aduit nem viheti el előtte a kiaduzás (különben a lopás nem játszható)."""
+    a = Allas(felvevo="N", adu="S",
+              kezek={"N": _lapok("SA SK SQ H4 H3 H2 CA"), "S": _lapok("S5 S4 HA D3 D2 C3 C2")},
+              kint=_lapok("SJ ST S9 HK HQ HJ HT H9 DA DK DQ CK CQ CJ"), cel=6, hatra=7, soron="N")
+    pld = [p for p in peldanyok(a, technikak_betoltese()) if p.sema.azon == "LOPAS_ROVID_KEZBEN"]
+    assert [(p.szin, p.hozam) for p in pld] == [("H", 1)]       # csak annyi lopás, amennyi hiányzik
+    assert [k.fajta for k in pld[0].korok] == ["lehiv", "lop"]
+    _, ert = tervez(a)
+    e = ert[0]
+    assert e.terv.nev == "♥ lopás a rövid kézben"
+    assert e.elvi == pytest.approx(1.0)
+    assert 0.7 < e.kockazattal < 0.9                             # a felüllopás kockázata
+    assert e.terv.kiaduzas != "mind"                             # a kiaduzás nem viheti el az asztal aduit
+
+
+def test_atmenet_lopassal():
+    """A 6♦ (MB, 2026-11-03) 3. ütése: az asztal (N) pikkből színhiányos, van adója —
+    a ♠K lopása átmenet az asztalra (a ♦Q és a ♣K mellett a harmadik)."""
+    from kibic.motor.tervezo import Ertekelo, Terv, kezdo_allapot
+    N = _lapok("HA HK H8 H4 H2 DQ D5 CK C7 C5 C2")
+    S = _lapok("SK DA DK DJ DT D6 CA CJ C8 C6 C3")
+    latott = N | S | _lapok("SA S2 S3 S4 D7 D4 D8 D9")
+    minden = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"}
+    a = Allas(felvevo="S", adu="D", kezek={"S": S, "N": N}, kint=minden - latott, cel=11, hatra=11, soron="S")
+    e = Ertekelo(helyzetelemzes(a), Terv("", [], 0))
+    st = kezdo_allapot(a)
+    assert e._atmenetek(st, "N", "H", set()) == 3          # ♦Q, ♣K, a ♠ lopása
+    sz, h, c = e._atmenet(st, "N", {Lap.parse("CK")})       # a ♣K foglalt: a lopás az átmenet
+    assert (sz, str(h), c.szin) == ("S", "SK", "D")
+
+
+def test_lopasos_kimagasitas_hosszu_lap():
+    """A 6♦ (MB, 2026-11-03) 3. ütése — a szerkesztő: előbb a két kis kőrt lopjuk (♠K
+    lopása és a ♦Q az átmenet), a ♥AK és az 5. kőr a kiaduzás után. 4-4-nél sikerül
+    (34%), és a halasztott lehívás miatt nincs ellopási kockázat."""
+    from kibic.motor.tervezo import Ertekelo, Eset, Terv, kezdo_allapot
+    from kibic.motor.tervszamolo import osztalyok
+    N = _lapok("HA HK H8 H4 H2 DQ D5 CK C7 C5 C2")
+    S = _lapok("SK DA DK DJ DT D6 CA CJ C8 C6 C3")
+    latott = N | S | _lapok("SA S2 S3 S4 D7 D4 D8 D9")
+    minden = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"}
+    a = Allas(felvevo="S", adu="D", kezek={"S": S, "N": N}, kint=minden - latott, cel=11, hatra=11, soron="S")
+    h = helyzetelemzes(a)
+    p = next(q for q in peldanyok(a, technikak_betoltese()) if q.sema.azon == "LOPASOS_KIMAGASITAS_HOSSZ")
+    assert (p.szin, p.szerepek["R"], p.hozam) == ("H", 2, 1)
+    assert [k.fajta for k in p.korok] == ["lop", "lop", "lehiv", "lehiv", "lehiv"]
+    oszt = osztalyok(a.kint, {"E": 11, "W": 11}, p.relevans)
+    W = sum(o.suly for o in oszt)
+    for kock in (False, True):
+        naplo = []
+        e = Ertekelo(h, Terv("EGYETLEN_ESELY", [p], 0), kockazat=kock, naplo=naplo)
+        st = e.kiaduzas(kezdo_allapot(a), 0)
+        v = e.futtat([Eset(o, o.suly, h.tartalek, h.hiany) for o in oszt], 0, 0, st) / W
+        assert v == pytest.approx(0.341, abs=0.003)
+    assert naplo[0] == "átmenet: SK→D5"                              # a ♠K lopása az első átmenet
+    assert any(x.startswith("begyűjtés halasztva") for x in naplo)

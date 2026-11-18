@@ -107,6 +107,7 @@ def rejtett_fogalmak(o: Osztaly) -> dict:
         "birtokos": birtokos,
         "figura_hossz": figura_hossz,
         "vedo_hossz": lambda k, sz: o.hossz[(k, sz)],
+        "max_vedo_hossz": lambda sz: max(v for (k, s), v in o.hossz.items() if s == sz),
         "bal": lambda k: kovetkezo_ules(k, 1),
         "jobb": lambda k: kovetkezo_ules(k, 3),
         "partner": lambda k: kovetkezo_ules(k, 2),
