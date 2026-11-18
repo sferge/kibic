@@ -366,9 +366,16 @@ class Vegrehajto:
 
     def _jeloltek(self, H: str) -> list["Jelolt"]:
         out: list[Jelolt] = []
-        if self._kint_adu() and self._adukor_mehet():
-            out += self._adukor_jeloltek(H, 0)
         kk = self._kovetkezo_kor()
+        if self._kint_adu() and self._adukor_mehet():
+            adu = self._adukor_jeloltek(H, 0)
+            # a nyerők begyűjtése előtt aduzni kell (különben ellopják): ilyenkor a felső
+            # adu kiütése is az egység köre elé kerül
+            begyujt = kk is None or kk[1].begyujtes or kk[1].csak_ha_siker
+            if begyujt:
+                for v in adu:
+                    v.ar = min(v.ar, -0.5)
+            out += adu
         while kk is not None:
             e, k = kk
             ej = self._egyseg_jeloltek(H, e, k, 1)
@@ -631,7 +638,10 @@ class Vegrehajto:
             if p_nyero:
                 l = self._legkisebb(van, fogl)
                 return l, "második kéz: kicsi — a partnerünk üt, a terv onnan folytatódik"
-        if not van and len(utes) == 1 and hatra_van_partner and hivott != adu:
+        kint_szin = [x for x in j.kint(hivott) if x != nyl]
+        # a mögöttünk ülő védő lophat-e: ha a színből alig van kint, és van kint adu
+        vedo_lophat = bool(adu) and hivott != adu and self._kint_adu() and len(kint_szin) < 2
+        if not van and len(utes) == 1 and hatra_van_partner and hivott != adu and not vedo_lophat:
             p_nyero = [l for l in j.szin(P, hivott) if self._nyero(l)]
             if p_nyero:
                 l = self._dobas(u, fogl)
@@ -659,9 +669,31 @@ class Vegrehajto:
         if not partner_nyer and adu and hivott != adu:
             adu_l = [l for l in j.szin(u, adu) if _ut(l, nyl, adu)]
             if adu_l:
+                vesztoje = self._dobhato_veszto(u, fogl)
+                if vesztoje is not None and self._fo_kez() == u and self._kint_adu():
+                    # a hosszú adus kézben a lopás nem hoz plusz ütést (az adu úgyis ütne),
+                    # csak a kontrollt rontja: vesztőt dobunk (vesztő a vesztőre)
+                    return vesztoje, f"nem lop a hosszú adus kézben: vesztő a vesztőre ({vesztoje})"
                 return adu_l[0], f"lop: {adu_l[0]}"
         l = self._dobas(u, fogl)
         return l, f"dobás: {l}" + (" (a foglalt és a nyerő lapokat megtartja)" if fogl & j.kezek[u] else "")
+
+    def _fo_kez(self) -> str | None:
+        """A hosszabb adus kezünk (a fő kéz)."""
+        if not self.adu:
+            return None
+        j = self.j
+        a1, a2 = len(j.szin(j.felvevo, self.adu)), len(j.szin(j.asztal, self.adu))
+        return j.felvevo if a1 >= a2 else j.asztal
+
+    def _dobhato_veszto(self, u: str, fogl: set[Lap]) -> Lap | None:
+        """Egy vesztő, amelyet dobhatunk: nem foglalt, nem nyerő, nem adu, és olyan
+        színből, amelyben a partnernek sincs nyerője, ami fedné."""
+        j = self.j
+        jelolt = [l for l in j.kezek[u] if l not in fogl and not self._nyero(l) and l.szin != self.adu]
+        if not jelolt:
+            return None
+        return self._dobas(u, fogl) if self._dobas(u, fogl) in jelolt else jelolt[0]
 
     def _hatra(self, utes) -> list[str]:
         """Akik még tesznek ebbe az ütésbe (a sorrendben)."""
