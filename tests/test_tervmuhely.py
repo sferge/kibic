@@ -138,3 +138,28 @@ def test_szaz_szazalekos_terv_terit(monkeypatch, tmp_path):
         j.tesz(u, lap)
         n += 1
     assert claim is not None and claim["total_tricks"] >= 7
+
+
+def test_elemzos_terv_visszatoltheto(monkeypatch, tmp_path):
+    """A terv elemzős színkezelési egységei (k ütés, legfeljebb m vesztés) a fájlból
+    újraépülnek: a következő lépés nem tervez újra (a 2026-11-18-i MB-próba hibája:
+    minden lapnál „nincs terv ehhez a partihoz”)."""
+    monkeypatch.setattr(tm, "VILAG", 4)
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    j = tj.Jatek({u: set(KEZEK[u]) for u in "NESW"}, "N", "C", [], tj.Terv(()))
+    j.tesz("E", Lap.parse("SK"))
+    h = tm.helyzet(_keres(j, 0))
+    from kibic.motor.tervkonyvelo import KTerv, szinkezeles_peldany
+    from kibic.motor.tervsema import technikak_betoltese
+    allas, _ = tm._allas(h, h.lejatszott)
+    p = szinkezeles_peldany(allas, technikak_betoltese(), "D", 3, 1, (12, 13))
+    assert p is not None
+    t = KTerv([p], 1, ("U",), True)
+    from kibic.motor.tervkonyvelo import Eredmeny
+    r = tm.Rekord("x", 1, t, [Eredmeny(t)], list(h.lejatszott),
+                  {u: set(h.kezek[u]) for u in ("N", "S")}, "N", h.kontraktus, 4, 0.1)
+    kulcs = tm._kulcs(_keres(j, 0), "N")
+    tm.ment(kulcs, r, "próba")
+    vissza = tm.betolt(kulcs, h)
+    assert vissza is not None and vissza.terv.nev == t.nev
+    assert vissza.terv.lepesek[0].szerepek["k"] == 3 and vissza.terv.lepesek[0].szerepek["m"] == 1

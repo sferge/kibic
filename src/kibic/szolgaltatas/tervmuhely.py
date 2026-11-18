@@ -62,6 +62,8 @@ TURES = float(os.getenv("KIBIC_TERVMUHELY_TURES", "0.05"))
 # tanári asztalon alapból KI (1): ott a tervet vizsgáljuk; tartalék csak akkor, ha nincs
 # megoldás (a szerkesztő menete, 2026-11-18). Éles játékhoz a mérés dönt majd a küszöbről.
 HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "1"))
+# a szimulációba ennyi terv megy (az előzetes, keresés nélküli esély szerint a legjobbak)
+SZIM_TERV = int(os.getenv("KIBIC_TERVMUHELY_SZIM", "12"))
 TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
@@ -103,7 +105,11 @@ def _lapok(xs) -> list[str]:
 
 
 def _egysegek_lista(t: KTerv) -> list:
-    return [[p.sema.azon, p.szin, t.fazis[i] if t.fazis else None, p.szerepek.get("CELSZIN")]
+    """Egységenként: technika, szín, szakasz, a dobás színe; az elemzős színkezelésnél a
+    cél (k ütés, legfeljebb m vesztés) is — ebből építjük újra a fájlból."""
+    return [[p.sema.azon, p.szin, t.fazis[i] if t.fazis else None, p.szerepek.get("CELSZIN"),
+             p.szerepek.get("k") if p.sema.fajta == "elemzo" else None,
+             p.szerepek.get("m") if p.sema.fajta == "elemzo" else None]
             for i, p in enumerate(t.lepesek)]
 
 
@@ -156,16 +162,33 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
     if adat.get("felvevo") != h.felvevo or kezek != {u: h.kezek[u] for u in (h.felvevo, h.asztal)}:
         return None
     pld = {(p.sema.azon, p.szin): p for p in _peldanyok(h, lejatszott)}
+    from ..motor.tervkonyvelo import szinkezeles_peldany
+    allas0, _ = _allas(h, lejatszott)
+    b1, b2 = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
+    ures0 = tuple(13 - sum(1 for u, _ in lejatszott if u == v) for v in (b1, b2))
+    elemzos: dict = {}
+
+    def elemzo_egyseg(sz, k, m):
+        kulcs = (sz, k, m)
+        if kulcs not in elemzos:
+            elemzos[kulcs] = szinkezeles_peldany(allas0, technikak_betoltese(), sz, k, m, ures0,
+                                                 esely_min=-1)
+        return elemzos[kulcs]
 
     ig = adat["terv"].get("igeny", 1)
 
     import dataclasses
 
     def terv(egysegek):
-        try:
-            lep = [pld[(x[0], x[1])] for x in egysegek]
-        except KeyError:
-            return None
+        lep = []
+        for x in egysegek:
+            if x[0] == "SZINKEZELES" and len(x) > 5:
+                p = elemzo_egyseg(x[1], x[4], x[5])
+            else:
+                p = pld.get((x[0], x[1]))
+            if p is None:
+                return None
+            lep.append(p)
         lep = [dataclasses.replace(p, szerepek=dict(p.szerepek, CELSZIN=x[3]))
                if len(x) > 3 and x[3] else p for p, x in zip(lep, egysegek)]
         fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 and x[2] for x in egysegek) else None
@@ -299,7 +322,8 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     allas, kint = _allas(h, h.lejatszott)
     v1_, v2_ = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
     ures = tuple(13 - sum(1 for u, _ in h.lejatszott if u == v) for v in (v1_, v2_))
-    tervek = tervjeloltek(allas, technikak_betoltese(), igeny=igeny(h, h.lejatszott), ures=ures)
+    tervek = tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=igeny(h, h.lejatszott), ures=ures,
+                          max_szim=SZIM_TERV)
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
     v1, v2 = sorted(h.vedok)
     jatszott_v = {u: {l for uu, l in h.lejatszott if uu == u} for u in (v1, v2)}
@@ -440,9 +464,11 @@ def _hibrid(rek: Rekord) -> bool:
 def _terv_html(rek: Rekord) -> str:
     sorok = "".join(
         f"<tr><td>{'➜ ' if r.terv is rek.terv else ''}{html.escape(_szep(r.terv.nev))}</td>"
+        f"<td>{'' if r.terv.elozetes is None else f'{100 * r.terv.elozetes:.0f}%'}</td>"
         f"<td>{100 * r.esely:.0f}%</td><td>{(r.utesek / r.n if r.n else 0):.2f}</td></tr>"
         for r in rek.eredmenyek[:12])
-    return (f"<table><tr><th>Terv (esélysor)</th><th>Teljesít</th><th>Átlag ütés</th></tr>{sorok}</table>"
+    return (f"<table><tr><th>Terv (sorrendben)</th><th>Esély a forrásokból</th><th>Teljesít a lejátszásban</th>"
+            f"<th>Átlag ütés</th></tr>{sorok}</table>"
             f"<p class=\"halv\">{rek.vilag} sorsolt világ, DD-védők ellen; {rek.ido_s:.1f} s. "
             + (f"A mindent látó (DD) felvevő ugyanezeken a világokon {100 * rek.dd_felso:.0f}%-ot teljesít."
                if rek.dd_felso is not None else "") + "</p>"
