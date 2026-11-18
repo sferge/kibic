@@ -57,6 +57,10 @@ ARANY = float(os.getenv("KIBIC_TERVMUHELY_ARANY", "0.45"))
 # újratervezéskor a régi terv marad, ha az új legjobb ennél kevesebbel jobb (ugyanazokon a
 # világokon): a mintavétel zaja ne ugráltassa a tervet
 TURES = float(os.getenv("KIBIC_TERVMUHELY_TURES", "0.05"))
+# hibrid döntés (a problémaleírás 7. peremfeltétele): ha a legjobb terv esélye ennyivel
+# elmarad a DD-felső határtól (a mindent látó felvevő aránya ugyanazokon a világokon),
+# a technikák nem fedik a partit — a kibic általános lejátszója dönt. 1: kikapcsolva.
+HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "0.25"))
 TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
@@ -81,6 +85,7 @@ class Rekord:
     vilag: int
     ido_s: float
     naplo: list[str] = field(default_factory=list)
+    dd_felso: float | None = None             # a mindent látó felvevő teljesítése ugyanott
 
 
 _ZAR = threading.Lock()
@@ -107,7 +112,8 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
         pass
     tortenet.append({"revizio": rek.revizio, "ok": ok, "ido": time.strftime("%Y-%m-%d %H:%M:%S"),
                      "utes": len(rek.lejatszott) // 4 + 1, "terv": rek.terv.nev,
-                     "esely": round(rek.eredmenyek[0].esely, 3) if rek.eredmenyek else None})
+                     "esely": round(rek.eredmenyek[0].esely, 3) if rek.eredmenyek else None,
+                     "dd_felso": None if rek.dd_felso is None else round(rek.dd_felso, 3)})
     adat = {"kulcs": list(kulcs), "plan_id": rek.plan_id, "revizio": rek.revizio,
             "felvevo": rek.felvevo,
             "kontraktus": {"szint": rek.kontraktus.szint, "szin": rek.kontraktus.szin,
@@ -118,7 +124,8 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
             "jeloltek": [{"nev": r.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in r.terv.lepesek],
                           "esely": round(r.esely, 4), "n": r.n, "utesek": r.utesek}
                          for r in rek.eredmenyek],
-            "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "tortenet": tortenet}
+            "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "dd_felso": rek.dd_felso,
+            "tortenet": tortenet}
     tmp = ut.with_suffix(".tmp")
     tmp.write_text(json.dumps(adat, ensure_ascii=False, indent=1), encoding="utf-8")
     tmp.replace(ut)
@@ -163,7 +170,8 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
     if not ered or ered[0].terv is not fo:
         ered.insert(0, Eredmeny(fo))
     return Rekord(adat["plan_id"], adat["revizio"], fo, ered, lejatszott, kezek, h.felvevo,
-                  h.kontraktus, adat.get("vilag", 0), adat.get("ido_s", 0.0))
+                  h.kontraktus, adat.get("vilag", 0), adat.get("ido_s", 0.0),
+                  dd_felso=adat.get("dd_felso"))
 
 
 def _lap(l: Lap) -> str:
@@ -278,10 +286,16 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     tar = tj.DDTar(dd_fv, k)
     keret = max(1.0, hatarido_s - (time.time() - t0))
     hasznalt = 0
+    dd_tel = 0
+    jatek0 = _jatek(h, h.lejatszott)
+    mi_jon = jatek0.mi(jatek0.soron())
     for i, w in enumerate(vl):
         if i >= 8 and time.time() - t0 > keret:
             break                                # a határidő: az eddigi világok döntenek
         hasznalt += 1
+        dd = tar(i, w, h.lejatszott)
+        ossz = [e.felvevo_osszesen for e in dd]
+        dd_tel += (max(ossz) if mi_jon else min(ossz)) >= cel
         for r in ered:
             def dd_vedo(jj, i=i, w=w):
                 return tj._vedo_lap(tar(i, w, jj.lapok))
@@ -299,7 +313,7 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
                 break
     return Rekord(uuid.uuid4().hex, 1, ered[0].terv, ered, list(h.lejatszott),
                   {u: set(h.kezek[u]) for u in (h.felvevo, h.asztal)}, h.felvevo, k, hasznalt,
-                  time.time() - t0)
+                  time.time() - t0, dd_felso=dd_tel / hasznalt if hasznalt else None)
 
 
 def _dd_fv(dd_zar):
@@ -394,13 +408,24 @@ def _helyzet_html(h: Helyzet, rek: Rekord) -> str:
     return sor + kezek
 
 
+def _hibrid(rek: Rekord) -> bool:
+    if rek.dd_felso is None or not rek.eredmenyek or HIBRID >= 1:
+        return False
+    return rek.eredmenyek[0].esely < rek.dd_felso - HIBRID
+
+
 def _terv_html(rek: Rekord) -> str:
     sorok = "".join(
         f"<tr><td>{'➜ ' if r.terv is rek.terv else ''}{html.escape(_szep(r.terv.nev))}</td>"
         f"<td>{100 * r.esely:.0f}%</td><td>{(r.utesek / r.n if r.n else 0):.2f}</td></tr>"
         for r in rek.eredmenyek[:12])
     return (f"<table><tr><th>Terv (esélysor)</th><th>Teljesít</th><th>Átlag ütés</th></tr>{sorok}</table>"
-            f"<p class=\"halv\">{rek.vilag} sorsolt világ, DD-védők ellen; {rek.ido_s:.1f} s.</p>")
+            f"<p class=\"halv\">{rek.vilag} sorsolt világ, DD-védők ellen; {rek.ido_s:.1f} s. "
+            + (f"A mindent látó (DD) felvevő ugyanezeken a világokon {100 * rek.dd_felso:.0f}%-ot teljesít."
+               if rek.dd_felso is not None else "") + "</p>"
+            + (f"<p><b>A terv messze elmarad a DD-felső határtól</b> (több mint {100 * HIBRID:.0f} pont): "
+               "a technikák nem fedik ezt a partit; a lépéskérésre a kibic általános lejátszója ad lapot.</p>"
+               if _hibrid(rek) else ""))
 
 
 def _egysegek_html(terv: KTerv, v: Vegrehajto | None = None) -> str:
@@ -463,8 +488,11 @@ def plan_valasz(keres: dict, dd_zar=None) -> dict:
     rek = _uj_terv(keres, h, kulcs, dd_zar, "tervkérés (/plan)")
     legjobb = rek.eredmenyek[0]
     v = _alap_valasz(keres, "plan", "planned" if legjobb.esely > 0 else "no_plan",
-                     _szep(f"Terv: {rek.terv.nev} — {100 * legjobb.esely:.0f}% ({rek.vilag} világ). "
-                           "Lapot a lépéskérés ad.") if legjobb.esely > 0 else
+                     _szep(f"Terv: {rek.terv.nev} — {100 * legjobb.esely:.0f}% ({rek.vilag} világ"
+                           + (f"; a mindent látó felvevő {100 * rek.dd_felso:.0f}%" if rek.dd_felso is not None else "")
+                           + "). "
+                           + ("A terv messze elmarad ettől: a lépéskérésre a kibic általános lejátszója ad lapot."
+                              if _hibrid(rek) else "Lapot a lépéskérés ad.")) if legjobb.esely > 0 else
                      "Egyik terv sem teljesít egyik sorsolt világban sem; a lépéskérésre a kibic "
                      "általános lejátszója ad lapot.")
     v.update(plan_id=rek.plan_id, plan_revision=rek.revizio, analysis_result="new_plan",
@@ -476,7 +504,8 @@ def plan_valasz(keres: dict, dd_zar=None) -> dict:
 def _terv_adat(rek: Rekord) -> dict:
     return {"name": _szep(rek.terv.nev), "units": [p.nev for p in rek.terv.lepesek],
             "probability": round(rek.eredmenyek[0].esely, 3) if rek.eredmenyek else None,
-            "worlds": rek.vilag}
+            "dd_upper_bound": None if rek.dd_felso is None else round(rek.dd_felso, 3),
+            "hybrid_fallback": _hibrid(rek), "worlds": rek.vilag}
 
 
 def _jeloltek_adat(rek: Rekord) -> dict:
@@ -503,9 +532,11 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
     else:
         v, j, elteresek = vegrehajto(rek, h)
         km = kimutatasok(rek, h)
+        tartalekban = _hibrid(rek) or not rek.eredmenyek or rek.eredmenyek[0].esely <= 0
         if km:
             ok = "kimutatás: " + ", ".join(km)
-        elif elteresek:
+        elif elteresek and not tartalekban:
+            # ha a tartalék játszik, a terv lapjától való eltérés várható: nem ok újratervezésre
             ok = "eltérés a tervtől: " + elteresek[-1]
     if ok is not None:
         folytat = rek is not None and h.lejatszott[:len(rek.lejatszott)] == rek.lejatszott
@@ -525,9 +556,14 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
     indok = v.naplo[elotte:]
     legalis = h.allas_mb.legalis
     esely = rek.eredmenyek[0].esely if rek.eredmenyek else 0.0
-    if esely <= 0 or lap not in legalis:
-        miert = ("egyik terv sem teljesít egyik sorsolt világban sem" if esely <= 0
-                 else f"a terv lapja ({_lap(lap)}) itt nem szabályos")
+    if esely <= 0 or lap not in legalis or _hibrid(rek):
+        if esely <= 0:
+            miert = "egyik terv sem teljesít egyik sorsolt világban sem"
+        elif lap not in legalis:
+            miert = f"a terv lapja ({_lap(lap)}) itt nem szabályos"
+        else:
+            miert = (f"a terv ({100 * esely:.0f}%) messze elmarad a mindent látó felvevőtől "
+                     f"({100 * rek.dd_felso:.0f}%): a technikák nem fedik ezt a partit")
         ki = _tartalek(keres, tartalek_fv, miert)
     else:
         szoveg = _szep("; ".join(s.split(": ", 1)[1] if ": " in s else s for s in indok)) or "a terv szerint"
