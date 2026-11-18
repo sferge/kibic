@@ -582,7 +582,11 @@ async def bridge_step(
     kesz = _idempotencia(keres, idempotency_key)
     if kesz is not None:
         return kesz
-    valasz = await run_in_threadpool(step_valasz, keres, _DDS_ZAR)
+    from .atjaro import _play_dontes
+
+    def tartalek(k):
+        return _play_dontes(k, _rendszer_betolto, _jelzesek_rendszerhez, _DDS_ZAR)
+    valasz = await run_in_threadpool(step_valasz, keres, _DDS_ZAR, tartalek)
     _IDEM.ir(idempotency_key, keres, valasz)
     return valasz
 

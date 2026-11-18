@@ -12,20 +12,35 @@ szerződése szerint (docs/TERVMUHELY_API.md), hogy az MB ugyanúgy hívhassa:
     átmenet, adukör, megfigyelés). Ha az aktív terv hiányzik, vagy a
     lejátszás nem a folytatása, előbb újratervez (mint Robi „combined” módja).
 
-A terv kulcsa: (mérkőzés, asztal, parti, felvevő) — az MB-nek nem kell
-azonosítót tárolnia. A tárolás memóriában van (a kibic újraindításáig).
+A terv a parti felvevőjéhez tartozik (az asztal lapjai is az övé): kulcsa a
+mérkőzés, az asztal, a parti és a felvevő — az MB-nek nem kell azonosítót
+tárolnia. A terv fájlban van (`KIBIC_TERVMUHELY_TAR`, partinként egy JSON és egy
+olvasható HTML), így a kibic újraindítás után is folytatja.
+
+A lépéskérés menete (a szerkesztő, 2026-11-18):
+  1. azonosítás; ha nincs terv (vagy más a leosztás, vagy a lejátszás nem a
+     folytatása): új terv, és a fájlba kerül;
+  2. ha a parti a terv szerint halad: a terv lapja;
+  3. eltérés — egy védő kimutat (új színhiány), a mi oldalunkon nem a javasolt
+     lap ment le, vagy a terv egysége elakad (nincs átmenet): újratervezés;
+  4. ha a terv minden világban teljesít, és a biztos terítés is megvan: terít
+     (`meta.kibic.claim`, mint a /play-nél);
+  5. ha nincs megoldás (egyik terv sem teljesít egyik világban sem, vagy a terv
+     lapja nem szabályos): a kibic általános lejátszója ad lapot (tartalék).
 
 Csak a felvevő oldalán (felvevő vagy asztal) tervez; védőként `unsupported_position`.
 """
 from __future__ import annotations
 
 import html
+import json
 import os
 import re
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from ..domain import Lap, Leosztas, kovetkezo_ules, vonal
 from ..domain.kartya import Kez
@@ -39,6 +54,10 @@ from ..motor.tervszamolo import Korlat
 PROTOKOLL = "bridzsrobot.workbench/1.0"       # a tervműhely-válasz alakja (Robiéval azonos)
 VILAG = int(os.getenv("KIBIC_TERVMUHELY_VILAG", "60"))
 ARANY = float(os.getenv("KIBIC_TERVMUHELY_ARANY", "0.45"))
+# újratervezéskor a régi terv marad, ha az új legjobb ennél kevesebbel jobb (ugyanazokon a
+# világokon): a mintavétel zaja ne ugráltassa a tervet
+TURES = float(os.getenv("KIBIC_TERVMUHELY_TURES", "0.05"))
+TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
 
@@ -64,8 +83,87 @@ class Rekord:
     naplo: list[str] = field(default_factory=list)
 
 
-TERVEK: dict[tuple, Rekord] = {}
 _ZAR = threading.Lock()
+
+
+# --- a terv fájlja ------------------------------------------------------------------------
+
+def _fajlnev(kulcs: tuple) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "-", "_".join(str(x) for x in kulcs)).strip("-") or "terv"
+
+
+def _lapok(xs) -> list[str]:
+    return [str(l) for l in sorted(xs, key=str)]
+
+
+def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> None:
+    """A terv a fájlba (atomi írással); a korábbi tervek okai a `tortenet`-ben maradnak."""
+    TAR.mkdir(parents=True, exist_ok=True)
+    ut = TAR / (_fajlnev(kulcs) + ".json")
+    tortenet = []
+    try:
+        tortenet = json.loads(ut.read_text(encoding="utf-8")).get("tortenet", [])
+    except (OSError, ValueError):
+        pass
+    tortenet.append({"revizio": rek.revizio, "ok": ok, "ido": time.strftime("%Y-%m-%d %H:%M:%S"),
+                     "utes": len(rek.lejatszott) // 4 + 1, "terv": rek.terv.nev,
+                     "esely": round(rek.eredmenyek[0].esely, 3) if rek.eredmenyek else None})
+    adat = {"kulcs": list(kulcs), "plan_id": rek.plan_id, "revizio": rek.revizio,
+            "felvevo": rek.felvevo,
+            "kontraktus": {"szint": rek.kontraktus.szint, "szin": rek.kontraktus.szin,
+                           "kontra": rek.kontraktus.kontra},
+            "kezek": {u: _lapok(x) for u, x in rek.kezek.items()},
+            "lejatszott": [[u, str(l)] for u, l in rek.lejatszott],
+            "terv": {"nev": rek.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in rek.terv.lepesek]},
+            "jeloltek": [{"nev": r.terv.nev, "egysegek": [[p.sema.azon, p.szin] for p in r.terv.lepesek],
+                          "esely": round(r.esely, 4), "n": r.n, "utesek": r.utesek}
+                         for r in rek.eredmenyek],
+            "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "tortenet": tortenet}
+    tmp = ut.with_suffix(".tmp")
+    tmp.write_text(json.dumps(adat, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.replace(ut)
+    if html_nezet:
+        (TAR / (_fajlnev(kulcs) + ".html")).write_text(html_nezet, encoding="utf-8")
+
+
+def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
+    """A fájlból a terv; a technikák példányait a tervezés pillanatának lapjain
+    újra előállítja (a sémák adatok: a fájlban csak a nevük van)."""
+    ut = TAR / (_fajlnev(kulcs) + ".json")
+    try:
+        adat = json.loads(ut.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    try:
+        kezek = {u: {Lap.parse(x) for x in xs} for u, xs in adat["kezek"].items()}
+        lejatszott = [(u, Lap.parse(x)) for u, x in adat["lejatszott"]]
+    except (KeyError, ValueError):
+        return None
+    if adat.get("felvevo") != h.felvevo or kezek != {u: h.kezek[u] for u in (h.felvevo, h.asztal)}:
+        return None
+    pld = {(p.sema.azon, p.szin): p for p in _peldanyok(h, lejatszott)}
+
+    def terv(egysegek):
+        try:
+            return KTerv([pld[(a, sz)] for a, sz in egysegek])
+        except KeyError:
+            return None
+    fo = terv(adat["terv"]["egysegek"])
+    if fo is None:
+        return None
+    ered = []
+    for x in adat.get("jeloltek", []):
+        t = terv(x["egysegek"])
+        if t is None:
+            continue
+        if t.nev == fo.nev:
+            t = fo
+        r = Eredmeny(t, teljesult=round(x["esely"] * x["n"]), n=x["n"], utesek=x["utesek"])
+        ered.append(r)
+    if not ered or ered[0].terv is not fo:
+        ered.insert(0, Eredmeny(fo))
+    return Rekord(adat["plan_id"], adat["revizio"], fo, ered, lejatszott, kezek, h.felvevo,
+                  h.kontraktus, adat.get("vilag", 0), adat.get("ido_s", 0.0))
 
 
 def _lap(l: Lap) -> str:
@@ -139,18 +237,30 @@ def _szinhianyok(lejatszott: list, vedok) -> list[Korlat]:
 
 # --- tervezés -------------------------------------------------------------------------
 
-def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None) -> Rekord:
-    t0 = time.time()
-    vilag_db = vilag_db or VILAG
-    j = _jatek(h, h.lejatszott)
-    ki_utes = len(h.lejatszott) // 4
+def _allas(h: Helyzet, lejatszott: list) -> tuple[Allas, set[Lap]]:
+    j = _jatek(h, lejatszott)
     cel = 6 + h.kontraktus.szint
-    lement = {l for _, l in h.lejatszott}
+    lement = {l for _, l in lejatszott}
     mieink = h.kezek[h.felvevo] | h.kezek[h.asztal]
     kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - mieink - lement
     allas = Allas(felvevo=h.felvevo, adu=h.adu,
                   kezek={u: set(j.kezek[u]) for u in (h.felvevo, h.asztal)}, kint=kint,
-                  cel=max(0, cel - j.felvevo_utesek()), hatra=13 - ki_utes, soron=j.soron())
+                  cel=max(0, cel - j.felvevo_utesek()), hatra=13 - len(lejatszott) // 4,
+                  soron=j.soron())
+    return allas, kint
+
+
+def _peldanyok(h: Helyzet, lejatszott: list):
+    from ..motor.tervsema import peldanyok
+    return peldanyok(_allas(h, lejatszott)[0], technikak_betoltese())
+
+
+def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
+           elozo: list | None = None) -> Rekord:
+    t0 = time.time()
+    vilag_db = vilag_db or VILAG
+    cel = 6 + h.kontraktus.szint
+    allas, kint = _allas(h, h.lejatszott)
     tervek = tervjeloltek(allas, technikak_betoltese())
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
     v1, v2 = sorted(h.vedok)
@@ -180,6 +290,13 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None) ->
             r.utesek += n
             r.teljesult += n >= cel
     ered.sort(key=lambda r: (-r.esely, -(r.utesek / r.n if r.n else 0), len(r.terv.lepesek)))
+    if elozo is not None:
+        # a régi terv (az egységei szerint) marad, ha nem érezhetően rosszabb
+        for i, r in enumerate(ered):
+            if [[p.sema.azon, p.szin] for p in r.terv.lepesek] == elozo:
+                if i and r.esely >= ered[0].esely - TURES:
+                    ered.insert(0, ered.pop(i))
+                break
     return Rekord(uuid.uuid4().hex, 1, ered[0].terv, ered, list(h.lejatszott),
                   {u: set(h.kezek[u]) for u in (h.felvevo, h.asztal)}, h.felvevo, k, hasznalt,
                   time.time() - t0)
@@ -202,27 +319,34 @@ def _hatarido_s(keres: dict) -> float:
 
 # --- a végrehajtó a mostani állásig ----------------------------------------------------
 
-def vegrehajto(rek: Rekord, h: Helyzet) -> tuple[Vegrehajto, tj.Jatek, int]:
+def vegrehajto(rek: Rekord, h: Helyzet) -> tuple[Vegrehajto, tj.Jatek, list[str]]:
     """A terv végrehajtója a tervezés pillanatától a mostani állásig: a lement
     lapokon végigmegy (a saját döntéseit is meghozza, hogy az egységek állapota a
-    megfigyelés szerint haladjon). Vissza: a végrehajtó, a játék, és hány saját
-    lap tért el a terv javaslatától."""
+    megfigyelés szerint haladjon). Vissza: a végrehajtó, a játék, és az eltérések
+    (a mi oldalunkon nem a javasolt lap ment le)."""
     j = _jatek(h, rek.lejatszott)
     v = Vegrehajto(rek.terv, j, naplo=[])
     v.cel = 6 + rek.kontraktus.szint
-    elteres = 0
+    elteresek = []
     for u, l in h.lejatszott[len(rek.lejatszott):]:
         if j.mi(u):
             javasolt = v.lap(u)
             if javasolt != l:
-                elteres += 1
-                v.naplo.append(f"{len(j.lapok) // 4 + 1}. ütés: a javaslat {_lap(javasolt)} volt, "
-                               f"{_lap(l)} ment le")
+                elteresek.append(f"{len(j.lapok) // 4 + 1}. ütés: a javaslat {_lap(javasolt)} volt, "
+                                 f"{_lap(l)} ment le")
+                v.naplo.append(elteresek[-1])
                 if v.folyo is not None and v.folyo[2] == len(j.lapok):
                     v.folyo = None
                 v.szandek = {}
         j.tesz(u, l)
-    return v, j, elteres
+    return v, j, elteresek
+
+
+def kimutatasok(rek: Rekord, h: Helyzet) -> list[str]:
+    """A terv óta megfigyelt új színhiányok (egy védő nem adott színt)."""
+    regi = {(k.kez, k.szin) for k in _szinhianyok(rek.lejatszott, h.vedok)}
+    return [f"{KEZ_NEV[k.kez]} nem adott {SZIN[k.szin]}-t"
+            for k in _szinhianyok(h.lejatszott, h.vedok) if (k.kez, k.szin) not in regi]
 
 
 # --- a válaszok -------------------------------------------------------------------------
@@ -309,83 +433,154 @@ def _egysegek_html(terv: KTerv, v: Vegrehajto | None = None) -> str:
                 "Az átmeneteket és az aduköröket a végrehajtó körről körre illeszti be.</p>"
 
 
+def _uj_terv(keres: dict, h: Helyzet, kulcs: tuple, dd_zar, ok: str,
+             elozo: Rekord | None = None) -> Rekord:
+    regi_egysegek = [[p.sema.azon, p.szin] for p in elozo.terv.lepesek] if elozo is not None else None
+    rek = tervez(h, _dd_fv(dd_zar), _hatarido_s(keres), elozo=regi_egysegek)
+    with _ZAR:
+        regi = betolt(kulcs, h)
+        if regi is not None:
+            rek.revizio = regi.revizio + 1
+            rek.plan_id = regi.plan_id
+        ment(kulcs, rek, ok, _terv_nezet(h, rek)["html"])
+    return rek
+
+
+def _terv_nezet(h: Helyzet, rek: Rekord) -> dict:
+    return _html("kibic — játékterv", [
+        ("A helyzet", _helyzet_html(h, rek)),
+        ("A jelölt tervek", _terv_html(rek)),
+        ("A választott terv egységei", _egysegek_html(rek.terv)),
+        ("Korlátok", "<ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in KORLATOK) + "</ul>")])
+
+
 def plan_valasz(keres: dict, dd_zar=None) -> dict:
     try:
         h = helyzet(keres)
     except MuhelyHiba as e:
         return _alap_valasz(keres, "plan", e.status, str(e))
-    rek = tervez(h, _dd_fv(dd_zar), _hatarido_s(keres))
     kulcs = _kulcs(keres, h.felvevo)
-    with _ZAR:
-        regi = TERVEK.get(kulcs)
-        if regi is not None:
-            rek.revizio = regi.revizio + 1
-            rek.plan_id = regi.plan_id
-        TERVEK[kulcs] = rek
+    rek = _uj_terv(keres, h, kulcs, dd_zar, "tervkérés (/plan)")
     legjobb = rek.eredmenyek[0]
-    v = _alap_valasz(keres, "plan", "planned",
-                     f"Terv: {rek.terv.nev} — {100 * legjobb.esely:.0f}% ({rek.vilag} világ). "
-                     "Lapot a lépéskérés ad.")
+    v = _alap_valasz(keres, "plan", "planned" if legjobb.esely > 0 else "no_plan",
+                     _szep(f"Terv: {rek.terv.nev} — {100 * legjobb.esely:.0f}% ({rek.vilag} világ). "
+                           "Lapot a lépéskérés ad.") if legjobb.esely > 0 else
+                     "Egyik terv sem teljesít egyik sorsolt világban sem; a lépéskérésre a kibic "
+                     "általános lejátszója ad lapot.")
     v.update(plan_id=rek.plan_id, plan_revision=rek.revizio, analysis_result="new_plan",
-             plan={"name": rek.terv.nev, "units": [p.nev for p in rek.terv.lepesek],
-                   "probability": round(legjobb.esely, 3), "worlds": rek.vilag},
-             assessment={"candidates": [{"name": r.terv.nev, "probability": round(r.esely, 3),
-                                         "mean_tricks": round(r.utesek / r.n, 2) if r.n else None}
-                                        for r in rek.eredmenyek]},
-             presentation=_html("kibic — játékterv", [
-                 ("A helyzet", _helyzet_html(h, rek)),
-                 ("A jelölt tervek", _terv_html(rek)),
-                 ("A választott terv egységei", _egysegek_html(rek.terv)),
-                 ("Korlátok", "<ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in KORLATOK) + "</ul>")]))
+             plan=_terv_adat(rek), assessment=_jeloltek_adat(rek), presentation=_terv_nezet(h, rek))
     v["meta"]["elapsed_ms"] = int(rek.ido_s * 1000)
     return v
 
 
-def step_valasz(keres: dict, dd_zar=None) -> dict:
+def _terv_adat(rek: Rekord) -> dict:
+    return {"name": _szep(rek.terv.nev), "units": [p.nev for p in rek.terv.lepesek],
+            "probability": round(rek.eredmenyek[0].esely, 3) if rek.eredmenyek else None,
+            "worlds": rek.vilag}
+
+
+def _jeloltek_adat(rek: Rekord) -> dict:
+    return {"candidates": [{"name": _szep(r.terv.nev), "probability": round(r.esely, 3),
+                            "mean_tricks": round(r.utesek / r.n, 2) if r.n else None}
+                           for r in rek.eredmenyek]}
+
+
+def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
+    """A lépéskérés (a modul leírásának 1–5. pontja). `tartalek_fv(keres)`: a kibic
+    általános lejátszója (a /play döntése), ha a tervnek nincs lapja."""
     t0 = time.time()
     try:
         h = helyzet(keres)
     except MuhelyHiba as e:
         return _alap_valasz(keres, "step", e.status, str(e))
     kulcs = _kulcs(keres, h.felvevo)
-    with _ZAR:
-        rek = TERVEK.get(kulcs)
-    uj = False
-    if rek is None or h.lejatszott[:len(rek.lejatszott)] != rek.lejatszott \
-            or rek.kezek != {u: h.kezek[u] for u in (h.felvevo, h.asztal)}:
-        rek = tervez(h, _dd_fv(dd_zar), _hatarido_s(keres))
-        uj = True
-        with _ZAR:
-            regi = TERVEK.get(kulcs)
-            if regi is not None:
-                rek.revizio = regi.revizio + 1
-                rek.plan_id = regi.plan_id
-            TERVEK[kulcs] = rek
-    v, j, elteres = vegrehajto(rek, h)
+    rek = betolt(kulcs, h)
+    ok = None
+    if rek is None:
+        ok = "nincs terv ehhez a partihoz"
+    elif h.lejatszott[:len(rek.lejatszott)] != rek.lejatszott:
+        ok = "a lejátszás nem a terv folytatása"
+    else:
+        v, j, elteresek = vegrehajto(rek, h)
+        km = kimutatasok(rek, h)
+        if km:
+            ok = "kimutatás: " + ", ".join(km)
+        elif elteresek:
+            ok = "eltérés a tervtől: " + elteresek[-1]
+    if ok is not None:
+        folytat = rek is not None and h.lejatszott[:len(rek.lejatszott)] == rek.lejatszott
+        rek = _uj_terv(keres, h, kulcs, dd_zar, ok, rek if folytat else None)
+        v, j, _ = vegrehajto(rek, h)
     u = j.soron()
     if not j.mi(u):
         return _alap_valasz(keres, "step", "stale_state", "Most nem a felvevő oldala következik.")
     elotte = len(v.naplo)
     lap = v.lap(u)
+    if ok is None and any("nem játszható" in x for x in v.naplo[elotte:]):
+        ok = "a terv egysége elakadt: " + _szep(next(x for x in v.naplo[elotte:] if "nem játszható" in x))
+        rek = _uj_terv(keres, h, kulcs, dd_zar, ok)
+        v, j, _ = vegrehajto(rek, h)
+        elotte = len(v.naplo)
+        lap = v.lap(u)
     indok = v.naplo[elotte:]
     legalis = h.allas_mb.legalis
-    if lap not in legalis:
-        ki = _alap_valasz(keres, "step", "unsupported_continuation",
-                          f"A terv lapja ({_lap(lap)}) itt nem szabályos; ezt a folytatást a terv nem kezeli.")
+    esely = rek.eredmenyek[0].esely if rek.eredmenyek else 0.0
+    if esely <= 0 or lap not in legalis:
+        miert = ("egyik terv sem teljesít egyik sorsolt világban sem" if esely <= 0
+                 else f"a terv lapja ({_lap(lap)}) itt nem szabályos")
+        ki = _tartalek(keres, tartalek_fv, miert)
     else:
         szoveg = _szep("; ".join(s.split(": ", 1)[1] if ": " in s else s for s in indok)) or "a terv szerint"
         ki = _alap_valasz(keres, "step", "action_available",
-                          f"{_lap(lap)} — {szoveg}" + (" (új terv)" if uj else ""))
+                          f"{_lap(lap)} — {szoveg}" + (f" (új terv: {_szep(ok)})" if ok else ""))
         ki["action"] = {"type": "play", "card": legalis[lap]}
+        if esely >= 1.0 and not j.aktualis():
+            claim = _terites(h)
+            if claim is not None:
+                ki.setdefault("meta", {}).setdefault("kibic", {})["claim"] = claim
+                ki["summary"] += f" — terítés: {claim['statement']}"
     ki.update(plan_id=rek.plan_id, plan_revision=rek.revizio,
-              analysis_result="new_plan" if uj else "existing_plan",
-              observation={"deviations": elteres, "log": [_szep(x) for x in v.naplo[-30:]]},
+              analysis_result="existing_plan" if ok is None else "new_plan",
+              replan_reason=ok, plan=_terv_adat(rek),
+              observation={"log": [_szep(x) for x in v.naplo[-30:]]},
               presentation=_html("kibic — lépés", [
-                  ("A javasolt lap", f"<p class=\"lap\">{_lap(lap)}</p>"
-                   + "".join(f"<p>{html.escape(_szep(s))}</p>" for s in indok)),
-                  ("A terv", f"<p><b>{html.escape(rek.terv.nev)}</b> — "
-                   f"{100 * rek.eredmenyek[0].esely:.0f}%</p>" + _egysegek_html(rek.terv, v)),
+                  ("A javasolt lap", (f"<p class=\"lap\">{_lap(lap)}</p>" if ki.get("action") and
+                                      ki["meta"].get("source") != "fallback" else "")
+                   + "".join(f"<p>{html.escape(_szep(s))}</p>" for s in indok)
+                   + (f"<p><b>Új terv:</b> {html.escape(_szep(ok))}</p>" if ok else "")),
+                  ("A terv", f"<p><b>{html.escape(_szep(rek.terv.nev))}</b> — {100 * esely:.0f}%</p>"
+                   + _egysegek_html(rek.terv, v)),
                   ("A napló", "<ol>" + "".join(f"<li>{html.escape(_szep(s))}</li>" for s in v.naplo) + "</ol>"),
                   ("A jelölt tervek", _terv_html(rek))]))
     ki["meta"]["elapsed_ms"] = int((time.time() - t0) * 1000)
     return ki
+
+
+def _tartalek(keres: dict, tartalek_fv, miert: str) -> dict:
+    """A kibic általános lejátszója ad lapot (a /play döntése)."""
+    ki = _alap_valasz(keres, "step", "action_available", "")
+    if tartalek_fv is None:
+        ki.update(status="unsupported_continuation", summary=f"A tervnek nincs lapja: {miert}.")
+        return ki
+    v = tartalek_fv(keres)
+    akcio = (v or {}).get("action") or {}
+    ki["action"] = {"type": "play", "card": akcio.get("card")}
+    ki["summary"] = f"{miert} — a kibic általános lejátszója dönt: {(v or {}).get('explanation') or ''}".strip()
+    ki["meta"].update(source="fallback", fallback_reason=miert)
+    claim = (((v or {}).get("meta") or {}).get("kibic") or {}).get("claim")
+    if claim:
+        ki["meta"]["kibic"] = {"claim": claim}
+    return ki
+
+
+def _terites(h: Helyzet) -> dict | None:
+    """Terítés, ha a biztos terv (motor/terites.py) a felvételt teljesíti."""
+    from ..motor.terites import szoveg, terites
+    try:
+        t = terites(h.allas_mb)
+    except Exception:                           # noqa: BLE001
+        return None
+    if t is None or t.osszes < 6 + h.kontraktus.szint:
+        return None
+    return {"tricks": t.utesek, "remaining": t.hatralevo, "total_tricks": t.osszes,
+            "statement": szoveg(t)}
