@@ -37,8 +37,8 @@ from ..motor.tervsema import Allas, technikak_betoltese
 from ..motor.tervszamolo import Korlat
 
 PROTOKOLL = "bridzsrobot.workbench/1.0"       # a tervműhely-válasz alakja (Robiéval azonos)
-VILAG = int(os.getenv("KIBIC_MUHELY_VILAG", "60"))
-ARANY = float(os.getenv("KIBIC_MUHELY_ARANY", "0.45"))
+VILAG = int(os.getenv("KIBIC_TERVMUHELY_VILAG", "60"))
+ARANY = float(os.getenv("KIBIC_TERVMUHELY_ARANY", "0.45"))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
 
