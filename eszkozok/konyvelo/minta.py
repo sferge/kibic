@@ -67,6 +67,8 @@ def main(argv=None):
             adu = None if k.szin == "NT" else k.szin
             j = tj.Jatek({u: set(lo.kezek[u].lapok) for u in "NESW"}, F, adu,
                          [(kovetkezo_ules(F, 1), Lap.parse(j0.lapok[0]))], tj.Terv(()))
+            from kibic.motor.tervszinpolitika import urites
+            urites()                              # partik között: a memória
             h = tm.helyzet(keres(j, k))
             rek = tm.tervez(h, lap_elemzes, 9999, vilag_db=a.vilag)
             r = rek.eredmenyek[0]
