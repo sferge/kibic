@@ -52,9 +52,12 @@
     VK: "keze(V)"
     HK: "partner(VK)"
     FELETTE: "felettunk_kezben(VK, SZ, F)"
-    DEBLOKK: "felettunk_kezben(HK, SZ, F)"
+    # deblokk csak akkor kell, ha a hívó kéz a rövidebb: a hosszú kéz felső lapja nem
+    # blokkol (4V01 #1: ♥KJ / ♥AT943 — az ász előzetes lehívása tönkretenné a villát)
+    DEBLOKK: "ha(kezhossz(HK, SZ) <= kezhossz(VK, SZ), felettunk_kezben(HK, SZ, F), [])"
   alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "hossz(FELETTE) >= 1",
-                 "kezhossz(HK, SZ) > hossz(DEBLOKK)"]
+                 "kezhossz(HK, SZ) > hossz(DEBLOKK)",
+                 "kezhossz(VK, SZ) > hossz(FELETTE) + hossz(DEBLOKK) or hossz(DEBLOKK) == 0"]
   korok:
     - {ismetles: "hossz(DEBLOKK)", fajta: lehiv, lap: DEBLOKK}
     - {fajta: impassz, hivo: HK, lap: V}
@@ -274,8 +277,12 @@
     - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
     - {ismetles: "KIAD", fajta: kiad, hivo: MK}
     - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
-  siker: "True"
-  kudarc_koltseg: 1
+  # A szerkesztő (2026-11-18): ha a védők lapjai a rövid kéz köreire elfogynak, a
+  # hosszú kéz lapja magas — a lopás nem hoz semmit. Csak akkor ér, ha a védők hosszabb
+  # fele hosszabb a rövid kéznél. Ára: a rövid kéz aduit félre kell tenni (nem lehet
+  # kiaduzni), és a kiadás után a védők aduval vághatnak.
+  siker: "max_vedo_hossz(SZ) > N"
+  kudarc_koltseg: 0
   hozam: "R"
   hasznal: [NYERO]
   elfogyaszt: [NYERO]
