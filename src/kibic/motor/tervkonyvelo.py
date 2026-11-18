@@ -59,20 +59,63 @@ class Egyseg:
     def el(self) -> bool:
         return self.allapot in ("var", "siker")
 
+    @property
+    def biztos(self) -> bool:
+        """Biztos egység (pl. vesztőcsere, lopás): nincs rejtett feltétele; mindig a
+        terv része, és nem az esélyek sorának tagja."""
+        return biztos_egyseg(self.p)
 
-def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 40) -> list[KTerv]:
-    """Az egy- és kételemű esélysorok a technikák példányaiból. Az első elem
-    próba (a kudarca nem kerül ütésbe), és nem fogyaszthatja el a második
-    lapjait."""
+
+def biztos_egyseg(p: Peldany) -> bool:
+    return str(p.sema.siker).strip() == "True"
+
+
+def _utkozik(a: Peldany, b: Peldany) -> bool:
+    return bool((a.hasznal | a.elfogyaszt) & (b.hasznal | b.elfogyaszt)) or a.szin == b.szin
+
+
+def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60) -> list[KTerv]:
+    """A jelölt tervek: a biztos egységek (vesztőcsere, lopás — nincs rejtett
+    feltételük) egy ütközésmentes készlete, és utánuk egy- vagy kételemű esélysor a
+    többi technikából (az első próba: a kudarca nem kerül ütésbe, és nem fogyaszthatja
+    el a második lapjait)."""
     P = peldanyok(allas, technikak)
-    ki = [KTerv([])] + [KTerv([p]) for p in P]
-    for a in P:
-        if a.sema.kudarc_koltseg:
-            continue
-        for b in P:
-            if a is b or a.elfogyaszt & (b.hasznal | b.elfogyaszt):
+    biztosak = sorted((p for p in P if biztos_egyseg(p)), key=lambda p: -p.hozam)
+    esely = [p for p in P if not biztos_egyseg(p)]
+    keszletek: list[list[Peldany]] = []
+    teljes: list[Peldany] = []
+    for p in biztosak:
+        if not any(_utkozik(p, q) for q in teljes):
+            teljes.append(p)
+    # előbb a teljes biztos készlet, aztán egyenként, végül nélkülük
+    for x in ([teljes] if teljes else []) + [[p] for p in biztosak] + [[]]:
+        if x not in keszletek:
+            keszletek.append(x)
+    egy_keszletre = max(8, max_db // max(1, len(keszletek)))
+    ki: list[KTerv] = []
+    latott = set()
+
+    def hozzaad(lepesek):
+        kulcs = tuple(id(p) for p in lepesek)
+        if kulcs not in latott:
+            latott.add(kulcs)
+            ki.append(KTerv(list(lepesek)))
+
+    for alap in keszletek:
+        eleje = len(ki)
+        hozzaad(alap)
+        szabad = [p for p in esely if not any(_utkozik(p, q) for q in alap)]
+        for p in szabad:
+            hozzaad(alap + [p])
+        for a in szabad:
+            if a.sema.kudarc_koltseg:
                 continue
-            ki.append(KTerv([a, b]))
+            for b in szabad:
+                if len(ki) - eleje >= egy_keszletre:
+                    break
+                if a is b or a.elfogyaszt & (b.hasznal | b.elfogyaszt):
+                    continue
+                hozzaad(alap + [a, b])
     return ki[:max_db]
 
 
@@ -141,8 +184,8 @@ class Vegrehajto:
             for k in e.p.korok[e.i:]:
                 if k.fajta == "impassz" and k.hivo:
                     kicsit(k.hivo, k.szin)                 # a kéz felé hívott kis lap
-                elif k.fajta == "lop" and k.hivo:
-                    kicsit(k.hivo, k.szin)                 # a lopásra hívott kis lap
+                elif k.fajta in ("lop", "kiad") and k.hivo:
+                    kicsit(k.hivo, k.szin)                 # a lopásra / a kiadásra hívott kis lap
                 elif k.fajta == "lehiv" and k.lap is not None and k.lap in mieink:
                     # kísérő lap: a másik kéz is tesz egy lapot, ne a kulcslapját
                     X = j_keze(self.j, k.lap)
@@ -186,8 +229,10 @@ class Vegrehajto:
     def _siker(self, e: Egyseg):
         self._jegyez(f"{e.p.rovid}: sikerült")
         # az esélyek sora: ha egy sikerült, a többi elmarad (a lapjaik szabadok)
+        if e.biztos:
+            return
         for x in self.egysegek:
-            if x is not e and x.allapot == "var":
+            if x is not e and x.allapot == "var" and not x.biztos:
                 x.allapot = "elmarad"
 
     # -- döntés --
@@ -238,6 +283,23 @@ class Vegrehajto:
                         self._siker(e)
                         e.allapot = "siker"
                 return e, k
+        return None
+
+    def _kovetkezo_hivo(self) -> str | None:
+        """Melyik kezünkből indul a terv következő köre (mellékhatás nélkül)."""
+        j = self.j
+        mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
+        for e in self.egysegek:
+            if not e.el:
+                continue
+            for k in e.p.korok[e.i:]:
+                if k.lap is not None and k.lap not in mieink:
+                    continue
+                if k.fajta in ("impassz", "lop", "kiad"):
+                    return k.hivo
+                if k.fajta == "lehiv" and k.lap is not None:
+                    return j_keze(j, k.lap)
+                return None
         return None
 
     def _utott(self, lap: Lap) -> bool:
@@ -312,6 +374,13 @@ class Vegrehajto:
             ki.append(Jelolt(sajat[-1], ar, f"adukör ({sajat[-1]})"))
         if sajat and par and self._nyero(par[-1]) and sajat[0].rang < par[-1].rang:
             ki.append(Jelolt(sajat[0], ar + 0.1, f"adukör a másik kézbe ({par[-1]})", {P: ("lap", par[-1])}))
+        if not ki and sajat and not any(self._nyero(l) for l in sajat + par):
+            # nincs felső adunk: a kint lévő felső adu kiütése (egy ütés kiadás)
+            if par and par[-1].rang > sajat[-1].rang:
+                ki.append(Jelolt(sajat[0], ar + 1.2, f"adukör: a felső adu kiütése ({par[-1]} a másik kézből)",
+                                 {P: ("lap", par[-1])}))
+            else:
+                ki.append(Jelolt(sajat[-1], ar + 1.2, f"adukör: a felső adu kiütése ({sajat[-1]})"))
         return ki
 
     def _egyseg_jeloltek(self, H: str, e: Egyseg, k: Kor, ar: float) -> list["Jelolt"]:
@@ -336,6 +405,14 @@ class Vegrehajto:
             if not sajat:
                 return []
             return [Jelolt(sajat[0], ar, cim, {P: ("impassz", k.lap)}, (ei, k))]
+        if k.fajta == "kiad":
+            if k.hivo != H:
+                return self._atmenet_jeloltek(H, k.hivo, e, ar + 0.5)
+            sajat = j.szin(H, k.szin)
+            if not sajat:
+                return []
+            szabad = [l for l in sajat if l not in fogl] or sajat
+            return [Jelolt(szabad[0], ar, f"{e.p.rovid}: kiadás ({szabad[0]})", folyo=(ei, k))]
         if k.fajta == "lop":
             if k.hivo != H:
                 return self._atmenet_jeloltek(H, k.hivo, e, ar + 0.5)
@@ -514,6 +591,24 @@ class Vegrehajto:
                 if adu_l:
                     return adu_l[0], f"lopás: {adu_l[0]}"
         partner_nyer = j.mi(nyu)
+        R = self._kovetkezo_hivo()
+        P = j.partner(u)
+        hatra_van_partner = len(utes) <= 2 and any(x == P for x in self._hatra(utes))
+        if van and not partner_nyer and R == u:
+            # a terv innen folytatódik: ha biztosan üthetünk, itt üssünk
+            biztos = [l for l in van if self._nyero(l) and _ut(l, nyl, adu)]
+            if biztos:
+                return biztos[0], f"üt a nyerővel ({biztos[0]}): a terv innen folytatódik"
+        if van and len(utes) == 1 and R == P and hatra_van_partner:
+            p_nyero = [l for l in j.szin(P, hivott) if self._nyero(l) and _ut(l, nyl, adu)]
+            if p_nyero:
+                l = self._legkisebb(van, fogl)
+                return l, "második kéz: kicsi — a partnerünk üt, a terv onnan folytatódik"
+        if not van and len(utes) == 1 and hatra_van_partner and hivott != adu:
+            p_nyero = [l for l in j.szin(P, hivott) if self._nyero(l)]
+            if p_nyero:
+                l = self._dobas(u, fogl)
+                return l, f"nem lop: a partnerünk üt ({p_nyero[-1]}); dobás: {l}"
         if van and len(utes) == 1:
             P = j.partner(u)
             p_legjobb = max((l.rang for l in j.szin(P, hivott)), default=0)
@@ -541,15 +636,23 @@ class Vegrehajto:
         l = self._dobas(u, fogl)
         return l, f"dobás: {l}" + (" (a foglalt és a nyerő lapokat megtartja)" if fogl & j.kezek[u] else "")
 
+    def _hatra(self, utes) -> list[str]:
+        """Akik még tesznek ebbe az ütésbe (a sorrendben)."""
+        utolso = utes[-1][0]
+        return [kovetkezo_ules(utolso, i) for i in range(1, 4 - len(utes) + 1)]
+
     def _legkisebb(self, lapok: list[Lap], fogl: set[Lap]) -> Lap:
         szabad = [l for l in lapok if l not in fogl]
         return (szabad or lapok)[0]
 
     def _dobas(self, u: str, fogl: set[Lap]) -> Lap:
+        """Dobás: nem foglalt lap, nem nyerő, nem adu; abból a színből, amelyre nincs
+        élő egység (annak a vesztőit a terv máshogy kezeli), a hosszabból, kicsit."""
         j = self.j
         hossz = {sz: len(j.szin(u, sz)) for sz in "SHDC"}
+        terv_szin = {e.p.szin for e in self._aktiv() if e.kor() is not None}
         return min(j.kezek[u], key=lambda l: (l in fogl, self._nyero(l), l.szin == self.adu,
-                                              -hossz[l.szin], l.rang))
+                                              l.szin in terv_szin, -hossz[l.szin], l.rang))
 
 
 @dataclass

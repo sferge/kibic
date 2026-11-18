@@ -66,3 +66,25 @@ def test_vegigjatszik_es_a_naplo_az_egysegeket_koveti():
     assert n >= 11
     assert any(s.endswith("♦ ejtés: sikerült") or "♦ ejtés: nem sikerült" in s for s in naplo)
     assert not any("szabálytalan" in s for s in naplo)
+
+
+def test_ott_ut_ahonnan_a_terv_folytatodik():
+    """MB 4♠ (2026-11-18): Dél kőrt indul, az asztal (Nyugat) ♥AKJ, Kelet kőrből
+    színhiányos. A terv következő köre a ♣ impassz Nyugatról — az asztal a nyerővel
+    üt (nem a ♥J-vel), Kelet nem lop, hanem dob."""
+    E, W = _kez("K8752..Q982.AKJ2"), _kez("Q43.AKJ.AT43.543")
+    N, S = _kez("J9.QT972.76.Q986"), _kez("AT6.86543.KJ5.T7")
+    kezek = {"E": E, "W": W, "N": N, "S": S}
+    allas = Allas(felvevo="E", adu="S", kezek={"E": set(E), "W": set(W)}, kint=N | S,
+                  cel=10, hatra=13, soron="W")
+    p = next(p for p in peldanyok(allas, technikak_betoltese())
+             if p.sema.azon == "IMPASSZ_VILLA" and p.szin == "C")
+    j = tj.Jatek({u: set(x) for u, x in kezek.items()}, "E", "S", [("S", Lap.parse("H5"))], tj.Terv(()))
+    v = Vegrehajto(KTerv([p]), j)
+    v.cel = 10
+    lw = v.lap("W")
+    assert lw in {Lap.parse("HA"), Lap.parse("HK")}
+    j.tesz("W", lw)
+    j.tesz("N", Lap.parse("H2"))
+    le = v.lap("E")
+    assert le.szin != "S"                                       # nem lop
