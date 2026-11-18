@@ -14,14 +14,16 @@ MIND = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"}
 
 
 def test_negy_pikk_keletrol():
-    """MB 4♠ (2026-11-18): a ♠A biztosan kiadó; a vesztők a fő kézből (Kelet) kb. 5,
+    """MB 4♠ (2026-11-18): a ♠A és egy káró biztosan kiadó; a vesztők a fő kézből (Kelet) kb. 5,
     a megengedett 3 — két-három vesztőtől kell megszabadulni."""
     E, W = _kez("K8752..Q982.AKJ2"), _kez("Q43.AKJ.AT43.543")
     f = felmeres({"E": E, "W": W}, "E", "W", MIND - E - W, (13, 13), "S", 10, 13)
     sz = {s.szin: s for s in f.szinek}
     assert (sz["S"].biztos, sz["S"].kiado) == (0, 1)
     assert (sz["H"].biztos, sz["D"].biztos, sz["C"].biztos) == (2, 1, 2)
-    assert f.fo_kez == "E" and f.egyenleg == 2
+    # a szerkesztő: a ♠A és a káróban egy (a K vagy a J) biztosan kiadó
+    assert (sz["D"].kiado, sz["C"].kiado, f.kiado) == (1, 0, 2)
+    assert f.fo_kez == "E" and f.egyenleg == 1
     assert 2.0 < f.vesztotobblet < 3.0
 
 
@@ -47,3 +49,17 @@ def test_forrasok_negy_pikk():
     assert not fk["♣ lopás a rövid kézben (kiadás után)"].biztos       # csak ha a 4. treff nem magas
     assert 0.45 < fk["♦ szöktetés"].esely < 0.6 and 0.45 < fk["♣ impassz"].esely < 0.6
     assert fk["♦ szöktetés (felső előbb)"].esely > fk["♦ szöktetés"].esely
+
+
+
+def test_vesztocsere_dobasszine_a_terv_resze():
+    """A vesztőcsere változatai a dobás színe szerint; a 4♠-ben a treffdobás és a káró
+    szöktetése egy terv lehet (a szerkesztő terve)."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    from kibic.motor.tervsema import Allas, technikak_betoltese
+    E, W = _kez("K8752..Q982.AKJ2"), _kez("Q43.AKJ.AT43.543")
+    kint = MIND - E - W - {Lap.parse("H5")}
+    a = Allas("E", "S", {"E": set(E), "W": set(W)}, kint, 10, 13, "W")
+    nevek = {t.nev for t in tervjeloltek(a, technikak_betoltese(), igeny=3)}
+    assert "kiaduzás → ♥ vesztőcsere (dobás: ♣) → ♦ szöktetés (felső előbb)" in nevek
+    assert not any("dobás: ♣) → ♣" in n for n in nevek)       # amiből dobunk, azt nem kezeljük

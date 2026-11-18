@@ -103,7 +103,8 @@ def _lapok(xs) -> list[str]:
 
 
 def _egysegek_lista(t: KTerv) -> list:
-    return [[p.sema.azon, p.szin] + ([t.fazis[i]] if t.fazis else []) for i, p in enumerate(t.lepesek)]
+    return [[p.sema.azon, p.szin, t.fazis[i] if t.fazis else None, p.szerepek.get("CELSZIN")]
+            for i, p in enumerate(t.lepesek)]
 
 
 def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> None:
@@ -158,13 +159,17 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
 
     ig = adat["terv"].get("igeny", 1)
 
+    import dataclasses
+
     def terv(egysegek):
         try:
             lep = [pld[(x[0], x[1])] for x in egysegek]
         except KeyError:
             return None
-        fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 for x in egysegek) else None
-        return KTerv(lep, ig, fazis)
+        lep = [dataclasses.replace(p, szerepek=dict(p.szerepek, CELSZIN=x[3]))
+               if len(x) > 3 and x[3] else p for p, x in zip(lep, egysegek)]
+        fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 and x[2] for x in egysegek) else None
+        return KTerv(lep, ig, fazis, h.adu is not None)
     fo = terv(adat["terv"]["egysegek"])
     if fo is None:
         return None
@@ -173,7 +178,7 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         t = terv(x["egysegek"])
         if t is None:
             continue
-        if t.nev == fo.nev and t.fazis == fo.fazis:
+        if t.nev == fo.nev and t.fazis == fo.fazis and _egysegek_lista(t) == _egysegek_lista(fo):
             t = fo
         r = Eredmeny(t, teljesult=round(x["esely"] * x["n"]), n=x["n"], utesek=x["utesek"])
         ered.append(r)
@@ -287,10 +292,14 @@ def _peldanyok(h: Helyzet, lejatszott: list):
 def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
            elozo: list | None = None) -> Rekord:
     t0 = time.time()
+    from ..motor.tervszinpolitika import urites
+    urites()                                     # az elemzők memóriája: tervenként tiszta lap
     vilag_db = vilag_db or VILAG
     cel = 6 + h.kontraktus.szint
     allas, kint = _allas(h, h.lejatszott)
-    tervek = tervjeloltek(allas, technikak_betoltese(), igeny=igeny(h, h.lejatszott))
+    v1_, v2_ = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
+    ures = tuple(13 - sum(1 for u, _ in h.lejatszott if u == v) for v in (v1_, v2_))
+    tervek = tervjeloltek(allas, technikak_betoltese(), igeny=igeny(h, h.lejatszott), ures=ures)
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
     v1, v2 = sorted(h.vedok)
     jatszott_v = {u: {l for uu, l in h.lejatszott if uu == u} for u in (v1, v2)}
@@ -504,11 +513,18 @@ def _felmeres_html(h: Helyzet, rek: Rekord) -> str:
 
 
 def _forrasok(h: Helyzet, rek: Rekord):
-    from ..motor.tervforras import forrasok
+    from ..motor.tervforras import Forras, forrasok
+    from ..motor.tervkonyvelo import szinkezeles_peldanyok
     allas, kint = _allas(h, rek.lejatszott)
     v1, v2 = h.vedok
     ures = {u: 13 - sum(1 for uu, _ in rek.lejatszott if uu == u) for u in (v1, v2)}
-    return forrasok(allas, technikak_betoltese(), ures, _szinhianyok(rek.lejatszott, h.vedok))
+    ki = forrasok(allas, technikak_betoltese(), ures, _szinhianyok(rek.lejatszott, h.vedok))
+    b1, b2 = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
+    for p in szinkezeles_peldanyok(allas, technikak_betoltese(), rek.terv.igeny,
+                                   (ures.get(b1, 13), ures.get(b2, 13))):
+        ki.append(Forras(p, p.hozam, p.szerepek["esely"], p.szerepek["m"], False))
+    ki.sort(key=lambda f: (-f.hozam * f.esely, f.kudarc, f.nev))
+    return ki
 
 
 def _forras_html(h: Helyzet, rek: Rekord) -> str:

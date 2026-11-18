@@ -152,10 +152,34 @@ def _verseny(X: list[int], Y: list[int], V1: list[int], V2: list[int], korok: in
     return vedo
 
 
+def _dd_vesztok(X: list[int], Y: list[int], K: list[int], n1: int, n2: int, korok: int,
+                hatar: float = 0.9) -> int | None:
+    """Biztosan kiadó: elosztásonként a mindent látó (legjobb) kezeléssel is elvesztett
+    körök (a `korok` körön belül); az a legnagyobb v, amelyet az esetek legalább
+    `hatar` részében elveszítünk. Túl sok kint lévő lapnál None."""
+    if len(K) > 8 or not (X or Y):
+        return None
+    from . import tervszinkezeles as ts
+    Xs, Ys = frozenset(X), frozenset(Y)
+    eloszl = []
+    for w, a, b in _elosztasok(K, n1, n2):
+        t = ts.dd(Xs, Ys, frozenset(a), frozenset(b), 0, 0)
+        eloszl.append((max(0, min(korok, len(K)) - t) if korok < max(len(X), len(Y)) else
+                       max(0, max(len(X), len(Y)) - t), w))
+    W = sum(w for _, w in eloszl)
+    if not W:
+        return None
+    for v in sorted({v for v, _ in eloszl}, reverse=True):
+        if sum(w for vv, w in eloszl if vv >= v) / W >= hatar:
+            return v
+    return 0
+
+
 def felmeres(kezek: dict[str, set[Lap]], felvevo: str, asztal: str, kint: set[Lap],
              vedo_lapok: tuple[int, int], adu: str | None, cel: int, hatra: int) -> Felmeres:
     """`kezek`: a két kezünk MOSTANI lapjai; `kint`: a védők még le nem játszott lapjai;
-    `vedo_lapok`: a két védő kezében lévő lapok száma."""
+    `vedo_lapok`: a két védő kezében lévő lapok száma, a felvevő bal- és jobbkeze
+    sorrendjében."""
     fo = None
     if adu:
         a1, a2 = (len([l for l in kezek[u] if l.szin == adu]) for u in (felvevo, asztal))
@@ -185,6 +209,12 @@ def felmeres(kezek: dict[str, set[Lap]], felvevo: str, asztal: str, kint: set[La
             korok = hosszabb
             korok_v = hosszabb
         kiado = min(fole, korok, len(K))
+        # a szerkesztő (2026-11-18): a ♦Q982 / ♦A1043-ban a K (vagy a J) „biztosan
+        # kiadó”, bár nincs a legnagyobb lapunk fölött — elosztásonként, a legjobb
+        # kezeléssel is legalább 90%-ban elveszítjük
+        dd_k = _dd_vesztok(X, Y, K, n1, n2, korok)
+        if dd_k is not None:
+            kiado = max(kiado, min(dd_k, korok))
         # várható vesztők: a felülről játszott körökben a védők ütései, elosztásonként
         ossz = suly = 0
         eloszl = []
@@ -207,9 +237,10 @@ def felmeres(kezek: dict[str, set[Lap]], felvevo: str, asztal: str, kint: set[La
 
 def felmeres_jatekbol(j, cel_osszes: int) -> Felmeres:
     """A felmérés egy `tervjatszo.Jatek` mostani állásából (a felvevő látta lapokból)."""
+    from ..domain import kovetkezo_ules
     F, A = j.felvevo, j.asztal
     kint = {l for sz in "SHDC" for l in j.kint(sz)}
-    vedok = [u for u in "NESW" if u not in (F, A)]
+    vedok = [kovetkezo_ules(F, 1), kovetkezo_ules(F, 3)]        # a felvevő bal-, jobbkeze
     lejatszott = {u: sum(1 for uu, _ in j.lapok if uu == u) for u in vedok}
     n = tuple(13 - lejatszott[u] for u in vedok)
     hatra = 13 - len(j.lapok) // 4
