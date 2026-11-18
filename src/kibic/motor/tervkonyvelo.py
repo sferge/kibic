@@ -50,16 +50,17 @@ class KTerv:
     # a sorrend: egységenként "E" (a kiaduzás előtt) vagy "U" (utána); None: a régi,
     # körönkénti döntés
     fazis: tuple | None = None
+    adus: bool = True                    # színfelvétel: a nevben a kiaduzás helye is látszik
 
     @property
     def nev(self) -> str:
         if not self.lepesek:
             return "csak begyűjtés"
-        if self.fazis is None:
+        if self.fazis is None or not self.adus:
             return " → ".join(p.rovid for p in self.lepesek)
         elotte = [p.rovid for p, f in zip(self.lepesek, self.fazis) if f == "E"]
         utana = [p.rovid for p, f in zip(self.lepesek, self.fazis) if f != "E"]
-        return " → ".join(elotte + (["kiaduzás"] if self.lepesek and elotte else []) + utana)
+        return " → ".join(elotte + ["kiaduzás"] + utana)
 
 
 def alap_fazis(p: Peldany) -> str:
@@ -72,7 +73,7 @@ def szakasz_valtozatok(t: KTerv, max_db: int = 8) -> list[KTerv]:
     az első). A lopásos egység mindig előtte marad."""
     from itertools import product
     alap = tuple(alap_fazis(p) for p in t.lepesek)
-    ki = [KTerv(t.lepesek, t.igeny, alap)]
+    ki = [KTerv(t.lepesek, t.igeny, alap, t.adus)]
     szabad = [i for i, p in enumerate(t.lepesek) if alap[i] == "U"]
     for valaszt in product("UE", repeat=len(szabad)):
         f = list(alap)
@@ -80,7 +81,7 @@ def szakasz_valtozatok(t: KTerv, max_db: int = 8) -> list[KTerv]:
             f[i] = v
         f = tuple(f)
         if f != alap:
-            ki.append(KTerv(t.lepesek, t.igeny, f))
+            ki.append(KTerv(t.lepesek, t.igeny, f, t.adus))
         if len(ki) >= max_db:
             break
     return ki
@@ -111,7 +112,31 @@ def biztos_egyseg(p: Peldany) -> bool:
     return str(p.sema.siker).strip() == "True"
 
 
+def dobas_valtozatok(p: Peldany, allas: Allas) -> list[Peldany]:
+    """A vesztőcsere változatai a dobás színe szerint (a szerkesztő: „én treffet
+    dobnék”): a dobó kéz (DK) minden olyan színe, amelyben van nem nyerő lapja (az adu
+    és a vesztőcsere színe nélkül). A dobás színe a terv része."""
+    import dataclasses
+    if p.sema.azon != "VESZTOCSERE":
+        return [p]
+    dk = p.szerepek.get("DK")
+    ki = []
+    for c in "SHDC":
+        if c in (p.szin, allas.adu) or not dk:
+            continue
+        lapok = allas.szin(dk, c)
+        kint = allas.kint_szin(c)
+        if any(not kint or l.rang < kint[0].rang for l in lapok):
+            q = dataclasses.replace(p, szerepek=dict(p.szerepek, CELSZIN=c))
+            ki.append(q)
+    return ki or [p]
+
+
 def _utkozik(a: Peldany, b: Peldany) -> bool:
+    if a.szerepek.get("CELSZIN") and a.szerepek["CELSZIN"] == b.szin:
+        return True                      # amiből dobunk, azt nem kezeljük másképp
+    if b.szerepek.get("CELSZIN") and b.szerepek["CELSZIN"] == a.szin:
+        return True
     return bool((a.hasznal | a.elfogyaszt) & (b.hasznal | b.elfogyaszt)) or a.szin == b.szin
 
 
@@ -124,7 +149,7 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
     feltételük) egy ütközésmentes készlete, és utánuk egy- vagy kételemű esélysor a
     többi technikából (az első próba: a kudarca nem kerül ütésbe, és nem fogyaszthatja
     el a második lapjait)."""
-    P = peldanyok(allas, technikak)
+    P = [q for p in peldanyok(allas, technikak) for q in dobas_valtozatok(p, allas)]
     biztosak = sorted((p for p in P if biztos_egyseg(p)), key=lambda p: -p.hozam)
     esely = [p for p in P if not biztos_egyseg(p)]
     keszletek: list[list[Peldany]] = []
@@ -132,8 +157,14 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
     for p in biztosak:
         if not any(_utkozik(p, q) for q in teljes):
             teljes.append(p)
-    # előbb a teljes biztos készlet, aztán egyenként, végül nélkülük
-    for x in ([teljes] if teljes else []) + [[p] for p in biztosak] + [[]]:
+    # előbb a teljes biztos készlet (a vesztőcsere minden dobásszínével), aztán
+    # egyenként, végül nélkülük
+    teljesek = [teljes] if teljes else []
+    for p in biztosak:
+        for i, q in enumerate(teljes):
+            if q.sema.azon == p.sema.azon and q.szin == p.szin and q is not p:
+                teljesek.append(teljes[:i] + [p] + teljes[i + 1:])
+    for x in teljesek + [[p] for p in biztosak] + [[]]:
         if x not in keszletek:
             keszletek.append(x)
     egy_keszletre = max(8, max_db // max(1, len(keszletek)))
@@ -148,7 +179,8 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         if kulcs not in latott:
             latott.add(kulcs)
             ki.append(KTerv(list(lepesek), igeny,
-                        tuple(alap_fazis(p) for p in lepesek) if SZABALY["SZAKASZ"] else None))
+                        tuple(alap_fazis(p) for p in lepesek) if SZABALY["SZAKASZ"] else None,
+                        allas.adu is not None))
 
     if igeny <= 0:
         hozzaad([])
@@ -174,7 +206,7 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         for p in osszes:
             if not any(_utkozik(p, q) for q in valasztott):
                 valasztott.append(p)
-        ki.append(KTerv(valasztott, igeny, tuple(alap_fazis(p) for p in valasztott)))
+        ki.append(KTerv(valasztott, igeny, tuple(alap_fazis(p) for p in valasztott), allas.adu is not None))
     return ki[:max_db]
 
 
@@ -833,6 +865,13 @@ class Vegrehajto:
             vesztok[sz] = max(0, hossz[sz] - ny)
         if not SZABALY["DOBAS"]:
             vesztok = {sz: 0 for sz in "SHDC"}
+        cel = next((e.p.szerepek.get("CELSZIN") for e in self.egysegek
+                    if e.allapot in ("var", "siker", "kesz") and e.p.szerepek.get("CELSZIN")
+                    and e.p.szerepek.get("DK") == u), None)
+        if cel:
+            # a terv dobásszíne (a vesztőcsere része): onnan dobunk, ha lehet
+            return min(j.kezek[u], key=lambda l: (l in fogl, self._nyero(l), l.szin != cel,
+                                                  l.szin == self.adu, l.rang))
         return min(j.kezek[u], key=lambda l: (l in fogl, self._nyero(l), l.szin == self.adu,
                                               -vesztok[l.szin], -hossz[l.szin], l.rang))
 

@@ -103,7 +103,8 @@ def _lapok(xs) -> list[str]:
 
 
 def _egysegek_lista(t: KTerv) -> list:
-    return [[p.sema.azon, p.szin] + ([t.fazis[i]] if t.fazis else []) for i, p in enumerate(t.lepesek)]
+    return [[p.sema.azon, p.szin, t.fazis[i] if t.fazis else None, p.szerepek.get("CELSZIN")]
+            for i, p in enumerate(t.lepesek)]
 
 
 def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> None:
@@ -158,13 +159,17 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
 
     ig = adat["terv"].get("igeny", 1)
 
+    import dataclasses
+
     def terv(egysegek):
         try:
             lep = [pld[(x[0], x[1])] for x in egysegek]
         except KeyError:
             return None
-        fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 for x in egysegek) else None
-        return KTerv(lep, ig, fazis)
+        lep = [dataclasses.replace(p, szerepek=dict(p.szerepek, CELSZIN=x[3]))
+               if len(x) > 3 and x[3] else p for p, x in zip(lep, egysegek)]
+        fazis = tuple(x[2] for x in egysegek) if egysegek and all(len(x) > 2 and x[2] for x in egysegek) else None
+        return KTerv(lep, ig, fazis, h.adu is not None)
     fo = terv(adat["terv"]["egysegek"])
     if fo is None:
         return None
@@ -173,7 +178,7 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         t = terv(x["egysegek"])
         if t is None:
             continue
-        if t.nev == fo.nev and t.fazis == fo.fazis:
+        if t.nev == fo.nev and t.fazis == fo.fazis and _egysegek_lista(t) == _egysegek_lista(fo):
             t = fo
         r = Eredmeny(t, teljesult=round(x["esely"] * x["n"]), n=x["n"], utesek=x["utesek"])
         ered.append(r)

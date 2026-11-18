@@ -449,6 +449,9 @@ class Peldany:
              "SZOKTETES": "szöktetés", "SZOKTETES_FELSO_ELOBB": "szöktetés (felső előbb)",
              "VESZTOCSERE": "vesztőcsere (dobás)",
              "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)"}.get(self.sema.azon, self.sema.azon)
+        cel = self.szerepek.get("CELSZIN")
+        if cel:
+            r = r.replace("(dobás)", f"(dobás: {'♠♥♦♣'['SHDC'.index(cel)]})")
         return f"{'♠♥♦♣'['SHDC'.index(self.szin)]} {r}"
 
     def siker_kornyezet(self) -> dict:
