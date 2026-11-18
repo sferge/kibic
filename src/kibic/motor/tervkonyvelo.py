@@ -141,8 +141,16 @@ def dobas_valtozatok(p: Peldany, allas: Allas) -> list[Peldany]:
 ELEMZO_MAX_KINT = int(_os.getenv("KIBIC_K_ELEMZO_KINT", "8"))   # ennél több kint lévő lapnál lassú
 
 
+def _felmeres(allas: Allas, ures: tuple[int, int] | None):
+    from .tervfelmeres import felmeres
+    u1, u2 = ures or (13, 13)
+    return felmeres({allas.felvevo: set(allas.kezek[allas.felvevo]), allas.asztal: set(allas.kezek[allas.asztal])},
+                    allas.felvevo, allas.asztal, set(allas.kint), (u1, u2), allas.adu, allas.cel, allas.hatra)
+
+
 def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
-                        ures: tuple[int, int] | None = None, esely_min: float = 0.01) -> Peldany | None:
+                        ures: tuple[int, int] | None = None, esely_min: float = 0.01,
+                        fm=None) -> Peldany | None:
     """Egy elemzős színkezelési egység (a szín, a cél: k ütés, legfeljebb m vesztés)."""
     from .tervszinpolitika import SzinPolitika
     sema = technikak.get("SZINKEZELES")
@@ -162,11 +170,13 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
         return None
     if pol.p <= esely_min:
         return None
-    biztos = allas.biztos_utesek(sz)
+    fm = fm or _felmeres(allas, ures)
+    sf = next(x for x in fm.szinek if x.szin == sz)
+    biztos = sf.biztos
     lapok = set(allas.szin(F, sz)) | set(allas.szin(A, sz))
-    # hozam: a mellékszínben a biztosakon felüli ütések; az aduban a vesztők
-    # csökkenése a szokásos (kb. kettő) aduvesztőhöz képest
-    hozam = max(1, k - biztos) if not adu else max(0, 2 - m)
+    # hozam: a mellékszínben a biztosakon felüli ütések; az aduban a várható vesztők
+    # (a helyzetfelmérés) csökkenése
+    hozam = (k - biztos) if not adu else int(max(0.0, sf.vesztok - m) + 0.5)
     if hozam <= 0:
         return None
     sz_ = {"k": k, "m": m, "biztos": biztos, "esely": pol.p, "aduval": False, "adu": adu}
@@ -183,21 +193,23 @@ def szinkezeles_peldanyok(allas: Allas, technikak: dict, igeny: int,
     if "SZINKEZELES" not in technikak or not SZABALY.get("ELEMZO", True):
         return []
     F, A = allas.felvevo, allas.asztal
-    megengedett = max(0, allas.hatra - allas.cel)
+    fm = _felmeres(allas, ures)
     ki = []
     for sz in "SHDC":
         X, Y = allas.szin(F, sz), allas.szin(A, sz)
         kint = allas.kint_szin(sz)
         if not (X or Y) or not kint or len(kint) > ELEMZO_MAX_KINT:
             continue
+        sf = next(x for x in fm.szinek if x.szin == sz)
         hossz = max(len(X), len(Y))
-        biztos = allas.biztos_utesek(sz)
+        # a vesztéskeret: a megengedett kiadás, mínusz a többi szín biztosan kiadó ütései
+        keret = max(0, fm.megengedett - (fm.kiado - sf.kiado))
         if sz == allas.adu:
-            celok = [(hossz - v, v) for v in range(0, 3) if hossz - v > biztos]
+            celok = [(hossz - v, v) for v in range(sf.kiado, min(keret, sf.kiado + 2) + 1) if hossz - v > 0]
         else:
-            celok = [(k, min(megengedett, hossz)) for k in range(biztos + 1, min(hossz, biztos + max(1, igeny)) + 1)]
+            celok = [(k, keret) for k in range(sf.biztos + 1, min(hossz, sf.biztos + max(1, igeny)) + 1)]
         for k, m in celok:
-            p = szinkezeles_peldany(allas, technikak, sz, k, m, ures)
+            p = szinkezeles_peldany(allas, technikak, sz, k, m, ures, fm=fm)
             if p is not None:
                 ki.append(p)
     return ki
