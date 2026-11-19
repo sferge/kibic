@@ -144,3 +144,19 @@ def test_leghasznosabb_dobas_a_terv_tobbi_egysege_szerint():
     vcs = next(p for p in P if p.sema.azon == "VESZTOCSERE" and p.szin == "C")
     lop = next(p for p in P if p.sema.azon == "LOPAS_ROVID_KEZBEN" and p.szin == "D")
     assert hasznos_dobas(vcs, [vcs, lop], b) == "H"
+
+
+def test_szanban_a_teljes_keret_is_jelolt_bridgemasters_2():
+    """BridgeMasters #2 (6NT S, ♦Q indul; a szerkesztő kérdése 2026-11-19): a ♣KQT876 /
+    ♣A2 színből 5 ütés legfeljebb 1 vesztéssel — a teljes kiengedés minden elosztásban
+    biztos. A ♥ és a ♦ „biztosan kiadó” vesztőit a treffekre dobjuk, ezért a ♣ egység a
+    teljes megengedett kiadást (1) is megkapja, nem csak a maradékot (0)."""
+    from kibic.motor.tervkonyvelo import szinkezeles_peldanyok
+    K = {"S": _kez("KQJ.J9876.AK2.A2"), "N": _kez("A32.AK.43.KQT876")}
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - K["S"] - K["N"] - {Lap.parse("DQ")}
+    a = Allas(felvevo="S", adu=None, kezek={"S": set(K["S"]), "N": set(K["N"])},
+              kint=kint, cel=12, hatra=13, soron="N")
+    P = szinkezeles_peldanyok(a, technikak_betoltese(), 2, (12, 13))
+    c = {(p.szerepek["k"], p.szerepek["m"]): p.szerepek["esely"] for p in P if p.szin == "C"}
+    assert c[(5, 1)] == 1.0
+    assert c[(5, 0)] < 0.8

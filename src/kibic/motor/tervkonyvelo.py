@@ -36,7 +36,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -265,7 +265,23 @@ def szinkezeles_peldanyok(allas: Allas, technikak: dict, igeny: int,
         if sz == allas.adu:
             celok = [(hossz - v, v) for v in range(sf.kiado, min(keret, sf.kiado + 2) + 1) if hossz - v > 0]
         else:
+            # a keret két határa: a többi szín biztos kiadása után maradó (óvatos), és a
+            # teljes megengedett kiadás — a „biztosan kiadó” vesztő nem mindig kiadó: a
+            # többi szín vesztőit eldobhatjuk erre a színre (BridgeMasters #2, 6NT: a ♣
+            # kiengedése a ♥ és a ♦ vesztők helyett; ezt a szimuláció dönti el)
+            # csak ha a szín hosszkülönbsége elég dobást ad a többi szín biztos vesztőire
+            tobbi = fm.kiado - sf.kiado
+            dobhato = abs(len(X) - len(Y)) >= tobbi > 0
             celok = [(k, keret) for k in range(sf.biztos + 1, min(hossz, sf.biztos + max(1, igeny)) + 1)]
+            if dobhato and fm.megengedett > keret:
+                # a bővebb keret csak akkor jelölt, ha érdemben jobb (különben csak
+                # kiszorítaná a többit az előszűrésből)
+                for k, _ in list(celok):
+                    p0 = szinkezeles_peldany(allas, technikak, sz, k, keret, ures, fm=fm)
+                    p1 = szinkezeles_peldany(allas, technikak, sz, k, fm.megengedett, ures, fm=fm)
+                    e0 = float(p0.szerepek.get("esely", 0)) if p0 else 0.0
+                    if p1 is not None and float(p1.szerepek.get("esely", 0)) >= e0 + 0.10:
+                        ki.append(p1)
         for k, m in celok:
             p = szinkezeles_peldany(allas, technikak, sz, k, m, ures, fm=fm)
             if p is not None:
@@ -648,6 +664,16 @@ class Vegrehajto:
                     ei = self.egysegek.index(e)
                     pol = self._politika(ei)
                     akc = pol.dontes() if pol is not None else None
+                    if SZABALY["KIMERULT"] and akc is None and pol is not None and pol.k > 0 and pol.m >= 0 \
+                            and e.p.szin != self.adu and not j.kint(e.p.szin) and max(len(j.szin(j.felvevo, e.p.szin)),
+                                                             len(j.szin(j.asztal, e.p.szin))) >= pol.k:
+                        # a színben már nincs kint lap: a hátralévő ütések biztosak (a
+                        # döntési fa itt véget ér), a begyűjtés viszi őket. Az egység
+                        # lezárul, de a hozamát nem könyveljük: a terv többi egysége
+                        # (pl. egy szöktetés) így tovább él — ez mérve jobb
+                        e.allapot = "kudarc"
+                        self._jegyez(f"{e.p.rovid}: a színben nincs több kint lap — a maradék begyűjtés")
+                        break
                     if akc is None:
                         if pol is not None and pol.k <= 0:
                             if e.allapot == "var":
