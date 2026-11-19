@@ -245,12 +245,16 @@
   # (MB 4♠: az asztal ♥AK-ja, Kelet kőrből színhiányos). Kockázat: a védő lophat, ha
   # színhiányos és van adója (az ELLOPÁS általános szabály) — ezért a kiaduzás
   # után a legbiztosabb, ha az átmenetek engedik.
+  # BridgeMasters #1 (6♠, 2026-11-19): ♣A szingli / ♣K5432 — a két kéz nyerői együtt
+  # számítanak; előbb a rövid kéz nyerője (deblokk), aztán a hosszú kézé, amelyre a rövid
+  # kéz dob. A dobások száma: a nyert körök − a rövid kéz hossza.
   szerepek:
-    NYK: "tobbletnyero_kez(SZ)"
-    DK: "partner(NYK)"
-    NYERO: "nyerok_kezben(NYK, SZ)"
-    TOBBLET: "hossz(NYERO) - kezhossz(DK, SZ)"
-  alkalmazhato: ["nem_adu(SZ)", "van(NYK)", "TOBBLET >= 1"]
+    DK: "rovidebb_kez(SZ)"
+    NYK: "partner(DK)"
+    NYERO: "nyerok_rovid_elobb(SZ)"
+    TOBBLET: "min(hossz(NYERO), max(kezhossz(DK, SZ), kezhossz(NYK, SZ))) - kezhossz(DK, SZ)"
+  alkalmazhato: ["nem_adu(SZ)", "van(DK)", "TOBBLET >= 1",
+                 "hossz(nyerok_kezben(NYK, SZ)) >= TOBBLET"]
   korok:
     - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
   siker: "True"
@@ -286,3 +290,31 @@
   hozam: "R"
   hasznal: [NYERO]
   elfogyaszt: [NYERO]
+
+- technika: LOPAS_ROVID_KIENGEDESSEL
+  nev: "Lopás a rövid kézben, kiengedéssel: a rövid kéz saját nyerői és kiengedett körök után lop; a hosszú kéz felső lapja a végére marad"
+  # A szerkesztő elve (6♦, 2026-11-03): csak annyit kell lehívni, ami után a szín
+  # lopható. BridgeMasters #1 (6♠, 2026-11-19): ♦A5432 / ♦K6 — a ♦K, aztán egy kis káró
+  # kiengedve („mindegy, hogy ütik vagy lopják”), utána az asztal lop; a ♦A a
+  # kiaduzás után. Ha a ♦A-t előbb hívjuk, a rövid védő ellophatja.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    L: "rovid_adu_lopo(SZ)"
+    MK: "partner(L)"
+    N: "kezhossz(L, SZ)"
+    NYL: "felettunk_kezben(L, SZ, F)"
+    FMK: "felettunk_kezben(MK, SZ, F)"
+    KIAD: "N - hossz(NYL)"
+    R: "min(kezhossz(MK, SZ) - N - hossz(FMK), adu_kezben(L), max(1, hiany()))"
+  alkalmazhato: ["nem_adu(SZ)", "van(L)", "KIAD >= 1", "KIAD <= 2", "R >= 1", "hossz(FMK) >= 1"]
+  korok:
+    - {ismetles: "hossz(NYL)", fajta: lehiv, lap: NYL}
+    - {ismetles: "KIAD", fajta: kiad, hivo: MK}
+    - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
+    # az FMK (a hosszú kéz felső lapja) itt nem kör: a kiaduzás utáni begyűjtésben
+    # megy le, hogy a védő ne lophassa el
+  siker: "True"
+  kudarc_koltseg: 0
+  hozam: "R"
+  hasznal: [NYL, FMK]
+  elfogyaszt: [NYL]

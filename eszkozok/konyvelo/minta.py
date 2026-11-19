@@ -48,6 +48,8 @@ def main(argv=None):
     ap.add_argument("--partik", type=int, default=2, help="fájlonként ennyi parti")
     ap.add_argument("--vilag", type=int, default=30)
     ap.add_argument("--csak-szin", action="store_true")
+    ap.add_argument("--csak", nargs="*", default=None, help="csak ezek a partik (pl. 4N01.pbn#2)")
+    ap.add_argument("--reszletes", type=int, default=0, help="ennyi jelölt tervet is kiír")
     a = ap.parse_args(argv)
     sorok = []
     t0 = time.time()
@@ -61,6 +63,8 @@ def main(argv=None):
             if a.csak_szin and j0.kontraktus.szin == "NT":
                 continue
             db += 1
+            if a.csak is not None and f"{ut.name}#{j0.tabla_szam}" not in a.csak:
+                continue
             F = j0.felvevo
             k = dataclasses.replace(j0.kontraktus, felvevo=F)
             lo = j0.leosztas
@@ -75,6 +79,8 @@ def main(argv=None):
             sorok.append((ut.name, j0.tabla_szam, f"{k.szint}{k.szin}", r.esely, rek.dd_felso or 0.0, r.terv.nev))
             print(f"{ut.name}#{j0.tabla_szam:<3} {k.szint}{k.szin:<3} terv {100 * r.esely:5.1f}%  DD {100 * (rek.dd_felso or 0):5.1f}%  "
                   f"{r.terv.nev}", flush=True)
+            for x in rek.eredmenyek[1:1 + a.reszletes]:
+                print(f"      {100 * x.esely:5.1f}%  n={x.n}  {x.terv.nev}")
     n = len(sorok)
     if n:
         pt = sum(x[3] for x in sorok) / n
