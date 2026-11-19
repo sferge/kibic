@@ -93,16 +93,16 @@ def test_ott_ut_ahonnan_a_terv_folytatodik():
 
 
 def test_keresztlopas_kiengedessel_bridgemasters_1():
-    """BridgeMasters #1 (6♠ S, ♥K indul; a terv a felhasználó szavaival, 2026-11-19):
-    ♥A, a szingli ♣A, ♦K-val át, a ♣K-ra ♥ dobás, egy kis káró kiengedése („mindegy,
-    hogy ütik vagy lopják”), keresztlopás, a ♦A a kiaduzás után. A védők lapjai saját
-    sorsolás (♦ 5-1, ♠ 3-2): itt a ♦A korai lehívását ellopnák, ez a terv viszont teljesül."""
+    """Kiengedés, aztán keresztlopás (a minta forrása: BM A-2 #1; a lapok saját
+    változat). A szerkesztő terve: ♥A, a szingli ♣A, ♦K-val át, a ♣K-ra ♥ dobás, egy kis
+    káró kiengedése („mindegy, hogy ütik vagy lopják”), keresztlopás, a ♦A a kiaduzás
+    után. ♦ 5-1, ♠ 3-2: a ♦A korai lehívását ellopnák, ez a terv viszont teljesül."""
     from kibic.domain.pontozas import Kontraktus
     from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
     from kibic.solver.dds import lap_elemzes
 
-    K = {"S": _kez("AKQJT.A2.A5432.A"), "N": _kez("987.543.K6.K5432"),
-         "W": _kez("543.K6.JT987.QJT"), "E": _kez("62.QJT987.Q.9876")}
+    K = {"S": _kez("AKQJT.A4.A7652.A"), "N": _kez("987.632.K3.K8542"),
+         "W": _kez("543.K5.JT984.QJT"), "E": _kez("62.QJT987.Q.9763")}
     kint = K["E"] | K["W"]
     lead = Lap.parse("HK")
     allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
@@ -124,7 +124,7 @@ def test_keresztlopas_kiengedessel_bridgemasters_1():
 def test_leghasznosabb_dobas_a_terv_tobbi_egysege_szerint():
     """LEGHASZNOSABB_DOBAS: a magas lapra abból a színből dobunk, amelynek a vesztőit a
     terv más egysége nem kezeli. MB 4♠ (Kelet): ha a ♦ szöktetés a terv része, a ♥AK-ra
-    treffet; BridgeMasters #1: a ♦ lopás mellett a ♣K-ra kőrt."""
+    treffet; a ♦ lopás mellett (minta: BM A-2 #1, saját lapokkal) a ♣K-ra kőrt."""
     from kibic.motor.tervkonyvelo import hasznos_dobas
     T = technikak_betoltese()
 
@@ -139,7 +139,7 @@ def test_leghasznosabb_dobas_a_terv_tobbi_egysege_szerint():
     szok = next(p for p in P if p.sema.azon.startswith("SZOKTETES") and p.szin == "D")
     assert hasznos_dobas(vcs, [vcs, szok], a) == "C"
 
-    b = allas("S", "N", {"S": _kez("AKQJT.A2.A5432.A"), "N": _kez("987.543.K6.K5432")}, "S", 12)
+    b = allas("S", "N", {"S": _kez("AKQJT.A4.A7652.A"), "N": _kez("987.632.K3.K8542")}, "S", 12)
     P = peldanyok(b, T)
     vcs = next(p for p in P if p.sema.azon == "VESZTOCSERE" and p.szin == "C")
     lop = next(p for p in P if p.sema.azon == "LOPAS_ROVID_KEZBEN" and p.szin == "D")
@@ -147,12 +147,12 @@ def test_leghasznosabb_dobas_a_terv_tobbi_egysege_szerint():
 
 
 def test_szanban_a_teljes_keret_is_jelolt_bridgemasters_2():
-    """BridgeMasters #2 (6NT S, ♦Q indul; a szerkesztő kérdése 2026-11-19): a ♣KQT876 /
-    ♣A2 színből 5 ütés legfeljebb 1 vesztéssel — a teljes kiengedés minden elosztásban
+    """Szanban a teljes keret (minta: BM A-2 #2, saját lapokkal; 6NT, ♦Q indul): a ♣KQT986 /
+    ♣A3 színből 5 ütés legfeljebb 1 vesztéssel — a teljes kiengedés minden elosztásban
     biztos. A ♥ és a ♦ „biztosan kiadó” vesztőit a treffekre dobjuk, ezért a ♣ egység a
     teljes megengedett kiadást (1) is megkapja, nem csak a maradékot (0)."""
     from kibic.motor.tervkonyvelo import szinkezeles_peldanyok
-    K = {"S": _kez("KQJ.J9876.AK2.A2"), "N": _kez("A32.AK.43.KQT876")}
+    K = {"S": _kez("KQJ.J9765.AK3.A3"), "N": _kez("A42.AK.54.KQT986")}
     kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - K["S"] - K["N"] - {Lap.parse("DQ")}
     a = Allas(felvevo="S", adu=None, kezek={"S": set(K["S"]), "N": set(K["N"])},
               kint=kint, cel=12, hatra=13, soron="N")

@@ -593,8 +593,18 @@ async def bridge_plan(
     if kesz is not None:
         return kesz
     valasz = await run_in_threadpool(plan_valasz, keres, _DDS_ZAR)
+    from .atjaro import naploz
+    naploz(keres, None, _naplo_nelkul_html(valasz), "/v1/bridge/plan")
     _IDEM.ir(idempotency_key, keres, valasz)
     return valasz
+
+
+def _naplo_nelkul_html(valasz: dict) -> dict:
+    """A naplóba a terv HTML-je nem kell (nagy, és a tervfájlban megvan)."""
+    v = dict(valasz)
+    if isinstance(v.get("presentation"), dict):
+        v["presentation"] = {k: x for k, x in v["presentation"].items() if k != "html"}
+    return v
 
 
 @app.post("/v1/bridge/step", dependencies=[Depends(_jogosultsag_atjaro)])
@@ -613,6 +623,8 @@ async def bridge_step(
     def tartalek(k):
         return _play_dontes(k, _rendszer_betolto, _jelzesek_rendszerhez, _DDS_ZAR)
     valasz = await run_in_threadpool(step_valasz, keres, _DDS_ZAR, tartalek)
+    from .atjaro import naploz
+    naploz(keres, None, _naplo_nelkul_html(valasz), "/v1/bridge/step")
     _IDEM.ir(idempotency_key, keres, valasz)
     return valasz
 
