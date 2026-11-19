@@ -74,7 +74,12 @@ class SzinPolitika:
         return self.el.dontes.get(self.node)
 
     def harmadik(self, akcio, l2):
-        return self.el.harmadik.get((self.node, akcio[0], akcio[1], l2))
+        """A harmadik kéz lapja a ténylegesen látott második lapra: minden tartáson,
+        amelyből a védő tehette (nem csak a védőmodell szerintieken)."""
+        try:
+            return self.el.harmadik_megfigyelt(self.node, akcio[0], akcio[1], l2)
+        except Exception:                                   # noqa: BLE001
+            return self.el.harmadik.get((self.node, akcio[0], akcio[1], l2))
 
     def lep(self, utes) -> None:
         """`utes`: ((szerep, rang | None | LOP), …) a játék sorrendjében; None: nem
