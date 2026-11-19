@@ -247,7 +247,24 @@ def fogalmak(allas: Allas) -> dict:
                 return k
         return None
 
+    def rovidebb_kez(sz):
+        """A kezünk, amelyben a színből kevesebb lap van (egyenlőnél nincs)."""
+        k1, k2 = list(a.kezek)
+        n1, n2 = len(a.szin(k1, sz)), len(a.szin(k2, sz))
+        return k1 if n1 < n2 else k2 if n2 < n1 else None
+
+    def nyerok_rovid_elobb(sz):
+        """A két kezünk nyerői a színben: előbb a rövidebb kézé (deblokk), aztán a másiké."""
+        dk = rovidebb_kez(sz)
+        if dk is None:
+            return []
+        nyk = kovetkezo_ules(dk, 2)
+        return sorted(nyerok_kezben(dk, sz), key=lambda l: -l.rang) + \
+            sorted(nyerok_kezben(nyk, sz), key=lambda l: -l.rang)
+
     return {
+        "rovidebb_kez": rovidebb_kez,
+        "nyerok_rovid_elobb": nyerok_rovid_elobb,
         # feltételes érték: ha(feltétel, akkor, különben)
         "ha": lambda f, x, y: x if f else y,
         "nyerok_kezben": nyerok_kezben,
@@ -448,7 +465,8 @@ class Peldany:
              "LOPASOS_KIMAGASITAS_HOSSZ": "lopásos kimagasítás (hosszú lap)",
              "SZOKTETES": "szöktetés", "SZOKTETES_FELSO_ELOBB": "szöktetés (felső előbb)",
              "VESZTOCSERE": "vesztőcsere (dobás)",
-             "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)"}.get(self.sema.azon, self.sema.azon)
+             "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)",
+             "LOPAS_ROVID_KIENGEDESSEL": "lopás a rövid kézben (kiengedéssel, a felső lap a végén)"}.get(self.sema.azon, self.sema.azon)
         cel = self.szerepek.get("CELSZIN")
         if cel:
             r = r.replace("(dobás)", f"(dobás: {'♠♥♦♣'['SHDC'.index(cel)]})")
