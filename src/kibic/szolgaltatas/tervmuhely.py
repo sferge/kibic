@@ -403,11 +403,22 @@ def vegrehajto(rek: Rekord, h: Helyzet) -> tuple[Vegrehajto, tj.Jatek, list[str]
     return v, j, elteresek
 
 
-def kimutatasok(rek: Rekord, h: Helyzet) -> list[str]:
-    """A terv óta megfigyelt új színhiányok (egy védő nem adott színt)."""
+def kimutatasok(rek: Rekord, h: Helyzet, v=None) -> list[str]:
+    """A terv óta megfigyelt új színhiányok (egy védő nem adott színt). Ha a színt egy
+    élő elemzős egység kezeli, az nem ok újratervezésre: az elemző döntési fája minden
+    tartásra számol, a kimutatás csak egy ága (BM A-2 #2: a ♣ kiengedése után Nyugat
+    nem ad treffet — a kezelés onnan folytatódik, nem egy új terv kezdődik)."""
     regi = {(k.kez, k.szin) for k in _szinhianyok(rek.lejatszott, h.vedok)}
+    elo = set()
+    if v is not None:
+        elo = {e.p.szin for e in v.egysegek
+               if e.el and e.p.sema.fajta == "elemzo" and not e.p.szerepek.get("aduval")}
+    # ha a színben már nincs kint lap, a kimutatás semmit sem mond
+    _, kint = _allas(h, h.lejatszott)
+    ures = {sz for sz in "SHDC" if not any(l.szin == sz for l in kint)}
     return [f"{KEZ_NEV[k.kez]} nem adott {SZIN[k.szin]}-t"
-            for k in _szinhianyok(h.lejatszott, h.vedok) if (k.kez, k.szin) not in regi]
+            for k in _szinhianyok(h.lejatszott, h.vedok)
+            if (k.kez, k.szin) not in regi and k.szin not in elo and k.szin not in ures]
 
 
 # --- a válaszok -------------------------------------------------------------------------
@@ -634,6 +645,9 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
     try:
         h = helyzet(keres)
     except MuhelyHiba as e:
+        if e.status in ("unsupported_position", "no_plan") and tartalek_fv is not None:
+            # ellenvonalon (vagy az indulásnál) nincs terv: a /play döntése megy, nem hiba
+            return _tartalek(keres, tartalek_fv, str(e).rstrip("."))
         return _alap_valasz(keres, "step", e.status, str(e))
     kulcs = _kulcs(keres, h.felvevo)
     rek = betolt(kulcs, h)
@@ -644,7 +658,7 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
         ok = "a lejátszás nem a terv folytatása"
     else:
         v, j, elteresek = vegrehajto(rek, h)
-        km = kimutatasok(rek, h)
+        km = kimutatasok(rek, h, v)
         tartalekban = _hibrid(rek) or not rek.eredmenyek or rek.eredmenyek[0].esely <= 0
         if km:
             ok = "kimutatás: " + ", ".join(km)

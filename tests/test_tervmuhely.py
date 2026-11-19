@@ -163,3 +163,18 @@ def test_elemzos_terv_visszatoltheto(monkeypatch, tmp_path):
     vissza = tm.betolt(kulcs, h)
     assert vissza is not None and vissza.terv.nev == t.nev
     assert vissza.terv.lepesek[0].szerepek["k"] == 3 and vissza.terv.lepesek[0].szerepek["m"] == 1
+
+
+def test_step_vedokent_a_play_dontese_megy():
+    """Ellenvonalon nincs terv: a /step nem hibát ad, hanem a /play döntését."""
+    j = tj.Jatek({u: set(KEZEK[u]) for u in "NESW"}, "N", "C", [], tj.Terv(()))
+    j.tesz("E", Lap.parse("SK"))
+    j.tesz("S", Lap.parse("S2"))
+    k = _keres(j, 0)
+    k["actor"] = {"seat": "W", "acting_for_seat": "W"}
+    k["state"]["visible_hands"] = {x: sorted(str(l) for l in j.kezek[x]) for x in "WS"}
+    v = tm.step_valasz(k, None, lambda kk: {"action": {"type": "play", "card": "S4"},
+                                             "explanation": "a /play lapja"})
+    assert v["status"] == "action_available"
+    assert v["action"]["card"] == "S4"
+    assert v["meta"]["source"] == "fallback"

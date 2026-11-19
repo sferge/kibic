@@ -373,7 +373,7 @@ def _meta_debug_nelkul(meta: dict | None) -> dict | None:
     return m
 
 
-def naploz(keres: dict, elemzes: dict | None, valasz: dict) -> None:
+def naploz(keres: dict, elemzes: dict | None, valasz: dict, vegpont: str | None = None) -> None:
     """
     A TELJES elemzés a naplóba, a dróton csak a rövid meta megy.
 
@@ -394,6 +394,13 @@ def naploz(keres: dict, elemzes: dict | None, valasz: dict) -> None:
         "explanation": valasz.get("explanation"),
         "alert": valasz.get("alert"),
     }
+    if vegpont:
+        # a tervműhely válasza (/plan, /step): a státusz, az összefoglaló és a terv is
+        sor["endpoint"] = vegpont
+        for k in ("status", "summary", "plan", "assessment"):
+            if valasz.get(k) is not None:
+                sor[k] = valasz.get(k)
+        sor["meta"] = valasz.get("meta")
     if NAPLO_KERES and keres.get("decision") == "play":
         sor["request"] = keres          # KIBIC_ATJARO_NAPLO_KERES=1: a visszajátszáshoz
     if elemzes and elemzes.get("shadow"):
