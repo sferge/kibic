@@ -119,3 +119,28 @@ def test_keresztlopas_kiengedessel_bridgemasters_1():
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
     assert n >= 12, "\n".join(naplo)
     assert any("kiengedés" in s for s in naplo)
+
+
+def test_leghasznosabb_dobas_a_terv_tobbi_egysege_szerint():
+    """LEGHASZNOSABB_DOBAS: a magas lapra abból a színből dobunk, amelynek a vesztőit a
+    terv más egysége nem kezeli. MB 4♠ (Kelet): ha a ♦ szöktetés a terv része, a ♥AK-ra
+    treffet; BridgeMasters #1: a ♦ lopás mellett a ♣K-ra kőrt."""
+    from kibic.motor.tervkonyvelo import hasznos_dobas
+    T = technikak_betoltese()
+
+    def allas(F, A, kezek, adu, cel):
+        kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - kezek[F] - kezek[A]
+        return Allas(felvevo=F, adu=adu, kezek={F: set(kezek[F]), A: set(kezek[A])},
+                     kint=kint, cel=cel, hatra=13, soron=F)
+
+    a = allas("E", "W", {"E": _kez("K8752..Q982.AKJ2"), "W": _kez("Q43.AKJ.AT43.543")}, "S", 10)
+    P = peldanyok(a, T)
+    vcs = next(p for p in P if p.sema.azon == "VESZTOCSERE" and p.szin == "H")
+    szok = next(p for p in P if p.sema.azon.startswith("SZOKTETES") and p.szin == "D")
+    assert hasznos_dobas(vcs, [vcs, szok], a) == "C"
+
+    b = allas("S", "N", {"S": _kez("AKQJT.A2.A5432.A"), "N": _kez("987.543.K6.K5432")}, "S", 12)
+    P = peldanyok(b, T)
+    vcs = next(p for p in P if p.sema.azon == "VESZTOCSERE" and p.szin == "C")
+    lop = next(p for p in P if p.sema.azon == "LOPAS_ROVID_KEZBEN" and p.szin == "D")
+    assert hasznos_dobas(vcs, [vcs, lop], b) == "H"

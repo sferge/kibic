@@ -35,7 +35,8 @@ SZINJEL = dict(zip("SHDC", "♠♥♦♣"))
 import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
-           ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO")}
+           ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
+            "HASZNOS_DOBAS", "DOBAS_ELOBB")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -79,7 +80,11 @@ def terv_fazis(lepesek: list[Peldany]) -> tuple:
     olyan egység, amely kiadja a hívást (kiengedés, impassz), akkor a vesztőcsere is a
     kiaduzás elé kerül — a dobás a hívás elvesztése előtt (BridgeMasters #1)."""
     f = [alap_fazis(p) for p in lepesek]
-    hivast_ad = any(fz == "E" and any(k.fajta in ("kiad", "impassz") for k in p.korok)
+    # DOBAS_ELOBB (általános szabály, a szerkesztő 2026-11-19): a vesztőt a magas lapra
+    # azelőtt dobjuk, hogy a terv kockázatos körbe menne — kiadás, impassz, vagy lopásos
+    # egység (a mellékszín második köre ellopható: a ♦A előtt a ♣K-ra a ♥ vesztő)
+    fajtak = ("kiad", "impassz", "lop") if SZABALY["DOBAS_ELOBB"] else ("kiad", "impassz")
+    hivast_ad = any(fz == "E" and any(k.fajta in fajtak for k in p.korok)
                     for p, fz in zip(lepesek, f))
     if hivast_ad:
         f = ["E" if p.sema.azon == "VESZTOCSERE" else fz for p, fz in zip(lepesek, f)]
@@ -94,7 +99,8 @@ def szakasz_valtozatok(t: KTerv, max_db: int = 8) -> list[KTerv]:
     ki = [KTerv(t.lepesek, t.igeny, alap, t.adus, t.elozetes)]
     if not t.adus:
         return ki                    # szanzadu: nincs kiaduzás, a fázis nem számít
-    szabad = [i for i, p in enumerate(t.lepesek) if alap[i] == "U"]
+    szabad = [i for i, p in enumerate(t.lepesek)
+              if alap[i] == "U" or p.sema.azon == "VESZTOCSERE"]
     for valaszt in product("UE", repeat=len(szabad)):
         f = list(alap)
         for i, v in zip(szabad, valaszt):
@@ -150,6 +156,44 @@ def dobas_valtozatok(p: Peldany, allas: Allas) -> list[Peldany]:
             q = dataclasses.replace(p, szerepek=dict(p.szerepek, CELSZIN=c))
             ki.append(q)
     return ki or [p]
+
+
+def hasznos_dobas(p: Peldany, lepesek: list[Peldany], allas: Allas) -> str | None:
+    """LEGHASZNOSABB_DOBAS (általános szabály, a szerkesztő 2026-11-19): a magas lapra a
+    dobó kéz abból a színből dob, amelynek a vesztőit a terv más egysége nem kezeli
+    (nem lopja, nem fejleszti, nem impasszolja), és amelyben a legtöbb olyan vesztője
+    van, amelyet a partner sem lophat el. (MB 4♠: a ♦ a szöktetésé, tehát treffet;
+    BridgeMasters #1: a ♦ a lopásé, tehát kőrt.)"""
+    dk = p.szerepek.get("DK")
+    if not dk:
+        return None
+    pk = allas.partner(dk) if hasattr(allas, "partner") else (
+        allas.asztal if dk == allas.felvevo else allas.felvevo)
+    mas = {q.szin for q in lepesek if q is not p}
+    adu = allas.adu
+    p_adu = len(allas.szin(pk, adu)) if adu else 0
+    legjobb, kulcs0 = None, None
+    for c in "SHDC":
+        if c in (p.szin, adu):
+            continue
+        d, q = allas.szin(dk, c), allas.szin(pk, c)
+        kint = allas.kint_szin(c)
+        if not any(not kint or l.rang < kint[0].rang for l in d):
+            continue
+        # a felső nyerők a két kézben (a kint lévő legnagyobb fölött, sorban)
+        sajat = sorted(d + q, key=lambda l: -l.rang)
+        nyer = 0
+        for l in sajat:
+            if kint and l.rang < max(x.rang for x in kint):
+                break
+            nyer += 1
+        vesztok = max(0, len(d) - nyer)
+        if adu and len(q) < len(d):
+            vesztok -= min(len(d) - len(q), p_adu, vesztok)    # a partner ellophatja
+        kulcs = (c not in mas, vesztok, -len(d))
+        if kulcs0 is None or kulcs > kulcs0:
+            legjobb, kulcs0 = c, kulcs
+    return legjobb
 
 
 ELEMZO_MAX_KINT = int(_os.getenv("KIBIC_K_ELEMZO_KINT", "8"))   # ennél több kint lévő lapnál lassú
@@ -287,8 +331,10 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
     P += szinkezeles_peldanyok(allas, technikak, igeny, ures)
     # a biztos egységek sorrendje: előbb azok, amelyek nem adják ki a hívást (pl. a
     # vesztőcsere: a dobás a hívás elvesztése előtt — BridgeMasters #1), aztán a többi
+    elobb = SZABALY["DOBAS_ELOBB"] and allas.adu is not None
     biztosak = sorted((p for p in P if biztos_egyseg(p)),
-                      key=lambda p: (any(k.fajta in ("kiad", "impassz") for k in p.korok), -p.hozam))
+                      key=lambda p: (not (elobb and p.sema.azon == "VESZTOCSERE"),
+                                     any(k.fajta in ("kiad", "impassz") for k in p.korok), -p.hozam))
     esely = [p for p in P if not biztos_egyseg(p)]
     keszletek: list[list[Peldany]] = []
     rend = {id(p): i for i, p in enumerate(biztosak)}
@@ -313,6 +359,10 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
     def hozzaad(lepesek):
         # a terv csak akkor jelölt, ha minden egysége sikere esetén fedi az igényt
         if max_hozam(lepesek) < igeny:
+            return
+        if SZABALY["HASZNOS_DOBAS"] and any(
+                p.sema.azon == "VESZTOCSERE" and p.szerepek.get("CELSZIN")
+                and p.szerepek["CELSZIN"] != hasznos_dobas(p, lepesek, allas) for p in lepesek):
             return
         if allas.adu is None:
             # szanzaduban a biztos lehívások (vesztőcsere) a végére: előbb a szín
@@ -899,6 +949,9 @@ class Vegrehajto:
                 hivo = [l for l in hl if l.rang < w.rang and l not in fogl] or [l for l in hl if l.rang < w.rang]
                 if sz == adu:
                     ar = 1 if self._adukor_mehet() else 5
+                    if len(hl) <= self._lopas_igeny(H):
+                        ar = 6               # a lopásokra foglalt adu nem átmenet
+
                 elif w in kesobbi:
                     ar = 2.5
                 elif w in fogl:
@@ -910,7 +963,10 @@ class Vegrehajto:
             elif not rl and sz != adu and adu and j.szin(R, adu) \
                     and len(j.szin(R, adu)) > self._lopas_igeny(R):
                 hivo = [l for l in hl if l not in fogl] or hl
-                ar = 0 if kint_adu == 0 else 3
+                kint_a = j.kint(adu)
+                felul = max((x.rang for x in kint_a), default=0)
+                # magas aduval lopva a negyedik kéz sem lophat felül
+                ar = 0 if kint_adu == 0 else (1 if all(l.rang > felul for l in j.szin(R, adu)) else 3)
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, f"átmenet lopással ({SZINJEL[sz]})",
                                  {R: ("lop",)}))
         return ki
