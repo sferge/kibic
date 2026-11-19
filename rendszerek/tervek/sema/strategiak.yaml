@@ -105,12 +105,12 @@
       # amelynek a vesztőit a terv más egysége nem kezeli (nem lopja, nem fejleszti,
       # nem impasszolja), és amelyben a legtöbb olyan vesztője van, amelyet a partner
       # sem lophat el. A tervkészítő a többi dobásszínt nem is jelöli.
-      # MB 4♠: a ♦ a szöktetésé → treff; BridgeMasters #1: a ♦ a lopásé → kőr.
+      # Pl.: ha az egyik mellékszín a szöktetésé vagy a lopásé, a másikból dobunk.
       # Kód: tervkonyvelo.hasznos_dobas; kapcsoló: KIBIC_K_HASZNOS_DOBAS.
     - szabaly: DOBAS_ELOBB
       nev: "A dobás a kockázatos kör előtt"
       # (a szerkesztő, 2026-11-19) Színjátékban a vesztőt a magas lapra azelőtt dobjuk,
       # hogy a terv kockázatos körbe menne: kiadás, impassz vagy lopásos egység (a
-      # mellékszín második köre ellopható). BridgeMasters #1: ♥A, ♣A, ♦K-val át, a
-      # ♣K-ra a ♥2, és csak utána ♦A és lopás. Az átmenet lehet egy másik egység köre
-      # (közös lap: a ♦K). Kód: terv_fazis, tervjeloltek; kapcsoló: KIBIC_K_DOBAS_ELOBB.
+      # mellékszín második köre ellopható). Pl.: a lopásos szín királyával át, a másik
+      # szín magas lapjára a vesztő, és csak utána a lopásos szín ásza és a lopás. Az
+      # átmenet lehet egy másik egység köre (közös lap). Forrás: BM A-2 #1. Kód: terv_fazis, tervjeloltek; kapcsoló: KIBIC_K_DOBAS_ELOBB.

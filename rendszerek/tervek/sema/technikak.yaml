@@ -245,8 +245,8 @@
   # (MB 4♠: az asztal ♥AK-ja, Kelet kőrből színhiányos). Kockázat: a védő lophat, ha
   # színhiányos és van adója (az ELLOPÁS általános szabály) — ezért a kiaduzás
   # után a legbiztosabb, ha az átmenetek engedik.
-  # BridgeMasters #1 (6♠, 2026-11-19): ♣A szingli / ♣K5432 — a két kéz nyerői együtt
-  # számítanak; előbb a rövid kéz nyerője (deblokk), aztán a hosszú kézé, amelyre a rövid
+  # Minta: szingli ász az egyik kézben, király-hosszú szín a másikban (forrás: BM A-2 #1,
+  # 2026-11-19) — a két kéz nyerői együtt számítanak; előbb a rövid kéz nyerője (deblokk), aztán a hosszú kézé, amelyre a rövid
   # kéz dob. A dobások száma: a nyert körök − a rövid kéz hossza.
   szerepek:
     DK: "rovidebb_kez(SZ)"
@@ -294,9 +294,9 @@
 - technika: LOPAS_ROVID_KIENGEDESSEL
   nev: "Lopás a rövid kézben, kiengedéssel: a rövid kéz saját nyerői és kiengedett körök után lop; a hosszú kéz felső lapja a végére marad"
   # A szerkesztő elve (6♦, 2026-11-03): csak annyit kell lehívni, ami után a szín
-  # lopható. BridgeMasters #1 (6♠, 2026-11-19): ♦A5432 / ♦K6 — a ♦K, aztán egy kis káró
-  # kiengedve („mindegy, hogy ütik vagy lopják”), utána az asztal lop; a ♦A a
-  # kiaduzás után. Ha a ♦A-t előbb hívjuk, a rövid védő ellophatja.
+  # lopható. Minta (forrás: BM A-2 #1, 2026-11-19): Axxxx / Kx — a király, aztán egy
+  # kis lap kiengedve („mindegy, hogy ütik vagy lopják”), utána a rövid kéz lop; az ász
+  # a kiaduzás után. Ha az ászt előbb hívjuk, a rövid védő ellophatja.
   szerepek:
     F: "legnagyobb_kint(SZ)"
     L: "rovid_adu_lopo(SZ)"
