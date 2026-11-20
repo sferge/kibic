@@ -32,3 +32,18 @@ def test_vart_lapon_kivul_is_folytatja():
            ("Y" if akc[0] == "X" else "X", max(Y if akc[0] == "X" else X)),
            ("V2" if akc[0] == "X" else "V1", 2)))
     assert p.node[1]                                                   # van még lehetséges elosztás
+
+
+def test_harmadik_kez_a_tenylegesen_latott_lapra():
+    """A védő egy ugyanolyan jó, de a védőmodelltől eltérő lapot tesz (minta: BM A-2 #2,
+    az MB-asztalon): KQT876 / A2, 5 ütés legfeljebb 1 vesztéssel; az asztal a 6-ost hívja,
+    Kelet B9543-ból a 9-est teszi. Kiengedés (2) után Keletnél B543 marad, és még egy
+    ütés elveszik; az ászt kell tenni. Kicsire (3) a kiengedés a jó."""
+    from kibic.motor.tervszinpolitika import SzinPolitika
+    R = {c: i for i, c in enumerate("23456789TJQKA", 2)}
+    fs = lambda s: frozenset(R[c] for c in s)
+    p = SzinPolitika(fs("A2"), fs("KQT876"), fs("J9543"), 12, 13, 5, 1)
+    d = p.dontes()
+    assert d == ("Y", 6)
+    assert p.harmadik(d, 9) == 14
+    assert p.harmadik(d, 3) == 2

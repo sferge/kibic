@@ -366,43 +366,77 @@ class Elemzo:
         harmadik = sorrend[2]
         ossz_w, ossz_s = 0.0, frozenset()
         for l2, js in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
-            kezek0 = {"X": X, "Y": Y,
-                      "V1": frozenset().union(*[maradek[j][0] for j in js]),
-                      "V2": frozenset().union(*[maradek[j][1] for j in js])}
-            legjobb, c3_best, volt = (0.0, frozenset()), None, False
-            for c3 in _lehetosegek(kezek0, harmadik, lop):
-                csop4: dict = {}
-                for j in js:
-                    v1, v2 = maradek[j]
-                    kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-                    l4 = vedo_lap(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m)
-                    csop4.setdefault(l4, []).append(j)
-                w, s = 0.0, frozenset()
-                for l4, js4 in csop4.items():
-                    utes = ((hivo, c), (sorrend[1], l2), (harmadik, c3), (sorrend[3], l4))
-                    uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
-                                                     lop, utes)
-                    idx2 = tuple(idx[j] for j in js4)
-                    l1 = tuple(lej1[j] | {l for u, l in utes if u == "V1" and l is not None} for j in js4)
-                    l2_ = tuple(lej2[j] | {l for u, l in utes if u == "V2" and l is not None} for j in js4)
-                    k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
-                    if mienk or hol is None:
-                        uj_hol = _gyoztes(utes) if hol is not None else None
-                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
-                                             idx2, l1, l2_, k2, m2)
-                    else:
-                        # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
-                        # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
-                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
-                                             idx2, l1, l2_, k2, m2)
-                    w += vw
-                    s |= vs
-                if w > legjobb[0] or not volt:      # (a „dob” lehetőség lapja None)
-                    legjobb, c3_best, volt = (w, s), c3, True
+            legjobb, c3_best = self._harmadik_csoport(allapot, nbx, nby, idx, lej1, lej2, k, m,
+                                                      hivo, c, maradek, js, l2)
             self.harmadik[(kulcs, hivo, c, l2)] = c3_best
             ossz_w += legjobb[0]
             ossz_s |= legjobb[1]
         return ossz_w, ossz_s
+
+    def harmadik_megfigyelt(self, node, hivo, c, l2):
+        """A harmadik kéz lapja a ténylegesen látott második lapra, minden olyan tartáson,
+        amelyből a védő ezt a lapot tehette. A döntési fa a védők lapját egy modellel
+        (`vedo_lap`) jósolja; ha a védő egy ugyanolyan jó, de más lapot tesz (BM A-2 #2:
+        Kelet ♣B9543-ból a 9-est), a fában ehhez a laphoz csak a modell szerinti
+        tartások tartoznak, és a válasz rossz lehet (ott: kiengedés az ász helyett)."""
+        allapot, idx, lej1, lej2, k, m = node
+        X, Y, rx, ry, bx, by, hol = allapot
+        nbx, nby = bx, by
+        if hol is not None and hol != hivo:
+            if hivo == "X":
+                nbx -= 1
+            else:
+                nby -= 1
+        maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
+        masodik = SORREND[hivo][1]
+        h = 0 if masodik == "V1" else 1
+        js = [j for j, mr in enumerate(maradek)
+              if (l2 in mr[h] if l2 is not None else not mr[h])]
+        if not js:
+            return None
+        return self._harmadik_csoport(allapot, nbx, nby, idx, lej1, lej2, k, m,
+                                      hivo, c, maradek, js, l2)[1]
+
+    def _harmadik_csoport(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2):
+        """A harmadik kéz legjobb lapja a `js` tartásokon, a második kéz `l2` lapja után."""
+        X, Y, rx, ry, bx, by, hol = allapot
+        sorrend = SORREND[hivo]
+        lop = {"X": rx, "Y": ry}
+        harmadik = sorrend[2]
+        kezek0 = {"X": X, "Y": Y,
+                  "V1": frozenset().union(*[maradek[j][0] for j in js]),
+                  "V2": frozenset().union(*[maradek[j][1] for j in js])}
+        legjobb, c3_best, volt = (0.0, frozenset()), None, False
+        for c3 in _lehetosegek(kezek0, harmadik, lop):
+            csop4: dict = {}
+            for j in js:
+                v1, v2 = maradek[j]
+                kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
+                l4 = vedo_lap(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m)
+                csop4.setdefault(l4, []).append(j)
+            w, s = 0.0, frozenset()
+            for l4, js4 in csop4.items():
+                utes = ((hivo, c), (sorrend[1], l2), (harmadik, c3), (sorrend[3], l4))
+                uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
+                                                 lop, utes)
+                idx2 = tuple(idx[j] for j in js4)
+                l1 = tuple(lej1[j] | {l for u, l in utes if u == "V1" and l is not None} for j in js4)
+                l2_ = tuple(lej2[j] | {l for u, l in utes if u == "V2" and l is not None} for j in js4)
+                k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
+                if mienk or hol is None:
+                    uj_hol = _gyoztes(utes) if hol is not None else None
+                    vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
+                                         idx2, l1, l2_, k2, m2)
+                else:
+                    # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
+                    # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
+                    vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
+                                         idx2, l1, l2_, k2, m2)
+                w += vw
+                s |= vs
+            if w > legjobb[0] or not volt:      # (a „dob” lehetőség lapja None)
+                legjobb, c3_best, volt = (w, s), c3, True
+        return legjobb, c3_best
 
     # -- a választott kezelés tartásonként (a szín végéig) --
     def kimenetek(self, k: int, m: int = 99) -> dict[int, Kimenet]:
