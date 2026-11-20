@@ -327,7 +327,14 @@ class Elemzo:
             return self._memo[kulcs]
         maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
         if all(not a and not b for a, b in maradek):
-            v = (float(sum(self.tart[i][2] for i in idx)), frozenset(idx))
+            # nincs több kint lap: a maradék nyerő — de átmenetkorlát mellett csak akkor
+            # vihető haza, ha a hosszú kézbe el lehet jutni (BM A-2 #3: AK5432 / 76, két
+            # lopás után a ♣54 az asztalon, és az asztalra nincs több átmenet)
+            ok = True
+            if self.korlatos and allapot[6] is not None:
+                bx, by, hol = allapot[4], allapot[5], allapot[6]
+                ok = (len(X) >= k and (hol == "X" or bx > 0)) or (len(Y) >= k and (hol == "Y" or by > 0))
+            v = (float(sum(self.tart[i][2] for i in idx)), frozenset(idx)) if ok else (0.0, frozenset())
             self._memo[kulcs] = v
             return v
         kint_most = frozenset().union(*[a | b for a, b in maradek])
