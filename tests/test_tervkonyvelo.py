@@ -331,3 +331,42 @@ def test_atmenet_elosztas_es_masodik_kez_vedese():
     assert n >= 10, "\n".join(naplo)
     lapok = [(u, str(l)) for u, l in jk[0].lapok]
     assert lapok[9] == ("S", "CA"), lapok[8:12]            # a 3. ütésben a kéz üt
+
+
+def test_a_mostani_hivas_is_atmenet():
+    """A szerkesztő (2026-11-21, minta: BM A-2 #5 a valódi lapokkal; saját leosztás):
+    4♥, ♦B indul, a védő a második ütésben treffet hív, és az asztal üt. Az asztalon
+    lévő hívás maga is átmenet: a ♠ impassz innen indul („onnan pikk impasszal jövünk
+    kézbe az aduzás befejezéséhez”), nem a kőr. Ha később a védő pikket hív a villába,
+    a sikerült impassz után a ♠D elég (a király nem a negyedik kéznél van)."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("AQT.QJ9875.6.A42"), "N": _kez("543.632.Q532.KQJ"),
+         "W": _kez("762.KT4.KJT9.T98"), "E": _kez("KJ98.A.A874.7653")}
+    lead = Lap.parse("DJ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="H", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=10, hatra=13, soron="N", kovetes={"S": "D", "N": "D"})
+    nev = "♥ színkezelés (4 ütés, ≤2 vesztés) → ♠ színkezelés (3 ütés, ≤0 vesztés) → kiaduzás"
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=2, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(4, "H", "", "S")
+    kenyszer = {2: "D4", 4: "CT"}                  # K kicsit tesz, Ny treffet hív
+
+    def vedo(jj):
+        n = len(jj.lapok)
+        if n in kenyszer and Lap.parse(kenyszer[n]) in jj.kezek[jj.soron()]:
+            return Lap.parse(kenyszer[n])
+        return tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k))
+    naplo: list[str] = []
+    jk: list = []
+    n = lejatszik(T, w, "S", "H", [("W", lead)], vedo, naplo, cel=10, jatek_ki=jk)
+    lapok = [(u, str(l)) for u, l in jk[0].lapok]
+    assert lapok[5] == ("N", "CJ") and lapok[8][0] == "N", lapok[4:12]
+    assert lapok[8][1][0] == "S", lapok[8:12]              # az asztalról a ♠ impassz
+    assert n >= 10, "\n".join(naplo)
