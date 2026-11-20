@@ -114,3 +114,14 @@
       # mellékszín második köre ellopható). Pl.: a lopásos szín királyával át, a másik
       # szín magas lapjára a vesztő, és csak utána a lopásos szín ásza és a lopás. Az
       # átmenet lehet egy másik egység köre (közös lap). Forrás: BM A-2 #1. Kód: terv_fazis, tervjeloltek; kapcsoló: KIBIC_K_DOBAS_ELOBB.
+    - szabaly: ATMENET_VEDES
+      nev: "A terv által igényelt átmenetek védése"
+      # (a szerkesztő, 2026-11-20) Ha az ütés így is, úgy is a miénk, azt a lapot
+      # tesszük, amely után a terv hátralévő része a legjobban végrehajtható: megmarad
+      # az az átmenet, amelyet a terv igényel — akár egy rövid szín kezébe is, ha a terv
+      # onnan hív. Nem a „hosszú szín” a mérce: lehet, hogy az nem igényel külső
+      # átmenetet, vagy nem is magas. A színkezelő elemzőnél a kezelés esélye a
+      # megmaradó átmenetekkel; a többi egységnél a következő kör hívó kezének
+      # elérhetősége. Pl.: A2 / KQ mellett a védő hívására a kéz az ásszal üti át a
+      # partner figuráját, és a kis lap megmarad átmenetnek. Forrás: BM A-2 #3.
+      # Kód: Vegrehajto._atmenet_vedes; kapcsoló: KIBIC_K_ATMENET_VEDES.

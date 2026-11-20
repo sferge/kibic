@@ -160,3 +160,36 @@ def test_szanban_a_teljes_keret_is_jelolt_bridgemasters_2():
     c = {(p.szerepek["k"], p.szerepek["m"]): p.szerepek["esely"] for p in P if p.szin == "C"}
     assert c[(5, 1)] == 1.0
     assert c[(5, 0)] < 0.8
+
+
+def test_a_terv_atmenetet_vedi():
+    """ATMENET_VEDES — a terv által igényelt átmenet védése, és az elemző lopásai (minta:
+    BM A-2 #3, saját lapokkal; 6♥, ♥9 indul): a ♣ kiengedése után Nyugat ♠B-t hív; a kéz
+    a ♠A-val üti át az asztal ♠D-jét, hogy a ♠3 átmenet maradjon az asztal ♠K-jához — a
+    ♣ terv szerinti kezeléséhez (kiengedés, lopás, visszamenet a kimagasított lapokért)."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("A3.AKQJT.A542.86"), "N": _kez("KQ.432.76.AK7532"),
+         "W": _kez("JT98.98.T98.QJT9"), "E": _kez("76542.765.KQJ3.4")}
+    lead = Lap.parse("H9")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="H", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=12, hatra=13, soron="N")
+    nev = "kiaduzás → ♣ színkezelés (4 ütés, ≤1 vesztés)"
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=2, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(6, "H", "", "S")
+
+    def vedo(jj):
+        if len(jj.lapok) == 16 and jj.soron() == "W" and Lap.parse("SJ") in jj.kezek["W"]:
+            return Lap.parse("SJ")               # a ♣ kiengedése után: ♠ vissza
+        return tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k))
+    naplo: list[str] = []
+    n = lejatszik(T, w, "S", "H", [("W", lead)], vedo, naplo, cel=12)
+    assert n >= 12, "\n".join(naplo)
+    assert any("a terv átmenetét védi" in x for x in naplo), "\n".join(naplo)

@@ -36,7 +36,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -206,6 +206,56 @@ def _felmeres(allas: Allas, ures: tuple[int, int] | None):
                     allas.felvevo, allas.asztal, set(allas.kint), (u1, u2), allas.adu, allas.cel, allas.hatra)
 
 
+# a kiaduzáshoz várhatóan szükséges adukörök a kint lévő aduk számából (a leggyakoribb
+# elosztás hosszabbik fele: 5 kint → 3-2 → 3 kör)
+ADUKOROK = {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 3, 6: 4, 7: 4, 8: 5, 9: 5}
+
+
+def elemzo_lopasok(adu: str | None, sz: str, adu_x: int, adu_y: int, kint_adu: int,
+                   hossz_x: int = 0, hossz_y: int = 0, kint_sz: int = 0) -> tuple[int, int]:
+    """Színjátékban a mellékszín elemzője lophat is (lopásos kimagasítás): kezenként az
+    aduk, amelyek a kiaduzás után megmaradnak (a rövid adus kéz is követ a körökben).
+    BM A-2 #3 (6♥): AK5432 / 76, a kézben ♥AKQJT — a ♣ két kis lapját a kéz lopja."""
+    if not adu or sz == adu or not SZABALY["ELEMZO_LOP"]:
+        return 0, 0
+    if kint_sz > 6 or hossz_x == hossz_y:
+        return 0, 0                      # a keresés túl nagy lenne / nincs rövid kéz
+    d = ADUKOROK.get(kint_adu, (kint_adu + 1) // 2 + 1)
+    # csak a színben rövidebb kéz lop (a hosszú kéz a saját színét nem lopja), legfeljebb
+    # kétszer — a keresési tér így kezelhető marad
+    lx = min(2, max(0, adu_x - d)) if hossz_x < hossz_y else 0
+    ly = min(2, max(0, adu_y - d)) if hossz_y < hossz_x else 0
+    return lx, ly
+
+
+def elemzo_atmenetek(kezek: dict, F: str, A: str, kint: list, adu: str | None, sz: str) -> tuple[int, int] | tuple[None, None]:
+    """Az átmenetek a színen kívül, kezenként (a mellékszín elemzőjének korlátja): a
+    többi színben a kéz nyerői, amelyekhez a partnernek kisebb lapja van. Durva
+    becslés (a lopásos átmenetet nem számolja). BM A-2 #3: ♠A2 / ♠KQ — az asztalra egy
+    átmenet van, ezért a ♣-ot egy kiengedéssel kell kezdeni, nem két lopással."""
+    if not SZABALY["ELEMZO_ATM"]:
+        return None, None
+    return atmenet_szam(kezek, F, A, kint, sz)
+
+
+def atmenet_szam(kezek: dict, F: str, A: str, kint: list, sz: str) -> tuple[int, int]:
+    """Az átmenetek száma a `sz` színen kívül, kezenként (lásd elemzo_atmenetek)."""
+    def be(H, P):
+        n = 0
+        for s in "SHDC":
+            if s == sz:
+                continue
+            ks = [x for x in kint if x.szin == s]
+            felul = max((x.rang for x in ks), default=0)
+            ny = [l for l in kezek[H] if l.szin == s and l.rang > felul]
+            if not ny:
+                continue
+            also = [l for l in kezek[P] if l.szin == s and l.rang < max(x.rang for x in ny)]
+            n += min(len(ny), len(also))
+        return n
+    return be(F, A), be(A, F)
+
+
 def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
                         ures: tuple[int, int] | None = None, esely_min: float = 0.01,
                         fm=None) -> Peldany | None:
@@ -222,8 +272,18 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
     if not (X or Y) or not kint:
         return None
     adu = sz == allas.adu
+    lx, ly = elemzo_lopasok(allas.adu, sz, len(allas.szin(F, allas.adu)) if allas.adu else 0,
+                            len(allas.szin(A, allas.adu)) if allas.adu else 0,
+                            len(allas.kint_szin(allas.adu)) if allas.adu else 0,
+                            len(X), len(Y), len(kint))
+    ax, ay = (None, None) if adu else elemzo_atmenetek(
+        {F: allas.szin_mind(F) if hasattr(allas, "szin_mind") else set(allas.kezek[F]),
+         A: set(allas.kezek[A])}, F, A, list(allas.kint), allas.adu, sz)
     try:
-        pol = SzinPolitika(X, Y, kint, ures1, ures2, k, m, adu)
+        # a szín első hívása is átmenetbe kerül (a terv más egységei után nem tudjuk,
+        # melyik kézben leszünk): „-”
+        pol = SzinPolitika(X, Y, kint, ures1, ures2, k, m, adu, lx, ly, ax, ay,
+                           None if ax is None else "-")
     except Exception:                            # noqa: BLE001
         return None
     if pol.p <= esely_min:
@@ -579,6 +639,13 @@ class Vegrehajto:
         Y = frozenset(l.rang for l in j.szin(j.asztal, sz))
         pol = self.politikak.get(ei)
         if pol is not None and pol.lapjaink() == (X, Y):
+            ax, ay = elemzo_atmenetek(
+                {j.felvevo: set(j.kezek[j.felvevo]), j.asztal: set(j.kezek[j.asztal])},
+                j.felvevo, j.asztal, [l for s_ in "SHDC" for l in j.kint(s_)], self.adu, sz) \
+                if sz != self.adu else (None, None)
+            if ax is not None and not j.aktualis():
+                soron = j.soron()
+                pol.frissit(ax, ay, "X" if soron == j.felvevo else ("Y" if soron == j.asztal else "-"))
             return pol
         # a cél: a terv óta a színben szerzett / vesztett ütések levonásával
         nyert = vesztett = 0
@@ -597,8 +664,19 @@ class Vegrehajto:
         kint = frozenset(l.rang for l in j.kint(sz))
         v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
         ures = [13 - sum(1 for u, _ in L if u == v) for v in (v1, v2)]
+        lx, ly = elemzo_lopasok(self.adu, sz, len(j.szin(j.felvevo, self.adu)) if self.adu else 0,
+                                len(j.szin(j.asztal, self.adu)) if self.adu else 0,
+                                len(j.kint(self.adu)) if self.adu else 0,
+                                len(X), len(Y), len(kint))
+        ax, ay = (None, None) if sz == self.adu else elemzo_atmenetek(
+            {j.felvevo: set(j.kezek[j.felvevo]), j.asztal: set(j.kezek[j.asztal])},
+            j.felvevo, j.asztal, [l for s_ in "SHDC" for l in j.kint(s_)], self.adu, sz)
+        hivas = None
+        if ax is not None:
+            soron = j.soron() if not j.aktualis() else None
+            hivas = "X" if soron == j.felvevo else ("Y" if soron == j.asztal else "-")
         try:
-            pol = SzinPolitika(X, Y, kint, ures[0], ures[1], k, m, sz == self.adu)
+            pol = SzinPolitika(X, Y, kint, ures[0], ures[1], k, m, sz == self.adu, lx, ly, ax, ay, hivas)
         except Exception:                        # noqa: BLE001
             return None
         self.politikak[ei] = pol
@@ -984,6 +1062,11 @@ class Vegrehajto:
                     ar = 4
                 else:
                     ar = 2
+                if self._nyero(hivo[0]):
+                    # átvétel: a hívó kéz nyerője a partner nagyobb nyerője alá megy — két
+                    # nyerő egy ütésre, és a visszaút is elfogy (BM A-2 #3: a ♠K a ♠A alá,
+                    # a ♦ kis lap a ♦A-hoz helyett)
+                    ar += 3
                 leiras = f"átmenet {w}" + (f" — egyben {kesobbi[w].p.rovid} köre (közös lap)" if w in kesobbi else "")
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, leiras, {R: ("lap", w)}))
             elif not rl and sz != adu and adu and j.szin(R, adu) \
@@ -1011,8 +1094,13 @@ class Vegrehajto:
                 continue
             rovid = len(j.szin(H, sz)) <= len(j.szin(P, sz))
             l = ny[-1] if rovid else ny[0]
-            ki.append(Jelolt(l, ar + (0.2 if sz == self.adu else 0) + (0 if rovid else 0.1),
-                             f"begyűjtés {l}"))
+            pl = j.szin(P, sz)
+            # ha a partner csak nagyobb lapot tehet rá, átveszi a hívást: két nyerő egy
+            # ütésre, és a hívó kéz többi nyerője ott ragadhat (BM A-2 #3: az asztal ♠K-ja a
+            # kéz ♠A-ja alá, a két hosszú treff az asztalon maradt) — a végére
+            atvesz = bool(pl) and all(x.rang > l.rang for x in pl)
+            ki.append(Jelolt(l, ar + (0.2 if sz == self.adu else 0) + (0 if rovid else 0.1)
+                             + (0.8 if atvesz else 0), f"begyűjtés {l}"))
         if any(self._nyero(l) for l in j.kezek[P]):
             ki += self._atmenet_jeloltek(H, P, None, ar + 1)
         return ki
@@ -1094,8 +1182,78 @@ class Vegrehajto:
     # -- hozzátevés --
     def _kovetes(self, u: str) -> Lap:
         lap, ok = self._kovetes_ok(u)
+        if SZABALY["ATMENET_VEDES"]:
+            lap, ok = self._atmenet_vedes(u, lap, ok)
         self._jegyez(ok)
         return lap
+
+    def _atmenet_vedes(self, u: str, lap: Lap, ok: str) -> tuple[Lap, str]:
+        """ATMENET_VEDES (általános szabály, a szerkesztő 2026-11-20): a terv által
+        igényelt átmenetek védése. Ha az ütés így is, úgy is a miénk, azt a lapot tesszük,
+        amely után a terv hátralévő része a legjobban végrehajtható:
+        - az elemzős egységeknél a kezelés esélye a megmaradó átmenetekkel (az elemző
+          tudja, melyik kézből kell hívni, és hányszor kell átmenni);
+        - a többi egységnél a soron következő kör hívó keze legyen elérhető (akár egy
+          rövid szín kezébe, ha a terv onnan hív).
+        BM A-2 #3: a ♠B visszahívásra az asztal ♠D-jét a kéz ♠A-val üti át — a ♠2 megmarad
+        átmenetnek az asztal ♠K-jához, a ♣ kiengedés utáni lopáshoz és a hazavitelhez."""
+        j = self.j
+        utes = j.aktualis()
+        if not utes:
+            return lap, ok
+        P = j.partner(u)
+        if not any(x == P for x, _ in utes) or len(utes) < 3:
+            return lap, ok                       # a két lapunk még nem ismert
+        hivott = utes[0][1].szin
+        van = j.szin(u, hivott)
+        if lap not in van or len(van) < 2:
+            return lap, ok
+
+        def nyero_kez(l):
+            nyu, _ = j.nyertes(utes + [(u, l)])
+            return nyu if j.mi(nyu) else None
+        jelolt = [l for l in van if nyero_kez(l) is not None]
+        if lap not in jelolt or len(jelolt) < 2:
+            return lap, ok
+        F, A = j.felvevo, j.asztal
+        kint = [l for s_ in "SHDC" for l in j.kint(s_)]
+        elemzosok = []
+        korok = []
+        for ei, e in enumerate(self.egysegek):
+            if not e.el or e.p.szin == hivott:
+                continue
+            if e.p.sema.fajta == "elemzo":
+                if e.p.szin != self.adu and j.kint(e.p.szin):
+                    pol = self._politika(ei)
+                    if pol is not None and pol.el.korlatos:
+                        elemzosok.append((e.p.szin, pol))
+            else:
+                k = e.kor()
+                if k is not None and getattr(k, "hivo", None) in (F, A):
+                    korok.append((k.hivo, k.szin))
+        if not elemzosok and not korok:
+            return lap, ok
+
+        def pont(l):
+            kezek = {F: set(j.kezek[F]), A: set(j.kezek[A])}
+            kezek[u].discard(l)
+            gy = nyero_kez(l)
+            hivas = "X" if gy == F else "Y"
+            p = 0.0
+            for sz, pol in elemzosok:
+                ax, ay = atmenet_szam(kezek, F, A, kint, sz)
+                p += pol.esely_atmenettel(ax, ay, hivas)
+            elerheto = 0
+            for R, sz in korok:
+                ax, ay = atmenet_szam(kezek, F, A, kint, sz)
+                elerheto += gy == R or (ax if R == F else ay) > 0
+            return (round(p, 6), elerheto)
+        alap = pont(lap)
+        legjobb = max(((pont(l), l) for l in jelolt if l != lap), key=lambda x: (x[0], -x[1].rang))
+        if legjobb[0] > alap:
+            l = legjobb[1]
+            return l, f"{l} — a terv átmenetét védi ({ok})"
+        return lap, ok
 
     def _kovetes_ok(self, u: str) -> tuple[Lap, str]:
         """A hozzátevés és az oka (a tanári asztal ezt mutatja)."""

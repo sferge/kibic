@@ -47,3 +47,21 @@ def test_harmadik_kez_a_tenylegesen_latott_lapra():
     assert d == ("Y", 6)
     assert p.harmadik(d, 9) == 14
     assert p.harmadik(d, 3) == 2
+
+
+def test_lopasos_kimagasitas_atmenetkorlattal():
+    """A mellékszín elemzője lophat is, és számol az átmenetekkel (minta: BM A-2 #3,
+    saját lapokkal): 86 / AK7532, kint QJT94, a kéz kétszer lophat, az asztalra egy
+    átmenet van. Vesztés nélkül csak a 3-2 jó (két lopás után nincs visszaút); egy
+    kiengedéssel (az első kör kicsi-kicsi) a 4-1 is."""
+    from kibic.motor.tervszinkezeles import Elemzo, Feladat
+    R = {c: i for i, c in enumerate("23456789TJQKA", 2)}
+    fs = lambda s: frozenset(R[c] for c in s)
+    f = Feladat(X=fs("86"), Y=fs("AK7532"), kint=fs("QJT94"), ures1=12, ures2=13,
+                lop_x=2, lop_y=0, atm_x=5, atm_y=1, hivas="-")
+    e = Elemzo(f)
+    p0, _, _ = e.megold(4, 0)
+    p1, _, l1 = e.megold(4, 1)
+    assert p0 < 0.75
+    assert p1 > 0.95
+    assert "kicsit tesz: 2" in l1

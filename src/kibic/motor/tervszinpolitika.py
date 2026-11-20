@@ -46,9 +46,10 @@ def elemzo(f: ts.Feladat) -> ts.Elemzo:
 
 class SzinPolitika:
     def __init__(self, X: frozenset, Y: frozenset, kint: frozenset, ures1: int, ures2: int,
-                 k: int, m: int, adu: bool = False):
+                 k: int, m: int, adu: bool = False, lop_x: int = 0, lop_y: int = 0,
+                 atm_x: int | None = None, atm_y: int | None = None, hivas: str | None = None):
         self.f = ts.Feladat(frozenset(X), frozenset(Y), frozenset(kint), max(ures1, 0), max(ures2, 0),
-                            0, 0, None, None, None, adu)
+                            max(lop_x, 0), max(lop_y, 0), atm_x, atm_y, hivas, adu)
         self.el = elemzo(self.f)
         self.p, _, _ = self.el.megold(k, m)
         allapot = self.el.legjobb_allapot
@@ -107,4 +108,32 @@ class SzinPolitika:
         l2n = tuple(l2[j] | frozenset(v["V2"]) for j in tart)
         k2 = k - (1 if szin else 0)
         m2 = m - (0 if mienk else 1)
-        self.node = ((uj["X"], uj["Y"], ul["X"], ul["Y"], bx, by, None), idx2, l1n, l2n, k2, m2)
+        uj_hol = None
+        if hol is not None:
+            # átmenetkorlát mellett: a hívás másik kézből egy átmenetet vitt; utána a
+            # nyerő kéz hív (a védő nyerése után: „-”, bármelyik kezünk egy átmenettel)
+            hivo = utes[0][0]
+            if hivo in ("X", "Y") and hol != hivo:
+                bx, by = (bx - 1, by) if hivo == "X" else (bx, by - 1)
+            gy = ts._gyoztes(utes)
+            uj_hol = gy if gy in ("X", "Y") else "-"
+        self.node = ((uj["X"], uj["Y"], ul["X"], ul["Y"], bx, by, uj_hol), idx2, l1n, l2n, k2, m2)
+
+    def esely_atmenettel(self, atm_x: int, atm_y: int, hivas: str) -> float:
+        """A hátralévő kezelés esélye, ha a színen kívül ennyi átmenet marad, és ez a kéz
+        hív (a terv által igényelt átmenetek mérlegeléséhez)."""
+        allapot, idx, l1, l2, k, m = self.node
+        if not self.el.korlatos or not idx:
+            return self.p
+        X, Y, rx, ry, *_ = allapot
+        w, _ = self.el._ertek((X, Y, rx, ry, atm_x, atm_y, hivas), idx, l1, l2, k, m)
+        return w / sum(self.el.tart[i][2] for i in idx)
+
+    def frissit(self, atm_x: int | None, atm_y: int | None, hivas: str | None) -> None:
+        """A színen kívüli állapot (átmenetek, ki hív) a valódi játékból: a végrehajtó a
+        szín ütései között más színeket is játszik."""
+        if atm_x is None or not self.el.korlatos:
+            return
+        allapot, *rest = self.node
+        X, Y, rx, ry, bx, by, hol = allapot
+        self.node = ((X, Y, rx, ry, atm_x, atm_y, hivas), *rest)
