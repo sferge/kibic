@@ -278,3 +278,56 @@ def test_adu_leallas_ellenpelda_atmenet_csak_a_hosszu_szinben():
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
     assert n >= 10, "\n".join(naplo)
     assert sum("adukör" in x for x in naplo) >= 2, "\n".join(naplo)
+
+
+def test_aduszin_legrosszabb_eset_jelolt():
+    """A szerkesztő (2026-11-20, minta: BM A-2 #5; saját lapok, azonos felméréssel): az
+    aduban 6–3, kint 4, biztosan kiadó 2, várhatóan 2,3, legrosszabb esetben 3 vesztő; a
+    keret 3, ebből a ♦ egy biztos. „A kőrben simán kiadhatunk 3-at is” — az aduszín
+    kezelése („4 ütés, legfeljebb 2 vesztés”) eddig nem lett jelölt (hozam 0), és a terv
+    csak a pikkel foglalkozott. Most minden jelölt terv tartalmazza."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    S, N = _kez("AQJ.987654.2.AKQ"), _kez("432.QJ3.8765.JT9")
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S - N - {Lap.parse("DK")}
+    a = Allas(felvevo="S", adu="H", kezek={"S": set(S), "N": set(N)}, kint=kint, cel=10,
+              hatra=13, soron="N", kovetes={"S": "D", "N": "D"})
+    nevek = [t.nev for t in tervjeloltek(a, technikak_betoltese(), igeny=2)]
+    assert nevek and all("♥ színkezelés (4 ütés, ≤2 vesztés)" in n for n in nevek), nevek
+
+
+def test_atmenet_elosztas_es_masodik_kez_vedese():
+    """A szerkesztő terve (2026-11-20, minta: BM A-2 #5; saját leosztás): 4♥, ♦A indul.
+    A ♠K elfogásához két impassz kell, ahhoz két átmenet az asztalra (♣KD) — a kőr
+    kezelésére nem marad asztalra menet, azt a kézből kell játszani. Ha a védő az
+    aduütés után treffet hív, a kéz második kézen az ♣A-val üt (az asztal két átmenete
+    megmarad), és folytatja az aduzást."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("AQJ.QJ9876.2.A32"), "N": _kez("432.543.8765.KQ4"),
+         "W": _kez("T98.A2.AKQJ.JT98"), "E": _kez("K765.KT.T943.765")}
+    lead = Lap.parse("DA")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="H", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=10, hatra=13, soron="N", kovetes={"S": "D", "N": "D"})
+    nev = "♥ színkezelés (4 ütés, ≤2 vesztés) → ♠ színkezelés (3 ütés, ≤0 vesztés) → kiaduzás"
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=2, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(4, "H", "", "S")
+    kenyszer = {4: "H2", 6: "HK", 8: "C5"}           # Ny ♥2 hív, K ♥K-val üt, aztán ♣5
+
+    def vedo(jj):
+        n = len(jj.lapok)
+        if n in kenyszer and Lap.parse(kenyszer[n]) in jj.kezek[jj.soron()]:
+            return Lap.parse(kenyszer[n])
+        return tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k))
+    naplo: list[str] = []
+    jk: list = []
+    n = lejatszik(T, w, "S", "H", [("W", lead)], vedo, naplo, cel=10, jatek_ki=jk)
+    assert n >= 10, "\n".join(naplo)
+    lapok = [(u, str(l)) for u, l in jk[0].lapok]
+    assert lapok[9] == ("S", "CA"), lapok[8:12]            # a 3. ütésben a kéz üt
