@@ -125,3 +125,17 @@
       # elérhetősége. Pl.: A2 / KQ mellett a védő hívására a kéz az ásszal üti át a
       # partner figuráját, és a kis lap megmarad átmenetnek. Forrás: BM A-2 #3.
       # Kód: Vegrehajto._atmenet_vedes; kapcsoló: KIBIC_K_ATMENET_VEDES.
+    - szabaly: ADU_IGENY
+      nev: "Az aduszín gondja csak az aduszínben oldható meg"
+      # (a szerkesztő, 2026-11-20) Az aduszín vesztőtöbbletét (a vesztők a keret fölött)
+      # csak az aduszín kezelése fedheti; a lopás és a dobás csak a mellékszínek
+      # vesztőire számít. A rövid aduval lopva amúgy is magas lapot lopnánk; a hosszú
+      # aduval lopva a kiadó magas aduk kiadók maradnak. Ha van ilyen többlet, a terv
+      # nem lehet meg aduszín-egység nélkül. Forrás: BM A-2 #4.
+      # Kód: tervjeloltek (adu_igeny); kapcsoló: KIBIC_K_ADU_IGENY.
+    - szabaly: DEBLOKK
+      nev: "Deblokk a zárt színben"
+      # Ha a színben minden kör a miénk (a két kéz felső lapjai elég kört visznek), a
+      # rövidebb kéz a nagy lapját adja, hogy a hosszú kéz lapjai ne ragadjanak be. Pl.:
+      # Ax / KQJx — a védő hívására a rövid kéz az ászt teszi. Forrás: BM A-2 #4.
+      # Kód: Vegrehajto._deblokk; kapcsoló: KIBIC_K_DEBLOKK.

@@ -24,6 +24,8 @@ próbája.
 """
 from __future__ import annotations
 
+import math
+
 from dataclasses import dataclass, field
 
 from ..domain import Lap, kovetkezo_ules, vonal
@@ -36,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -296,6 +298,8 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
     # (a helyzetfelmérés) csökkenése
     hozam = (k - biztos) if not adu else int(max(0.0, sf.vesztok - m) + 0.5)
     if hozam <= 0:
+        # (többlet nélküli aduszín-egységgel próbálva — BM A-2 #4 — nem segített, és a
+        # jelöltszűrésből kiszorította a jobb terveket: a kiaduzás marad)
         return None
     sz_ = {"k": k, "m": m, "biztos": biztos, "esely": pol.p, "aduval": False, "adu": adu}
     return Peldany(sema, sz, sz_, [Kor("elemzo", sz)], set(lapok), set(lapok),
@@ -412,6 +416,13 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
                       key=lambda p: (not (elobb and p.sema.azon == "VESZTOCSERE"),
                                      any(k.fajta in ("kiad", "impassz") for k in p.korok), -p.hozam))
     esely = [p for p in P if not biztos_egyseg(p)]
+    adu_igeny = 0
+    if allas.adu and SZABALY["ADU_IGENY"]:
+        fm = _felmeres(allas, ures)
+        sfa = next((x for x in fm.szinek if x.szin == allas.adu), None)
+        if sfa is not None:
+            keret_adu = max(0, fm.megengedett - (fm.kiado - sfa.kiado))
+            adu_igeny = max(0, math.ceil(sfa.vesztok - keret_adu - 0.25))
     keszletek: list[list[Peldany]] = []
     rend = {id(p): i for i, p in enumerate(biztosak)}
     # a biztos egységek ütközésmentes készletei: mindegyik egységből indulva mohón
@@ -436,6 +447,13 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         # a terv csak akkor jelölt, ha minden egysége sikere esetén fedi az igényt
         if max_hozam(lepesek) < igeny:
             return
+        if adu_igeny > 0:
+            # ADU_IGENY: az aduszín vesztőtöbbletét csak az aduszín kezelése fedheti; a
+            # lopás és a dobás csak a mellékszínek vesztőire számít
+            adu_h = sum(p.hozam for p in lepesek if p.szin == allas.adu)
+            mellek = sum(p.hozam for p in lepesek if p.szin != allas.adu)
+            if adu_h < adu_igeny or min(mellek, max(0, igeny - adu_igeny)) + adu_h < igeny:
+                return
         if SZABALY["HASZNOS_DOBAS"] and any(
                 p.sema.azon == "VESZTOCSERE" and p.szerepek.get("CELSZIN")
                 and p.szerepek["CELSZIN"] != hasznos_dobas(p, lepesek, allas) for p in lepesek):
@@ -1187,6 +1205,32 @@ class Vegrehajto:
         self._jegyez(ok)
         return lap
 
+    def _deblokk(self, u: str, sz: str, van: list[Lap], utes: list) -> Lap | None:
+        """DEBLOKK (általános szabály, BM A-2 #4): ha a színben minden kör a miénk (a
+        két kéz felső lapjai elég kört visznek), a rövidebb kéz a nagy lapját adja, hogy
+        a hosszú kéz lapjai ne ragadjanak be. ♣A2 / ♣KQJT: a védő treffhívására az
+        asztal az ászt teszi, a kéz a tízest — később az asztal kettese átmenet a KQJ-hez."""
+        j = self.j
+        P = j.partner(u)
+        p_lapok = j.szin(P, sz)
+        p_tett = next((l for x, l in utes if x == P), None)
+        p_hossz = len(p_lapok) + (1 if p_tett is not None and p_tett.szin == sz else 0)
+        if len(van) >= p_hossz or not p_lapok:
+            return None                                  # nem mi vagyunk a rövid kéz
+        kint = j.kint(sz)
+        kmax = max((l.rang for l in kint), default=0)
+        mind = list(van) + list(p_lapok) + ([p_tett] if p_tett is not None and p_tett.szin == sz else [])
+        felso = sum(1 for l in mind if l.rang > kmax)
+        if felso < p_hossz:
+            return None                                  # a szín nem zárt
+        legnagyobb = max(van, key=lambda l: l.rang)
+        if legnagyobb.rang <= kmax:
+            return None
+        nyu, nyl = j.nyertes(utes + [(u, legnagyobb)])
+        if not j.mi(nyu):
+            return None
+        return legnagyobb
+
     def _atmenet_vedes(self, u: str, lap: Lap, ok: str) -> tuple[Lap, str]:
         """ATMENET_VEDES (általános szabály, a szerkesztő 2026-11-20): a terv által
         igényelt átmenetek védése. Ha az ütés így is, úgy is a miénk, azt a lapot tesszük,
@@ -1306,6 +1350,10 @@ class Vegrehajto:
         partner_nyer = j.mi(nyu)
         R = self._kovetkezo_hivo()
         P = j.partner(u)
+        if SZABALY["DEBLOKK"] and van and hivott != adu:
+            l = self._deblokk(u, hivott, van, utes)
+            if l is not None:
+                return l, f"deblokk: a rövid kéz a nagy lapját adja ({l})"
         hatra_van_partner = len(utes) <= 2 and any(x == P for x in self._hatra(utes))
         if van and not partner_nyer and R == u:
             # a terv innen folytatódik: ha biztosan üthetünk, itt üssünk
