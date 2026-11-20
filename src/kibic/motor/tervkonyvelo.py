@@ -296,7 +296,18 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
     lapok = set(allas.szin(F, sz)) | set(allas.szin(A, sz))
     # hozam: a mellékszínben a biztosakon felüli ütések; az aduban a várható vesztők
     # (a helyzetfelmérés) csökkenése
-    hozam = (k - biztos) if not adu else int(max(0.0, sf.vesztok - m) + 0.5)
+    # az aduban: a legrosszabb (legalább 5%-os) elosztás vesztőiből ennyitől véd meg —
+    # a szerkesztő (2026-11-20, BM A-2 #5): „a kőrben simán kiadhatunk 3-at is”; a
+    # várható 2,3 vesztő a 2-es keret mellett nem „0 hozam”
+    if not adu:
+        hozam = k - biztos
+    else:
+        hozam = int(max(0.0, sf.vesztok - m) + 0.5)
+        if hozam <= 0 and m <= sf.kiado and sf.vesztok_max > m:
+            # a legszigorúbb aduszín-cél (csak a biztos vesztők): ha a legrosszabb
+            # elosztás több vesztőt ad, ez véd meg tőle — jelölt marad (a többi m-nél nem:
+            # azok kiszorították a jobb terveket, 4A01 #1)
+            hozam = 1
     if hozam <= 0:
         # (többlet nélküli aduszín-egységgel próbálva — BM A-2 #4 — nem segített, és a
         # jelöltszűrésből kiszorította a jobb terveket: a kiaduzás marad)
@@ -422,7 +433,11 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         sfa = next((x for x in fm.szinek if x.szin == allas.adu), None)
         if sfa is not None:
             keret_adu = max(0, fm.megengedett - (fm.kiado - sfa.kiado))
+            # (a legrosszabb elosztással kötelezővé téve rontott: 4A01 #1, 4Q01 #2 — az
+            # aduszín-egység ott jelölt, de a szimuláció dönt)
             adu_igeny = max(0, math.ceil(sfa.vesztok - keret_adu - 0.25))
+            if adu_igeny and not any(p.szin == allas.adu for p in P):
+                adu_igeny = 0            # nincs aduszín-egység (pl. túl sok kint lap)
     keszletek: list[list[Peldany]] = []
     rend = {id(p): i for i, p in enumerate(biztosak)}
     # a biztos egységek ütközésmentes készletei: mindegyik egységből indulva mohón

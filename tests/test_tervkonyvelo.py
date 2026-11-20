@@ -278,3 +278,18 @@ def test_adu_leallas_ellenpelda_atmenet_csak_a_hosszu_szinben():
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
     assert n >= 10, "\n".join(naplo)
     assert sum("adukör" in x for x in naplo) >= 2, "\n".join(naplo)
+
+
+def test_aduszin_legrosszabb_eset_jelolt():
+    """A szerkesztő (2026-11-20, minta: BM A-2 #5; saját lapok, azonos felméréssel): az
+    aduban 6–3, kint 4, biztosan kiadó 2, várhatóan 2,3, legrosszabb esetben 3 vesztő; a
+    keret 3, ebből a ♦ egy biztos. „A kőrben simán kiadhatunk 3-at is” — az aduszín
+    kezelése („4 ütés, legfeljebb 2 vesztés”) eddig nem lett jelölt (hozam 0), és a terv
+    csak a pikkel foglalkozott. Most minden jelölt terv tartalmazza."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    S, N = _kez("AQJ.987654.2.AKQ"), _kez("432.QJ3.8765.JT9")
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S - N - {Lap.parse("DK")}
+    a = Allas(felvevo="S", adu="H", kezek={"S": set(S), "N": set(N)}, kint=kint, cel=10,
+              hatra=13, soron="N", kovetes={"S": "D", "N": "D"})
+    nevek = [t.nev for t in tervjeloltek(a, technikak_betoltese(), igeny=2)]
+    assert nevek and all("♥ színkezelés (4 ütés, ≤2 vesztés)" in n for n in nevek), nevek
