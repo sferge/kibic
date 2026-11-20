@@ -141,10 +141,17 @@
       # Kód: Vegrehajto._deblokk; kapcsoló: KIBIC_K_DEBLOKK.
     - szabaly: ADU_LEALLAS
       nev: "Nem aduzunk tovább, ha a védők adui beleférnek a keretbe"
-      # (a szerkesztő, 2026-11-20) Ha a védők maradék adui mind nagyobbak a mieinknél
-      # (minden további adukör csak kiadás, és két adunkba kerül), és a többi vesztővel
-      # együtt beleférnek a kiadási keretbe, nem hívunk több adut: a magas lapjainkat
-      # hívjuk, és hagyjuk, hogy ellopják, amelyiket akarják. A védő minden aduja
-      # legfeljebb egy ütés; a mi aduink a lopatás ellen kellenek. Pl.: Axxxx / xxx, a
-      # kéz egy színben üres — az első lapot ellopjuk, az ászt lehívjuk, és megállunk.
-      # Forrás: BM A-2 #4. Kód: Vegrehajto._adu_leallas; kapcsoló: KIBIC_K_ADU_LEALLAS.
+      # (a szerkesztő, 2026-11-20) Nem hívunk több adut, ha mind a négy feltétel áll:
+      # 1. a védők maradék adui mind nagyobbak a mieinknél (minden további adukör csak
+      #    kiadás, és két adunkba kerül);
+      # 2. a többi vesztővel együtt beleférnek a kiadási keretbe;
+      # 3. egy lopás csak egy ütésbe kerül: a lopás után a védő bármit hív, abban a
+      #    kézben, amelyben a hosszú nyerők vannak, visszaszerezzük a hívást (ott nyerő
+      #    van, vagy a szín üres és van adu) — a szerkesztő ellenpéldája: ha a hosszú
+      #    színbe csak abban a színben van átmenet, a védő az utolsó átmenetnél lop be, a
+      #    többi nyerő beragad, és a másik kéz vesztői nem dobhatók rá;
+      # 4. a terv nem vár dobást a hosszú adus kézből.
+      # Ilyenkor a magas lapjainkat hívjuk, és hagyjuk, hogy ellopják. Pl.: Axxxx /
+      # xxx, a kéz egy színben üres — az első lapot ellopjuk, az ászt lehívjuk, és
+      # megállunk. Forrás: BM A-2 #4. Kód: Vegrehajto._adu_leallas;
+      # kapcsoló: KIBIC_K_ADU_LEALLAS.

@@ -987,7 +987,41 @@ class Vegrehajto:
             km = max((l.rang for l in j.kint(sz)), default=0)
             felso = sum(1 for l in j.szin(fo, sz) + j.szin(P, sz) if l.rang > km)
             egyeb += max(0, len(j.szin(fo, sz)) - felso)
-        return len(kint) + egyeb <= self._tartalek()
+        if len(kint) + egyeb > self._tartalek():
+            return False
+        # A szerkesztő ellenpéldája (2026-11-20): ha az egyik kézben sok nyerő van egy
+        # mellékszínben, és oda csak ebben a színben van átmenet, a védő akkor lop be,
+        # amikor az utolsó átmenetet használjuk — a többi nyerő beragad, és a másik kéz
+        # vesztői nem dobhatók rá. Ezért a lopás csak akkor ér egy ütést (és nem többet),
+        # ha a lopás után a védő bármit hív, visszaszerezzük a hívást abban a kézben,
+        # amelyben a hosszú nyerők vannak:
+        for H in self._mi_kezek():
+            Pk = j.partner(H)
+            hosszu = False
+            for sz in "SHDC":
+                if sz == adu:
+                    continue
+                km = max((l.rang for l in j.kint(sz)), default=0)
+                ny = [l for l in j.szin(H, sz) if l.rang > km]
+                if len(ny) > len(j.szin(Pk, sz)):
+                    hosszu = True
+            if not hosszu:
+                continue
+            for sz in "SHDC":
+                if sz == adu or not j.kint(sz):
+                    continue
+                km = max(l.rang for l in j.kint(sz))
+                if any(l.rang > km for l in j.szin(H, sz)):
+                    continue                      # a kézben nyerő van: visszaüt
+                if not j.szin(H, sz) and j.szin(H, adu):
+                    continue                      # üres, és van adója: lop
+                return False
+        # ha a terv még dobást vár a hosszú adus kézből (a vesztőit a másik kéz nyerőire),
+        # a védő lopása a dobást is elviszi: aduzunk tovább
+        if any(e.el and e.p.sema.azon == "VESZTOCSERE" and e.p.szerepek.get("DK") == fo
+               for e in self.egysegek):
+            return False
+        return True
 
     def _adukor_jeloltek(self, H: str, ar: float) -> list["Jelolt"]:
         j, adu = self.j, self.adu
