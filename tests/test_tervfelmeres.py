@@ -61,5 +61,9 @@ def test_vesztocsere_dobasszine_a_terv_resze():
     kint = MIND - E - W - {Lap.parse("H5")}
     a = Allas("E", "S", {"E": set(E), "W": set(W)}, kint, 10, 13, "W")
     nevek = {t.nev for t in tervjeloltek(a, technikak_betoltese(), igeny=3)}
-    assert "kiaduzás → ♥ vesztőcsere (dobás: ♣) → ♦ szöktetés (felső előbb)" in nevek
+    # ADU_IGENY (2026-11-20): az aduszín vesztőtöbbletét csak az aduszín kezelése fedheti —
+    # a terv az aduszín-egységgel kezdődik („♠ legfeljebb egy aduvesztővel”, a szerkesztő terve)
+    assert any(n.startswith("♠ színkezelés (4 ütés, ≤1 vesztés)") and "♥ vesztőcsere (dobás: ♣) → ♦ szöktetés" in n
+               for n in nevek), nevek
+    assert all("♠ színkezelés" in n for n in nevek), nevek
     assert not any("dobás: ♣) → ♣" in n for n in nevek)       # amiből dobunk, azt nem kezeljük

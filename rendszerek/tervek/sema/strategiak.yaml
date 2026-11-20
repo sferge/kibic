@@ -125,3 +125,33 @@
       # elérhetősége. Pl.: A2 / KQ mellett a védő hívására a kéz az ásszal üti át a
       # partner figuráját, és a kis lap megmarad átmenetnek. Forrás: BM A-2 #3.
       # Kód: Vegrehajto._atmenet_vedes; kapcsoló: KIBIC_K_ATMENET_VEDES.
+    - szabaly: ADU_IGENY
+      nev: "Az aduszín gondja csak az aduszínben oldható meg"
+      # (a szerkesztő, 2026-11-20) Az aduszín vesztőtöbbletét (a vesztők a keret fölött)
+      # csak az aduszín kezelése fedheti; a lopás és a dobás csak a mellékszínek
+      # vesztőire számít. A rövid aduval lopva amúgy is magas lapot lopnánk; a hosszú
+      # aduval lopva a kiadó magas aduk kiadók maradnak. Ha van ilyen többlet, a terv
+      # nem lehet meg aduszín-egység nélkül. Forrás: BM A-2 #4.
+      # Kód: tervjeloltek (adu_igeny); kapcsoló: KIBIC_K_ADU_IGENY.
+    - szabaly: DEBLOKK
+      nev: "Deblokk a zárt színben"
+      # Ha a színben minden kör a miénk (a két kéz felső lapjai elég kört visznek), a
+      # rövidebb kéz a nagy lapját adja, hogy a hosszú kéz lapjai ne ragadjanak be. Pl.:
+      # Ax / KQJx — a védő hívására a rövid kéz az ászt teszi. Forrás: BM A-2 #4.
+      # Kód: Vegrehajto._deblokk; kapcsoló: KIBIC_K_DEBLOKK.
+    - szabaly: ADU_LEALLAS
+      nev: "Nem aduzunk tovább, ha a védők adui beleférnek a keretbe"
+      # (a szerkesztő, 2026-11-20) Nem hívunk több adut, ha mind a négy feltétel áll:
+      # 1. a védők maradék adui mind nagyobbak a mieinknél (minden további adukör csak
+      #    kiadás, és két adunkba kerül);
+      # 2. a többi vesztővel együtt beleférnek a kiadási keretbe;
+      # 3. egy lopás csak egy ütésbe kerül: a lopás után a védő bármit hív, abban a
+      #    kézben, amelyben a hosszú nyerők vannak, visszaszerezzük a hívást (ott nyerő
+      #    van, vagy a szín üres és van adu) — a szerkesztő ellenpéldája: ha a hosszú
+      #    színbe csak abban a színben van átmenet, a védő az utolsó átmenetnél lop be, a
+      #    többi nyerő beragad, és a másik kéz vesztői nem dobhatók rá;
+      # 4. a terv nem vár dobást a hosszú adus kézből.
+      # Ilyenkor a magas lapjainkat hívjuk, és hagyjuk, hogy ellopják. Pl.: Axxxx /
+      # xxx, a kéz egy színben üres — az első lapot ellopjuk, az ászt lehívjuk, és
+      # megállunk. Forrás: BM A-2 #4. Kód: Vegrehajto._adu_leallas;
+      # kapcsoló: KIBIC_K_ADU_LEALLAS.

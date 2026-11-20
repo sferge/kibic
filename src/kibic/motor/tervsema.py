@@ -118,6 +118,9 @@ class Allas:
     cel: int                             # a hátralévő ütésekből ennyi kell
     hatra: int                           # hátralévő ütések
     soron: str                           # ki hív most (a mi oldalunk)
+    # a folyó ütésben még tenni kell: kezünk -> a hívott szín (a követés elvesz egy
+    # lapot abból a színből, pl. az aduindulásra a rövid adus kéz egy aduja)
+    kovetes: dict = field(default_factory=dict)
 
     @property
     def asztal(self) -> str:
@@ -293,6 +296,15 @@ def fogalmak(allas: Allas) -> dict:
         "hossz": lambda x: len(x) if x is not None else 0,
         "kezhossz": lambda k, sz: len(a.szin(k, sz)) if k else 0,
         "adu_kezben": lambda k: len(a.szin(k, a.adu)) if (k and a.adu) else 0,
+        # a kéz lopásra használható aduja: ha a folyó ütés aduhívás, és a kéz még nem
+        # tett, egy aduja a követésre megy (BM A-2 #3: ♥9 indul, az asztal ♥432-jéből
+        # egy már nem lop)
+        "adu_szabad": lambda k: max(0, (len(a.szin(k, a.adu)) if (k and a.adu) else 0)
+                                    - (1 if k and a.adu and a.kovetes.get(k) == a.adu
+                                       and a.szin(k, a.adu) else 0)),
+        # a kiadások után a védő aduval válaszolhat (az optimális védő megteszi, ha a
+        # lopó kéz aduit ez fogyasztja): ennyi aduval kevesebb marad a lopásra
+        "aduvisszahivas": lambda n: n if (a.adu and a.kint_szin(a.adu)) else 0,
         "nem_adu": lambda sz: sz != a.adu,
         # a rövidebb kezünk (a színben) lophat: van adója
         "lophat": lambda sz: bool(a.adu) and sz != a.adu and any(

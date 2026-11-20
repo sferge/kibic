@@ -289,10 +289,15 @@ def _allas(h: Helyzet, lejatszott: list) -> tuple[Allas, set[Lap]]:
     lement = {l for _, l in lejatszott}
     mieink = h.kezek[h.felvevo] | h.kezek[h.asztal]
     kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - mieink - lement
+    ut = j.aktualis()
+    kovetes = {}
+    if ut:
+        tett = {u for u, _ in ut}
+        kovetes = {u: ut[0][1].szin for u in (h.felvevo, h.asztal) if u not in tett}
     allas = Allas(felvevo=h.felvevo, adu=h.adu,
                   kezek={u: set(j.kezek[u]) for u in (h.felvevo, h.asztal)}, kint=kint,
                   cel=max(0, cel - j.felvevo_utesek()), hatra=13 - len(lejatszott) // 4,
-                  soron=j.soron())
+                  soron=j.soron(), kovetes=kovetes)
     return allas, kint
 
 

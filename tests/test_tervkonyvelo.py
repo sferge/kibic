@@ -193,3 +193,88 @@ def test_a_terv_atmenetet_vedi():
     n = lejatszik(T, w, "S", "H", [("W", lead)], vedo, naplo, cel=12)
     assert n >= 12, "\n".join(naplo)
     assert any("a terv átmenetét védi" in x for x in naplo), "\n".join(naplo)
+
+
+def test_deblokk_a_zart_szinben():
+    """DEBLOKK (minta: BM A-2 #4, saját lapokkal; 4♠, ♥K indul): ♣A2 / ♣KQJ9 és ♦A2 /
+    ♦KQJ9 — a rövid kéz (az asztal) az ászt adja az első körben, különben a hosszú kéz
+    lapjai beragadnak. A 3-2 adunál 10 ütés felett."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("A5432..KQJ9.KQJ9"), "N": _kez("876.765432.A2.A2"),
+         "W": _kez("KQ9.AKQJ.T87.T87"), "E": _kez("JT.T98.6543.6543")}
+    lead = Lap.parse("HK")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=10, hatra=13, soron="N")
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=0, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == "csak begyűjtés")
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(4, "S", "", "S")
+    naplo: list[str] = []
+    n = lejatszik(T, w, "S", "S", [("W", lead)],
+                  lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
+    assert n >= 10, "\n".join(naplo)
+    assert any("deblokk" in x for x in naplo), "\n".join(naplo)
+
+
+def test_adu_leallas_a_kiadasi_keretben():
+    """ADU_LEALLAS (a szerkesztő terve, minta: BM A-2 #4, saját lapokkal; 4♠, ♥K indul):
+    a kőrt ellopjuk, az adu ászt lehívjuk, aztán nem hívunk több adut — a védők maradék
+    adui mind nagyobbak a mieinknél, és beleférnek a keretbe (3); a magas lapjainkat
+    hívjuk, és hagyjuk, hogy ellopják. Így a 4-1-es adu ellen is 10 ütés."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("A6432..KQJT.KQJT"), "N": _kez("875.765432.A2.A2"),
+         "W": _kez("T.AKQJ8.9876.987"), "E": _kez("KQJ9.T9.543.6543")}
+    lead = Lap.parse("HK")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=10, hatra=13, soron="N")
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=0, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == "csak begyűjtés")
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(4, "S", "", "S")
+    naplo: list[str] = []
+    n = lejatszik(T, w, "S", "S", [("W", lead)],
+                  lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
+    assert n >= 10, "\n".join(naplo)
+    adukorok = [x for x in naplo if "adukör" in x]
+    assert len(adukorok) == 1, "\n".join(naplo)       # csak az ász
+
+
+def test_adu_leallas_ellenpelda_atmenet_csak_a_hosszu_szinben():
+    """A szerkesztő ellenpéldája (2026-11-20) az ADU_LEALLAS első változatára: az
+    asztalon sok nyerő egy mellékszínben (♥AKQJT9), és oda csak ebben a színben van
+    átmenet; a kéz vesztőit (♦, ♣) ezekre kell dobni. Ha a magas adut kint hagyjuk, a
+    védő akkor lop be, amikor az utolsó átmenetet használjuk — a többi kőr beragad.
+    Itt tovább kell aduzni. (Saját leosztás.)"""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("A43.5.AK543.AK43"), "N": _kez("87652.AKQJT9.2.2"),
+         "W": _kez("KQ9.832.QJT.QJT9"), "E": _kez("JT.764.9876.8765")}
+    lead = Lap.parse("CQ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=10, hatra=13, soron="N")
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=0, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == "csak begyűjtés")
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(4, "S", "", "S")
+    naplo: list[str] = []
+    n = lejatszik(T, w, "S", "S", [("W", lead)],
+                  lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
+    assert n >= 10, "\n".join(naplo)
+    assert sum("adukör" in x for x in naplo) >= 2, "\n".join(naplo)

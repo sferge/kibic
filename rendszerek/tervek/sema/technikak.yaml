@@ -139,7 +139,7 @@
     HOZAM: "kezhossz(MK, SZ) - R - hossz(FELSO)"
     HOSSZU: "elejen(KICSI, HOZAM)"
   alkalmazhato: ["nem_adu(SZ)", "van(L)", "kezhossz(L, SZ) == 0", "R >= 1", "HOZAM >= 1",
-                 "adu_kezben(L) >= R", "hossz(felettunk_kezben(MK, SZ, F)) == hossz(FELSO)"]
+                 "adu_szabad(L) >= R", "hossz(felettunk_kezben(MK, SZ, F)) == hossz(FELSO)"]
   korok:
     - {ismetles: "R", fajta: lop, hivo: MK, lopo: L}
     - {ismetles: "hossz(FELSO)", fajta: lehiv, lap: FELSO, begyujtes: igen}
@@ -167,7 +167,7 @@
     NYERO: "felettunk(SZ, F)"
     # a lopások száma: ahány vesztője van a partnernek, ahány adója a lopónak — de csak
     # amennyi a hiányhoz kell (minden fölösleges lopás felüllopási kockázat)
-    R: "min(kezhossz(MK, SZ) - max(N, hossz(NYERO)), adu_kezben(L), max(1, hiany()))"
+    R: "min(kezhossz(MK, SZ) - max(N, hossz(NYERO)), adu_szabad(L), max(1, hiany()))"
   alkalmazhato: ["nem_adu(SZ)", "van(L)", "hossz(NYERO) >= N", "R >= 1"]
   korok:
     - {ismetles: "N", fajta: lehiv, lap: NYERO}
@@ -275,7 +275,10 @@
     N: "kezhossz(L, SZ)"
     NYERO: "felettunk(SZ, F)"
     KIAD: "N - hossz(NYERO)"
-    R: "min(kezhossz(MK, SZ) - N, adu_kezben(L), max(1, hiany()))"
+    # a kiadás után a védő aduval válaszolhat: a lopó kéz aduiból annyival kevesebb
+    # marad (a szerkesztő, 2026-11-20: „hány százalék az ismételt kőrhívás?” — az
+    # optimális védő mindig visszahív, ha van adója)
+    R: "min(kezhossz(MK, SZ) - N, adu_szabad(L) - aduvisszahivas(KIAD), max(1, hiany()))"
   alkalmazhato: ["nem_adu(SZ)", "van(L)", "KIAD >= 1", "KIAD <= 1", "R >= 1"]
   korok:
     - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
@@ -305,7 +308,7 @@
     NYL: "felettunk_kezben(L, SZ, F)"
     FMK: "felettunk_kezben(MK, SZ, F)"
     KIAD: "N - hossz(NYL)"
-    R: "min(kezhossz(MK, SZ) - N - hossz(FMK), adu_kezben(L), max(1, hiany()))"
+    R: "min(kezhossz(MK, SZ) - N - hossz(FMK), adu_szabad(L) - aduvisszahivas(KIAD), max(1, hiany()))"
   alkalmazhato: ["nem_adu(SZ)", "van(L)", "KIAD >= 1", "KIAD <= 2", "R >= 1", "hossz(FMK) >= 1"]
   korok:
     - {ismetles: "hossz(NYL)", fajta: lehiv, lap: NYL}
