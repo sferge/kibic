@@ -119,6 +119,16 @@ class SzinPolitika:
             uj_hol = gy if gy in ("X", "Y") else "-"
         self.node = ((uj["X"], uj["Y"], ul["X"], ul["Y"], bx, by, uj_hol), idx2, l1n, l2n, k2, m2)
 
+    def esely_atmenettel(self, atm_x: int, atm_y: int, hivas: str) -> float:
+        """A hátralévő kezelés esélye, ha a színen kívül ennyi átmenet marad, és ez a kéz
+        hív (a terv által igényelt átmenetek mérlegeléséhez)."""
+        allapot, idx, l1, l2, k, m = self.node
+        if not self.el.korlatos or not idx:
+            return self.p
+        X, Y, rx, ry, *_ = allapot
+        w, _ = self.el._ertek((X, Y, rx, ry, atm_x, atm_y, hivas), idx, l1, l2, k, m)
+        return w / sum(self.el.tart[i][2] for i in idx)
+
     def frissit(self, atm_x: int | None, atm_y: int | None, hivas: str | None) -> None:
         """A színen kívüli állapot (átmenetek, ki hív) a valódi játékból: a végrehajtó a
         szín ütései között más színeket is játszik."""

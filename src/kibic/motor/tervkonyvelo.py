@@ -1188,52 +1188,71 @@ class Vegrehajto:
         return lap
 
     def _atmenet_vedes(self, u: str, lap: Lap, ok: str) -> tuple[Lap, str]:
-        """ATMENET_VEDES (általános szabály, a szerkesztő 2026-11-20): ha az ütés így is,
-        úgy is a miénk, azt a lapot tesszük, amely után több átmenet marad abba a kézbe,
-        amelynek a hosszú színét még haza kell vinni (BM A-2 #3: a ♠B visszahívásra az
-        asztal ♠D-jét a kéz ♠A-val üti át — a ♠2 megmarad átmenetnek az asztal ♠K-jához)."""
+        """ATMENET_VEDES (általános szabály, a szerkesztő 2026-11-20): a terv által
+        igényelt átmenetek védése. Ha az ütés így is, úgy is a miénk, azt a lapot tesszük,
+        amely után a terv hátralévő része a legjobban végrehajtható:
+        - az elemzős egységeknél a kezelés esélye a megmaradó átmenetekkel (az elemző
+          tudja, melyik kézből kell hívni, és hányszor kell átmenni);
+        - a többi egységnél a soron következő kör hívó keze legyen elérhető (akár egy
+          rövid szín kezébe, ha a terv onnan hív).
+        BM A-2 #3: a ♠B visszahívásra az asztal ♠D-jét a kéz ♠A-val üti át — a ♠2 megmarad
+        átmenetnek az asztal ♠K-jához, a ♣ kiengedés utáni lopáshoz és a hazavitelhez."""
         j = self.j
         utes = j.aktualis()
         if not utes:
             return lap, ok
         P = j.partner(u)
-        # csak ha a partner már tett ebbe az ütésbe (a két lapunk ismert)
-        if not any(x == P for x, _ in utes):
-            return lap, ok
+        if not any(x == P for x, _ in utes) or len(utes) < 3:
+            return lap, ok                       # a két lapunk még nem ismert
         hivott = utes[0][1].szin
         van = j.szin(u, hivott)
         if lap not in van or len(van) < 2:
             return lap, ok
-        cel = None
-        for e in self.egysegek:
-            if e.el and e.p.sema.fajta == "elemzo" and e.p.szin != self.adu and e.p.szin != hivott:
-                sz = e.p.szin
-                F, A = j.felvevo, j.asztal
-                if len(j.szin(F, sz)) != len(j.szin(A, sz)) and j.kint(sz):
-                    cel = (F if len(j.szin(F, sz)) > len(j.szin(A, sz)) else A, sz)
-                    break
-        if cel is None:
+
+        def nyero_kez(l):
+            nyu, _ = j.nyertes(utes + [(u, l)])
+            return nyu if j.mi(nyu) else None
+        jelolt = [l for l in van if nyero_kez(l) is not None]
+        if lap not in jelolt or len(jelolt) < 2:
             return lap, ok
-        H, sz = cel
+        F, A = j.felvevo, j.asztal
         kint = [l for s_ in "SHDC" for l in j.kint(s_)]
-
-        def atm(l):
-            kezek = {j.felvevo: set(j.kezek[j.felvevo]), j.asztal: set(j.kezek[j.asztal])}
-            kezek[u].discard(l)
-            a = atmenet_szam(kezek, j.felvevo, j.asztal, kint, sz)
-            return a[0] if H == j.felvevo else a[1]
-
-        def mienk(l):
-            nyu, nyl = j.nyertes(utes + [(u, l)])
-            return j.mi(nyu) or len(utes) < 3      # 3. kézben a negyedik még jön
-        if not mienk(lap) or len(utes) < 3:
+        elemzosok = []
+        korok = []
+        for ei, e in enumerate(self.egysegek):
+            if not e.el or e.p.szin == hivott:
+                continue
+            if e.p.sema.fajta == "elemzo":
+                if e.p.szin != self.adu and j.kint(e.p.szin):
+                    pol = self._politika(ei)
+                    if pol is not None and pol.el.korlatos:
+                        elemzosok.append((e.p.szin, pol))
+            else:
+                k = e.kor()
+                if k is not None and getattr(k, "hivo", None) in (F, A):
+                    korok.append((k.hivo, k.szin))
+        if not elemzosok and not korok:
             return lap, ok
-        alap = atm(lap)
-        jobb = [(atm(l), l) for l in van if l != lap and mienk(l)]
-        if jobb:
-            n, l = max(jobb, key=lambda x: (x[0], -x[1].rang))
-            if n > alap:
-                return l, f"{l} — átmenet marad a {SZINJEL[sz]} hazaviteléhez ({ok})"
+
+        def pont(l):
+            kezek = {F: set(j.kezek[F]), A: set(j.kezek[A])}
+            kezek[u].discard(l)
+            gy = nyero_kez(l)
+            hivas = "X" if gy == F else "Y"
+            p = 0.0
+            for sz, pol in elemzosok:
+                ax, ay = atmenet_szam(kezek, F, A, kint, sz)
+                p += pol.esely_atmenettel(ax, ay, hivas)
+            elerheto = 0
+            for R, sz in korok:
+                ax, ay = atmenet_szam(kezek, F, A, kint, sz)
+                elerheto += gy == R or (ax if R == F else ay) > 0
+            return (round(p, 6), elerheto)
+        alap = pont(lap)
+        legjobb = max(((pont(l), l) for l in jelolt if l != lap), key=lambda x: (x[0], -x[1].rang))
+        if legjobb[0] > alap:
+            l = legjobb[1]
+            return l, f"{l} — a terv átmenetét védi ({ok})"
         return lap, ok
 
     def _kovetes_ok(self, u: str) -> tuple[Lap, str]:

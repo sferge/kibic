@@ -162,10 +162,11 @@ def test_szanban_a_teljes_keret_is_jelolt_bridgemasters_2():
     assert c[(5, 0)] < 0.8
 
 
-def test_atmenet_marad_a_hosszu_szinhez():
-    """ATMENET_VEDES és az elemző lopásai (minta: BM A-2 #3, saját lapokkal; 6♥, ♥9
-    indul): a ♣ kiengedése után Nyugat ♠B-t hív; a kéz a ♠A-val üti át az asztal ♠D-jét,
-    hogy a ♠3 átmenet maradjon az asztal ♠K-jához a lopás után. 12 ütés."""
+def test_a_terv_atmenetet_vedi():
+    """ATMENET_VEDES — a terv által igényelt átmenet védése, és az elemző lopásai (minta:
+    BM A-2 #3, saját lapokkal; 6♥, ♥9 indul): a ♣ kiengedése után Nyugat ♠B-t hív; a kéz
+    a ♠A-val üti át az asztal ♠D-jét, hogy a ♠3 átmenet maradjon az asztal ♠K-jához — a
+    ♣ terv szerinti kezeléséhez (kiengedés, lopás, visszamenet a kimagasított lapokért)."""
     from kibic.domain import Leosztas
     from kibic.domain.kartya import Kez
     from kibic.domain.pontozas import Kontraktus
@@ -191,4 +192,4 @@ def test_atmenet_marad_a_hosszu_szinhez():
     naplo: list[str] = []
     n = lejatszik(T, w, "S", "H", [("W", lead)], vedo, naplo, cel=12)
     assert n >= 12, "\n".join(naplo)
-    assert any("átmenet marad" in x for x in naplo), "\n".join(naplo)
+    assert any("a terv átmenetét védi" in x for x in naplo), "\n".join(naplo)
