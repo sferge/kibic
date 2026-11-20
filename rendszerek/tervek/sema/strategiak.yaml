@@ -123,7 +123,10 @@
       # átmenetet, vagy nem is magas. A színkezelő elemzőnél a kezelés esélye a
       # megmaradó átmenetekkel; a többi egységnél a következő kör hívó kezének
       # elérhetősége. Pl.: A2 / KQ mellett a védő hívására a kéz az ásszal üti át a
-      # partner figuráját, és a kis lap megmarad átmenetnek. Forrás: BM A-2 #3.
+      # partner figuráját, és a kis lap megmarad átmenetnek. Második kézen is: ha a
+      # partner (negyedik kéz) is üthetne, de az ő nyerője a terv átmenete, mi ütünk
+      # (a védő treffhívására a kéz ♣A-ja, az asztal ♣KD-je a két impassz átmenete
+      # marad). Forrás: BM A-2 #3, #5.
       # Kód: Vegrehajto._atmenet_vedes; kapcsoló: KIBIC_K_ATMENET_VEDES.
     - szabaly: ADU_IGENY
       nev: "Az aduszín gondja csak az aduszínben oldható meg"
@@ -155,3 +158,16 @@
       # xxx, a kéz egy színben üres — az első lapot ellopjuk, az ászt lehívjuk, és
       # megállunk. Forrás: BM A-2 #4. Kód: Vegrehajto._adu_leallas;
       # kapcsoló: KIBIC_K_ADU_LEALLAS.
+    - szabaly: ATMENET_ELOSZTAS
+      nev: "Ha két kezelés ugyanazokra az átmenetekre számít, a terv osztja el őket"
+      # (a szerkesztő, 2026-11-20) A két színkezelés együttes esélye legyen a legnagyobb.
+      # Pl.: a pikk két impassza csak egyféleképpen oldható meg, és mindkét asztalra
+      # menetet igényli — az aduszín kezelésére nem marad asztalra menet, ott csak a
+      # kézből indított kezelés (az eltalálás) marad. Forrás: BM A-2 #5.
+      # Kód: Vegrehajto._atmenet_elosztas; kapcsoló: KIBIC_K_ATMENET_ELOSZTAS.
+    - szabaly: MAGAS_LOPAS
+      nev: "Magasan lopunk, ha felüllophatnak"
+      # Ha utánunk még védő jön, aki már kimutatott a színből (vagy alig van kint
+      # belőle), annyira magasan lopunk, hogy csak a természetes aduütései (a mi
+      # legnagyobb adunk fölötti lapjai) üthessék felül — azok úgyis ütnek.
+      # Kód: Vegrehajto._lopo_lap; kapcsoló: KIBIC_K_MAGAS_LOPAS.
