@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -961,10 +961,40 @@ class Vegrehajto:
                 egyedi.append(v)
         return egyedi
 
+    def _adu_leallas(self) -> bool:
+        """ADU_LEALLAS (általános szabály, a szerkesztő 2026-11-20, BM A-2 #4): nem
+        hívunk több adut, ha a védők maradék adui mind nagyobbak a mieinknél (minden
+        adukör csak kiadás, és két adunkba kerül), és beleférnek a kiadási keretbe a
+        többi vesztővel együtt. Ilyenkor a magas lapjainkat hívjuk, és hagyjuk, hogy
+        ellopják, amelyiket akarják: a védő minden aduja legfeljebb egy ütés, a mi
+        aduink pedig a lopatás ellen kellenek. ♠A5432 / ♠876, kint KQJT9: az ász után
+        megállunk."""
+        if not self.adu or not SZABALY["ADU_LEALLAS"]:
+            return False
+        j, adu = self.j, self.adu
+        kint = j.kint(adu)
+        if not kint:
+            return False
+        mi = [l for u in self._mi_kezek() for l in j.szin(u, adu)]
+        if not mi or max(l.rang for l in mi) > min(l.rang for l in kint):
+            return False                       # van még aduütésünk: azt le lehet hívni
+        fo = max(self._mi_kezek(), key=lambda u: len(j.szin(u, adu)))
+        P = j.partner(fo)
+        egyeb = 0
+        for sz in "SHDC":
+            if sz == adu:
+                continue
+            km = max((l.rang for l in j.kint(sz)), default=0)
+            felso = sum(1 for l in j.szin(fo, sz) + j.szin(P, sz) if l.rang > km)
+            egyeb += max(0, len(j.szin(fo, sz)) - felso)
+        return len(kint) + egyeb <= self._tartalek()
+
     def _adukor_jeloltek(self, H: str, ar: float) -> list["Jelolt"]:
         j, adu = self.j, self.adu
         P = j.partner(H)
         ki = []
+        if self._adu_leallas():
+            return ki
         sajat, par = j.szin(H, adu), j.szin(P, adu)
         if sajat and self._nyero(sajat[-1]):
             ki.append(Jelolt(sajat[-1], ar, f"adukör ({sajat[-1]})"))

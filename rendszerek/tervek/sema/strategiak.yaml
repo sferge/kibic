@@ -139,3 +139,12 @@
       # rövidebb kéz a nagy lapját adja, hogy a hosszú kéz lapjai ne ragadjanak be. Pl.:
       # Ax / KQJx — a védő hívására a rövid kéz az ászt teszi. Forrás: BM A-2 #4.
       # Kód: Vegrehajto._deblokk; kapcsoló: KIBIC_K_DEBLOKK.
+    - szabaly: ADU_LEALLAS
+      nev: "Nem aduzunk tovább, ha a védők adui beleférnek a keretbe"
+      # (a szerkesztő, 2026-11-20) Ha a védők maradék adui mind nagyobbak a mieinknél
+      # (minden további adukör csak kiadás, és két adunkba kerül), és a többi vesztővel
+      # együtt beleférnek a kiadási keretbe, nem hívunk több adut: a magas lapjainkat
+      # hívjuk, és hagyjuk, hogy ellopják, amelyiket akarják. A védő minden aduja
+      # legfeljebb egy ütés; a mi aduink a lopatás ellen kellenek. Pl.: Axxxx / xxx, a
+      # kéz egy színben üres — az első lapot ellopjuk, az ászt lehívjuk, és megállunk.
+      # Forrás: BM A-2 #4. Kód: Vegrehajto._adu_leallas; kapcsoló: KIBIC_K_ADU_LEALLAS.
