@@ -186,3 +186,17 @@
       # belőle), annyira magasan lopunk, hogy csak a természetes aduütései (a mi
       # legnagyobb adunk fölötti lapjai) üthessék felül — azok úgyis ütnek.
       # Kód: Vegrehajto._lopo_lap; kapcsoló: KIBIC_K_MAGAS_LOPAS.
+    - szabaly: KENYSZERHIVAS
+      nev: "Kényszerhívás: a bedobott védő hívására dob-lop, impasszba hívás, fagyott szín"
+      # (a szerkesztő, 2026-11-21; forrás: BM A-6 #1) A BEDOBAS technika (technikak.yaml)
+      # összeillesztési oldala. Ha a védő hív, és:
+      #   * mindkét kezünk üres a színben (eliminált szín) — DOB-LOP: az egyik kéz lop, a
+      #     másik egy vesztőt dob (a dobás +1 ütés);
+      #   * a színben villánk van (kétirányú villa, fagyott szín) — IMPASSZBA: második
+      #     kézben a legkisebb lap, negyedik kézben a legolcsóbb, amely üt (ha a partner
+      #     nem üt).
+      # A kényszerszín feltétele (tervbedobas.vedo_hivas_nyer): bárhogy oszlik el, és
+      # bármit hív és tesz a védő, így egy ütéssel többet viszünk a biztos ütéseinknél.
+      # Elimináció (tervbedobas.eliminalhato): tükörszín — a két kézben egyforma hosszú,
+      # és a nyerőink lehívásával mindkét kezünkből elfogy. Feltétel még: a kiaduzás
+      # után mindkét kezünkben marad adu.
