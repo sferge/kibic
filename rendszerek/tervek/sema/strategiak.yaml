@@ -198,8 +198,14 @@
       # A kényszerszín feltétele (tervbedobas.vedo_hivas_nyer): bárhogy oszlik el, és
       # bármit hív és tesz a védő, így egy ütéssel többet viszünk a biztos ütéseinknél.
       # Elimináció (tervbedobas.eliminalhato): tükörszín — a két kézben egyforma hosszú,
-      # és a nyerőink lehívásával mindkét kezünkből elfogy. Feltétel még: a kiaduzás
-      # után mindkét kezünkben marad adu.
+      # és a nyerőink lehívásával mindkét kezünkből elfogy. Lopással is (BM A-6 #2): az
+      # egyik kéz a nyerőkre követ, aztán a másik kéz maradékát lopja — ezt egy lopó
+      # egység (pl. ASZTALFORDITAS) végzi, a bedobás csak vele együtt jelölt. A bedobó
+      # színben a kiadások száma a rövidebb kéz vesztőinek száma (legfeljebb 2); ha a
+      # hosszabb kézben marad lap, a dobás abból megy (így a szín mindkét kézből elfogy,
+      # a védőnek nem marad biztonságos kijátszása). Fagyott szín: Dxx / Bxx — a
+      # kényszerszín feltétele rekurzív: amíg a védő üt, ő hív tovább. Feltétel még: a
+      # kiaduzás után legalább az egyik kezünkben marad adu.
     - szabaly: TERV_MEGTARTAS
       nev: "A terv addig marad, amíg nem borul"
       # (a szerkesztő, 2026-11-21) „Újratervezés kell(het), de csak akkor, ha borul a

@@ -405,3 +405,37 @@ def test_eliminacio_es_bedobas():
         naplo: list[str] = []
         n = lejatszik(T, w, "S", "S", [("W", lead)], vedo, naplo, cel=12)
         assert n >= 12, "\n".join(naplo)
+
+
+def test_fagyott_szin_kenyszerszin():
+    """A szerkesztő (2026-11-21, BM A-6 #2): fagyott szín — a két védtelen figura a két
+    kezünkben (Dxx / Bxx); aki meghívja, veszít egy ütést. A kétirányú villa is
+    kényszerszín; a teljes nyerőszín nem."""
+    from kibic.motor import tervbedobas as bd
+
+    def allas(S, N):
+        S_, N_ = _kez(S), _kez(N)
+        kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S_ - N_
+        return Allas(felvevo="S", adu="S", kezek={"S": S_, "N": N_}, kint=kint, cel=9, hatra=13, soron="S")
+    a = allas("AQ432.Q43.432.32", "K765.J65.65.AK4")
+    assert bd.vedo_hivas_nyer(a, "H")
+    b = allas("AKQJT.Q43.KJT.32", "98765.AK2.A98.AQ")
+    assert bd.vedo_hivas_nyer(b, "D") and not bd.vedo_hivas_nyer(b, "H")
+
+
+def test_asztalforditas_es_bedobas_lopott_eliminacioval():
+    """A szerkesztő (2026-11-21, minta: BM A-6 #2; saját leosztás): 3♠, ♣D indul. A
+    hosszú adus kéz (♠AK432) treffben szingli, az asztal ♣AK43: két lopás a hosszú
+    kézben — asztalfordítás. A treff így elfogy mindkét kézből (lopással eliminálva),
+    a káró a bedobó szín (két kiadás), a kőr fagyott kényszerszín. A bedobás csak a
+    lopó egységgel együtt jelölt."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    S, N = _kez("AK432.Q432.432.2"), _kez("Q765.J65.65.AK43")
+    lead = Lap.parse("CQ")
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S - N - {lead}
+    a = Allas(felvevo="S", adu="S", kezek={"S": set(S), "N": set(N)}, kint=kint, cel=9, hatra=13,
+              soron="N", kovetes={"S": "C", "N": "C"})
+    jel = tervjeloltek(a, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 13))
+    nevek = [" → ".join(p.rovid for p in t.lepesek) for t in jel]
+    assert any("asztalfordítás" in n and "♦ bedobás (kényszer: ♥)" in n for n in nevek), nevek
+    assert not any("bedobás" in n and "asztalfordítás" not in n for n in nevek), nevek
