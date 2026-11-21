@@ -182,7 +182,21 @@ def bedobo_kiad(a, sz: str) -> int:
     """A bedobó szín: a nyerőink lehívása után a rövidebb kezünk vesztőinek száma (ennyi
     kiadás után a rövidebb kéz üres). Ha a hosszabb kézben marad lap, azt a rövidebb kéz
     lopja, ha a védő meghívja (BM A-6 #2: ♦432 / ♦65 — két kiadás, a harmadik lopható)."""
-    if not a.adu or sz == a.adu:
+    if not a.adu:
+        return 0
+    if sz == a.adu:
+        # az aduszín a bedobó szín (BM A-6 #3: ♠AJxx / ♠KTxx, hiányzik a D): a felső
+        # aduk lehívása után egyetlen kint lévő adu áll a mieink fölött — az az egy kiadás
+        kint = [l.rang for l in a.kint_szin(sz)]
+        mi = sorted((l.rang for l in a.mi_szin(sz)), reverse=True)
+        if not kint or not mi:
+            return 0
+        f = max(kint)
+        felso = [r for r in mi if r > f]
+        alatta = [r for r in mi if r < f]
+        tobbi = sorted(kint, reverse=True)[1:]
+        if felso and alatta and (not tobbi or alatta[0] > tobbi[0]):
+            return 1
         return 0
     k1, k2 = a.kezek
     n1, n2 = len(_szin(a, k1, sz)), len(_szin(a, k2, sz))

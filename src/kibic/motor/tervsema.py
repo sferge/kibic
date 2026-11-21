@@ -290,6 +290,7 @@ def fogalmak(allas: Allas) -> dict:
         "rovid_adu_lopo": rovid_adu_lopo,
         "kint_db": lambda sz: len(a.kint_szin(sz)) if sz else 0,
         "adu": lambda: a.adu,
+        "min_adu": lambda: min(len(a.szin(k, a.adu)) for k in a.kezek) if a.adu else 0,
         "fele_felfele": lambda n: -(-n // 2),
         # a kéz lapjai a színben F alatt, felülről
         "kicsik_kezben": lambda kez, sz, f: [l for l in a.szin(kez, sz) if f is None or l.rang < f.rang] if kez else [],
@@ -494,8 +495,8 @@ class Peldany:
              "VESZTOCSERE": "vesztőcsere (dobás)",
              "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)",
              "LOPAS_ROVID_KIENGEDESSEL": "lopás a rövid kézben (kiengedéssel, a felső lap a végén)",
-             "BEDOBAS": "bedobás", "ASZTALFORDITAS": "asztalfordítás (lopás a hosszú adus kézben)"}.get(self.sema.azon, self.sema.azon)
-        if self.sema.azon == "BEDOBAS":
+             "BEDOBAS": "bedobás", "BEDOBAS_IMPASSZ": "impassz bedobással", "ASZTALFORDITAS": "asztalfordítás (lopás a hosszú adus kézben)"}.get(self.sema.azon, self.sema.azon)
+        if self.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ"):
             el = sorted({l.szin for l in self.szerepek.get("ELIM", [])}, key="SHDC".index)
             k = self.szerepek.get("K", [])
             resz = ([f"elimináció: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in el)}"] if el else []) + \
@@ -541,7 +542,11 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
                     lapok = _lapok(kifejezes(k.get("lap"), kor)) if k.get("lap") else []
                     if k["fajta"] == "lehiv" and len(lapok) > 1:
                         # a rövidebb kéz lapjai előbb (deblokkolás)
-                        lapok.sort(key=lambda l: (len(allas.szin(allas.keze(l), sz)), -l.rang))
+                        # színenként (a lista sorrendjében), azon belül a rövidebb kéz előbb
+                        elso = {}
+                        for l in lapok:
+                            elso.setdefault(l.szin, len(elso))
+                        lapok.sort(key=lambda l: (elso[l.szin], len(allas.szin(allas.keze(l), l.szin)), -l.rang))
                     for i in range(db):
                         lap_i = lapok[i] if i < len(lapok) else None
                         korok.append(Kor(k["fajta"], lap_i.szin if lap_i is not None else sz, lap=lap_i,

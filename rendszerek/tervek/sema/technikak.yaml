@@ -342,7 +342,13 @@
     # a lopással eliminálandó színek: a tervben egy lopó egységnek (pl. asztalfordítás)
     # kell előtte eltüntetnie őket (BM A-6 #2)
     LOPVA: "lopva_eliminalando(SZ)"
-  alkalmazhato: ["nem_adu(SZ)", "adu_marad()", "KIAD >= 1", "KIAD <= 2", "hossz(K) >= 1"]
+    # az aduszín a kiadó szín: a bedobás borulása (4-1) felismerhető — csak ilyenkor
+    # kaphat tartalékot a kényszerszín (BEDOBAS_TARTALEK)
+    ADUKIAD: "not nem_adu(SZ)"
+  # Az aduszín is lehet bedobó szín (BM A-6 #3): a kiaduzás a felső adukkal megáll, a
+  # kint maradt egyetlen nagyobb adut az elimináció után adjuk ki.
+  alkalmazhato: ["van(adu())", "KIAD >= 1", "KIAD <= 2", "hossz(K) >= 1",
+                 "ha(nem_adu(SZ), adu_marad(), KIAD == 1 and min_adu() >= hossz(NY) + KIAD + 1)"]
   korok:
     - {ismetles: "hossz(ELIM)", fajta: lehiv, lap: ELIM}
     - {ismetles: "hossz(NY)", fajta: lehiv, lap: NY}
@@ -385,3 +391,38 @@
   hozam: "R"
   hasznal: [NYERO]
   elfogyaszt: [NYERO]
+
+- technika: BEDOBAS_IMPASSZ
+  nev: "Impassz bedobással: elimináció után az impassz — ha nem sikerül, az ütő védő kényszerből hív"
+  # A szerkesztő (2026-11-21; forrás: BM A-6 #3). A többi mellékszín eliminálása után
+  # az impassz maga a bedobás: ha sikerül, megvan a plusz ütés; ha nem, a negyedik kéz
+  # védője üt, és kénytelen dob-lopot adni vagy a kényszerszínt (pl. kétirányú villa)
+  # meghívni. Az aduszínben is: AJxx / KTxx — a K lehívása, a mellékszínek
+  # eliminálása, aztán az adu-impassz; a védő a D-vel bedobva. Ilyenkor az egység a
+  # kiaduzás előtt jár (a kiaduzás nem ütheti ki idő előtt a hiányzó figurát).
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    V: "kozvetlen_alatta(SZ, F)"
+    VK: "keze(V)"
+    HK: "partner(VK)"
+    FELETTE: "felettunk_kezben(VK, SZ, F)"
+    DEBLOKK: "ha(kezhossz(HK, SZ) <= kezhossz(VK, SZ), felettunk_kezben(HK, SZ, F), [])"
+    ELIM: "eliminalo_lapok(SZ)"
+    K: "kenyszer_szinek(SZ)"
+    LOPVA: "lopva_eliminalando(SZ)"
+    ADUSZIN: "adu()"
+  alkalmazhato: ["van(adu())", "van(F)", "van(V)", "hossz(FELETTE) >= 1",
+                 "kezhossz(HK, SZ) > hossz(DEBLOKK)",
+                 "kezhossz(VK, SZ) > hossz(FELETTE) + hossz(DEBLOKK) or hossz(DEBLOKK) == 0",
+                 "hossz(K) >= 1", "hossz(LOPVA) == 0",
+                 "ha(nem_adu(SZ), adu_marad(), min(adu_kezben(VK), adu_kezben(HK)) >= hossz(DEBLOKK) + 2)"]
+  korok:
+    - {ismetles: "hossz(DEBLOKK)", fajta: lehiv, lap: DEBLOKK}
+    - {ismetles: "hossz(ELIM)", fajta: lehiv, lap: ELIM}
+    - {fajta: impassz, hivo: HK, lap: V}
+    - {ismetles: "hossz(FELETTE)", fajta: lehiv, lap: FELETTE, begyujtes: igen}
+  siker: "True"
+  kudarc_koltseg: 0
+  hozam: 1
+  hasznal: ["[V]", FELETTE, DEBLOKK, ELIM]
+  elfogyaszt: ["[V]", FELETTE, DEBLOKK, ELIM]

@@ -234,3 +234,13 @@
       # hívunk, amennyi a lopó kéz kiürítéséhez kell; a többi magas lapot (és rá a dobást)
       # az aduzás után, az utolsó lopás előtt — amíg az asztalon vagyunk.
       # Kód: Vegrehajto._atmenet_jeloltek; kapcsoló: KIBIC_K_ATMENET_ADUKOR.
+    - szabaly: BEDOBAS_TARTALEK
+      nev: "A bedobás tartaléka: a kényszerszín saját kezelése, ha a bedobás borul"
+      # (a szerkesztő, 2026-11-21, BM A-6 #3) A kényszerszín (pl. kétirányú villa) egysége
+      # a bedobás mögött várakozik: amíg a bedobás körei tartanak, nem nyúlunk a színhez;
+      # sikeres bedobás után elmarad (a színt a védő nyitja). Ha a kiadó szín az adu, és
+      # a felső aduk után egynél több adu maradt kint (4-1), a nyerő védő adut hívhat
+      # vissza — a bedobás borul, és a tartalék (pl. a ♦ impassz) indul. Ha a kiadandó
+      # vesztő eltűnik (a dáma leesett), nincs kiadás, a terv teljesült.
+      # Kód: Vegrehajto._bedobasra_var, _bedobas_borult, _bedobas_folosleges;
+      # kapcsoló: KIBIC_K_BEDOBAS_TARTALEK.
