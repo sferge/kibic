@@ -250,11 +250,18 @@
       # színben kötelezően teljesítendő ütésszám, N + M a szín hossza, és N-et úgy
       # választjuk, hogy P a legnagyobb legyen. Nem a legtöbb elérhető ütés a cél, hanem a
       # legnagyobb biztonság (csapatversenyen; párosversenyen más lehet a célfüggvény).
+      # CSAK ABBAN AZ ESETBEN érvényes, ha ez a teljesítés egyetlen feltétele: a többi
+      # színben nincs feladat (minden szín zárt, vagy a vesztőit egy ütközésmentes biztos
+      # egységkészlet — lopás, dobás — eltünteti; BM A-6 #4: a kézi ♦ vesztő a magas
+      # kőrre esik). Ha más színben is van feladat, kombinációs játék kell: a sémákat úgy
+      # kombináljuk, hogy egymás után végrehajthatók legyenek (az egyik sikere vagy
+      # kudarca ne befolyásolja a folytatást), és az esélyeik összeadódjanak — egyik
+      # szín sem rögzíthető a maximuma alatt.
       # Az aduszínben eddig csak a legszigorúbb cél volt jelölt (a biztos vesztőkkel): a
       # teljes kerettel számolt kezelés „nem hoz ütést” (a várható vesztők alatt marad),
       # ezért kimaradt, és az adut a kiaduzás egyszerű lehívása kezelte. Most a teljes
       # vesztéskeretű aduszín-kezelés is jelölt, ha a legrosszabb elosztás több vesztőt ad
       # a keretnél: ez véd meg tőle. Minta: ♠KB98 / ♠A432, hiányzik a D10765, egy vesztés
       # fér bele: a ♠8-at hívjuk, az asztal kicsit tesz — legfeljebb egy aduvesztő.
-      # Kód: szinkezeles_peldanyok, szinkezeles_peldany(biztonsagi); kapcsoló:
+      # Kód: _egyetlen_feladat, szinkezeles_peldanyok, szinkezeles_peldany(biztonsagi); kapcsoló:
       # KIBIC_K_BIZTONSAGI_KEZELES.

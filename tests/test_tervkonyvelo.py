@@ -550,3 +550,22 @@ def test_adu_biztonsagi_kezeles():
     n = lejatszik(terv, w, "S", "S", [("W", lead)],
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
     assert n >= 12, "\n".join(naplo)
+
+
+def test_biztonsagi_kezeles_csak_egyetlen_feladatnal():
+    """A szerkesztő (2026-11-21): a biztonsági kezelés csak akkor érvényes, ha a szín a
+    teljesítés egyetlen feltétele. Ha a ♦-ben is feladat van (nincs rá dobás, nincs
+    lopás), kombinációs játék kell: az aduszín nem rögzíthető a maximuma alatt."""
+    from kibic.motor import tervkonyvelo as tk
+
+    T = technikak_betoltese()
+
+    def allas(S, N, lead):
+        S_, N_ = _kez(S), _kez(N)
+        kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S_ - N_ - {Lap.parse(lead)}
+        return Allas(felvevo="S", adu="S", kezek={"S": S_, "N": N_}, kint=kint, cel=12, hatra=13,
+                     soron="N", kovetes={"S": lead[0], "N": lead[0]})
+    egy = allas("KJ98.K43.AK2.AK2", "A432.A2.QJT9.Q43", "HQ")     # a ♥ vesztő a ♦-re esik
+    ket = allas("KJ98.AK2.K43.AK2", "A432.QJT.952.Q43", "CJ")     # a ♦-ben is feladat van
+    assert tk._egyetlen_feladat(egy, T, "S", tk._felmeres(egy, (12, 13)))
+    assert not tk._egyetlen_feladat(ket, T, "S", tk._felmeres(ket, (12, 13)))

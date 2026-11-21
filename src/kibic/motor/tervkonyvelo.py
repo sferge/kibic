@@ -325,6 +325,35 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
                    {l for l in allas.kint_szin(sz)}, hozam)
 
 
+def _egyetlen_feladat(allas: Allas, technikak: dict, sz: str, fm) -> bool:
+    """BIZTONSAGI_KEZELES feltétele (a szerkesztő, 2026-11-21): a szín biztonsági
+    kezelése csak akkor érvényes, ha ez a teljesítés egyetlen feltétele — a többi
+    színben nincs feladat. Egy színben nincs feladat, ha nincs várható vesztője, vagy a
+    vesztőit biztos egység tünteti el (lopás abban a színben, dobás abból a színből: BM
+    A-6 #4, a kézi ♦ vesztő a magas kőrre esik). Különben kombinációs játék kell: egy
+    szín sem rögzíthető a maximuma alatt."""
+    from .tervsema import peldanyok as _pld
+    biztosak = [q for p in _pld(allas, technikak) for q in dobas_valtozatok(p, allas) if biztos_egyseg(q)]
+    tobbi = [x for x in fm.szinek if x.szin != sz and x.vesztok > 0.05]
+    if not tobbi:
+        return True
+    # a biztos egységek ütközésmentes készletei (mint a tervjelölteknél): elég, ha egy
+    # készlet minden más szín vesztőit eltünteti
+    for p0 in biztosak or [None]:
+        x = [p0] if p0 is not None else []
+        for q in biztosak:
+            if q is not p0 and not any(_utkozik(q, r) for r in x):
+                x.append(q)
+        fedett: dict[str, int] = {}
+        for q in x:
+            cel = q.szerepek.get("CELSZIN") if q.sema.azon == "VESZTOCSERE" else q.szin
+            if cel:
+                fedett[cel] = fedett.get(cel, 0) + q.hozam
+        if all(t.vesztok - fedett.get(t.szin, 0) <= 0.05 for t in tobbi):
+            return True
+    return False
+
+
 def szinkezeles_peldanyok(allas: Allas, technikak: dict, igeny: int,
                           ures: tuple[int, int] | None = None) -> list[Peldany]:
     """Az egyszínű elemző kezelései forrásként: színenként a cél k ütés (a biztosakon
@@ -347,7 +376,8 @@ def szinkezeles_peldanyok(allas: Allas, technikak: dict, igeny: int,
         keret = max(0, fm.megengedett - (fm.kiado - sf.kiado))
         if sz == allas.adu:
             celok = [(hossz - v, v) for v in range(sf.kiado, min(keret, sf.kiado + 2) + 1) if hossz - v > 0]
-            if SZABALY["BIZTONSAGI_KEZELES"] and keret > sf.kiado and hossz - keret > 0 and keret <= sf.kiado + 2:
+            if SZABALY["BIZTONSAGI_KEZELES"] and keret > sf.kiado and hossz - keret > 0 \
+                    and keret <= sf.kiado + 2 and _egyetlen_feladat(allas, technikak, sz, fm):
                 p = szinkezeles_peldany(allas, technikak, sz, hossz - keret, keret, ures, fm=fm, biztonsagi=True)
                 # csak ha érdemben biztonságosabb a szigorúbb céloknál (különben csak
                 # kiszorítaná a többi tervet az előszűrésből — 4A01 #1, 4Q01 #2)
