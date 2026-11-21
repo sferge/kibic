@@ -221,13 +221,16 @@
       # eltér a tervtől, vagy egy egység elakad.
       # Kód: tervmuhely.terv_esely_most, terv_borult; kapcsoló: KIBIC_K_TERV_MEGTARTAS.
     - szabaly: ATMENET_ADUKOR
-      nev: "Aduval átmenve előbb egy magas adu a kézből"
+      nev: "Az utolsó (adu)átmenet előtt annyi magas adu a kézből, amennyit a terv elbír"
       # (a szerkesztő, 2026-11-21, BM A-6 #2) A sémák összeillesztése a kockázatok
-      # (felüllopás, ellopás) legkisebbre csökkentésével. Ha a partnerhez aduval megyünk
-      # át, előbb egy magas adut hívunk a kézből, aztán a partner magas adujához megyünk:
-      # így az átmenet két adukör. Csak ha a kézben marad még nyerő adu, és a kéz
-      # lopásaira szánt adui is megmaradnak. Ugyanez az elv az ASZTALFORDITAS köreiben: a
-      # lopás előtt csak annyi magas lapot hívunk, amennyi a lopó kéz kiürítéséhez kell; a
-      # többi magas lapot (és rá a dobást) az aduzás után, az utolsó lopás előtt — amíg az
-      # asztalon vagyunk.
+      # (felüllopás, ellopás) legkisebbre csökkentésével. A szabály akkor fontos, ha az
+      # aduval való átmenet az utolsó lehetőség a partnerhez (nincs más átmenet a terv
+      # végrehajtásához). Ilyenkor előbb annyi magas adut hívunk a kézből, amennyi a terv
+      # végrehajtását nem veszélyezteti: a kézben megmarad a lopásaira szánt adu, és ha a
+      # terv bedobással zárul, még egy — különben nem marad dob-lop fenyegetés (BM A-6 #2:
+      # három adukör és két lopás után a hosszú adus kézben minden adu elfogyna). (A 12:07-es
+      # első változat merev volt: „egy magas adu, ha még marad nyerő adu és lopás jön”.)
+      # Ugyanez az elv az ASZTALFORDITAS köreiben: a lopás előtt csak annyi magas lapot
+      # hívunk, amennyi a lopó kéz kiürítéséhez kell; a többi magas lapot (és rá a dobást)
+      # az aduzás után, az utolsó lopás előtt — amíg az asztalon vagyunk.
       # Kód: Vegrehajto._atmenet_jeloltek; kapcsoló: KIBIC_K_ATMENET_ADUKOR.

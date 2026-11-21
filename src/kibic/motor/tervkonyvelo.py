@@ -1340,6 +1340,7 @@ class Vegrehajto:
             if k is not None and k.fajta == "lehiv" and k.lap is not None and j_keze(j, k.lap) == R:
                 kesobbi[k.lap] = e
         ki = []
+        adu_atmenet = None
         for sz in "SHDC":
             hl = j.szin(H, sz)
             if not hl:
@@ -1368,17 +1369,8 @@ class Vegrehajto:
                     ar += 3
                 leiras = f"átmenet {w}" + (f" — egyben {kesobbi[w].p.rovid} köre (közös lap)" if w in kesobbi else "")
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, leiras, {R: ("lap", w)}))
-                if sz == adu and SZABALY["ATMENET_ADUKOR"] and kint_adu and any(
-                        e.el and any(k.fajta == "lop" for k in e.p.korok[e.i:]) for e in self.egysegek):
-                    # ATMENET_ADUKOR (a szerkesztő, BM A-6 #2): aduval átmenve előbb egy
-                    # magas adut hívunk a kézből — így az átmenet két adukör, a felüllopás
-                    # veszélye kisebb (ha még lopás jön; különben a magas adu egy későbbi
-                    # átmenet lehet — 4F01 #1). Csak ha a kézben marad még nyerő adu, és a lopásokra
-                    # szánt adu is megmarad.
-                    ny_h = [l for l in hl if self._nyero(l)]
-                    if len(ny_h) >= 2 and len(hl) - 2 >= self._lopas_igeny(H):
-                        ki.append(Jelolt(ny_h[-1], ar0 + (ar + hivo_ar) / 10 - 0.05,
-                                         f"átmenet előtt egy magas adu a kézből ({ny_h[-1]})"))
+                if sz == adu:
+                    adu_atmenet = (hivo[0], w)
             elif not rl and sz != adu and adu and j.szin(R, adu) \
                     and len(j.szin(R, adu)) > self._lopas_igeny(R):
                 hivo = [l for l in hl if l not in fogl] or hl
@@ -1388,6 +1380,20 @@ class Vegrehajto:
                 ar = 0 if kint_adu == 0 else (1 if all(l.rang > felul for l in j.szin(R, adu)) else 3)
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, f"átmenet lopással ({SZINJEL[sz]})",
                                  {R: ("lop",)}))
+        if adu_atmenet is not None and SZABALY["ATMENET_ADUKOR"] and kint_adu \
+                and not any(x.lap.szin != adu for x in ki):
+            # ATMENET_ADUKOR (a szerkesztő, BM A-6 #2, 12:45): ha az aduval való átmenet
+            # az utolsó lehetőség a partnerhez, előbb annyi magas adut hívunk a kézből,
+            # amennyi a terv végrehajtását nem veszélyezteti: a kézben maradjon meg a
+            # lopásaira szánt adu, és — ha a terv bedobással (dob-lop) zárul — még egy.
+            hl = j.szin(H, adu)
+            tartalek = self._lopas_igeny(H) + (1 if any(
+                e.el and e.p.sema.azon == "BEDOBAS" for e in self.egysegek) else 0)
+            ny_h = [l for l in hl if self._nyero(l) and l != adu_atmenet[0]]
+            if ny_h and len(hl) - 1 - 1 >= tartalek:
+                elso = min((x.ar for x in ki if x.lap.szin == adu), default=ar0)
+                ki.append(Jelolt(ny_h[-1], elso - 0.005,
+                                 f"az utolsó átmenet (adu) előtt egy magas adu a kézből ({ny_h[-1]})"))
         return ki
 
     def _begyujtes_jeloltek(self, H: str, ar: float) -> list["Jelolt"]:
