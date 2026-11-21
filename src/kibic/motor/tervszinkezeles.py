@@ -15,8 +15,9 @@ A modell (a szokásos egyszínű elemzés):
     (az ELLOPÁS a tervező általános szabálya);
   - a felvevő döntései CSAK a látott lapokon múlnak: a lehetséges védőlapok
     halmazán (információs halmaz) választ, a megfigyelt lapok szerint ágazva;
-  - a védők a felvevő célja ellen játszanak, mindent látva (egyenlőségnél a
-    felvevő DD-ütéseit csökkentik, aztán a legkisebb lapot teszik);
+  - a védők a felvevő célja ellen játszanak, mindent látva; az egyformán jó lapjaik
+    közül azt teszik, amelyet a lehetséges tartások közül a legtöbben (súly szerint)
+    tehetnek — nem adnak ingyen információt (REJTOZKODO_VEDO, 2026-11-21);
   - a védők lapjainak súlya a szabad helyekből (alapból 13–13, a priori).
 
 A lapok rangszámok (A=14 … 2=2); a lopás lapja LOP.
@@ -156,14 +157,15 @@ def _dd_rek(X, Y, V1, V2, rx, ry, sorrend, utes) -> int:
     return max(vals) if u in MI else min(vals)
 
 
-def vedo_lap(kezek: dict, lop: dict, sorrend, utes, k: int, m: int):
-    """A soron lévő védő lapja: a felvevő célja ellen; egyenlőségnél a DD-ütés
-    ellen; aztán a legkisebb lap."""
+def vedo_lapok(kezek: dict, lop: dict, sorrend, utes, k: int, m: int) -> tuple:
+    """A soron lévő védő célszerű lapjai: a felvevő célja ellen egyformán jók (a
+    mindent látó felvevő elleni cél és vesztésszám szerint). Az első a modell
+    választása (egyenlőségnél a DD-ütés ellen, aztán a legkisebb lap)."""
     u = sorrend[len(utes)]
     if not kezek[u]:
-        return None
+        return (None,)
     X, Y, V1, V2 = kezek["X"], kezek["Y"], kezek["V1"], kezek["V2"]
-    legjobb, lap = None, None
+    ertek = []
     for c in sorted(kezek[u]):
         uj = tuple(utes) + ((u, c),)
         cel = _cel_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj, k, m)
@@ -175,9 +177,37 @@ def vedo_lap(kezek: dict, lop: dict, sorrend, utes, k: int, m: int):
              # a negyedik kéz elviszi az ütést, ha teheti (és a fentiek szerint mindegy)
              0 if len(uj) == 4 and _biztos_viszi(kezek, lop, sorrend, uj) else 1,
              _dd_rek(X, Y, V1, V2, lop["X"], lop["Y"], tuple(sorrend), uj))
-        if legjobb is None or v < legjobb:
-            legjobb, lap = v, c
-    return lap
+        ertek.append((v, c))
+    legjobb = min(ertek)
+    egyenlo = [c for v, c in ertek if v[:2] == legjobb[0][:2] and c != legjobb[1]]
+    return (legjobb[1],) + tuple(egyenlo)
+
+
+def vedo_lap(kezek: dict, lop: dict, sorrend, utes, k: int, m: int):
+    """A soron lévő védő lapja: a felvevő célja ellen; egyenlőségnél a DD-ütés
+    ellen; aztán a legkisebb lap."""
+    return vedo_lapok(kezek, lop, sorrend, utes, k, m)[0]
+
+
+# REJTOZKODO_VEDO (a szerkesztő, 2026-11-21, BM A-11): a védő az egyformán jó lapjai
+# közül nem ad ingyen információt. A determinisztikus választás (mindig a legkisebb)
+# elárulná a tartást: ♦DB2 / ♦K9876 mellett a ♦B-re Nyugat ♦Á10-ből a 10-est, szingli
+# ászból az ászt tenné — a valódi védő ♦Á10-ből is az ászt teszi. A védő azt a lapot
+# választja, amelyet a lehetséges tartások közül a legtöbben (súly szerint) tehetnek:
+# így a felvevő információs halmazai nem esnek szét a modell kedvéért.
+REJTOZKODO_VEDO = True
+
+
+def vedo_csoportok(opciok: list, sulyok: list) -> list:
+    """`opciok[j]`: a j. tartás célszerű lapjai (az első a modell választása);
+    visszaadja tartásonként a választott lapot."""
+    if not REJTOZKODO_VEDO:
+        return [o[0] for o in opciok]
+    nep: dict = {}
+    for o, w in zip(opciok, sulyok):
+        for c in o:
+            nep[c] = nep.get(c, 0.0) + w
+    return [o[0] if len(o) == 1 else max(o, key=lambda c: (nep[c], c == o[0])) for o in opciok]
 
 
 def _biztos_viszi(kezek: dict, lop: dict, sorrend, utes) -> bool:
@@ -359,11 +389,14 @@ class Elemzo:
         X, Y, rx, ry = allapot[:4]
         sorrend = SORREND[hivo]
         lop = {"X": rx, "Y": ry}
-        csop2: dict = {}
+        opc = []
         for j, i in enumerate(idx):
             v1, v2 = maradek[j]
             kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-            csop2.setdefault(vedo_lap(kezek, lop, sorrend, [(hivo, c)], k, m), []).append(j)
+            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c)], k, m))
+        csop2: dict = {}
+        for j, l2 in enumerate(vedo_csoportok(opc, [self.tart[i][2] for i in idx])):
+            csop2.setdefault(l2, []).append(j)
         return csop2
 
     def _utes(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, kulcs):
@@ -416,10 +449,12 @@ class Elemzo:
         legjobb, c3_best, volt = (0.0, frozenset()), None, False
         for c3 in _lehetosegek(kezek0, harmadik, lop):
             csop4: dict = {}
+            opc = []
             for j in js:
                 v1, v2 = maradek[j]
                 kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-                l4 = vedo_lap(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m)
+                opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m))
+            for j, l4 in zip(js, vedo_csoportok(opc, [self.tart[idx[j]][2] for j in js])):
                 csop4.setdefault(l4, []).append(j)
             w, s = 0.0, frozenset()
             for l4, js4 in csop4.items():
@@ -496,10 +531,12 @@ class Elemzo:
         for l2, js in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
             c3 = self.harmadik.get((kulcs, hivo, c, l2))
             csop4: dict = {}
+            opc = []
             for j in js:
                 v1, v2 = maradek[j]
                 kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-                l4 = vedo_lap(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m)
+                opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m))
+            for j, l4 in zip(js, vedo_csoportok(opc, [self.tart[idx[j]][2] for j in js])):
                 csop4.setdefault(l4, []).append(j)
             for l4, js4 in csop4.items():
                 utes = ((hivo, c), (sorrend[1], l2), (harmadik, c3), (sorrend[3], l4))

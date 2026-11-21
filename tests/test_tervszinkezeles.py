@@ -43,3 +43,28 @@ def test_elbukott_cel_utan_abbahagyja():
     # (néhány tartásnál a vesztés még a kudarc kiderülése előtt jön — az elkerülhetetlen)
     assert sum(1 for k in ot_harom if k.vesztes == 0) >= 0.9 * len(ot_harom)
     assert all(k.utes == 2 for k in ot_harom)
+
+
+def test_rejtozkodo_vedo_nem_ad_ingyen_informaciot():
+    """A szerkesztő (2026-11-21, BM A-11): ♦DB2 / ♦K9876, hiányzik az Á10543, 3 ütés
+    legfeljebb 1 vesztéssel. A ♦B a kézből és a kicsi az asztalról egyformán jó: a
+    determinisztikus védőmodell (mindig a legkisebb egyformán jó lap) ♦Á10-ből a
+    ♦B-re a 10-est tette, szingli ászból az ászt — ez ingyen információ volt, és a ♦B
+    3 ponttal jobbnak látszott."""
+    from kibic.motor.tervszinkezeles import vedo_csoportok
+    from kibic.motor.tervszinpolitika import SzinPolitika
+
+    # a népszerűbb (több tartásban tehető) lapot választja az, akinek mindegy
+    assert vedo_csoportok([(14,), (10, 14)], [1.0, 1.0]) == [14, 14]
+    p = SzinPolitika(frozenset({12, 11, 2}), frozenset({13, 9, 8, 7, 6}),
+                     frozenset({14, 10, 5, 4, 3}), 12, 12, 3, 1)
+    el = p.el
+    allapot, idx, l1, l2, k, m = p.node
+    ossz = sum(el.tart[i][2] for i in idx)
+    maradek = [(el.tart[i][0] - l1[j], el.tart[i][1] - l2[j]) for j, i in enumerate(idx)]
+    kint = frozenset().union(*[a | b for a, b in maradek])
+    ert = {}
+    for hivo, c, nbx, nby in el._hivasok(allapot, kint):
+        ert[(hivo, c)] = el._utes(allapot, nbx, nby, idx, l1, l2, k, m, hivo, c, maradek, ("x", hivo, c))[0] / ossz
+    assert abs(ert[("X", 11)] - ert[("Y", 6)]) < 0.005
+    assert ert[("X", 11)] > ert[("X", 2)] + 0.1
