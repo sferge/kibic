@@ -47,7 +47,7 @@ from ..domain.kartya import Kez
 from ..motor import lejatszas as lj
 from ..motor import tervjatszo as tj
 from ..motor.tervellenorzo import vilagok
-from ..motor.tervkonyvelo import Eredmeny, KTerv, Vegrehajto, ertekel_lepcsos, lejatszik, tervjeloltek
+from ..motor.tervkonyvelo import Eredmeny, KTerv, Vegrehajto, ertekel_lepcsos, lejatszik, szabad_helyek, tervjeloltek
 from ..motor.tervsema import Allas, technikak_betoltese
 from ..motor.tervszamolo import Korlat
 
@@ -172,7 +172,7 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
     from ..motor.tervkonyvelo import szinkezeles_peldany
     allas0, _ = _allas(h, lejatszott)
     b1, b2 = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
-    ures0 = tuple(13 - sum(1 for u, _ in lejatszott if u == v) for v in (b1, b2))
+    ures0 = szabad_helyek(lejatszott, b1, b2)
     elemzos: dict = {}
 
     def elemzo_egyseg(sz, k, m):
@@ -336,7 +336,7 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     cel = 6 + h.kontraktus.szint
     allas, kint = _allas(h, h.lejatszott)
     v1_, v2_ = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
-    ures = tuple(13 - sum(1 for u, _ in h.lejatszott if u == v) for v in (v1_, v2_))
+    ures = szabad_helyek(h.lejatszott, v1_, v2_)
     tervek = tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=igeny(h, h.lejatszott), ures=ures,
                           max_szim=SZIM_TERV)
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
@@ -602,7 +602,7 @@ def _forrasok(h: Helyzet, rek: Rekord):
     from ..motor.tervkonyvelo import szinkezeles_peldanyok
     allas, kint = _allas(h, rek.lejatszott)
     v1, v2 = h.vedok
-    ures = {u: 13 - sum(1 for uu, _ in rek.lejatszott if uu == u) for u in (v1, v2)}
+    ures = dict(zip((v1, v2), szabad_helyek(rek.lejatszott, v1, v2)))
     ki = forrasok(allas, technikak_betoltese(), ures, _szinhianyok(rek.lejatszott, h.vedok))
     b1, b2 = kovetkezo_ules(h.felvevo, 1), kovetkezo_ules(h.felvevo, 3)
     for p in szinkezeles_peldanyok(allas, technikak_betoltese(), rek.terv.igeny,
