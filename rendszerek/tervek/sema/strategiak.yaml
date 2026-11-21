@@ -220,3 +220,14 @@
       # elemzős színt és a biztos egységet.) Változatlanul új terv jön, ha a mi oldalunk
       # eltér a tervtől, vagy egy egység elakad.
       # Kód: tervmuhely.terv_esely_most, terv_borult; kapcsoló: KIBIC_K_TERV_MEGTARTAS.
+    - szabaly: ATMENET_ADUKOR
+      nev: "Aduval átmenve előbb egy magas adu a kézből"
+      # (a szerkesztő, 2026-11-21, BM A-6 #2) A sémák összeillesztése a kockázatok
+      # (felüllopás, ellopás) legkisebbre csökkentésével. Ha a partnerhez aduval megyünk
+      # át, előbb egy magas adut hívunk a kézből, aztán a partner magas adujához megyünk:
+      # így az átmenet két adukör. Csak ha a kézben marad még nyerő adu, és a kéz
+      # lopásaira szánt adui is megmaradnak. Ugyanez az elv az ASZTALFORDITAS köreiben: a
+      # lopás előtt csak annyi magas lapot hívunk, amennyi a lopó kéz kiürítéséhez kell; a
+      # többi magas lapot (és rá a dobást) az aduzás után, az utolsó lopás előtt — amíg az
+      # asztalon vagyunk.
+      # Kód: Vegrehajto._atmenet_jeloltek; kapcsoló: KIBIC_K_ATMENET_ADUKOR.

@@ -361,17 +361,25 @@
   # fejezzük be, és a „rövid aduból lopás” igazzá válik. Feltétele, hogy M adui is
   # elegendők a kiaduzáshoz. A fő kéz így M: minden lopás egy M-vesztőt tüntet el.
   # Minta: Axxxx adu / ♣x szingli a hosszú adus kézben; Kxxx adu / ♣AKxx az asztalon.
+  # A szerkesztő (12:07): a lopáshoz csak annyi magas lapot hívunk, amennyi L kiürítéséhez
+  # kell; a többi nyerőt (és rá a dobást) a kiaduzás egy-két köre után, az utolsó lopás
+  # előtt hívjuk — amíg az asztalon vagyunk, de már nem lophatják el (felüllopás,
+  # ellopás kockázata a legkisebb).
   szerepek:
     L: "hosszu_adus_kez()"
     M: "partner(L)"
     NYERO: "nyerok_kezben(M, SZ)"
+    NYK: "elejen(NYERO, kezhossz_k(L, SZ))"
+    NYU: "kihagy(NYERO, kezhossz_k(L, SZ))"
     R: "kezhossz(M, SZ) - hossz(NYERO)"
   alkalmazhato: ["nem_adu(SZ)", "van(L)", "kezhossz(L, SZ) <= hossz(NYERO)", "R >= 1",
                  "R >= adu_kezben(L) - adu_kezben(M) + 1", "adu_kezben(L) >= R + 1",
                  "adu_kezben(M) >= kint_db(adu()) - 1"]
   korok:
-    - {ismetles: "hossz(NYERO)", fajta: lehiv, lap: NYERO}
-    - {ismetles: "R", fajta: lop, hivo: M, lopo: L}
+    - {ismetles: "hossz(NYK)", fajta: lehiv, lap: NYK}
+    - {ismetles: "R - 1", fajta: lop, hivo: M, lopo: L}
+    - {ismetles: "hossz(NYU)", fajta: lehiv, lap: NYU}
+    - {ismetles: "1", fajta: lop, hivo: M, lopo: L}
   siker: "True"
   kudarc_koltseg: 0
   hozam: "R"

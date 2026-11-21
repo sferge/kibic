@@ -439,3 +439,38 @@ def test_asztalforditas_es_bedobas_lopott_eliminacioval():
     nevek = [" → ".join(p.rovid for p in t.lepesek) for t in jel]
     assert any("asztalfordítás" in n and "♦ bedobás (kényszer: ♥)" in n for n in nevek), nevek
     assert not any("bedobás" in n and "asztalfordítás" not in n for n in nevek), nevek
+
+
+def test_asztalforditas_sorrend_kockazat_szerint():
+    """A szerkesztő (2026-11-21, 12:07; minta: BM A-6 #2, saját leosztás): a lopás
+    előtt csak egy magas treff; egy magas adu a kézből, aztán aduval az asztalra; a
+    másik magas treff (rá a dobás) két adukör után; csak utána a második lopás; végül a
+    kárókiadás."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("AK432.Q432.432.2"), "N": _kez("Q765.J65.65.AK43"),
+         "W": _kez("J9.AT9.KQJ7.QJ98"), "E": _kez("T8.K87.AT98.T765")}
+    lead = Lap.parse("CQ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=9, hatra=13, soron="N", kovetes={"S": "C", "N": "C"})
+    nev = "♣ asztalfordítás (lopás a hosszú adus kézben) → kiaduzás → ♦ bedobás (kényszer: ♥)"
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(3, "S", "", "S")
+    jk: list = []
+    lejatszik(T, w, "S", "S", [("W", lead)], lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)),
+              [], cel=9, jatek_ki=jk)
+    mi = [(u, str(l)) for u, l in jk[0].lapok[:28] if u in "NS"]
+    # 1. ♣ nyerő; 2. ♣ lopás; 3. ♠A a kézből; 4. ♠ az asztal ♠D-jéhez; 5. ♣ nyerő + ♦ dobás;
+    # 6. ♣ lopás; 7. kárókiadás
+    assert mi[0][1][0] == "C" and mi[2] == ("N", "C3") and mi[3][1][0] == "S", mi
+    assert mi[4] == ("S", "SA") and mi[7] == ("N", "SQ"), mi
+    assert mi[8][1][0] == "C" and mi[9][1][0] == "D", mi
+    assert mi[10] == ("N", "C4") and mi[11][1][0] == "S", mi
+    assert mi[12][1][0] == "D", mi

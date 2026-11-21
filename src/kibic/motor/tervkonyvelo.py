@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -1368,6 +1368,17 @@ class Vegrehajto:
                     ar += 3
                 leiras = f"átmenet {w}" + (f" — egyben {kesobbi[w].p.rovid} köre (közös lap)" if w in kesobbi else "")
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, leiras, {R: ("lap", w)}))
+                if sz == adu and SZABALY["ATMENET_ADUKOR"] and kint_adu and any(
+                        e.el and any(k.fajta == "lop" for k in e.p.korok[e.i:]) for e in self.egysegek):
+                    # ATMENET_ADUKOR (a szerkesztő, BM A-6 #2): aduval átmenve előbb egy
+                    # magas adut hívunk a kézből — így az átmenet két adukör, a felüllopás
+                    # veszélye kisebb (ha még lopás jön; különben a magas adu egy későbbi
+                    # átmenet lehet — 4F01 #1). Csak ha a kézben marad még nyerő adu, és a lopásokra
+                    # szánt adu is megmarad.
+                    ny_h = [l for l in hl if self._nyero(l)]
+                    if len(ny_h) >= 2 and len(hl) - 2 >= self._lopas_igeny(H):
+                        ki.append(Jelolt(ny_h[-1], ar0 + (ar + hivo_ar) / 10 - 0.05,
+                                         f"átmenet előtt egy magas adu a kézből ({ny_h[-1]})"))
             elif not rl and sz != adu and adu and j.szin(R, adu) \
                     and len(j.szin(R, adu)) > self._lopas_igeny(R):
                 hivo = [l for l in hl if l not in fogl] or hl
