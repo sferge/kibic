@@ -198,8 +198,14 @@
       # A kényszerszín feltétele (tervbedobas.vedo_hivas_nyer): bárhogy oszlik el, és
       # bármit hív és tesz a védő, így egy ütéssel többet viszünk a biztos ütéseinknél.
       # Elimináció (tervbedobas.eliminalhato): tükörszín — a két kézben egyforma hosszú,
-      # és a nyerőink lehívásával mindkét kezünkből elfogy. Feltétel még: a kiaduzás
-      # után mindkét kezünkben marad adu.
+      # és a nyerőink lehívásával mindkét kezünkből elfogy. Lopással is (BM A-6 #2): az
+      # egyik kéz a nyerőkre követ, aztán a másik kéz maradékát lopja — ezt egy lopó
+      # egység (pl. ASZTALFORDITAS) végzi, a bedobás csak vele együtt jelölt. A bedobó
+      # színben a kiadások száma a rövidebb kéz vesztőinek száma (legfeljebb 2); ha a
+      # hosszabb kézben marad lap, a dobás abból megy (így a szín mindkét kézből elfogy,
+      # a védőnek nem marad biztonságos kijátszása). Fagyott szín: Dxx / Bxx — a
+      # kényszerszín feltétele rekurzív: amíg a védő üt, ő hív tovább. Feltétel még: a
+      # kiaduzás után legalább az egyik kezünkben marad adu.
     - szabaly: TERV_MEGTARTAS
       nev: "A terv addig marad, amíg nem borul"
       # (a szerkesztő, 2026-11-21) „Újratervezés kell(het), de csak akkor, ha borul a
@@ -214,3 +220,14 @@
       # elemzős színt és a biztos egységet.) Változatlanul új terv jön, ha a mi oldalunk
       # eltér a tervtől, vagy egy egység elakad.
       # Kód: tervmuhely.terv_esely_most, terv_borult; kapcsoló: KIBIC_K_TERV_MEGTARTAS.
+    - szabaly: ATMENET_ADUKOR
+      nev: "Aduval átmenve előbb egy magas adu a kézből"
+      # (a szerkesztő, 2026-11-21, BM A-6 #2) A sémák összeillesztése a kockázatok
+      # (felüllopás, ellopás) legkisebbre csökkentésével. Ha a partnerhez aduval megyünk
+      # át, előbb egy magas adut hívunk a kézből, aztán a partner magas adujához megyünk:
+      # így az átmenet két adukör. Csak ha a kézben marad még nyerő adu, és a kéz
+      # lopásaira szánt adui is megmaradnak. Ugyanez az elv az ASZTALFORDITAS köreiben: a
+      # lopás előtt csak annyi magas lapot hívunk, amennyi a lopó kéz kiürítéséhez kell; a
+      # többi magas lapot (és rá a dobást) az aduzás után, az utolsó lopás előtt — amíg az
+      # asztalon vagyunk.
+      # Kód: Vegrehajto._atmenet_jeloltek; kapcsoló: KIBIC_K_ATMENET_ADUKOR.
