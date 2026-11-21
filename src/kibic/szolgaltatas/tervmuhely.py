@@ -179,7 +179,9 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         kulcs = (sz, k, m)
         if kulcs not in elemzos:
             elemzos[kulcs] = szinkezeles_peldany(allas0, technikak_betoltese(), sz, k, m, ures0,
-                                                 esely_min=-1)
+                                                 esely_min=-1) \
+                or szinkezeles_peldany(allas0, technikak_betoltese(), sz, k, m, ures0,
+                                       esely_min=-1, biztonsagi=True)   # a biztonsági kezelés
         return elemzos[kulcs]
 
     ig = adat["terv"].get("igeny", 1)

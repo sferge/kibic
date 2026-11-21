@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -263,7 +263,7 @@ def atmenet_szam(kezek: dict, F: str, A: str, kint: list, sz: str) -> tuple[int,
 
 def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
                         ures: tuple[int, int] | None = None, esely_min: float = 0.01,
-                        fm=None) -> Peldany | None:
+                        fm=None, biztonsagi: bool = False) -> Peldany | None:
     """Egy elemzős színkezelési egység (a szín, a cél: k ütés, legfeljebb m vesztés)."""
     from .tervszinpolitika import SzinPolitika
     sema = technikak.get("SZINKEZELES")
@@ -311,6 +311,11 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
             # elosztás több vesztőt ad, ez véd meg tőle — jelölt marad (a többi m-nél nem:
             # azok kiszorították a jobb terveket, 4A01 #1)
             hozam = 1
+        if hozam <= 0 and biztonsagi and sf.vesztok_max > m:
+            # BIZTONSAGI_KEZELES (a szerkesztő, 2026-11-21, BM A-6 #4): a szín biztonsági
+            # kezelése — a kötelező ütésszám a teljes vesztéskerettel, a legnagyobb
+            # biztonságra (nem a legtöbb ütésre): a legrosszabb elosztás vesztőitől véd
+            hozam = 1
     if hozam <= 0:
         # (többlet nélküli aduszín-egységgel próbálva — BM A-2 #4 — nem segített, és a
         # jelöltszűrésből kiszorította a jobb terveket: a kiaduzás marad)
@@ -342,6 +347,16 @@ def szinkezeles_peldanyok(allas: Allas, technikak: dict, igeny: int,
         keret = max(0, fm.megengedett - (fm.kiado - sf.kiado))
         if sz == allas.adu:
             celok = [(hossz - v, v) for v in range(sf.kiado, min(keret, sf.kiado + 2) + 1) if hossz - v > 0]
+            if SZABALY["BIZTONSAGI_KEZELES"] and keret > sf.kiado and hossz - keret > 0 and keret <= sf.kiado + 2:
+                p = szinkezeles_peldany(allas, technikak, sz, hossz - keret, keret, ures, fm=fm, biztonsagi=True)
+                # csak ha érdemben biztonságosabb a szigorúbb céloknál (különben csak
+                # kiszorítaná a többi tervet az előszűrésből — 4A01 #1, 4Q01 #2)
+                p_szig = [szinkezeles_peldany(allas, technikak, sz, hossz - v, v, ures, fm=fm, esely_min=-1)
+                          for v in range(sf.kiado, keret) if hossz - v > 0]
+                e_szig = max((float(q.szerepek.get("esely", 0)) for q in p_szig if q is not None), default=0.0)
+                if p is not None and float(p.szerepek.get("esely", 0)) >= e_szig + 0.10:
+                    ki.append(p)
+                celok = [c for c in celok if c != (hossz - keret, keret)]
         else:
             # a keret két határa: a többi szín biztos kiadása után maradó (óvatos), és a
             # teljes megengedett kiadás — a „biztosan kiadó” vesztő nem mindig kiadó: a

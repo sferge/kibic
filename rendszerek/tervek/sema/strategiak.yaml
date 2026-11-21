@@ -244,3 +244,17 @@
       # vesztő eltűnik (a dáma leesett), nincs kiadás, a terv teljesült.
       # Kód: Vegrehajto._bedobasra_var, _bedobas_borult, _bedobas_folosleges;
       # kapcsoló: KIBIC_K_BEDOBAS_TARTALEK.
+    - szabaly: BIZTONSAGI_KEZELES
+      nev: "A szín biztonsági kezelése: a kötelező ütésszám a teljes vesztéskerettel, a legnagyobb biztonságra"
+      # (a szerkesztő, 2026-11-21, BM A-6 #4) „N kiadóval M ütés P valószínűséggel”: M a
+      # színben kötelezően teljesítendő ütésszám, N + M a szín hossza, és N-et úgy
+      # választjuk, hogy P a legnagyobb legyen. Nem a legtöbb elérhető ütés a cél, hanem a
+      # legnagyobb biztonság (csapatversenyen; párosversenyen más lehet a célfüggvény).
+      # Az aduszínben eddig csak a legszigorúbb cél volt jelölt (a biztos vesztőkkel): a
+      # teljes kerettel számolt kezelés „nem hoz ütést” (a várható vesztők alatt marad),
+      # ezért kimaradt, és az adut a kiaduzás egyszerű lehívása kezelte. Most a teljes
+      # vesztéskeretű aduszín-kezelés is jelölt, ha a legrosszabb elosztás több vesztőt ad
+      # a keretnél: ez véd meg tőle. Minta: ♠KB98 / ♠A432, hiányzik a D10765, egy vesztés
+      # fér bele: a ♠8-at hívjuk, az asztal kicsit tesz — legfeljebb egy aduvesztő.
+      # Kód: szinkezeles_peldanyok, szinkezeles_peldany(biztonsagi); kapcsoló:
+      # KIBIC_K_BIZTONSAGI_KEZELES.
