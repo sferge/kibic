@@ -602,3 +602,15 @@ def test_kombinacio_kozos_vesztokeret():
     n = lejatszik(T, w, "S", None, [("W", lead)],
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
     assert n >= 12, "\n".join(naplo)
+
+
+def test_szabad_helyek_folyo_utes():
+    """A szerkesztő (2026-11-21): az indulás után Kelet is tesz egy lapot — a szabad
+    helyek 12-12, nem 12-13."""
+    from kibic.motor.tervkonyvelo import szabad_helyek
+    L = [("W", Lap.parse("SJ"))]
+    assert szabad_helyek(L, "W", "E") == (12, 12)
+    L += [("N", Lap.parse("SQ")), ("E", Lap.parse("S4")), ("S", Lap.parse("S2"))]
+    assert szabad_helyek(L, "W", "E") == (12, 12)
+    L += [("N", Lap.parse("H4"))]
+    assert szabad_helyek(L, "W", "E") == (11, 11)

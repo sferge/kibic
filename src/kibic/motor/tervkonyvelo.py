@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -323,6 +323,20 @@ def szinkezeles_peldany(allas: Allas, technikak: dict, sz: str, k: int, m: int,
     sz_ = {"k": k, "m": m, "biztos": biztos, "esely": pol.p, "aduval": False, "adu": adu}
     return Peldany(sema, sz, sz_, [Kor("elemzo", sz)], set(lapok), set(lapok),
                    {l for l in allas.kint_szin(sz)}, hozam)
+
+
+def szabad_helyek(lejatszott, v1: str, v2: str) -> tuple[int, int]:
+    """A két védő ismeretlen lapjainak száma (szabad helyek). A folyó, még be nem
+    fejezett ütésre a hátralévő védő is tesz egy lapot (a hívott színből, ha követ):
+    azt is lement lapnak számoljuk, különben a szabad helyek az ütés közepén
+    aszimmetrikusak lennének (BM A-11: az indulás után Nyugat 12, Kelet 13 — pedig
+    Kelet is tesz egy pikket; a szerkesztő, 2026-11-21)."""
+    L = list(lejatszott)
+    ures = [13 - sum(1 for u, _ in L if u == v) for v in (v1, v2)]
+    if SZABALY["SZABAD_HELY_UTES"] and len(L) % 4:
+        folyo = {u for u, _ in L[len(L) - len(L) % 4:]}
+        ures = [x - (1 if v not in folyo else 0) for x, v in zip(ures, (v1, v2))]
+    return ures[0], ures[1]
 
 
 def _egyetlen_feladat(allas: Allas, technikak: dict, sz: str, fm) -> bool:
@@ -984,7 +998,7 @@ class Vegrehajto:
             m = min(m, max(0, self._tartalek()))
         kint = frozenset(l.rang for l in j.kint(sz))
         v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
-        ures = [13 - sum(1 for u, _ in L if u == v) for v in (v1, v2)]
+        ures = list(szabad_helyek(L, v1, v2))
         lx, ly = elemzo_lopasok(self.adu, sz, len(j.szin(j.felvevo, self.adu)) if self.adu else 0,
                                 len(j.szin(j.asztal, self.adu)) if self.adu else 0,
                                 len(j.kint(self.adu)) if self.adu else 0,
