@@ -405,3 +405,72 @@ def test_eliminacio_es_bedobas():
         naplo: list[str] = []
         n = lejatszik(T, w, "S", "S", [("W", lead)], vedo, naplo, cel=12)
         assert n >= 12, "\n".join(naplo)
+
+
+def test_fagyott_szin_kenyszerszin():
+    """A szerkesztő (2026-11-21, BM A-6 #2): fagyott szín — a két védtelen figura a két
+    kezünkben (Dxx / Bxx); aki meghívja, veszít egy ütést. A kétirányú villa is
+    kényszerszín; a teljes nyerőszín nem."""
+    from kibic.motor import tervbedobas as bd
+
+    def allas(S, N):
+        S_, N_ = _kez(S), _kez(N)
+        kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S_ - N_
+        return Allas(felvevo="S", adu="S", kezek={"S": S_, "N": N_}, kint=kint, cel=9, hatra=13, soron="S")
+    a = allas("AQ432.Q43.432.32", "K765.J65.65.AK4")
+    assert bd.vedo_hivas_nyer(a, "H")
+    b = allas("AKQJT.Q43.KJT.32", "98765.AK2.A98.AQ")
+    assert bd.vedo_hivas_nyer(b, "D") and not bd.vedo_hivas_nyer(b, "H")
+
+
+def test_asztalforditas_es_bedobas_lopott_eliminacioval():
+    """A szerkesztő (2026-11-21, minta: BM A-6 #2; saját leosztás): 3♠, ♣D indul. A
+    hosszú adus kéz (♠AK432) treffben szingli, az asztal ♣AK43: két lopás a hosszú
+    kézben — asztalfordítás. A treff így elfogy mindkét kézből (lopással eliminálva),
+    a káró a bedobó szín (két kiadás), a kőr fagyott kényszerszín. A bedobás csak a
+    lopó egységgel együtt jelölt."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    S, N = _kez("AK432.Q432.432.2"), _kez("Q765.J65.65.AK43")
+    lead = Lap.parse("CQ")
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S - N - {lead}
+    a = Allas(felvevo="S", adu="S", kezek={"S": set(S), "N": set(N)}, kint=kint, cel=9, hatra=13,
+              soron="N", kovetes={"S": "C", "N": "C"})
+    jel = tervjeloltek(a, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 13))
+    nevek = [" → ".join(p.rovid for p in t.lepesek) for t in jel]
+    assert any("asztalfordítás" in n and "♦ bedobás (kényszer: ♥)" in n for n in nevek), nevek
+    assert not any("bedobás" in n and "asztalfordítás" not in n for n in nevek), nevek
+
+
+def test_asztalforditas_sorrend_kockazat_szerint():
+    """A szerkesztő (2026-11-21, 12:07; minta: BM A-6 #2, saját leosztás): a lopás
+    előtt csak egy magas treff; egy magas adu a kézből, aztán aduval az asztalra; a
+    másik magas treff (rá a dobás) két adukör után; csak utána a második lopás; végül a
+    kárókiadás."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("AK432.Q432.432.2"), "N": _kez("Q765.J65.65.AK43"),
+         "W": _kez("J9.AT9.KQJ7.QJ98"), "E": _kez("T8.K87.AT98.T765")}
+    lead = Lap.parse("CQ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=9, hatra=13, soron="N", kovetes={"S": "C", "N": "C"})
+    nev = "♣ asztalfordítás (lopás a hosszú adus kézben) → kiaduzás → ♦ bedobás (kényszer: ♥)"
+    T = next(v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 13))
+             for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(3, "S", "", "S")
+    jk: list = []
+    lejatszik(T, w, "S", "S", [("W", lead)], lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)),
+              [], cel=9, jatek_ki=jk)
+    mi = [(u, str(l)) for u, l in jk[0].lapok[:28] if u in "NS"]
+    # 1. ♣ nyerő; 2. ♣ lopás; 3. ♠A a kézből; 4. ♠ az asztal ♠D-jéhez; 5. ♣ nyerő + ♦ dobás;
+    # 6. ♣ lopás; 7. kárókiadás
+    assert mi[0][1][0] == "C" and mi[2] == ("N", "C3") and mi[3][1][0] == "S", mi
+    assert mi[4] == ("S", "SA") and mi[7] == ("N", "SQ"), mi
+    assert mi[8][1][0] == "C" and mi[9][1][0] == "D", mi
+    assert mi[10] == ("N", "C4") and mi[11][1][0] == "S", mi
+    assert mi[12][1][0] == "D", mi

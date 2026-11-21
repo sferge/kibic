@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -395,6 +395,14 @@ def elozetes_esely(t: "KTerv", eselyek: dict) -> float:
 
 
 def _utkozik(a: Peldany, b: Peldany) -> bool:
+    # a bedobás kényszerszíneit a védő hívja meg: más egység nem kezelheti őket
+    for x, y in ((a, b), (b, a)):
+        if x.sema.azon == "BEDOBAS" and y.szin in (x.szerepek.get("K") or []):
+            return True
+    return _utkozik_alap(a, b)
+
+
+def _utkozik_alap(a: Peldany, b: Peldany) -> bool:
     if a.szerepek.get("CELSZIN") and a.szerepek["CELSZIN"] == b.szin:
         return True                      # amiből dobunk, azt nem kezeljük másképp
     if b.szerepek.get("CELSZIN") and b.szerepek["CELSZIN"] == a.szin:
@@ -469,6 +477,13 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
             mellek = sum(p.hozam for p in lepesek if p.szin != allas.adu)
             if adu_h < adu_igeny or min(mellek, max(0, igeny - adu_igeny)) + adu_h < igeny:
                 return
+        # BEDOBAS: a lopással eliminálandó színeket egy lopó egységnek kell
+        # eltüntetnie (pl. asztalfordítás) — enélkül a bedobás nem működik
+        for p in lepesek:
+            for sz in (p.szerepek.get("LOPVA") or []) if p.sema.azon == "BEDOBAS" else []:
+                if not any(q is not p and any(k.fajta == "lop" and k.szin == sz for k in q.korok)
+                           for q in lepesek):
+                    return
         if SZABALY["HASZNOS_DOBAS"] and any(
                 p.sema.azon == "VESZTOCSERE" and p.szerepek.get("CELSZIN")
                 and p.szerepek["CELSZIN"] != hasznos_dobas(p, lepesek, allas) for p in lepesek):
@@ -1325,6 +1340,7 @@ class Vegrehajto:
             if k is not None and k.fajta == "lehiv" and k.lap is not None and j_keze(j, k.lap) == R:
                 kesobbi[k.lap] = e
         ki = []
+        adu_atmenet = None
         for sz in "SHDC":
             hl = j.szin(H, sz)
             if not hl:
@@ -1353,6 +1369,8 @@ class Vegrehajto:
                     ar += 3
                 leiras = f"átmenet {w}" + (f" — egyben {kesobbi[w].p.rovid} köre (közös lap)" if w in kesobbi else "")
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, leiras, {R: ("lap", w)}))
+                if sz == adu:
+                    adu_atmenet = (hivo[0], w)
             elif not rl and sz != adu and adu and j.szin(R, adu) \
                     and len(j.szin(R, adu)) > self._lopas_igeny(R):
                 hivo = [l for l in hl if l not in fogl] or hl
@@ -1362,6 +1380,20 @@ class Vegrehajto:
                 ar = 0 if kint_adu == 0 else (1 if all(l.rang > felul for l in j.szin(R, adu)) else 3)
                 ki.append(Jelolt(hivo[0], ar0 + (ar + hivo_ar) / 10, f"átmenet lopással ({SZINJEL[sz]})",
                                  {R: ("lop",)}))
+        if adu_atmenet is not None and SZABALY["ATMENET_ADUKOR"] and kint_adu \
+                and not any(x.lap.szin != adu for x in ki):
+            # ATMENET_ADUKOR (a szerkesztő, BM A-6 #2, 12:45): ha az aduval való átmenet
+            # az utolsó lehetőség a partnerhez, előbb annyi magas adut hívunk a kézből,
+            # amennyi a terv végrehajtását nem veszélyezteti: a kézben maradjon meg a
+            # lopásaira szánt adu, és — ha a terv bedobással (dob-lop) zárul — még egy.
+            hl = j.szin(H, adu)
+            tartalek = self._lopas_igeny(H) + (1 if any(
+                e.el and e.p.sema.azon == "BEDOBAS" for e in self.egysegek) else 0)
+            ny_h = [l for l in hl if self._nyero(l) and l != adu_atmenet[0]]
+            if ny_h and len(hl) - 1 - 1 >= tartalek:
+                elso = min((x.ar for x in ki if x.lap.szin == adu), default=ar0)
+                ki.append(Jelolt(ny_h[-1], elso - 0.005,
+                                 f"az utolsó átmenet (adu) előtt egy magas adu a kézből ({ny_h[-1]})"))
         return ki
 
     def _begyujtes_jeloltek(self, H: str, ar: float) -> list["Jelolt"]:
@@ -1747,6 +1779,11 @@ class Vegrehajto:
                              for uu, ll, ut0 in self._lejatszott_kovetesek()) for x in hatra)
         if not kimutatott and len(j.kint(hivott)) >= 2:
             return adu_l[0]
+        # asztalfordításnál a hosszú adus kéz nagy adui a kiaduzáshoz kellenek: csak a
+        # tényleges kimutatás (biztos felüllopás-veszély) ér meg egy nagy adut (BM A-6 #2)
+        if not kimutatott and self.folyo is not None and \
+                self.folyo[0].p.sema.azon == "ASZTALFORDITAS":
+            return adu_l[0]
         mi_max = max(l.rang for u in self._mi_kezek() for l in j.szin(u, self.adu))
         kint = [l.rang for l in j.kint(self.adu) if l.rang < mi_max]
         if not kint:
@@ -1806,6 +1843,14 @@ class Vegrehajto:
         cel = next((e.p.szerepek.get("CELSZIN") for e in self.egysegek
                     if e.el and e.kor() is not None and e.p.szerepek.get("CELSZIN")
                     and e.p.szerepek.get("DK") == u), None)
+        if not cel:
+            # BEDOBAS: ha a bedobó színben ez a kéz a hosszabb, abból dobunk — így a
+            # kiadások után a szín mindkét kezünkből elfogy, és a védőnek nem marad
+            # biztonságos kijátszása (BM A-6 #2: ♦432 / ♦65 — a ♣-ra a ♦ megy)
+            P_ = j.partner(u)
+            cel = next((e.p.szin for e in self.egysegek
+                        if e.el and e.p.sema.azon == "BEDOBAS"
+                        and len(j.szin(u, e.p.szin)) > len(j.szin(P_, e.p.szin))), None)
         if cel:
             # a terv dobásszíne (a vesztőcsere része): onnan dobunk, ha lehet
             return min(j.kezek[u], key=lambda l: (self._nyero(l), l in fogl, l.szin != cel,

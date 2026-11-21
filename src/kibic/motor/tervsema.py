@@ -273,6 +273,12 @@ def fogalmak(allas: Allas) -> dict:
         "eliminalo_lapok": lambda sz: _bd.eliminalo_lapok(a, sz),
         "kenyszer_szinek": lambda sz: _bd.kenyszer_szinek(a, sz),
         "bedobo_kiad": lambda sz: _bd.bedobo_kiad(a, sz),
+        "lopva_eliminalando": lambda sz: _bd.lopva_eliminalando(a, sz),
+        # a kéz hossza a színben a folyó ütés követése után
+        "kezhossz_k": lambda k, sz: len(_bd._szin(a, k, sz)) if k else 0,
+        "kihagy": lambda xs, n: list(xs)[max(0, n):],
+        "hosszu_adus_kez": lambda: (max(a.kezek, key=lambda k: len(a.szin(k, a.adu)))
+                                    if a.adu and len({len(a.szin(k, a.adu)) for k in a.kezek}) == 2 else None),
         "adu_marad": lambda: _bd.adu_marad(a),
         "rovidebb_kez": rovidebb_kez,
         "nyerok_rovid_elobb": nyerok_rovid_elobb,
@@ -282,7 +288,8 @@ def fogalmak(allas: Allas) -> dict:
         "tobbletnyero_kez": tobbletnyero_kez,
         "legnagyobb_kint": legnagyobb_kint,
         "rovid_adu_lopo": rovid_adu_lopo,
-        "kint_db": lambda sz: len(a.kint_szin(sz)),
+        "kint_db": lambda sz: len(a.kint_szin(sz)) if sz else 0,
+        "adu": lambda: a.adu,
         "fele_felfele": lambda n: -(-n // 2),
         # a kéz lapjai a színben F alatt, felülről
         "kicsik_kezben": lambda kez, sz, f: [l for l in a.szin(kez, sz) if f is None or l.rang < f.rang] if kez else [],
@@ -487,7 +494,7 @@ class Peldany:
              "VESZTOCSERE": "vesztőcsere (dobás)",
              "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)",
              "LOPAS_ROVID_KIENGEDESSEL": "lopás a rövid kézben (kiengedéssel, a felső lap a végén)",
-             "BEDOBAS": "bedobás"}.get(self.sema.azon, self.sema.azon)
+             "BEDOBAS": "bedobás", "ASZTALFORDITAS": "asztalfordítás (lopás a hosszú adus kézben)"}.get(self.sema.azon, self.sema.azon)
         if self.sema.azon == "BEDOBAS":
             el = sorted({l.szin for l in self.szerepek.get("ELIM", [])}, key="SHDC".index)
             k = self.szerepek.get("K", [])
