@@ -569,3 +569,36 @@ def test_biztonsagi_kezeles_csak_egyetlen_feladatnal():
     ket = allas("KJ98.AK2.K43.AK2", "A432.QJT.952.Q43", "CJ")     # a ♦-ben is feladat van
     assert tk._egyetlen_feladat(egy, T, "S", tk._felmeres(egy, (12, 13)))
     assert not tk._egyetlen_feladat(ket, T, "S", tk._felmeres(ket, (12, 13)))
+
+
+def test_kombinacio_kozos_vesztokeret():
+    """A szerkesztő (2026-11-21, BM A-11; saját, azonos szerkezetű leosztás — a ♦ és a ♣
+    szerepe felcserélve): 6NT, a ♣ 3 ütésért (1 kiadással) megoldja a partit; ha nem
+    megy, a ♦ még egy esély. A kombináció pontos: a ♣ nem rögzíthető a maximuma alatt
+    (a „♣ 2 ütés + ♦ …” terv nem jelölt), és a ♣A kiadása után a ♦ már nem veszíthet
+    (közös vesztéskeret, a végrehajtóban)."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("32.A32.AKQT9.QJ2"), "N": _kez("AKQ.KQ4.32.K9876"),
+         "W": _kez("JT987.JT97.865.3"), "E": _kez("654.865.J74.AT54")}
+    lead = Lap.parse("SJ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu=None, kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=12, hatra=13, soron="N", kovetes={"S": "S", "N": "S"})
+    jel = tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 13))
+    for t in jel:
+        el = [p for p in t.lepesek if p.sema.fajta == "elemzo"]
+        # a ♣ magában megoldja a partit (3 ütés, 1 vesztéssel): kombinációban nem lehet
+        # a maximuma alatt (a „♣ 2 ütés + ♦ …” terv nem pontos)
+        assert not (len(el) >= 2 and any(p.szin == "C" and p.szerepek["k"] < 3 for p in el)), t.nev
+    T = next(t for t in jel if t.nev.startswith("♣ színkezelés (3 ütés, ≤1 vesztés)"))
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(6, "NT", "", "S")
+    naplo: list[str] = []
+    n = lejatszik(T, w, "S", None, [("W", lead)],
+                  lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
+    assert n >= 12, "\n".join(naplo)

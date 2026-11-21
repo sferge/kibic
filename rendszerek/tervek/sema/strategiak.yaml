@@ -265,3 +265,24 @@
       # fér bele: a ♠8-at hívjuk, az asztal kicsit tesz — legfeljebb egy aduvesztő.
       # Kód: _egyetlen_feladat, szinkezeles_peldanyok, szinkezeles_peldany(biztonsagi); kapcsoló:
       # KIBIC_K_BIZTONSAGI_KEZELES.
+    - szabaly: KOMBINACIO
+      nev: "Kombinációs játék: egymás után végrehajtható esélyek, közös vesztéskerettel"
+      # (a szerkesztő, 2026-11-21, BM A-11) Ha több színben van feladat, a sémákat,
+      # esélyeket úgy kombináljuk, hogy mindegyik végrehajtható legyen egymás után (az
+      # egyik sikere vagy kudarca ne befolyásolja a folytatást), és így az esélyeik
+      # összeadódjanak. A kombináció nem jelentheti, hogy egy színt a maximuma alatt
+      # rögzítünk, és PONTOS kell legyen: 6NT, ♦QJ2 / ♦K9876, ♣AKQ109 / ♣32 — a káró 3
+      # ütésért (egy kiadással, a ♦B-vel indulva) úgy, hogy a 2 ütés nincs kockáztatva:
+      # 3 ütés = megoldja a partit, 2 ütés = a treff még egy esély. A ♦A kiadása után a
+      # treff már nem veszíthet. Két része:
+      #   1. pontos cél: ha egy szín magában megoldja a partit (a kezelése ugyanazzal a
+      #      vesztéskerettel fedi az igényt), a többi esélyt is tartalmazó tervben nem
+      #      szerepelhet a maximuma alatti céllal;
+      #   2. közös vesztéskeret: a végrehajtóban egy színkezelés legfeljebb annyit
+      #      veszíthet, amennyi a teljes keretből még megmaradt (a ♦A után a ♣ vesztés
+      #      nélkül, a látott lapok szerinti legbiztosabb módon).
+      # (Egy merev változat — a tervben a színkezelések vesztéskeretének összege nem
+      # haladhatja meg a megengedett kiadást — több partin rontott: a keret felső korlát,
+      # a tényleges vesztés kisebb.)
+      # Kód: tervjeloltek (megoldo, hozzaad), Vegrehajto._politika; kapcsoló:
+      # KIBIC_K_KOMBINACIO.

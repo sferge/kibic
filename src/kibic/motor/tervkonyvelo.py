@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -518,10 +518,26 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
     ki: list[KTerv] = []
     latott = set()
 
+    # KOMBINACIO (a szerkesztő, 2026-11-21, BM A-11): pontos kombináció — ha egy szín
+    # magában megoldja a partit (a kezelése ugyanazzal a vesztéskerettel fedi az igényt),
+    # a kombinációban nem rögzíthető a maximuma alatt („a káró 2 ütésért nem pontos; a
+    # káró 3 ütésért úgy, hogy a 2 ütés nincs kockáztatva”)
+    megoldo = {(p.szin, int(p.szerepek.get("m", 0))): int(p.szerepek.get("k", 0))
+               for p in P if p.sema.fajta == "elemzo" and p.hozam >= igeny
+               and not p.szerepek.get("adu") and float(p.szerepek.get("esely", 0)) >= 0.5} \
+        if SZABALY["KOMBINACIO"] else {}
+
     def hozzaad(lepesek):
         # a terv csak akkor jelölt, ha minden egysége sikere esetén fedi az igényt
         if max_hozam(lepesek) < igeny:
             return
+        if megoldo and sum(1 for p in lepesek if p.sema.fajta == "elemzo") >= 2:
+            for p in lepesek:
+                if p.sema.fajta != "elemzo" or p.szerepek.get("adu"):
+                    continue
+                kk = megoldo.get((p.szin, int(p.szerepek.get("m", 0))))
+                if kk is not None and kk > int(p.szerepek.get("k", 0)):
+                    return
         if adu_igeny > 0:
             # ADU_IGENY: az aduszín vesztőtöbbletét csak az aduszín kezelése fedheti; a
             # lopás és a dobás csak a mellékszínek vesztőire számít
@@ -925,6 +941,9 @@ class Vegrehajto:
         X = frozenset(l.rang for l in j.szin(j.felvevo, sz))
         Y = frozenset(l.rang for l in j.szin(j.asztal, sz))
         pol = self.politikak.get(ei)
+        if pol is not None and SZABALY["KOMBINACIO"] and self.cel is not None \
+                and pol.m > max(0, self._tartalek()):
+            pol = None                           # a közös keret szűkült: újraépül (KOMBINACIO)
         if pol is not None and pol.lapjaink() == (X, Y):
             ax, ay = self._atm_nyers(sz)
             if ax is not None and not j.aktualis():
@@ -958,6 +977,11 @@ class Vegrehajto:
             nyert += 1        # a folyó ütésben lopunk: aduütés (a lopó adu kikerült a kezünkből)
         k = e.p.szerepek["k"] - nyert
         m = e.p.szerepek["m"] - vesztett
+        if SZABALY["KOMBINACIO"] and self.cel is not None:
+            # KOMBINACIO: a vesztéskeret közös — a kezelés legfeljebb annyit veszíthet,
+            # amennyi a teljes keretből még megmaradt (BM A-11: a ♦A kiadása után a ♣ már
+            # vesztés nélkül, a látott lapok szerinti legbiztosabb módon)
+            m = min(m, max(0, self._tartalek()))
         kint = frozenset(l.rang for l in j.kint(sz))
         v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
         ures = [13 - sum(1 for u, _ in L if u == v) for v in (v1, v2)]
