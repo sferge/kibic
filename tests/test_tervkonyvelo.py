@@ -474,3 +474,49 @@ def test_asztalforditas_sorrend_kockazat_szerint():
     assert mi[8][1][0] == "C" and mi[9][1][0] == "D", mi
     assert mi[10] == ("N", "C4") and mi[11][1][0] == "S", mi
     assert mi[12][1][0] == "D", mi
+
+
+def test_adu_kiadas_bedobas_es_tartalek():
+    """A szerkesztő (2026-11-21, minta: BM A-6 #3; saját leosztás): 6♠, ♠AJxx / ♠KTxx,
+    hiányzik a ♠D. Kiaduzás a két felső aduval; ha a dáma nem esett le: a kőr és a treff
+    eliminálása (a treffből csak annyi kör, amíg a védőknél van treff — ELIMINACIO_KESZ),
+    aztán adukiadás: a dámás védő kárót hív (kétirányú villa) vagy dob-lopot ad. Ha a
+    dáma leesik, nincs mit kiadni (a tartalék elmarad); 4-1-es adunál a bedobás borul,
+    a tartalék (♦ impassz) indul."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    S, N = _kez("AJ42.43.KJT.AQ32"), _kez("KT53.AK.A98.KJ54")
+    lead = Lap.parse("HQ")
+
+    def jatek(W, E, nev):
+        K = {"S": S, "N": N, "W": _kez(W), "E": _kez(E)}
+        kint = (K["E"] | K["W"]) - {lead}
+        allas = Allas(felvevo="S", adu="S", kezek={"S": set(S), "N": set(N)},
+                      kint=kint, cel=12, hatra=13, soron="N", kovetes={"S": "H", "N": "H"})
+        jel = [v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=1, ures=(12, 13))
+               for v in szakasz_valtozatok(t)]
+        T = next(v for v in jel if v.nev == nev)
+        w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+        k = Kontraktus(6, "S", "", "S")
+        naplo: list[str] = []
+        n = lejatszik(T, w, "S", "S", [("W", lead)],
+                      lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
+        return n, naplo
+
+    bed = "kiaduzás → ♠ bedobás (elimináció: ♥♣; kényszer: ♦)"
+    # a dáma 3-2-nél nem esik le: bedobás — a ♦D bármelyik védőnél lehet
+    for W, E in (("Q98.QJT9.Q765.T9", "76.87652.432.876"),
+                 ("Q98.QJT9.7654.T9", "76.87652.Q32.876")):
+        n, naplo = jatek(W, E, bed)
+        assert n >= 12, "\n".join(naplo)
+        assert sum("lehiv ♣" in s or "lehiv C" in s for s in naplo) <= 3, "\n".join(naplo)
+    # a dáma leesik: nincs kiadandó vesztő, a tartalék ♦ impassz elmarad
+    n, naplo = jatek("Q9.QJT98.Q765.T9", "876.7652.432.876", bed + " → ♦ impassz")
+    assert n >= 12 and any("nincs kiadandó vesztő" in s for s in naplo), "\n".join(naplo)
+    # 4-1: a bedobás borul, a tartalék ♦ impassz (itt a ♦D a jó oldalon) teljesít
+    n, naplo = jatek("Q987.QJT9.Q765.T", "6.87652.432.9876", bed + " → ♦ impassz")
+    assert any("bedobás" in s and "nem sikerült" in s for s in naplo), "\n".join(naplo)

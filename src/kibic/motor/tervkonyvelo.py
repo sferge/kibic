@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "ELIMINACIO_KESZ", "BEDOBAS_TARTALEK")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -74,6 +74,9 @@ def alap_fazis(p: Peldany) -> str:
         return "E"
     if p.sema.fajta == "elemzo" and p.szerepek.get("adu"):
         return "E"
+    if p.sema.azon == "BEDOBAS_IMPASSZ" and any(k.szin == p.szin and k.fajta == "impassz" for k in p.korok) \
+            and p.szerepek.get("ADUSZIN") == p.szin:
+        return "E"                       # az adu-impassz a kiaduzás előtt (BM A-6 #3)
     return "U"
 
 
@@ -396,8 +399,12 @@ def elozetes_esely(t: "KTerv", eselyek: dict) -> float:
 
 def _utkozik(a: Peldany, b: Peldany) -> bool:
     # a bedobás kényszerszíneit a védő hívja meg: más egység nem kezelheti őket
+    # (BEDOBAS_TARTALEK: ha az adu a kiadó szín, egy kényszerszín-egység a bedobás
+    # tartaléka — a végrehajtó visszatartja, amíg a bedobás körei tartanak, és csak a
+    # kudarca után indul; más kiadó színnél a borulás nem ismerhető fel: ütközés)
     for x, y in ((a, b), (b, a)):
-        if x.sema.azon == "BEDOBAS" and y.szin in (x.szerepek.get("K") or []):
+        if x.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ") and y.szin in (x.szerepek.get("K") or []) \
+                and not (SZABALY["BEDOBAS_TARTALEK"] and x.szerepek.get("ADUKIAD") and not biztos_egyseg(y)):
             return True
     return _utkozik_alap(a, b)
 
@@ -480,7 +487,7 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         # BEDOBAS: a lopással eliminálandó színeket egy lopó egységnek kell
         # eltüntetnie (pl. asztalfordítás) — enélkül a bedobás nem működik
         for p in lepesek:
-            for sz in (p.szerepek.get("LOPVA") or []) if p.sema.azon == "BEDOBAS" else []:
+            for sz in (p.szerepek.get("LOPVA") or []) if p.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ") else []:
                 if not any(q is not p and any(k.fajta == "lop" and k.szin == sz for k in q.korok)
                            for q in lepesek):
                     return
@@ -629,6 +636,50 @@ class Vegrehajto:
             if any(r > l.rang for v in hatra for r in kez[v]):
                 return False
         return True
+
+    def _bedobasra_var(self, e: "Egyseg") -> bool:
+        """BEDOBAS_TARTALEK: a kényszerszín egysége vár, amíg a bedobás körei tartanak;
+        a sikeres bedobás után elmarad (a kényszerszínt a védő nyitja), csak a kudarca
+        után indul."""
+        if not SZABALY["BEDOBAS_TARTALEK"]:
+            return False
+        if e.allapot == "var" and any(
+                b is not e and b.allapot in ("siker", "kesz") and b.p.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ")
+                and e.p.szin in (b.p.szerepek.get("K") or []) for b in self.egysegek):
+            e.allapot = "elmarad"
+            return True
+        return any(b is not e and b.allapot == "var" and b.p.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ")
+                   and e.p.szin in (b.p.szerepek.get("K") or []) for b in self.egysegek)
+
+    def _bedobas_folosleges(self, e: "Egyseg", k: Kor) -> bool:
+        if not SZABALY["BEDOBAS_TARTALEK"] or e.p.sema.azon != "BEDOBAS":
+            return False
+        j = self.j
+        mi = max((l.rang for u in self._mi_kezek() for l in j.szin(u, k.szin)), default=0)
+        return mi > 0 and not any(l.rang > mi for l in j.kint(k.szin))
+
+    def _bedobas_borult(self, e: "Egyseg") -> bool:
+        """Az aduszín a kiadó szín, a felső adukat már lehívtuk, de a mieink fölött
+        vagy mellett egynél több adu maradt kint (pl. 4-1-es aduelosztás): a nyerő védő
+        adut hívhat vissza (vagy egy eliminált színt kis aduval lop) — a bedobás nem
+        kényszerít, a tartaléka (a kényszerszín egysége) indul."""
+        if not SZABALY["BEDOBAS_TARTALEK"] or e.p.sema.azon != "BEDOBAS" or e.p.szin != self.adu:
+            return False
+        j = self.j
+        mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
+        if any(l in mieink for l in (e.p.szerepek.get("NY") or [])):
+            return False
+        return len(j.kint(e.p.szin)) > 1
+
+    def _eliminalt(self, e: "Egyseg", k: Kor) -> bool:
+        """ELIMINACIO_KESZ: egy bedobás eliminációs köre fölösleges, ha a színben a
+        védőknél már nincs lap — a szín el van eliminálva (egyik védő sem hívhatja), a
+        maradék nyerőnk további lehívása csak lopási lehetőséget adna a bedobandó védőnek."""
+        if not SZABALY["ELIMINACIO_KESZ"] or e.p.sema.azon not in ("BEDOBAS", "BEDOBAS_IMPASSZ"):
+            return False
+        if k.szin in (e.p.szin, self.adu):
+            return False
+        return not self.j.kint(k.szin)
 
     def _kint_adu(self) -> int:
         return len(self.j.kint(self.adu)) if self.adu else 0
@@ -967,6 +1018,8 @@ class Vegrehajto:
         for e in sor:
             if csak is not None and e.fazis != csak:
                 continue
+            if self._bedobasra_var(e):
+                continue
             while e.el:
                 k = e.kor()
                 if k is not None and k.fajta == "elemzo":
@@ -1006,6 +1059,21 @@ class Vegrehajto:
                 if k.fajta == "lehiv" and k.lap is not None and k.lap not in mieink:
                     e.i += 1
                     continue
+                if k.fajta == "kiad" and self._bedobas_folosleges(e, k):
+                    # a kiadandó vesztő eltűnt (pl. a hiányzó adudáma leesett): nincs mit
+                    # kiadni — a bedobás célja teljesült, a tartaléka elmarad
+                    self._jegyez(f"{e.p.rovid}: nincs kiadandó vesztő — a terv teljesült")
+                    if e.allapot == "var":
+                        self._siker(e)
+                    e.allapot = "kesz"
+                    break
+                if self._bedobas_borult(e):
+                    e.allapot = "kudarc"
+                    self._jegyez(f"{e.p.rovid}: nem sikerült (a kiadás után a védőnek marad kijátszója)")
+                    break
+                if k.fajta == "lehiv" and k.lap is not None and self._eliminalt(e, k):
+                    e.i += 1
+                    continue
                 if k.fajta == "impassz" and k.lap is not None and k.lap not in mieink:
                     # a villa lapja egy védői hívásra már lement: a megfigyelés dönt
                     e.i += 1
@@ -1034,7 +1102,7 @@ class Vegrehajto:
         mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
         elotte = self._elotte_aktiv()
         for e in self.egysegek:
-            if not e.el or (elotte and e.fazis != "E"):
+            if not e.el or (elotte and e.fazis != "E") or self._bedobasra_var(e):
                 continue
             for k in e.p.korok[e.i:]:
                 if k.lap is not None and k.lap not in mieink:
@@ -1094,7 +1162,16 @@ class Vegrehajto:
             self.folyo = (self.egysegek[ei], k, len(self.j.lapok))
         self._jegyez(v.leiras)
 
+    def _bedobas_frissites(self):
+        """A borult bedobás már a jelöltek előtt kudarc: a kiaduzás és a tartalék
+        egység ugyanebben a lépésben a helyzethez igazodik."""
+        for e in self.egysegek:
+            if e.allapot == "var" and self._bedobas_borult(e):
+                e.allapot = "kudarc"
+                self._jegyez(f"{e.p.rovid}: nem sikerült (a kiadás után a védőnek marad kijátszója)")
+
     def _jeloltek(self, H: str) -> list["Jelolt"]:
+        self._bedobas_frissites()
         if self.szakaszos:
             return self._jeloltek_szakaszos(H)
         out: list[Jelolt] = []
@@ -1247,6 +1324,11 @@ class Vegrehajto:
             ki.append(Jelolt(sajat[-1], ar, f"adukör ({sajat[-1]})"))
         if sajat and par and self._nyero(par[-1]) and sajat[0].rang < par[-1].rang:
             ki.append(Jelolt(sajat[0], ar + 0.1, f"adukör a másik kézbe ({par[-1]})", {P: ("lap", par[-1])}))
+        if not ki and any(e.el and e.p.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ") and e.p.szin == adu
+                          for e in self.egysegek):
+            # a kint lévő felső adu a bedobásé (BM A-6 #3): a kiaduzás itt megáll, a kiadás
+            # az elimináció után jön
+            return ki
         if not ki and sajat and not any(self._nyero(l) for l in sajat + par):
             # nincs felső adunk: a kint lévő felső adu kiütése (egy ütés kiadás)
             if par and par[-1].rang > sajat[-1].rang:
@@ -1388,7 +1470,7 @@ class Vegrehajto:
             # lopásaira szánt adu, és — ha a terv bedobással (dob-lop) zárul — még egy.
             hl = j.szin(H, adu)
             tartalek = self._lopas_igeny(H) + (1 if any(
-                e.el and e.p.sema.azon == "BEDOBAS" for e in self.egysegek) else 0)
+                e.el and e.p.sema.azon in ("BEDOBAS", "BEDOBAS_IMPASSZ") for e in self.egysegek) else 0)
             ny_h = [l for l in hl if self._nyero(l) and l != adu_atmenet[0]]
             if ny_h and len(hl) - 1 - 1 >= tartalek:
                 elso = min((x.ar for x in ki if x.lap.szin == adu), default=ar0)
