@@ -200,3 +200,17 @@
       # Elimináció (tervbedobas.eliminalhato): tükörszín — a két kézben egyforma hosszú,
       # és a nyerőink lehívásával mindkét kezünkből elfogy. Feltétel még: a kiaduzás
       # után mindkét kezünkben marad adu.
+    - szabaly: TERV_MEGTARTAS
+      nev: "A terv addig marad, amíg nem borul"
+      # (a szerkesztő, 2026-11-21) „Újratervezés kell(het), de csak akkor, ha borul a
+      # terv.” „A terv esélyének csökkenése azt jelenti, hogy valami alapvetően
+      # megváltozott.” Új információnál (kimutatás: egy védő nem követ egy színt) nem
+      # tervezünk újra, hanem megmérjük a mostani terv esélyét a látott lapokkal összeférő
+      # elosztásokon: a terv a tervezés pillanatától indul, a valóban lement lapokat
+      # lejátssza, aztán a mindent látó védők ellen megy tovább. Új terv csak akkor jön,
+      # ha az esély érezhetően csökkent: nullára esett, vagy legalább 10 ponttal és a
+      # mintavétel kétszeres szórásával. Különben a terv marad, a mért esély lesz a
+      # következő összevetés alapja. (Ez váltja fel a kimutatásos kivételeket: az
+      # elemzős színt és a biztos egységet.) Változatlanul új terv jön, ha a mi oldalunk
+      # eltér a tervtől, vagy egy egység elakad.
+      # Kód: tervmuhely.terv_esely_most, terv_borult; kapcsoló: KIBIC_K_TERV_MEGTARTAS.

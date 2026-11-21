@@ -16,22 +16,31 @@ from itertools import product
 from ..domain import SZINEK
 
 
+def _szin(a, k: str, sz: str) -> list:
+    """A kéz lapjai a színben a folyó ütés után: ha a kéznek még követnie kell a hívott
+    színt, abból a legkisebb lapja lemegy (a nyerőket ez nem érinti)."""
+    lapok = a.szin(k, sz)
+    if lapok and a.kovetes.get(k) == sz:
+        lapok = lapok[:-1]
+    return lapok
+
+
 def eliminalhato(a, sz: str) -> bool:
     """A színt a saját lehívásainkkal mindkét kezünkből eltüntethetjük: tükörszín —
     a két kézben egyforma hosszú, és a nyerőink legalább annyian vannak (v1)."""
     if not a.adu or sz == a.adu:
         return False
     k1, k2 = a.kezek
-    n1, n2 = len(a.szin(k1, sz)), len(a.szin(k2, sz))
+    n1, n2 = len(_szin(a, k1, sz)), len(_szin(a, k2, sz))
     if n1 != n2 or n1 == 0:
         return False
     kint = a.kint_szin(sz)
-    nyero = [l for l in a.mi_szin(sz) if not kint or l.rang > kint[0].rang]
+    nyero = [l for k in a.kezek for l in _szin(a, k, sz) if not kint or l.rang > kint[0].rang]
     return len(nyero) >= n1
 
 
 def ures_mindket(a, sz: str) -> bool:
-    return all(not a.szin(k, sz) for k in a.kezek)
+    return all(not _szin(a, k, sz) for k in a.kezek)
 
 
 def _biztos(X: list[int], Y: list[int], kint: list[int]) -> int:
@@ -105,7 +114,9 @@ def eliminalo_lapok(a, sz: str) -> list:
     for s in SZINEK:
         if s in (a.adu, sz) or not eliminalhato(a, s):
             continue
-        n = len(a.szin(a.felvevo, s))
+        # a lehívandó lapok a mostani lapokból (a folyó ütés lapja, ha nyerő, kimarad a
+        # végrehajtásból: már nincs a kézben)
+        n = max(len(a.szin(k, s)) for k in a.kezek)
         kint = a.kint_szin(s)
         nyero = [l for l in a.mi_szin(s) if not kint or l.rang > kint[0].rang][:n]
         ki += sorted(nyero, key=lambda l: -l.rang)
