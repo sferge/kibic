@@ -1889,11 +1889,20 @@ class Eredmeny:
 
 def lejatszik(terv: KTerv, vilag, felvevo: str, adu: str | None, lejatszott: list,
               dd_vedo, naplo: list | None = None, cel: int | None = None,
-              jatek_ki: list | None = None) -> int:
-    """Egy világ végigjátszása: mi a terv szerint, a védők a `dd_vedo` szerint."""
+              jatek_ki: list | None = None, kenyszer: list | None = None) -> int:
+    """Egy világ végigjátszása: mi a terv szerint, a védők a `dd_vedo` szerint.
+    `kenyszer`: a terv óta valóban lement lapok — ezek mennek le előbb (a végrehajtó a
+    saját lapjait közben meghozza, hogy az egységei a megfigyelés szerint haladjanak)."""
     j = tj.Jatek({u: set(vilag.kezek[u].lapok) for u in "NESW"}, felvevo, adu, lejatszott, tj.Terv(()))
     v = Vegrehajto(terv, j, naplo)
     v.cel = cel
+    for u, l in kenyszer or []:
+        if j.mi(u):
+            if v.lap(u) != l:
+                if v.folyo is not None and v.folyo[2] == len(j.lapok):
+                    v.folyo = None
+                v.szandek = {}
+        j.tesz(u, l)
     while len(j.lapok) < 52:
         u = j.soron()
         lap = v.lap(u) if j.mi(u) else dd_vedo(j)

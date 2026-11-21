@@ -64,6 +64,8 @@ TURES = float(os.getenv("KIBIC_TERVMUHELY_TURES", "0.05"))
 HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "1"))
 # a szimulációba ennyi terv megy (az előzetes, keresés nélküli esély szerint a legjobbak)
 SZIM_TERV = int(os.getenv("KIBIC_TERVMUHELY_SZIM", "12"))
+# TERV_MEGTARTAS (strategiak.yaml): kimutatásnál csak akkor új terv, ha a terv esélye csökkent
+SZABALY_MEGTARTAS = os.getenv("KIBIC_K_TERV_MEGTARTAS", "1") != "0"
 TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
 KEZ_NEV = {"N": "Észak", "E": "Kelet", "S": "Dél", "W": "Nyugat"}
@@ -89,6 +91,10 @@ class Rekord:
     ido_s: float
     naplo: list[str] = field(default_factory=list)
     dd_felso: float | None = None             # a mindent látó felvevő teljesítése ugyanott
+    # TERV_MEGTARTAS: a terv esélye a legutóbbi ellenőrzéskor (a látott lapokkal), és a
+    # már ellenőrzött kimutatások (kéz, szín)
+    esely_most: float | None = None
+    ellenorzott: list = field(default_factory=list)
 
 
 _ZAR = threading.Lock()
@@ -138,6 +144,7 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
                           "esely": round(r.esely, 4), "n": r.n, "utesek": r.utesek}
                          for r in rek.eredmenyek],
             "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "dd_felso": rek.dd_felso,
+            "esely_most": rek.esely_most, "ellenorzott": [list(x) for x in rek.ellenorzott],
             "tortenet": tortenet}
     tmp = ut.with_suffix(".tmp")
     tmp.write_text(json.dumps(adat, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -209,7 +216,8 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
         ered.insert(0, Eredmeny(fo))
     return Rekord(adat["plan_id"], adat["revizio"], fo, ered, lejatszott, kezek, h.felvevo,
                   h.kontraktus, adat.get("vilag", 0), adat.get("ido_s", 0.0),
-                  dd_felso=adat.get("dd_felso"))
+                  dd_felso=adat.get("dd_felso"), esely_most=adat.get("esely_most"),
+                  ellenorzott=[tuple(x) for x in adat.get("ellenorzott", [])])
 
 
 def _lap(l: Lap) -> str:
@@ -408,30 +416,55 @@ def vegrehajto(rek: Rekord, h: Helyzet) -> tuple[Vegrehajto, tj.Jatek, list[str]
     return v, j, elteresek
 
 
-def kimutatasok(rek: Rekord, h: Helyzet, v=None) -> list[str]:
-    """A terv óta megfigyelt új színhiányok (egy védő nem adott színt). Ha a színt egy
-    élő elemzős egység kezeli, az nem ok újratervezésre: az elemző döntési fája minden
-    tartásra számol, a kimutatás csak egy ága (BM A-2 #2: a ♣ kiengedése után Nyugat
-    nem ad treffet — a kezelés onnan folytatódik, nem egy új terv kezdődik)."""
-    regi = {(k.kez, k.szin) for k in _szinhianyok(rek.lejatszott, h.vedok)}
-    elo = set()
-    if v is not None:
-        elo = {e.p.szin for e in v.egysegek
-               if e.el and e.p.sema.fajta == "elemzo" and not e.p.szerepek.get("aduval")}
-    # ha a színben már nincs kint lap, a kimutatás semmit sem mond
-    allas, kint = _allas(h, h.lejatszott)
+def kimutatasok(rek: Rekord, h: Helyzet, v=None) -> list[tuple[str, str]]:
+    """A terv óta megfigyelt új színhiányok (kéz, szín), amelyeket még nem ellenőriztünk.
+    Ha a színben már nincs kint lap, a kimutatás semmit sem mond."""
+    regi = {(k.kez, k.szin) for k in _szinhianyok(rek.lejatszott, h.vedok)} | set(rek.ellenorzott)
+    _, kint = _allas(h, h.lejatszott)
     ures = {sz for sz in "SHDC" if not any(l.szin == sz for l in kint)}
-    # a biztos egység (nincs rejtett feltétele, pl. a bedobás) nem függ az elosztástól:
-    # a köreinek színében a kimutatás nem ok újratervezésre, ha a védőknél már nincs
-    # adu (nincs ellopás) — BM A-6 #1: a kőr eliminálása közben Kelet nem adott kőrt
-    if v is not None and not (allas.adu and any(l.szin == allas.adu for l in kint)):
-        from ..motor.tervkonyvelo import biztos_egyseg
-        for e in v.egysegek:
-            if e.el and biztos_egyseg(e.p):
-                elo |= {k.szin for k in e.p.korok} | {e.p.szin}
-    return [f"{KEZ_NEV[k.kez]} nem adott {SZIN[k.szin]}-t"
-            for k in _szinhianyok(h.lejatszott, h.vedok)
-            if (k.kez, k.szin) not in regi and k.szin not in elo and k.szin not in ures]
+    return [(k.kez, k.szin) for k in _szinhianyok(h.lejatszott, h.vedok)
+            if (k.kez, k.szin) not in regi and k.szin not in ures]
+
+
+def _kimutatas_szoveg(km) -> str:
+    return ", ".join(f"{KEZ_NEV[k]} nem adott {SZIN[sz]}-t" for k, sz in km)
+
+
+def terv_esely_most(rek: Rekord, h: Helyzet, dd_zar=None, vilag_db: int | None = None) -> tuple[float, int]:
+    """TERV_MEGTARTAS: a mostani terv esélye a látott lapokkal összeférő elosztásokon —
+    a terv a tervezés pillanatától indul, a valóban lement lapokat lejátssza, aztán a
+    védők a mindent látó védő szerint játszanak. Vissza: (esély, világok száma)."""
+    vilag_db = vilag_db or VILAG
+    _, kint = _allas(h, h.lejatszott)
+    v1, v2 = sorted(h.vedok)
+    jatszott_v = {u: {l for uu, l in h.lejatszott if uu == u} for u in (v1, v2)}
+    kint_l = sorted(kint, key=str)
+    n1 = 13 - len(jatszott_v[v1])
+    lo = Leosztas({h.felvevo: Kez(frozenset(h.kezek[h.felvevo])), h.asztal: Kez(frozenset(h.kezek[h.asztal])),
+                   v1: Kez(frozenset(set(kint_l[:n1]) | jatszott_v[v1])),
+                   v2: Kez(frozenset(set(kint_l[n1:]) | jatszott_v[v2]))})
+    vl = vilagok(lo, h.lejatszott, kint, vilag_db, _szinhianyok(h.lejatszott, h.vedok),
+                 mag=len(h.lejatszott) + 1, vedok=(v1, v2))
+    tar = tj.DDTar(_dd_fv(dd_zar), h.kontraktus)
+    cel = 6 + h.kontraktus.szint
+    kenyszer = h.lejatszott[len(rek.lejatszott):]
+    ok = 0
+    for i, w in enumerate(vl):
+        def dd_vedo(j, i=i, w=w):
+            return tj._vedo_lap(tar(i, w, j.lapok))
+        ok += lejatszik(rek.terv, w, rek.felvevo, h.adu, rek.lejatszott, dd_vedo, cel=cel,
+                        kenyszer=kenyszer) >= cel
+    return (ok / len(vl) if vl else 0.0), len(vl)
+
+
+def terv_borult(elotte: float, most: float, n: int) -> bool:
+    """A terv borult, ha az esélye érezhetően csökkent (a szerkesztő, 2026-11-21: „a terv
+    esélyének csökkenése azt jelenti, hogy valami alapvetően megváltozott”). Érezhető: a
+    nullára esés, vagy legalább 10 pont és a mintavétel kétszeres szórása."""
+    if most <= 0 < elotte:
+        return True
+    szoras = (max(elotte * (1 - elotte), 0.0) / max(n, 1)) ** 0.5
+    return elotte - most >= max(0.10, 2 * szoras)
 
 
 # --- a válaszok -------------------------------------------------------------------------
@@ -665,6 +698,7 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
     kulcs = _kulcs(keres, h.felvevo)
     rek = betolt(kulcs, h)
     ok = None
+    jegyzet = None
     if rek is None:
         ok = "nincs terv ehhez a partihoz"
     elif h.lejatszott[:len(rek.lejatszott)] != rek.lejatszott:
@@ -673,8 +707,22 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
         v, j, elteresek = vegrehajto(rek, h)
         km = kimutatasok(rek, h, v)
         tartalekban = _hibrid(rek) or not rek.eredmenyek or rek.eredmenyek[0].esely <= 0
-        if km:
-            ok = "kimutatás: " + ", ".join(km)
+        if km and not elteresek and not tartalekban and SZABALY_MEGTARTAS:
+            # TERV_MEGTARTAS: a kimutatás nem ok újratervezésre, csak ha a terv esélye
+            # érezhetően csökkent (a terv „borult")
+            elotte = rek.esely_most if rek.esely_most is not None else rek.eredmenyek[0].esely
+            most, n = terv_esely_most(rek, h, dd_zar)
+            szoveg = _kimutatas_szoveg(km)
+            if terv_borult(elotte, most, n):
+                ok = f"kimutatás: {szoveg} — a terv esélye {elotte:.0%} → {most:.0%}"
+            else:
+                rek.esely_most = most
+                rek.ellenorzott = list(rek.ellenorzott) + list(km)
+                with _ZAR:
+                    ment(kulcs, rek, f"kimutatás: {szoveg} — a terv marad ({elotte:.0%} → {most:.0%})")
+                jegyzet = f"kimutatás ({szoveg}): a terv marad, esélye {most:.0%}"
+        elif km:
+            ok = "kimutatás: " + _kimutatas_szoveg(km)
         elif elteresek and not tartalekban:
             # ha a tartalék játszik, a terv lapjától való eltérés várható: nem ok újratervezésre
             ok = "eltérés a tervtől: " + elteresek[-1]
@@ -694,6 +742,8 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
         elotte = len(v.naplo)
         lap = v.lap(u)
     indok = v.naplo[elotte:]
+    if jegyzet and ok is None:
+        indok.append(jegyzet)
     legalis = h.allas_mb.legalis
     esely = rek.eredmenyek[0].esely if rek.eredmenyek else 0.0
     if esely <= 0 or lap not in legalis or _hibrid(rek):

@@ -214,3 +214,53 @@ def test_bedobas_kimutatas_utan_is_folytatodik(monkeypatch, tmp_path):
         n += 1
     assert any("kiengedés (♣Q)" in s for s in lepesek), "\n".join(lepesek)
     assert j.felvevo_utesek() >= 12, "\n".join(lepesek)
+
+
+def test_terv_borult_kuszob():
+    """TERV_MEGTARTAS: csak az érezhető csökkenés borítja a tervet."""
+    assert not tm.terv_borult(1.0, 1.0, 60)
+    assert not tm.terv_borult(1.0, 0.95, 60)
+    assert tm.terv_borult(1.0, 0.85, 60)
+    assert not tm.terv_borult(0.5, 0.42, 60)          # a mintavétel szórásán belül
+    assert tm.terv_borult(0.5, 0.3, 60)
+    assert tm.terv_borult(0.05, 0.0, 60)              # nullára esett
+    assert not tm.terv_borult(0.0, 0.0, 60)
+
+
+def test_kimutatas_a_kritikus_szinben_ujraterv(monkeypatch, tmp_path):
+    """TERV_MEGTARTAS (saját leosztás, a BM A-2 #5 szerkezete): a terv a ♠K-t Keletnél
+    impasszolja. Ha az első pikkre Kelet nem ad pikket, a terv esélye nullára esik —
+    ez már borult terv, újratervezés jön, az oka az esély csökkenése."""
+    import json
+    monkeypatch.setattr(tm, "VILAG", 12)
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    K = {"S": _kez("AQJ.QJ9876.5.A32"), "N": _kez("432.432.Q432.KQJ"),
+         "W": _kez("KT98765.KT5.KJ.T"), "E": _kez(".A.AT9876.987654")}
+
+    def keres(j, n):
+        r = _keres(j, n)
+        r["actor"]["seat"] = "S"
+        r["state"].update({"contract": {"level": 4, "strain": "H", "multiplier": 1},
+                           "declarer": "S", "dummy": "N"})
+        return r
+    j = tj.Jatek({u: set(K[u]) for u in "NESW"}, "S", "H", [], tj.Terv(()))
+    j.tesz("W", Lap.parse("DJ"))
+    tm.plan_valasz(keres(j, 0))
+    n = 1
+    while len(j.lapok) < 52 and not any(l.szin == "S" for u, l in j.lapok if u == "N"):
+        u = j.soron()
+        if j.mi(u):
+            r = tm.step_valasz(keres(j, n), tartalek_fv=lambda k: {"action": {"type": "play", "card": k["legal_actions"]["cards"][0]}})
+            lap = Lap.parse(r["action"]["card"])
+        else:
+            lap = _egyszeru_vedo(j, u)
+        j.tesz(u, lap)
+        n += 1
+    while j.soron() != "S" or not j.aktualis():
+        u = j.soron()
+        lap = _egyszeru_vedo(j, u) if not j.mi(u) else min(j.kezek[u], key=lambda l: (l.szin != "S", l.rang))
+        j.tesz(u, lap)
+    assert any(u == "E" and l.szin != "S" for u, l in j.aktualis()), j.aktualis()
+    tm.step_valasz(keres(j, n), tartalek_fv=lambda k: {"action": {"type": "play", "card": k["legal_actions"]["cards"][0]}})
+    adat = json.loads(next(tmp_path.glob("*.json")).read_text(encoding="utf-8"))
+    assert any("a terv esélye" in t["ok"] for t in adat["tortenet"]), adat["tortenet"]
