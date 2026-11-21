@@ -321,3 +321,31 @@
   hozam: "R"
   hasznal: [NYL, FMK]
   elfogyaszt: [NYL]
+
+- technika: BEDOBAS
+  nev: "Elimináció és bedobás: a többi mellékszín eltüntetése után szándékosan kiadott ütés; a védő kényszerből hív"
+  # A szerkesztő (2026-11-21; forrás: BM A-6 #1). Adus felvételben, tipikusan tükörlapnál
+  # (a mellékszínek a két kézben egyforma hosszúak — sem rövid kezes lopás, sem
+  # asztalfordítás nincs). Lépések:
+  #   1. kiaduzás (a fázis: utána), mindkét kezünkben marad adu;
+  #   2. elimináció: a tükörszínek nyerőinek lehívása, a szín mindkét kezünkből elfogy;
+  #   3. a bedobó színben (SZ) a nyerők lehívása, aztán a kiadás — utána SZ is elfogy;
+  #   4. a védő kényszerhívása: eliminált szín → dob-lop (az egyik kéz lop, a másik
+  #      vesztőt dob); a kényszerszín (K) → impasszba hív, vagy fagyott színt bont.
+  # Minta: Axx / Kxx tükörszín; AQ / xx bedobó szín (az ász, aztán a dáma kiadva);
+  # A98 / KJ10 kétirányú villa (a kényszerszín).
+  szerepek:
+    ELIM: "eliminalo_lapok(SZ)"
+    K: "kenyszer_szinek(SZ)"
+    KIAD: "bedobo_kiad(SZ)"
+    NY: "felettunk(SZ, legnagyobb_kint(SZ))"
+  alkalmazhato: ["nem_adu(SZ)", "adu_marad()", "KIAD == 1", "hossz(K) >= 1"]
+  korok:
+    - {ismetles: "hossz(ELIM)", fajta: lehiv, lap: ELIM}
+    - {ismetles: "hossz(NY)", fajta: lehiv, lap: NY}
+    - {ismetles: "KIAD", fajta: kiad}
+  siker: "True"
+  kudarc_koltseg: 0
+  hozam: 1
+  hasznal: [ELIM, NY]
+  elfogyaszt: [ELIM, NY]

@@ -1285,8 +1285,12 @@ class Vegrehajto:
                 szabad = [l for l in sajat if not self._nyero(l)]
             if szabad:
                 return [Jelolt(szabad[0], ar, f"{e.p.rovid}: kiengedés ({szabad[0]})", folyo=(ei, k))]
-            if k.hivo != H:
-                return self._atmenet_jeloltek(H, k.hivo, e, ar + 0.5)
+            cel_kez = k.hivo
+            if cel_kez is None:
+                # bármelyik kezünkből mehet: abba, amelyikben van nem nyerő lap
+                cel_kez = P if any(not self._nyero(l) for l in j.szin(P, k.szin)) else H
+            if cel_kez != H:
+                return self._atmenet_jeloltek(H, cel_kez, e, ar + 0.5)
             if not sajat:
                 return []
             szabad = [l for l in sajat if l not in fogl] or sajat

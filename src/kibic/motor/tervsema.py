@@ -265,7 +265,15 @@ def fogalmak(allas: Allas) -> dict:
         return sorted(nyerok_kezben(dk, sz), key=lambda l: -l.rang) + \
             sorted(nyerok_kezben(nyk, sz), key=lambda l: -l.rang)
 
+    from . import tervbedobas as _bd
+
     return {
+        # elimináció és bedobás (a szerkesztő 2026-11-21, BM A-6 #1)
+        "eliminalhato": lambda sz: _bd.eliminalhato(a, sz),
+        "eliminalo_lapok": lambda sz: _bd.eliminalo_lapok(a, sz),
+        "kenyszer_szinek": lambda sz: _bd.kenyszer_szinek(a, sz),
+        "bedobo_kiad": lambda sz: _bd.bedobo_kiad(a, sz),
+        "adu_marad": lambda: _bd.adu_marad(a),
         "rovidebb_kez": rovidebb_kez,
         "nyerok_rovid_elobb": nyerok_rovid_elobb,
         # feltételes érték: ha(feltétel, akkor, különben)
@@ -478,7 +486,14 @@ class Peldany:
              "SZOKTETES": "szöktetés", "SZOKTETES_FELSO_ELOBB": "szöktetés (felső előbb)",
              "VESZTOCSERE": "vesztőcsere (dobás)",
              "LOPAS_ROVID_KIADASSAL": "lopás a rövid kézben (kiadás után)",
-             "LOPAS_ROVID_KIENGEDESSEL": "lopás a rövid kézben (kiengedéssel, a felső lap a végén)"}.get(self.sema.azon, self.sema.azon)
+             "LOPAS_ROVID_KIENGEDESSEL": "lopás a rövid kézben (kiengedéssel, a felső lap a végén)",
+             "BEDOBAS": "bedobás"}.get(self.sema.azon, self.sema.azon)
+        if self.sema.azon == "BEDOBAS":
+            el = sorted({l.szin for l in self.szerepek.get("ELIM", [])}, key="SHDC".index)
+            k = self.szerepek.get("K", [])
+            r += (f" (elimináció: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in el)}" if el else " (") + \
+                 (f"; kényszer: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in k)})" if k else ")")
+            r = r.replace("( ;", "(").replace("()", "")
         cel = self.szerepek.get("CELSZIN")
         if cel:
             r = r.replace("(dobás)", f"(dobás: {'♠♥♦♣'['SHDC'.index(cel)]})")
@@ -520,7 +535,8 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
                         # a rövidebb kéz lapjai előbb (deblokkolás)
                         lapok.sort(key=lambda l: (len(allas.szin(allas.keze(l), sz)), -l.rang))
                     for i in range(db):
-                        korok.append(Kor(k["fajta"], sz, lap=lapok[i] if i < len(lapok) else None,
+                        lap_i = lapok[i] if i < len(lapok) else None
+                        korok.append(Kor(k["fajta"], lap_i.szin if lap_i is not None else sz, lap=lap_i,
                                          hivo=kifejezes(k.get("hivo"), kor) if k.get("hivo") else None,
                                          lopo=kifejezes(k.get("lopo"), kor) if k.get("lopo") else None,
                                          csak_ha_siker=k.get("csak_ha") == "siker",

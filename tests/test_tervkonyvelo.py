@@ -370,3 +370,38 @@ def test_a_mostani_hivas_is_atmenet():
     assert lapok[5] == ("N", "CJ") and lapok[8][0] == "N", lapok[4:12]
     assert lapok[8][1][0] == "S", lapok[8:12]              # az asztalról a ♠ impassz
     assert n >= 10, "\n".join(naplo)
+
+
+def test_eliminacio_es_bedobas():
+    """A szerkesztő (2026-11-21, minta: BM A-6 #1; saját leosztás): 6♠, tükörlap. A
+    kőr tükörszín (eliminálható), a treff ász-dáma a bedobó szín, a káró kétirányú villa
+    (kényszerszín). Kiaduzás, a kőrök lehívása, ♣A, aztán a ♣D kiadva: a védő vagy
+    kárót hív (impasszba), vagy kőrt/treffet (dob-lop). Ha a védő kőrt hív, az egyik
+    kéz lop, a másik kárót dob."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("AKQJ9.K43.KJT.32"), "N": _kez("87654.AQ2.A98.AQ"),
+         "W": _kez("3.JT9.Q765.J7654"), "E": _kez("T2.8765.432.KT98")}
+    lead = Lap.parse("HJ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=12, hatra=13, soron="N", kovetes={"S": "H", "N": "H"})
+    jel = [v for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=1, ures=(12, 13))
+           for v in szakasz_valtozatok(t)]
+    T = next(v for v in jel if v.nev.startswith("kiaduzás → ♣ bedobás (elimináció: ♥; kényszer: ♦)"))
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(6, "S", "", "S")
+    for kenyszer in ({}, {28: "H8"}):            # a védő döntése, ill. kőr (dob-lop)
+
+        def vedo(jj, kenyszer=kenyszer):
+            n = len(jj.lapok)
+            if n in kenyszer and Lap.parse(kenyszer[n]) in jj.kezek[jj.soron()]:
+                return Lap.parse(kenyszer[n])
+            return tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k))
+        naplo: list[str] = []
+        n = lejatszik(T, w, "S", "S", [("W", lead)], vedo, naplo, cel=12)
+        assert n >= 12, "\n".join(naplo)
