@@ -234,13 +234,6 @@
       # hívunk, amennyi a lopó kéz kiürítéséhez kell; a többi magas lapot (és rá a dobást)
       # az aduzás után, az utolsó lopás előtt — amíg az asztalon vagyunk.
       # Kód: Vegrehajto._atmenet_jeloltek; kapcsoló: KIBIC_K_ATMENET_ADUKOR.
-    - szabaly: ELIMINACIO_KESZ
-      nev: "Egy szín eliminálva van, ha a védőknél már nincs belőle lap"
-      # (a szerkesztő, 2026-11-21, BM A-6 #3) Az elimináció célja, hogy a bedobott védő ne
-      # hívhasson ki biztonságosan. Ha a színből a védőknél már nincs lap, a szín el van
-      # eliminálva — a maradék nyerőnket nem hívjuk le: az csak alkalmat adna a dámás (adus)
-      # védőnek, hogy egy kis aduval ellopja (4-4-es treff, 3-2-es kint: három kör elég).
-      # Kód: Vegrehajto._eliminalt; kapcsoló: KIBIC_K_ELIMINACIO_KESZ.
     - szabaly: BEDOBAS_TARTALEK
       nev: "A bedobás tartaléka: a kényszerszín saját kezelése, ha a bedobás borul"
       # (a szerkesztő, 2026-11-21, BM A-6 #3) A kényszerszín (pl. kétirányú villa) egysége

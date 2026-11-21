@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "ELIMINACIO_KESZ", "BEDOBAS_TARTALEK")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -671,16 +671,6 @@ class Vegrehajto:
             return False
         return len(j.kint(e.p.szin)) > 1
 
-    def _eliminalt(self, e: "Egyseg", k: Kor) -> bool:
-        """ELIMINACIO_KESZ: egy bedobás eliminációs köre fölösleges, ha a színben a
-        védőknél már nincs lap — a szín el van eliminálva (egyik védő sem hívhatja), a
-        maradék nyerőnk további lehívása csak lopási lehetőséget adna a bedobandó védőnek."""
-        if not SZABALY["ELIMINACIO_KESZ"] or e.p.sema.azon not in ("BEDOBAS", "BEDOBAS_IMPASSZ"):
-            return False
-        if k.szin in (e.p.szin, self.adu):
-            return False
-        return not self.j.kint(k.szin)
-
     def _kint_adu(self) -> int:
         return len(self.j.kint(self.adu)) if self.adu else 0
 
@@ -1071,9 +1061,6 @@ class Vegrehajto:
                     e.allapot = "kudarc"
                     self._jegyez(f"{e.p.rovid}: nem sikerült (a kiadás után a védőnek marad kijátszója)")
                     break
-                if k.fajta == "lehiv" and k.lap is not None and self._eliminalt(e, k):
-                    e.i += 1
-                    continue
                 if k.fajta == "impassz" and k.lap is not None and k.lap not in mieink:
                     # a villa lapja egy védői hívásra már lement: a megfigyelés dönt
                     e.i += 1

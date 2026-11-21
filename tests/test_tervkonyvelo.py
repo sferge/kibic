@@ -479,8 +479,7 @@ def test_asztalforditas_sorrend_kockazat_szerint():
 def test_adu_kiadas_bedobas_es_tartalek():
     """A szerkesztő (2026-11-21, minta: BM A-6 #3; saját leosztás): 6♠, ♠AJxx / ♠KTxx,
     hiányzik a ♠D. Kiaduzás a két felső aduval; ha a dáma nem esett le: a kőr és a treff
-    eliminálása (a treffből csak annyi kör, amíg a védőknél van treff — ELIMINACIO_KESZ),
-    aztán adukiadás: a dámás védő kárót hív (kétirányú villa) vagy dob-lopot ad. Ha a
+    eliminálása (mindkét kezünkből elfogy), aztán adukiadás: a dámás védő kárót hív (kétirányú villa) vagy dob-lopot ad. Ha a
     dáma leesik, nincs mit kiadni (a tartalék elmarad); 4-1-es adunál a bedobás borul,
     a tartalék (♦ impassz) indul."""
     from kibic.domain import Leosztas
@@ -513,7 +512,6 @@ def test_adu_kiadas_bedobas_es_tartalek():
                  ("Q98.QJT9.7654.T9", "76.87652.Q32.876")):
         n, naplo = jatek(W, E, bed)
         assert n >= 12, "\n".join(naplo)
-        assert sum("lehiv ♣" in s or "lehiv C" in s for s in naplo) <= 3, "\n".join(naplo)
     # a dáma leesik: nincs kiadandó vesztő, a tartalék ♦ impassz elmarad
     n, naplo = jatek("Q9.QJT98.Q765.T9", "876.7652.432.876", bed + " → ♦ impassz")
     assert n >= 12 and any("nincs kiadandó vesztő" in s for s in naplo), "\n".join(naplo)
