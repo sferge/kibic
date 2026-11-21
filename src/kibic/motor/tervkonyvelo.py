@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -560,6 +560,61 @@ class Vegrehajto:
     def _nyero(self, l: Lap) -> bool:
         return not self._kint_felett(l)
 
+    def _megfigyelt_nyero(self, l: Lap, utes) -> bool:
+        """A folyó ütésben `l` biztosan üt-e a látott lapok szerint (MEGFIGYELT_NYERO, a
+        szerkesztő 2026-11-21, BM A-2 #5): ha a színt élő elemzős egység kezeli, a
+        tartásai közül csak azok maradnak, amelyek a lement lapokkal összeférnek (egy
+        sikerült impassz után a király nem lehet a mögötte ülő védőnél). Ha a még tevő
+        védőknek egyik ilyen tartásban sincs `l`-nél nagyobb lapja, `l` biztos ütés."""
+        if self._nyero(l):
+            return True
+        if not SZABALY["MEGFIGYELT_NYERO"]:
+            return False
+        j = self.j
+        sz = l.szin
+        pol = next((p for ei, p in self.politikak.items()
+                    if self.egysegek[ei].p.szin == sz and self.egysegek[ei].el), None)
+        if pol is None or (self.adu and sz != self.adu and any(
+                x.szin == self.adu for _, x in utes)):
+            return False
+        try:
+            _, idx, l1, l2, *_ = pol.node
+            tart = [(pol.el.tart[i][0] - l1[n], pol.el.tart[i][1] - l2[n]) for n, i in enumerate(idx)]
+        except Exception:                        # noqa: BLE001
+            return False
+        if not tart:
+            return False
+        v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
+        tett = {u for u, _ in utes}
+        latott = {v: {x.rang for u, x in utes if u == v and x.szin == sz} for v in (v1, v2)}
+        hatra = [v for v in (v1, v2) if v not in tett]
+        if not hatra:
+            return True
+        # a korábbi ütések a színben: ha a negyedik kéz védője nem ütött fölé, pedig
+        # tudott volna (a nagyobb lapja nála maradt, vagy később tette le), az ilyen
+        # tartás kiesik — „az impassz sikerült, a király nem a mögötte ülőnél van”
+        L = j.lapok
+        kesz = len(L) - len(L) % 4
+        negyedik = []                            # (védő, a nyerő rangja, később tett lapjai)
+        for i in range(0, kesz, 4):
+            ut = L[i:i + 4]
+            if ut[0][1].szin != sz:
+                continue
+            gy, gl = j.nyertes(ut)
+            d, dl = ut[3]
+            if j.mi(gy) and gl.szin == sz and d in (v1, v2) and dl.szin == sz and dl.rang < gl.rang:
+                kesobb = {x.rang for u, x in L[i + 4:] if u == d and x.szin == sz}
+                negyedik.append((d, gl.rang, kesobb))
+        for a, b in tart:
+            kez = {v1: a, v2: b}
+            if any(not latott[v] <= kez[v] for v in (v1, v2)):
+                continue                         # a látott lappal össze nem férő tartás
+            if any(any(r > w for r in (kez[d] | k)) for d, w, k in negyedik):
+                continue                         # a negyedik kéz nem engedett volna
+            if any(r > l.rang for v in hatra for r in kez[v]):
+                return False
+        return True
+
     def _kint_adu(self) -> int:
         return len(self.j.kint(self.adu)) if self.adu else 0
 
@@ -700,6 +755,65 @@ class Vegrehajto:
                     legjobb, val = kulcs, (a, b)
         return val
 
+    def _hivas_atadasa(self, ei: int) -> int | None:
+        """ATMENET_ELOSZTAS, a mostani hívással (a szerkesztő 2026-11-21, BM A-2 #5): a kéz,
+        amelyben most a hívás van, maga is egy átmenet. Ha két elemzős kezelés verseng az
+        átmenetekért, és a másik kezelés ebből a kézből jobban tud indulni (az együttes
+        esély nagyobb), most a másik kezelés köre jön. „Ha az asztalon kell ütnünk, onnan
+        pikk impasszal jövünk kézbe az aduzás befejezéséhez.” Visszaadja a másik egység
+        indexét, vagy None-t."""
+        if not (SZABALY["ATMENET_ELOSZTAS"] and SZABALY["HIVAS_ATADAS"]):
+            return None
+        j = self.j
+        if j.aktualis():
+            return None
+        soron = j.soron()
+        if soron not in (j.felvevo, j.asztal):
+            return None
+        hol = "X" if soron == j.felvevo else "Y"
+        pi = self._politika(ei)
+        if pi is None or not pi.el.korlatos:
+            return None
+        ax, ay = self._atm_nyers(self.egysegek[ei].p.szin)
+        if ax is None:
+            return None
+        masik = None
+        for ej, e in enumerate(self.egysegek):
+            if ej == ei or not e.el or e.p.sema.fajta != "elemzo" or not j.kint(e.p.szin):
+                continue
+            k = e.kor()
+            if k is None or k.fajta != "elemzo":
+                continue
+            pj = self._politika(ej, osztas=False)
+            if pj is not None and pj.el.korlatos:
+                if masik is not None:
+                    return None
+                masik = (ej, pj)
+        if masik is None:
+            return None
+        ej, pj = masik
+        akc = pj.dontes()
+        if akc is None or akc[0] != hol:
+            return None                       # a másik kezelés sem innen indulna
+
+        def legjobb(hol_i, hol_j):
+            return max(pi.esely_atmenettel(a, b, hol_i) * pj.esely_atmenettel(ax - a, ay - b, hol_j)
+                       for a in range(ax + 1) for b in range(ay + 1))
+        # a másik kezelés köre után a hívás ott lesz, ahol a színben a nagyobb lapunk
+        # van (egy impassz a villa kezében végződik, ha sikerül)
+        szj = self.egysegek[ej].p.szin
+        H, P = (j.felvevo, j.asztal) if hol == "X" else (j.asztal, j.felvevo)
+        hlap = [l.rang for l in j.szin(H, szj)]
+        plap = [l.rang for l in j.szin(P, szj)]
+        utana = ("Y" if hol == "X" else "X") if plap and (not hlap or max(plap) > max(hlap)) else hol
+        marad = legjobb(hol, "-")
+        atad = legjobb(utana, hol)
+        if atad > marad + 0.02:
+            self._jegyez(f"a hívás a {self.egysegek[ej].p.rovid} kezelésé "
+                         f"(együtt {atad:.0%}, nem {marad:.0%})")
+            return ej
+        return None
+
     def _politika(self, ei: int, osztas: bool = True):
         """Az elemzős egység politikája (lustán; ha a lapjaink nem egyeznek, újraépül a
         mostani állásból, a cél még hiányzó részével)."""
@@ -811,13 +925,31 @@ class Vegrehajto:
         return self.szakaszos and any(e.el and e.fazis == "E" and e.kor() is not None
                                       for e in self.egysegek)
 
+    def _egyseg_sor(self, csak: str | None = None) -> list:
+        """Az egységek sora; ha az első élő elemzős egység a mostani hívást egy másik
+        elemzős egységnek adja át (HIVAS_ATADAS), az kerül előre."""
+        sor = list(self.egysegek)
+        for ei, e in enumerate(sor):
+            if (csak is not None and e.fazis != csak) or not e.el:
+                continue
+            k = e.kor()
+            if k is None or k.fajta != "elemzo":
+                return sor
+            ej = self._hivas_atadasa(ei)
+            if ej is not None and (csak is None or self.egysegek[ej].fazis == csak):
+                sor.remove(self.egysegek[ej])
+                sor.insert(ei, self.egysegek[ej])
+            return sor
+        return sor
+
     def _kovetkezo_kor(self, csak: str | None = None) -> tuple[Egyseg, Kor] | None:
         """Az esélyek sorában az első élő egység soron következő köre. A már lement
         lapok köreit (átmenetként vagy védői hívásra tettük le) átlépi; a `csak_ha:
         siker` körnél dönt: a lap most nyerő-e (megfigyelt tény)."""
         j = self.j
         mieink = j.kezek[j.felvevo] | j.kezek[j.asztal]
-        for e in self.egysegek:
+        sor = self._egyseg_sor(csak)
+        for e in sor:
             if csak is not None and e.fazis != csak:
                 continue
             while e.el:
@@ -1514,7 +1646,8 @@ class Vegrehajto:
             if len(utes) == 3:
                 biztos = [l for l in sorted(van, key=lambda x: x.rang) if _ut(l, nyl, adu)]
             else:
-                biztos = [l for l in van if self._nyero(l) and _ut(l, nyl, adu)]
+                biztos = [l for l in sorted(van, key=lambda x: x.rang)
+                          if _ut(l, nyl, adu) and self._megfigyelt_nyero(l, utes)]
             if biztos:
                 return biztos[0], f"üt a nyerővel ({biztos[0]}): a terv innen folytatódik"
         if van and len(utes) == 1 and R == P and hatra_van_partner:
@@ -1540,6 +1673,10 @@ class Vegrehajto:
                 # harmadik kéznek az ütést („második kéz kicsi” csak ott jó, ahol a
                 # partner fedez, vagy nincs nyerőnk)
                 nyerok = [l for l in van if self._nyero(l) and l.rang > nyl.rang]
+                megf = [l for l in van if l.rang > nyl.rang and self._megfigyelt_nyero(l, utes)]
+                if megf and (not nyerok or megf[0].rang < nyerok[0].rang):
+                    return megf[0], (f"második kéz: üt a legolcsóbb biztos lappal ({megf[0]}) — a "
+                                     "látott lapok szerint a mögöttünk ülő nem tudja megütni")
                 if nyerok and (self._tartalek() <= 0 or (SZABALY["MASODIK"] and (
                         not any(l in fogl for l in nyerok) or len(nyerok) >= 2))):
                     return nyerok[0], (f"második kéz: üt a nyerővel ({nyerok[0]}) — a partner "

@@ -165,6 +165,21 @@
       # menetet igényli — az aduszín kezelésére nem marad asztalra menet, ott csak a
       # kézből indított kezelés (az eltalálás) marad. Forrás: BM A-2 #5.
       # Kód: Vegrehajto._atmenet_elosztas; kapcsoló: KIBIC_K_ATMENET_ELOSZTAS.
+      # A mostani hívás is átmenet (a szerkesztő, 2026-11-21): ha a hívás abban a
+      # kézben van, ahonnan a másik kezelés indul, és így a kettő együtt jobb, most a
+      # másik kezelés köre jön. Pl.: a védő hívására az asztal üt — onnan a pikk
+      # impassz jön, és az (ha sikerül) a kézbe hoz az aduzás folytatásához; a kőr az
+      # asztalról az impassz átmenetét vinné el. A mérlegelésben a másik kezelés köre
+      # ott végződik, ahol a színben a nagyobb lapunk van.
+      # Kód: Vegrehajto._hivas_atadasa; kapcsoló: KIBIC_K_HIVAS_ATADAS.
+    - szabaly: MEGFIGYELT_NYERO
+      nev: "A látott lapok szerint biztos ütés: a legolcsóbb"
+      # (a szerkesztő, 2026-11-21) Második vagy harmadik kézben az a lap is biztos ütés,
+      # amelyet a még tevő védő a lement lapokkal összeférő tartások egyikében sem tud
+      # megütni. Ha egy korábbi körben a negyedik kéz védője nem ütött fölé, pedig
+      # tudott volna, az ilyen tartás kiesik: a sikerült impassz után a király nem a
+      # mögötte ülőnél van, így a villába hívott színre a dáma elég, nem kell az ász.
+      # Kód: Vegrehajto._megfigyelt_nyero; kapcsoló: KIBIC_K_MEGFIGYELT_NYERO.
     - szabaly: MAGAS_LOPAS
       nev: "Magasan lopunk, ha felüllophatnak"
       # Ha utánunk még védő jön, aki már kimutatott a színből (vagy alig van kint
