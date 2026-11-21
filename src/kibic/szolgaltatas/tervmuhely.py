@@ -419,8 +419,16 @@ def kimutatasok(rek: Rekord, h: Helyzet, v=None) -> list[str]:
         elo = {e.p.szin for e in v.egysegek
                if e.el and e.p.sema.fajta == "elemzo" and not e.p.szerepek.get("aduval")}
     # ha a színben már nincs kint lap, a kimutatás semmit sem mond
-    _, kint = _allas(h, h.lejatszott)
+    allas, kint = _allas(h, h.lejatszott)
     ures = {sz for sz in "SHDC" if not any(l.szin == sz for l in kint)}
+    # a biztos egység (nincs rejtett feltétele, pl. a bedobás) nem függ az elosztástól:
+    # a köreinek színében a kimutatás nem ok újratervezésre, ha a védőknél már nincs
+    # adu (nincs ellopás) — BM A-6 #1: a kőr eliminálása közben Kelet nem adott kőrt
+    if v is not None and not (allas.adu and any(l.szin == allas.adu for l in kint)):
+        from ..motor.tervkonyvelo import biztos_egyseg
+        for e in v.egysegek:
+            if e.el and biztos_egyseg(e.p):
+                elo |= {k.szin for k in e.p.korok} | {e.p.szin}
     return [f"{KEZ_NEV[k.kez]} nem adott {SZIN[k.szin]}-t"
             for k in _szinhianyok(h.lejatszott, h.vedok)
             if (k.kez, k.szin) not in regi and k.szin not in elo and k.szin not in ures]

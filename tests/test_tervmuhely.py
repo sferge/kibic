@@ -178,3 +178,39 @@ def test_step_vedokent_a_play_dontese_megy():
     assert v["status"] == "action_available"
     assert v["action"]["card"] == "S4"
     assert v["meta"]["source"] == "fallback"
+
+
+def test_bedobas_kimutatas_utan_is_folytatodik(monkeypatch, tmp_path):
+    """A szerkesztő (2026-11-21, BM A-6 #1 az MB-asztalon; saját leosztás): a kőr
+    eliminálása közben Kelet nem ad kőrt. A bedobás biztos egység (nem függ az
+    elosztástól), a kiaduzás után a kimutatás nem ok újratervezésre — a terv a ♣A után
+    a ♣D kiadásával folytatódik, nem a ♣ impasszal."""
+    monkeypatch.setattr(tm, "VILAG", 12)
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    K = {"S": _kez("AKQJ9.K43.KJT.32"), "N": _kez("87654.AQ2.A98.AQ"),
+         "W": _kez("3.JT987.Q32.7654"), "E": _kez("T2.65.7654.KJT98")}
+
+    def keres(j, n):
+        r = _keres(j, n)
+        r["actor"]["seat"] = "S"
+        r["state"].update({"contract": {"level": 6, "strain": "S", "multiplier": 1},
+                           "declarer": "S", "dummy": "N"})
+        return r
+    j = tj.Jatek({u: set(K[u]) for u in "NESW"}, "S", "S", [], tj.Terv(()))
+    j.tesz("W", Lap.parse("HJ"))
+    p = tm.plan_valasz(keres(j, 0))
+    assert "bedobás" in p["plan"]["name"], p["plan"]["name"]
+    n = 1
+    lepesek = []
+    while len(j.lapok) < 52:
+        u = j.soron()
+        if j.mi(u):
+            r = tm.step_valasz(keres(j, n))
+            lepesek.append(r["summary"])
+            lap = Lap.parse(r["action"]["card"])
+        else:
+            lap = _egyszeru_vedo(j, u)
+        j.tesz(u, lap)
+        n += 1
+    assert any("kiengedés (♣Q)" in s for s in lepesek), "\n".join(lepesek)
+    assert j.felvevo_utesek() >= 12, "\n".join(lepesek)

@@ -491,9 +491,10 @@ class Peldany:
         if self.sema.azon == "BEDOBAS":
             el = sorted({l.szin for l in self.szerepek.get("ELIM", [])}, key="SHDC".index)
             k = self.szerepek.get("K", [])
-            r += (f" (elimináció: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in el)}" if el else " (") + \
-                 (f"; kényszer: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in k)})" if k else ")")
-            r = r.replace("( ;", "(").replace("()", "")
+            resz = ([f"elimináció: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in el)}"] if el else []) + \
+                   ([f"kényszer: {''.join('♠♥♦♣'['SHDC'.index(x)] for x in k)}"] if k else [])
+            if resz:
+                r += f" ({'; '.join(resz)})"
         cel = self.szerepek.get("CELSZIN")
         if cel:
             r = r.replace("(dobás)", f"(dobás: {'♠♥♦♣'['SHDC'.index(cel)]})")
