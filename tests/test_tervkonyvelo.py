@@ -518,3 +518,54 @@ def test_adu_kiadas_bedobas_es_tartalek():
     # 4-1: a bedobás borul, a tartalék ♦ impassz (itt a ♦D a jó oldalon) teljesít
     n, naplo = jatek("Q987.QJT9.Q765.T", "6.87652.432.9876", bed + " → ♦ impassz")
     assert any("bedobás" in s and "nem sikerült" in s for s in naplo), "\n".join(naplo)
+
+
+def test_adu_biztonsagi_kezeles():
+    """A szerkesztő (2026-11-21, BM A-6 #4; saját, azonos szerkezetű leosztás): a szín
+    biztonsági kezelése — a kötelező ütésszám a teljes vesztéskerettel, a legnagyobb
+    biztonságra. ♠KB98 / ♠A432, hiányzik a D10765, egy aduvesztő belefér: a „3 ütés,
+    legfeljebb 1 vesztés” kezelés jelölt (a hozama a legrosszabb elosztás elleni
+    védelem), és a 4-1-es adun is teljesít."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import szakasz_valtozatok, szinkezeles_peldanyok, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+
+    K = {"S": _kez("KJ98.K43.AK2.AK2"), "N": _kez("A432.A2.QJT9.Q43"),
+         "W": _kez("QT76.QJ.43.J9876"), "E": _kez("5.T98765.8765.T5")}
+    lead = Lap.parse("HQ")
+    kint = (K["E"] | K["W"]) - {lead}
+    allas = Allas(felvevo="S", adu="S", kezek={"S": set(K["S"]), "N": set(K["N"])},
+                  kint=kint, cel=12, hatra=13, soron="N", kovetes={"S": "H", "N": "H"})
+    T = technikak_betoltese()
+    biz = [p for p in szinkezeles_peldanyok(allas, T, 1, (12, 13)) if p.szin == "S" and p.szerepek["m"] == 1]
+    assert biz and biz[0].szerepek["k"] == 3 and biz[0].szerepek["esely"] >= 0.95
+    nev = "♠ színkezelés (3 ütés, ≤1 vesztés) → kiaduzás"
+    terv = next(v for t in tervjeloltek(allas, T, max_db=200, igeny=1, ures=(12, 13))
+                for v in szakasz_valtozatok(t) if v.nev == nev)
+    w = Leosztas({u: Kez(frozenset(K[u])) for u in "NESW"})
+    k = Kontraktus(6, "S", "", "S")
+    naplo: list[str] = []
+    n = lejatszik(terv, w, "S", "S", [("W", lead)],
+                  lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=12)
+    assert n >= 12, "\n".join(naplo)
+
+
+def test_biztonsagi_kezeles_csak_egyetlen_feladatnal():
+    """A szerkesztő (2026-11-21): a biztonsági kezelés csak akkor érvényes, ha a szín a
+    teljesítés egyetlen feltétele. Ha a ♦-ben is feladat van (nincs rá dobás, nincs
+    lopás), kombinációs játék kell: az aduszín nem rögzíthető a maximuma alatt."""
+    from kibic.motor import tervkonyvelo as tk
+
+    T = technikak_betoltese()
+
+    def allas(S, N, lead):
+        S_, N_ = _kez(S), _kez(N)
+        kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S_ - N_ - {Lap.parse(lead)}
+        return Allas(felvevo="S", adu="S", kezek={"S": S_, "N": N_}, kint=kint, cel=12, hatra=13,
+                     soron="N", kovetes={"S": lead[0], "N": lead[0]})
+    egy = allas("KJ98.K43.AK2.AK2", "A432.A2.QJT9.Q43", "HQ")     # a ♥ vesztő a ♦-re esik
+    ket = allas("KJ98.AK2.K43.AK2", "A432.QJT.952.Q43", "CJ")     # a ♦-ben is feladat van
+    assert tk._egyetlen_feladat(egy, T, "S", tk._felmeres(egy, (12, 13)))
+    assert not tk._egyetlen_feladat(ket, T, "S", tk._felmeres(ket, (12, 13)))
