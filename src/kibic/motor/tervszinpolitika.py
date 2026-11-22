@@ -24,6 +24,7 @@ from . import tervszinkezeles as ts
 _TAR: dict = {}
 
 
+OSSZ_MEMO_MAX = 600_000       # az elemzők együttes memóriakerete (állapot)
 TAR_MAX = 150                 # az elemzők memóriája nagy: legfeljebb ennyit tartunk
 
 

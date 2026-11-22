@@ -949,8 +949,11 @@ def test_licit_kizaras_sulya(moha):
     assert lj._jatek_suly(a, {"N": egy}, kov, {})[0] == pytest.approx(0.6)
 
 
-def test_aki_mar_megszegte_a_lapmegallapodast():
-    """A védő QJT-ből a D-vel ütött, a B-t később letette: rá a lapból nem következtetünk."""
+def test_aki_mar_megszegte_a_lapmegallapodast(monkeypatch):
+    """A védő QJT-ből a D-vel ütött, a B-t később letette: rá a lapból nem következtetünk.
+    (A mechanizmus próbája; felvevőként alapból semmit sem olvasunk a védők lapjaiból —
+    lásd lent.)"""
+    monkeypatch.setattr(lj, "FELVEVO_NEM_OLVAS", False)
     from kibic.domain import Lap as L
     k = {"request_id": "r", "actor": {"seat": "E", "acting_for_seat": "E"},
          "state": {"dealer": "N", "contract": {"level": 4, "strain": "S"}, "declarer": "E",
@@ -968,6 +971,10 @@ def test_aki_mar_megszegte_a_lapmegallapodast():
     # csak a megszegett következtetés esik ki (2026-10-23; a többi lapból levont marad)
     assert "S" in kov.nem_kovetett and "LEGKISEBB_EGYENERTEKU" not in kov.kodok["S"]
     assert kov.kodok["N"] & set(lj.LAP_KODOK)                         # Észak nem szegte meg
+    # a szerkesztő, 2026-11-22: felvevőként a védők ütéshez tett lapjaiból nem olvasunk
+    monkeypatch.setattr(lj, "FELVEVO_NEM_OLVAS", True)
+    kov = lj.kovetkeztetes_beallitas(a, szab, ["N", "S"])
+    assert not (kov.kodok.get("N", set()) | kov.kodok.get("S", set())) & set(lj.LAP_KODOK)
 
 
 # --- 2026-10-23: a fred-mérés tanulságai -----------------------------------------

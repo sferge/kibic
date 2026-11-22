@@ -299,6 +299,10 @@ class Kimenet:
     atm_y: int
 
 
+# egy elemző legfeljebb ennyi állapotot jegyez meg (memóriakeret); fölötte az új állapot kudarc
+MEMO_MAX = int(__import__("os").getenv("KIBIC_ELEMZO_MEMO_MAX", "1000000"))
+
+
 class Elemzo:
     """Az információs halmazokon számoló felvevő. Állapot: a két kezünk lapjai,
     a lopások, az átmenetek, ki van hívásban; a még lehetséges tartások és a
@@ -313,6 +317,7 @@ class Elemzo:
         self.dontes: dict = {}
         self.harmadik: dict = {}
         self.korlatos = f.atm_x is not None or f.atm_y is not None
+        self.tullepes = False
 
     def _kezdo(self):
         idx = tuple(range(len(self.tart)))
@@ -390,6 +395,11 @@ class Elemzo:
         kulcs = (allapot, idx, lej1, lej2, k, m)
         if kulcs in self._memo:
             return self._memo[kulcs]
+        if len(self._memo) >= MEMO_MAX:
+            # memóriakeret (2026-11-22): a túl nagy feladatban az új állapot kudarc —
+            # alulbecslés, de nem fogy el a memória (4R01 #1: ♥ 3 ütés, 4+ GB)
+            self.tullepes = True
+            return 0.0, frozenset()
         maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
         if all(not a and not b for a, b in maradek):
             # nincs több kint lap: a maradék nyerő — de átmenetkorlát mellett csak akkor

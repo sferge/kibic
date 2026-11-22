@@ -179,7 +179,11 @@
       # megütni. Ha egy korábbi körben a negyedik kéz védője nem ütött fölé, pedig
       # tudott volna, az ilyen tartás kiesik: a sikerült impassz után a király nem a
       # mögötte ülőnél van, így a villába hívott színre a dáma elég, nem kell az ász.
-      # Kód: Vegrehajto._megfigyelt_nyero; kapcsoló: KIBIC_K_MEGFIGYELT_NYERO.
+      # 2026-11-22: ez a második rész KIKAPCSOLVA (a szerkesztő): a felvevő hívására tett
+      # védőlapokból nem olvasunk semmit — nincs ütéskényszer, a lement lap csak annyit
+      # mond, hogy nála volt. Ami marad: a látott lapokkal össze nem férő tartás kiesik.
+      # Kód: Vegrehajto._megfigyelt_nyero; kapcsolók: KIBIC_K_MEGFIGYELT_NYERO,
+      # KIBIC_K_NEGYEDIK_KOVETKEZTETES (alap: 0).
     - szabaly: MAGAS_LOPAS
       nev: "Magasan lopunk, ha felüllophatnak"
       # Ha utánunk még védő jön, aki már kimutatott a színből (vagy alig van kint
@@ -286,3 +290,40 @@
       # a tényleges vesztés kisebb.)
       # Kód: tervjeloltek (megoldo, hozzaad), Vegrehajto._politika; kapcsoló:
       # KIBIC_K_KOMBINACIO.
+    - szabaly: HIVASRA_TETT_LAP
+      nev: "A védő hívására tett lapunk is a terv része"
+      # (a szerkesztő, 2026-11-22, BM A-12) 5♠, Nyugat ♦10-zel indul, az asztalon ♦D94,
+      # a kézben ♦K32. A ♦4-gyel a ♦K üt, és ha Nyugat (a veszélyes kéz) később a ♣Á-val
+      # ütésbe kerül, a ♦D-n át hív Kelet ♦ÁB-je felé: két káróütés. A ♦D-vel: ha Kelet
+      # üt, a ♦K védett, a ♦9 a harmadik körben nyerő; ha nem üt, a D üt. Ha a folyó
+      # ütésben (a védő hívott) mi teszünk, a terv lapja dönt: minden szabályos lapunkkal
+      # lefuttatjuk a jelölt terveket ugyanazokon a világokon, és ha valamelyik lap
+      # legalább 5 ponttal jobb esélyt ad, az lesz a terv lapja (a szélső lapok előbb).
+      # Kód: tervmuhely._hivasra_tett_lap, Rekord.elso_lap, Vegrehajto.kenyszer; kapcsoló:
+      # KIBIC_K_HIVASRA_TETT_LAP.
+    - szabaly: IGENY_TOBBLET
+      nev: "A jelöltek az igényre és eggyel több forrásra"
+      # (BM A-12) A felmérés igénye becslés: az A-12-n 1, de a ♣-ból két ütés kell (a
+      # második káróvesztőt a treffre dobjuk). A jelöltek az igény szerinti és eggyel
+      # nagyobb igényű tervek együtt; az előzetes esély szerint a legjobbak mennek a
+      # szimulációba, ott dől el. Kód: tervmuhely.tervez; kapcsoló: KIBIC_K_IGENY_TOBBLET.
+    - szabaly: ELLENFEL_INDITASA
+      nev: "Az ellenvonal hívásai a megállapodásuk szerintiek — az indító lapból olvasunk"
+      # (a szerkesztő, 2026-11-22, BM A-12) A felvevő hívására tett védőlapokból nem
+      # olvasunk semmit (kivétel a konvencionális jelzés, pl. Smith szan ellen — az is a
+      # konvenciókártyájukon van). Az ellenvonal HÍVÁSAI viszont más elbírálás alá esnek:
+      # ezekből olvasni kell. Különösen az indító kijátszásból: szinte minden párnak van
+      # indítási megállapodása (ha nincs konvenciókártya, szabályos rákérdezni, mit ígér,
+      # mit tagad az indulás). Szinte általános szabály, hogy színfelvétel ellen nem
+      # indulnak ász alól (szan ellen igen).
+      #   - ASZ_ALOL (színfelvétel ellen; nem az aduban): ha a világban az indítónál van az
+      #     ász, és nem az ásszal kezdődő zárt sorozatból indult (ÁK-ból a K rendben van),
+      #     a világ 1% eséllyel marad a mintában (KIBIC_ELLENFEL_ASZ_ALOL_SULY);
+      #   - a lap a színen belül: ha a megállapodás szerint más lap jönne (B10x-ből a B,
+      #     háromból kicsi…), 5% eséllyel (KIBIC_ELLENFEL_INDITAS_SULY).
+      # A rendszer: a védők `game.systems` szerinti rendszerének `jelzesek:` sora; ha nem
+      # ismert, KIBIC_ELLENFEL_JELZES (alap: MOHA_STAND).
+      # A-12 (♦10 indulás, 60 világ): DD a ♦D-vel 41, a ♦4-gyel 35; a megállapodással
+      # összeférő világokon 31/40 és 17/40. (Súlyozás nélkül 50% és 72%.)
+      # Kód: tervmuhely.inditas_osszhang, ellenfel_jelzes_kod, _vilagok; kapcsoló:
+      # KIBIC_K_ELLENFEL_INDITASA.
