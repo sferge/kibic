@@ -72,14 +72,16 @@ SZABALY_HIVASRA = os.getenv("KIBIC_K_HIVASRA_TETT_LAP", "1") != "0"
 # IGENY_TOBBLET (strategiak.yaml; BM A-12): a jelöltek az igényre ÉS eggyel több forrásra
 # is — a felmérés igénye becslés (A-12: igény 1, de a ♣-ból 2 ütés kell a ♦ eldobásához)
 SZABALY_IGENY_TOBBLET = os.getenv("KIBIC_K_IGENY_TOBBLET", "1") != "0"
-# ELLENFEL_INDITASA (strategiak.yaml; BM A-12): az indító lap a védők megállapodása szerinti
-# lap (a sorozat teteje, a dubló felső lapja, háromból kicsi…; színfelvétel ellen ász alól
-# nem indulnak — ASZ_ALOL). Ami ellentmond neki, az a világ csak `INDITAS_SULY` eséllyel
-# marad a mintában — nem kizárás, súlyozás. A súly kicsi: az egyenletes mintában az
-# ellentmondó lapok sokszorosan többen vannak (A-12: a ♦10-hez illő Nyugat-kéz a minta
-# ~6%-a), 0,2-es súllyal ezek döntenének. A rendszer: KIBIC_ELLENFEL_JELZES.
+# ELLENFEL_INDITASA (strategiak.yaml; a szerkesztő, 2026-11-22): az ellenvonal HÍVÁSAI a
+# megállapodásuk szerintiek (a konvenciókártyájukon; ha nincs, rá lehet kérdezni) — ezekből
+# olvasni kell. (A felvevő hívására adott lapjaikból nem: ott nincs következtetés.) Az
+# indító lap: a sorozat teteje, a dubló felső lapja, háromból kicsi… (INDITAS_SULY), és
+# színfelvétel ellen ász alól nem indulnak — ez szinte általános (ASZ_ALOL_SULY). Az
+# ellentmondó világ csak ekkora eséllyel marad a mintában. A rendszer: az ellenfél
+# `game.systems` szerinti rendszerének jelzésrendszere, ha nincs: KIBIC_ELLENFEL_JELZES.
 SZABALY_INDITAS = os.getenv("KIBIC_K_ELLENFEL_INDITASA", "1") != "0"
 INDITAS_SULY = float(os.getenv("KIBIC_ELLENFEL_INDITAS_SULY", "0.05"))
+ASZ_ALOL_SULY = float(os.getenv("KIBIC_ELLENFEL_ASZ_ALOL_SULY", "0.01"))
 ELLENFEL_JELZES = os.getenv("KIBIC_ELLENFEL_JELZES", "MOHA_STAND")
 TAR = Path(os.getenv("KIBIC_TERVMUHELY_TAR", str(Path.home() / ".cache" / "kibic" / "tervmuhely")))
 SZIN = dict(zip("SHDC", "♠♥♦♣"))
@@ -269,6 +271,7 @@ class Helyzet:
     lejatszott: list[tuple[str, Lap]]
     kezek: dict[str, set[Lap]]             # a felvevő és az asztal TELJES keze (13 lap)
     vedok: tuple[str, str]
+    ellenfel_jelzes: str | None = None     # a védők jelzésrendszere (ELLENFEL_INDITASA)
 
 
 def helyzet(keres: dict) -> Helyzet:
@@ -289,7 +292,8 @@ def helyzet(keres: dict) -> Helyzet:
         if len(kezek[u]) != 13:
             raise MuhelyHiba("invalid_request", f"{KEZ_NEV[u]} keze nem 13 lap ({len(kezek[u])})")
     vedok = (kovetkezo_ules(F, 1), kovetkezo_ules(F, 3))
-    return Helyzet(a, F, A, a.kontraktus, a.adu, list(a.lejatszott), kezek, vedok)
+    return Helyzet(a, F, A, a.kontraktus, a.adu, list(a.lejatszott), kezek, vedok,
+                   ellenfel_jelzes_kod(keres, F))
 
 
 def _jatek(h: Helyzet, lejatszott: list) -> tj.Jatek:
@@ -299,31 +303,69 @@ def _jatek(h: Helyzet, lejatszott: list) -> tj.Jatek:
 
 
 _JELZ: dict = {}
+GYOKER = Path(__file__).resolve().parents[3]
 
 
-def _ellenfel_jelzesei():
-    """A védők jelzésrendszere (YAML), egyszer betöltve; None, ha nem érhető el."""
-    if "j" not in _JELZ:
+def ellenfel_jelzes_kod(keres: dict | None, felvevo: str) -> str:
+    """Az ellenfél (a védők) jelzésrendszerének kódja: a `game.systems` szerinti
+    rendszerük `jelzesek:` sora (rendszerek/yaml); ha nem ismert, KIBIC_ELLENFEL_JELZES."""
+    try:
+        from .profil import vonal_feloldas
+        kod = vonal_feloldas(keres, felvevo).get("opponents_system")
+    except Exception:                            # noqa: BLE001
+        kod = None
+    if kod:
+        if "rsz" not in _JELZ:
+            import yaml
+            m = {}
+            for f in sorted((GYOKER / "rendszerek" / "yaml").glob("*.yaml")):
+                try:
+                    d = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+                    if isinstance(d, dict) and d.get("jelzesek") and isinstance(d.get("rendszer"), dict):
+                        m[d["rendszer"].get("kod")] = d["jelzesek"]
+                except Exception:                # noqa: BLE001
+                    continue
+            _JELZ["rsz"] = m
+        if kod in _JELZ["rsz"]:
+            return _JELZ["rsz"][kod]
+    return ELLENFEL_JELZES
+
+
+def _ellenfel_jelzesei(kod: str | None = None):
+    """Egy jelzésrendszer (YAML), egyszer betöltve; None, ha nem érhető el."""
+    kod = kod or ELLENFEL_JELZES
+    if kod not in _JELZ:
         try:
             from ..motor import jelzes as jz
-            gy = Path(__file__).resolve().parents[3] / "rendszerek" / "jelzesek"
-            _JELZ["j"] = jz.jelzesek(ELLENFEL_JELZES, jz.rendszerek_betolt([gy]))
+            if "osszes" not in _JELZ:
+                _JELZ["osszes"] = jz.rendszerek_betolt([GYOKER / "rendszerek" / "jelzesek"])
+            _JELZ[kod] = jz.jelzesek(kod, _JELZ["osszes"])
         except Exception:                        # noqa: BLE001 — nélküle egyenletes a minta
-            _JELZ["j"] = None
-    return _JELZ["j"]
+            _JELZ[kod] = None
+    return _JELZ[kod]
 
 
-def inditas_osszhang(w: Leosztas, lejatszott: list, adu: str | None, cache: dict | None = None) -> bool | None:
-    """ELLENFEL_INDITASA: az indító lap a megállapodás szerinti lap-e ebben a világban
-    (az indító színbeli lapjaiból). None: nincs mit nézni (nincs rendszer, nincs sora)."""
-    j = _ellenfel_jelzesei()
+def inditas_osszhang(w: Leosztas, lejatszott: list, adu: str | None, cache: dict | None = None,
+                     kod: str | None = None) -> str | None:
+    """ELLENFEL_INDITASA: az indító lap a megállapodás szerinti lap-e ebben a világban.
+    "OK"; "ASZ_ALOL" (színfelvétel ellen az ász alól indult); "LAP" (a színből más lap
+    jönne); None: nincs mit nézni (nincs rendszer, nincs rá sor)."""
+    j = _ellenfel_jelzesei(kod)
     if not j or not lejatszott:
         return None
     u0, l0 = lejatszott[0]
     sor = tuple(l.ertek for l in sorted((l for l in w.kezek[u0].lapok if l.szin == l0.szin),
                                         key=lambda l: -l.rang))
-    if adu is not None and "A" in sor and l0.ertek != "A" and l0.szin != adu:
-        return False                             # ASZ_ALOL: színfelvétel ellen ász alól nem indulnak
+    if adu is not None and "A" in sor and l0.szin != adu:
+        # ász alól: kisebb lap, amely nem az ásszal kezdődő zárt sorozat tagja (ÁK-ból a K
+        # nem ász alóli indulás)
+        sorozat = set()
+        for r, lr in zip("AKQJT98765432", sor):
+            if r != lr:
+                break
+            sorozat.add(r)
+        if l0.ertek not in sorozat:
+            return "ASZ_ALOL"
     cache = {} if cache is None else cache
     kulcs = (sor, adu is None)
     if kulcs not in cache:
@@ -331,22 +373,27 @@ def inditas_osszhang(w: Leosztas, lejatszott: list, adu: str | None, cache: dict
             cache[kulcs] = j.indito_lap(list(sor), "SZAN" if adu is None else "SZIN")[0]
         except Exception:                        # noqa: BLE001
             cache[kulcs] = None
-    return None if cache[kulcs] is None else cache[kulcs] == l0.ertek
+    if cache[kulcs] is None:
+        return None
+    return "OK" if cache[kulcs] == l0.ertek else "LAP"
 
 
 def _vilagok(lo: Leosztas, h: "Helyzet", kint: set, db: int, vedok: tuple) -> list:
     """A világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal —
-    és (ELLENFEL_INDITASA) az indító lappal ellentmondó világ `INDITAS_SULY` eséllyel."""
+    és (ELLENFEL_INDITASA) az indító lappal ellentmondó világ csak kis eséllyel."""
     kor = _szinhianyok(h.lejatszott, h.vedok)
     mag = len(h.lejatszott) + 1
-    if not (SZABALY_INDITAS and h.lejatszott and _ellenfel_jelzesei()):
+    kod = getattr(h, "ellenfel_jelzes", None)
+    if not (SZABALY_INDITAS and h.lejatszott and _ellenfel_jelzesei(kod)):
         return vilagok(lo, h.lejatszott, kint, db, kor, mag=mag, vedok=vedok)
     import random
     rnd = random.Random(mag * 7919)
+    suly = {"ASZ_ALOL": ASZ_ALOL_SULY, "LAP": INDITAS_SULY}
     cache: dict = {}
     ki: list = []
-    for w in vilagok(lo, h.lejatszott, kint, db * 25, kor, mag=mag, vedok=vedok):
-        if inditas_osszhang(w, h.lejatszott, h.adu, cache) is False and rnd.random() >= INDITAS_SULY:
+    for w in vilagok(lo, h.lejatszott, kint, db * 40, kor, mag=mag, vedok=vedok):
+        o = inditas_osszhang(w, h.lejatszott, h.adu, cache, kod)
+        if o in suly and rnd.random() >= suly[o]:
             continue
         ki.append(w)
         if len(ki) >= db:
@@ -415,9 +462,13 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
     tervek = tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=ig, ures=ures, max_szim=SZIM_TERV)
     if SZABALY_IGENY_TOBBLET:
         # IGENY_TOBBLET: a felmérés igénye becslés — eggyel több forrás is jelölt; a szimuláció dönt
+        # (csak ha az előzetes esélye nem rosszabb az igény szerinti legjobbnál: a
+        # gyengébb, nagyobb célú színkezelés csak drága — 4R01 #1: ♥ 3 ütés, 24%, 4+ GB)
         nevek = {t.nev for t in tervek}
+        also = max((getattr(t, "elozetes", 0.0) for t in tervek), default=0.0) - 1e-9
         tobb = [t for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=ig + 1, ures=ures,
-                                        max_szim=SZIM_TERV) if t.nev not in nevek]
+                                        max_szim=SZIM_TERV)
+                if t.nev not in nevek and getattr(t, "elozetes", 0.0) >= also]
         tervek = sorted(tervek + tobb, key=lambda t: (-round(getattr(t, "elozetes", 0.0), 3),
                                                      len(t.lepesek)))[:SZIM_TERV]
     # a világok: a kint lévő lapok a két védő között, a megfigyelt színhiányokkal
@@ -501,7 +552,9 @@ def _hivasra_tett_lap(h: Helyzet, ered: list, vl, tar, cel: int, keret_s: float,
     alap = ered[0].esely
     t1 = time.time()
     legjobb = None
+    from ..motor.tervszinpolitika import urites
     for l in lapok:
+        urites()                                 # az elemzők memóriája lapról lapra tiszta
         er = ertekel_lepcsos(tervek, vl, h.felvevo, h.adu, list(h.lejatszott) + [(u, l)], tar, cel,
                              keret_s=keret_s / len(lapok), t0=time.time())
         if er and (legjobb is None or er[0].esely > legjobb[1][0].esely):

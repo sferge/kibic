@@ -278,7 +278,13 @@ def test_ellenfel_inditasa_osszhang():
     def vilag(w, e):
         return Leosztas({u: Kez(frozenset(_kez(x))) for u, x in zip("SNWE", (S, N, w, e))})
     ind = [("W", Lap.parse("DT"))]
-    assert tm.inditas_osszhang(vilag("876.T98765.T5.A4", "5.QJ.AJ876.98765"), ind, "S") is True
-    assert tm.inditas_osszhang(vilag("876.T9876.JT5.A4", "5.QJ5.A876.98765"), ind, "S") is False
-    assert tm.inditas_osszhang(vilag("876.T9876.T85.A4", "5.QJ5.AJ76.98765"), ind, "S") is False
-    assert tm.inditas_osszhang(vilag("876.T9876.AT5.A4", "5.QJ5.J876.98765"), ind, "S") is False
+    assert tm.inditas_osszhang(vilag("876.T98765.T5.A4", "5.QJ.AJ876.98765"), ind, "S") == "OK"
+    assert tm.inditas_osszhang(vilag("876.T9876.JT5.A4", "5.QJ5.A876.98765"), ind, "S") == "LAP"
+    assert tm.inditas_osszhang(vilag("876.T9876.T85.A4", "5.QJ5.AJ76.98765"), ind, "S") == "LAP"
+    assert tm.inditas_osszhang(vilag("876.T9876.AT5.A4", "5.QJ5.J876.98765"), ind, "S") == "ASZ_ALOL"
+    # szan ellen az ász alól is lehet indulni: ott csak a lap számít
+    assert tm.inditas_osszhang(vilag("876.T9876.AT5.A4", "5.QJ5.J876.98765"), ind, None) != "ASZ_ALOL"
+    # az ellenfél rendszere a game.systems-ből (ismeretlennél az alapértelmezés)
+    assert tm.ellenfel_jelzes_kod({"game": {"systems": {"NS": "KIBIC_STAND", "EW": "KIBIC_STAND"}}}, "S") \
+        == "MOHA_STAND"
+    assert tm.ellenfel_jelzes_kod(None, "S") == tm.ELLENFEL_JELZES

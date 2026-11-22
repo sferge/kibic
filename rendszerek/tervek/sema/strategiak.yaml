@@ -179,7 +179,11 @@
       # megütni. Ha egy korábbi körben a negyedik kéz védője nem ütött fölé, pedig
       # tudott volna, az ilyen tartás kiesik: a sikerült impassz után a király nem a
       # mögötte ülőnél van, így a villába hívott színre a dáma elég, nem kell az ász.
-      # Kód: Vegrehajto._megfigyelt_nyero; kapcsoló: KIBIC_K_MEGFIGYELT_NYERO.
+      # 2026-11-22: ez a második rész KIKAPCSOLVA (a szerkesztő): a felvevő hívására tett
+      # védőlapokból nem olvasunk semmit — nincs ütéskényszer, a lement lap csak annyit
+      # mond, hogy nála volt. Ami marad: a látott lapokkal össze nem férő tartás kiesik.
+      # Kód: Vegrehajto._megfigyelt_nyero; kapcsolók: KIBIC_K_MEGFIGYELT_NYERO,
+      # KIBIC_K_NEGYEDIK_KOVETKEZTETES (alap: 0).
     - szabaly: MAGAS_LOPAS
       nev: "Magasan lopunk, ha felüllophatnak"
       # Ha utánunk még védő jön, aki már kimutatott a színből (vagy alig van kint
@@ -304,15 +308,22 @@
       # nagyobb igényű tervek együtt; az előzetes esély szerint a legjobbak mennek a
       # szimulációba, ott dől el. Kód: tervmuhely.tervez; kapcsoló: KIBIC_K_IGENY_TOBBLET.
     - szabaly: ELLENFEL_INDITASA
-      nev: "Az indító lap a védők megállapodása szerinti lap"
-      # (BM A-12) Az indítás a védők (bejelentett) megállapodása: a sorozat teteje, a dubló
-      # felső lapja, háromból kicsi; színfelvétel ellen ász alól nem indulnak (ASZ_ALOL).
-      # A ♦10 indulás: Nyugatnál nincs a ♦B (B10-ből a B jönne), és nincs a ♦Á. Ez nem
-      # a védők lapválasztásáról tett feltevés játék közben, hanem a megállapodásuk —
-      # ezért SÚLYOZÁS, nem kizárás: az ellentmondó világ 5% eséllyel marad a mintában.
-      # (Kicsi súly kell: az egyenletes mintában az indításhoz illő Nyugat-kéz csak ~6%,
-      # 20%-os súllyal az ellentmondó kezek döntenének. A-12, DD a ♦D-vel / ♦4-gyel: az
-      # illő kezeken 80% / 41%, súly nélkül 50% / 72%.)
-      # A rendszer: KIBIC_ELLENFEL_JELZES (alap: MOHA_STAND), a súly:
-      # KIBIC_ELLENFEL_INDITAS_SULY. Kód: tervmuhely.inditas_osszhang, _vilagok; kapcsoló:
+      nev: "Az ellenvonal hívásai a megállapodásuk szerintiek — az indító lapból olvasunk"
+      # (a szerkesztő, 2026-11-22, BM A-12) A felvevő hívására tett védőlapokból nem
+      # olvasunk semmit (kivétel a konvencionális jelzés, pl. Smith szan ellen — az is a
+      # konvenciókártyájukon van). Az ellenvonal HÍVÁSAI viszont más elbírálás alá esnek:
+      # ezekből olvasni kell. Különösen az indító kijátszásból: szinte minden párnak van
+      # indítási megállapodása (ha nincs konvenciókártya, szabályos rákérdezni, mit ígér,
+      # mit tagad az indulás). Szinte általános szabály, hogy színfelvétel ellen nem
+      # indulnak ász alól (szan ellen igen).
+      #   - ASZ_ALOL (színfelvétel ellen; nem az aduban): ha a világban az indítónál van az
+      #     ász, és nem az ásszal kezdődő zárt sorozatból indult (ÁK-ból a K rendben van),
+      #     a világ 1% eséllyel marad a mintában (KIBIC_ELLENFEL_ASZ_ALOL_SULY);
+      #   - a lap a színen belül: ha a megállapodás szerint más lap jönne (B10x-ből a B,
+      #     háromból kicsi…), 5% eséllyel (KIBIC_ELLENFEL_INDITAS_SULY).
+      # A rendszer: a védők `game.systems` szerinti rendszerének `jelzesek:` sora; ha nem
+      # ismert, KIBIC_ELLENFEL_JELZES (alap: MOHA_STAND).
+      # A-12 (♦10 indulás, 60 világ): DD a ♦D-vel 41, a ♦4-gyel 35; a megállapodással
+      # összeférő világokon 31/40 és 17/40. (Súlyozás nélkül 50% és 72%.)
+      # Kód: tervmuhely.inditas_osszhang, ellenfel_jelzes_kod, _vilagok; kapcsoló:
       # KIBIC_K_ELLENFEL_INDITASA.

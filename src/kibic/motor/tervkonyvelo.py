@@ -623,6 +623,10 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
 
 # --- 2. A végrehajtó ------------------------------------------------------------------
 
+# MEGFIGYELT_NYERO régi része: a negyedik kéz „nem ütött fölé” következtetése (kikapcsolva)
+NEGYEDIK_KOVETKEZTETES = _os.getenv("KIBIC_K_NEGYEDIK_KOVETKEZTETES", "0") != "0"
+
+
 class Vegrehajto:
     """A felvevő oldal politikája egy világon: a terv egységei körökre bontva."""
 
@@ -688,9 +692,10 @@ class Vegrehajto:
         if not hatra:
             return True
         # a korábbi ütések a színben: ha a negyedik kéz védője nem ütött fölé, pedig
-        # tudott volna (a nagyobb lapja nála maradt, vagy később tette le), az ilyen
-        # tartás kiesik — „az impassz sikerült, a király nem a mögötte ülőnél van”
-        L = j.lapok
+        # tudott volna, az ilyen tartás kiesett — EZ MÁR NEM ÉL (a szerkesztő,
+        # 2026-11-22): a felvevő hívására tett lapjukból nem olvasunk semmit (nincs
+        # ütéskényszer); a lement lap csak annyit mond, hogy nála volt.
+        L = j.lapok if NEGYEDIK_KOVETKEZTETES else []
         kesz = len(L) - len(L) % 4
         negyedik = []                            # (védő, a nyerő rangja, később tett lapjai)
         for i in range(0, kesz, 4):

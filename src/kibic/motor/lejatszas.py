@@ -331,6 +331,10 @@ def kovetkezetlen_vedo(allas: JatekAllas, eredeti: dict[str, set[Lap]],
 KOVETKEZTETES_KODOK = ("LEGKISEBB_EGYENERTEKU", "LEGOLCSOBB_NYERO")
 
 
+# felvevőként nincs következtetés a védők ütéshez tett lapjaiból (kapcsoló)
+FELVEVO_NEM_OLVAS = os.getenv("KIBIC_K_FELVEVO_NEM_OLVAS", "1") != "0"
+
+
 def kovetkeztetes_szabalyai(allas: JatekAllas, jelzesek, rejtett: list[str]) -> dict[str, set[str]]:
     """
     A jelzésrendszer `kovetkeztetes:` soraiból: kinek a lapjaiból mit
@@ -343,6 +347,11 @@ def kovetkeztetes_szabalyai(allas: JatekAllas, jelzesek, rejtett: list[str]) -> 
             if forras == "PARTNER" and allas.vedo:
                 ulesek = [allas.partner()]
             elif forras == "ELLENJATEKOSOK":
+                # a szerkesztő, 2026-11-22: felvevőként a védők ütéshez tett lapjaiból
+                # nem olvasunk (nincs ütéskényszer, a lap csak annyit mond, hogy nála
+                # volt); védőként a partnerünk lapjai a megállapodásunk szerint beszélnek
+                if FELVEVO_NEM_OLVAS and not allas.vedo:
+                    continue
                 ulesek = [u for u in ULESEK if vonal(u) != vonal(allas.felvevo)]
             elif forras == "FELVEVO":
                 ulesek = [allas.felvevo]
