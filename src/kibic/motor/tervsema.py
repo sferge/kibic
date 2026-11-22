@@ -121,6 +121,9 @@ class Allas:
     # a folyó ütésben még tenni kell: kezünk -> a hívott szín (a követés elvesz egy
     # lapot abból a színből, pl. az aduindulásra a rövid adus kéz egy aduja)
     kovetes: dict = field(default_factory=dict)
+    # a folyó ütés eddigi lapjai [(kéz, lap)] — a hozzátevési sémák (pl. Bath-csel) ebből
+    # látják, mit hívott a védő
+    utes: list = field(default_factory=list)
 
     @property
     def asztal(self) -> str:
@@ -265,9 +268,48 @@ def fogalmak(allas: Allas) -> dict:
         return sorted(nyerok_kezben(dk, sz), key=lambda l: -l.rang) + \
             sorted(nyerok_kezben(nyk, sz), key=lambda l: -l.rang)
 
+    def hivott_lap(sz):
+        """A folyó ütés hívott lapja, ha az ütést VÉDŐ hívta ebben a színben, és még
+        van kezünk, amely nem tett rá (a hozzátevési sémák helyzete)."""
+        if not a.utes or a.utes[0][0] not in a.vedok or a.utes[0][1].szin != sz:
+            return None
+        tett = {u for u, _ in a.utes}
+        if all(u in tett for u in a.kezek):
+            return None
+        return a.utes[0][1]
+
+    def kint_kozvetlen_alatta(sz, f):
+        """A legnagyobb kint lévő lap F alatt, ha köztük nincs a mi lapunk (a hívott
+        figura sorozatának feltételezett párja: K-hívásnál a D)."""
+        if f is None:
+            return None
+        alatta = [l for l in a.kint_szin(sz) if l.rang < f.rang]
+        if not alatta:
+            return None
+        m = alatta[0]
+        if any(m.rang < l.rang < f.rang for l in a.mi_szin(sz)):
+            return None
+        return m
+
+    def kozvetlen_felette(sz, f):
+        """A legkisebb lapunk F fölött, ha köztük nincs kint lévő lap."""
+        if f is None:
+            return None
+        felette = [l for l in a.mi_szin(sz) if l.rang > f.rang]
+        if not felette:
+            return None
+        m = felette[-1]
+        if any(f.rang < l.rang < m.rang for l in a.kint_szin(sz)):
+            return None
+        return m
+
     from . import tervbedobas as _bd
 
     return {
+        # a védő hívására tett lapjaink (hozzátevési sémák, pl. Bath-csel)
+        "hivott_lap": hivott_lap,
+        "kint_kozvetlen_alatta": kint_kozvetlen_alatta,
+        "kozvetlen_felette": kozvetlen_felette,
         # elimináció és bedobás (a szerkesztő 2026-11-21, BM A-6 #1)
         "eliminalhato": lambda sz: _bd.eliminalhato(a, sz),
         "eliminalo_lapok": lambda sz: _bd.eliminalo_lapok(a, sz),
@@ -378,6 +420,10 @@ class TechnikaSema:
     # felismerés: a helyzetben érdemes-e egyáltalán számolni vele (az alkalmazhatóság
     # azt mondja meg, hogy a lapokon lehetséges-e)
     felismeres: list = field(default_factory=list)
+    # hozzátevési séma (fajta: hozzatevesi): a még nem tett kezünk lapja a védő hívására
+    hozzatetel: str | None = None
+    rovid: str | None = None
+    megtart: list = field(default_factory=list)
 
 
 def _yaml(ut: Path):
@@ -412,7 +458,8 @@ def technikak_betoltese(konyvtar: Path = SEMA_KONYVTAR) -> dict[str, TechnikaSem
                                 d.get("siker") or "False", int(d.get("kudarc_koltseg", 0)),
                                 d.get("hozam", 1), d.get("hasznal") or [],
                                 d.get("elfogyaszt") or [], d.get("fajta", "kotta"),
-                                d.get("celok") or {}, d.get("felismeres") or [])
+                                d.get("celok") or {}, d.get("felismeres") or [],
+                                d.get("hozzatetel"), d.get("rovid"), d.get("megtart") or [])
     return ki
 
 
@@ -567,4 +614,50 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
             if hozam <= 0:
                 continue
             ki.append(Peldany(sema, sz, szerepek, korok, hasznal, elfogy, relevans, hozam))
+    return ki
+
+
+# --- 5. Hozzátevési sémák: a védő hívására tett lapjaink --------------------------------
+
+@dataclass
+class Hozzatetel:
+    """Egy hozzátevési séma a folyó ütésre: a még nem tett kezeink teendője."""
+    sema: TechnikaSema
+    szin: str
+    szerepek: dict
+    teendo: str                       # kicsi
+    megtart: set = field(default_factory=set)   # a lapjaink, amelyeket a terv megtart (fogás)
+
+    @property
+    def nev(self) -> str:
+        return f"{self.sema.azon} {self.szin}"
+
+    @property
+    def rovid(self) -> str:
+        return f"{'♠♥♦♣'['SHDC'.index(self.szin)]} {self.sema.rovid or self.sema.azon}"
+
+
+def hozzatetelek(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Hozzatetel]:
+    """A hozzátevési sémák, amelyek a folyó ütésben alkalmazhatók."""
+    if not allas.utes:
+        return []
+    fog = fogalmak(allas)
+    ki = []
+    for sema in technikak.values():
+        if sema.fajta != "hozzatevesi":
+            continue
+        for sz in SZINEK:
+            kor = dict(fog, SZ=sz)
+            try:
+                for nev, kif in sema.szerepek.items():
+                    kor[nev] = kifejezes(kif, kor)
+                if not all(kifejezes(f, kor) for f in sema.alkalmazhato):
+                    continue
+            except KifejezesHiba:
+                raise
+            except (TypeError, AttributeError):
+                continue
+            megtart = {l for x in sema.megtart for l in _lapok(kifejezes(x, kor))}
+            ki.append(Hozzatetel(sema, sz, {n: kor[n] for n in sema.szerepek}, sema.hozzatetel or "kicsi",
+                                 megtart))
     return ki

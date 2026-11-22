@@ -299,8 +299,21 @@
       # ütésben (a védő hívott) mi teszünk, a terv lapja dönt: minden szabályos lapunkkal
       # lefuttatjuk a jelölt terveket ugyanazokon a világokon, és ha valamelyik lap
       # legalább 5 ponttal jobb esélyt ad, az lesz a terv lapja (a szélső lapok előbb).
-      # Kód: tervmuhely._hivasra_tett_lap, Rekord.elso_lap, Vegrehajto.kenyszer; kapcsoló:
-      # KIBIC_K_HIVASRA_TETT_LAP.
+      # (a szerkesztő, 2026-11-22, Bath-csel) „A játékterv a két kézre együtt készül”: a
+      # terv a folyó ütés MINDEN lapunkáról dönt, nem csak a soron lévőről.
+      #   - A hozzátevési sémák (technikak.yaml, `fajta: hozzatevesi`, pl. BATH) a még nem
+      #     tett két kezünk teendőjét adják (♠K-ra az asztalról ÉS a kézből kicsi), és a
+      #     fogásokat, amelyeket a terv megtart (nem átmenet, nem dobás). A sémák
+      #     változata mindig lefut; a döntés a terv nevében: „♠ Bath-csel → …”.
+      #   - Ha a terv az asztal lapjánál készült, és a felvevő lapjáról nem döntött, a
+      #     lépéskérés dönt a felvevő lapjánál (a védő lapja ekkor már látszik), egyszer.
+      #   - Az összevetés AZONOS világokon, azonos számon: a döntés nélküli alap és minden
+      #     változat ugyanazon az első 20 világon fut (UTES_VILAG), a legjobb 6 jelölt
+      #     tervvel (UTES_TERV); nyerni legalább 5 pont és 2 világ kell. (2026-11-22: az
+      #     időkeret miatt 20 világos becslést vetettünk össze 60 világossal, és a zaj
+      #     „nyereséget” adott — a ♠Á lett a terv lapja.)
+      # Kód: tervmuhely.utes_dontes, _lepes_utes_dontes, Rekord.utes_dontes / utes_megtart,
+      # Vegrehajto.kenyszer (lap vagy KICSI) és .megtart; kapcsoló: KIBIC_K_HIVASRA_TETT_LAP.
     - szabaly: IGENY_TOBBLET
       nev: "A jelöltek az igényre és eggyel több forrásra"
       # (BM A-12) A felmérés igénye becslés: az A-12-n 1, de a ♣-ból két ütés kell (a

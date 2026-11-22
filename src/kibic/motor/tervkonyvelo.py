@@ -627,6 +627,10 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
 NEGYEDIK_KOVETKEZTETES = _os.getenv("KIBIC_K_NEGYEDIK_KOVETKEZTETES", "0") != "0"
 
 
+# a hozzátevési séma teendője a kényszerben (Vegrehajto.kenyszer): a színből a legkisebb lap
+KICSI = "KICSI"
+
+
 class Vegrehajto:
     """A felvevő oldal politikája egy világon: a terv egységei körökre bontva."""
 
@@ -775,6 +779,9 @@ class Vegrehajto:
         """A még élő egységek lapjai, és a köreikhez szükséges kis lapok."""
         f: set[Lap] = set()
         mieink = self.j.kezek[self.j.felvevo] | self.j.kezek[self.j.asztal]
+        # a hozzátevési séma megtartott lapjai (Bath-csel: a szín fogásai — nem átmenet,
+        # nem dobás, a védők színe ellen kellenek)
+        f |= getattr(self, "megtart", set()) & mieink
         aktiv = self._aktiv()
         for e in aktiv:
             f |= (e.p.hasznal | e.p.elfogyaszt) & mieink
@@ -1059,10 +1066,17 @@ class Vegrehajto:
         j = self.j
         kv = getattr(self, "kenyszer", None)
         if kv and len(j.lapok) in kv and kv[len(j.lapok)][0] == u:
-            # HIVASRA_TETT_LAP: a terv lapja a védő hívására (a tervezéskor kiválasztva)
-            l = kv[len(j.lapok)][1]
-            if l in j.kezek[u]:
-                self._jegyez(f"{l}: a terv lapja a hívásra (a tervek szimulációja szerint)")
+            # HIVASRA_TETT_LAP: a terv lapja a védő hívására (a tervezéskor kiválasztva) —
+            # egy lap, vagy a hozzátevési séma teendője (KICSI: a színből a legkisebb)
+            d = kv[len(j.lapok)]
+            l = d[1]
+            ok = d[2] if len(d) > 2 and d[2] else "a terv lapja a hívásra (a tervek szimulációja szerint)"
+            if l == KICSI:
+                utes = j.aktualis()
+                van = j.szin(u, utes[0][1].szin) if utes else []
+                l = min(van, key=lambda x: x.rang) if van else None
+            if l is not None and l in j.kezek[u]:
+                self._jegyez(f"{l}: {ok}")
                 return l
         utes_i = len(j.lapok) // 4
         if self.szandek_utes != utes_i:
@@ -2098,13 +2112,20 @@ class Eredmeny:
 
 def lejatszik(terv: KTerv, vilag, felvevo: str, adu: str | None, lejatszott: list,
               dd_vedo, naplo: list | None = None, cel: int | None = None,
-              jatek_ki: list | None = None, kenyszer: list | None = None) -> int:
+              jatek_ki: list | None = None, kenyszer: list | None = None,
+              utes_dontes: dict | None = None, megtart: set | None = None) -> int:
     """Egy világ végigjátszása: mi a terv szerint, a védők a `dd_vedo` szerint.
     `kenyszer`: a terv óta valóban lement lapok — ezek mennek le előbb (a végrehajtó a
-    saját lapjait közben meghozza, hogy az egységei a megfigyelés szerint haladjanak)."""
+    saját lapjait közben meghozza, hogy az egységei a megfigyelés szerint haladjanak).
+    `utes_dontes`: a terv döntése a védő hívására tett lapjainkról
+    ({index: (kéz, lap vagy KICSI, ok)}, HIVASRA_TETT_LAP)."""
     j = tj.Jatek({u: set(vilag.kezek[u].lapok) for u in "NESW"}, felvevo, adu, lejatszott, tj.Terv(()))
     v = Vegrehajto(terv, j, naplo)
     v.cel = cel
+    if utes_dontes:
+        v.kenyszer = dict(utes_dontes)
+    if megtart:
+        v.megtart = set(megtart)
     for u, l in kenyszer or []:
         if j.mi(u):
             if v.lap(u) != l:
@@ -2151,7 +2172,8 @@ def ertekel(tervek: list[KTerv], vilagok: list, felvevo: str, kontraktus, lejats
 def ertekel_lepcsos(tervek: list[KTerv], vilagok: list, felvevo: str, adu: str | None,
                     lejatszott: list, dd_tar, cel: int, keret_s: float | None = None,
                     elso: int = 20, legjobb: int = 3, vege: int = 4, t0: float | None = None,
-                    utana=None) -> list[Eredmeny]:
+                    utana=None, utes_dontes: dict | None = None,
+                    megtart: set | None = None) -> list[Eredmeny]:
     """Lépcsős értékelés (a sorrendtervező):
       1. minden jelölt az első `elso` világon;
       2. a `legjobb` tervek sorrendváltozatai (az egységek a kiaduzás előtt / után)
@@ -2179,7 +2201,8 @@ def ertekel_lepcsos(tervek: list[KTerv], vilagok: list, felvevo: str, adu: str |
                 return tj._vedo_lap(dd_tar(i, w, j.lapok))
             for t in ts:
                 r = ered[id(t)]
-                n = lejatszik(t, w, felvevo, adu, lejatszott, dd_vedo, cel=cel)
+                n = lejatszik(t, w, felvevo, adu, lejatszott, dd_vedo, cel=cel, utes_dontes=utes_dontes,
+                              megtart=megtart)
                 r.n += 1
                 r.utesek += n
                 r.teljesult += n >= cel

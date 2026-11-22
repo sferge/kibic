@@ -426,3 +426,41 @@
   hozam: 1
   hasznal: ["[V]", FELETTE, DEBLOKK, ELIM]
   elfogyaszt: ["[V]", FELETTE, DEBLOKK, ELIM]
+
+# --- Hozzátevési sémák: a védő hívására tett lapjaink ----------------------------------
+#
+# A `fajta: hozzatevesi` séma nem kör-kotta, hanem döntés a folyó ütésre: a védő hívott,
+# és a mi (még nem tett) KÉT kezünk lapja a terv része (a szerkesztő, 2026-11-22: „a
+# játékterv a két kézre együtt készül”). A tervező a séma döntésével és nélküle is
+# lefuttatja a jelölt terveket ugyanazokon a világokon; a jobb marad (strategiak.yaml,
+# HIVASRA_TETT_LAP). A mezők:
+#   szerepek, alkalmazhato  mint a kottánál (a `hivott_lap(SZ)` csak védő hívásánál él)
+#   hozzatetel              mit tesz a még nem tett kezünk: `kicsi` = a színből a
+#                           legkisebb lapja (nem ütünk)
+#   rovid                   a terv nevében ez áll (pl. „♠ Bath-csel”)
+#   megtart                 a lapjaink, amelyeket a terv ezután is megtart (nem átmenet,
+#                           nem dobás): a Bath-csel után a szín fogásai
+
+- technika: BATH
+  fajta: hozzatevesi
+  nev: "Bath-csel: kiengedés a védő figurájára, ha a sorozata fölötti és alatti lap nálunk van"
+  rovid: "Bath-csel"
+  # (a szerkesztő, 2026-11-22) Nyugat a ♠K-val indul (KD-ból), nálunk ♠ÁB4 / ♠75: nem
+  # ütünk. Nyugat a színt nem folytathatja ütésvesztés nélkül (a ♠D-re Á, és a ♠B magas;
+  # kicsire a ♠B üt), Keletnek pedig eggyel kevesebb pikkje marad. A tervező példája:
+  # claude/sematar-naplo-cselek.md (3NT, ♠4: 11 ütés, ♠Á: bukás). Hogy a K valóban
+  # KD-ból jön-e, azt nem a séma dönti el: a világok az indítási megállapodás szerintiek
+  # (ELLENFEL_INDITASA), a szingli K-s és Kx-es világokban a kiengedés ütést veszít —
+  # a szimuláció ezt is mérlegeli.
+  szerepek:
+    H: "hivott_lap(SZ)"                # a védő hívott figurája (♠K)
+    D: "kint_kozvetlen_alatta(SZ, H)"  # a sorozata feltételezett párja (♠D), kint
+    FELSO: "kozvetlen_felette(SZ, H)"  # a lapunk közvetlenül fölötte (♠Á)
+    ALSO: "kozvetlen_alatta(SZ, D)"    # a lapunk közvetlenül D alatt (♠B)
+  alkalmazhato: ["nem_adu(SZ)", "van(H)", "van(D)", "van(FELSO)", "van(ALSO)"]
+  hozzatetel: kicsi
+  # a fogások: ha az Á-t átmenetnek használnánk (3NT-ben a kézbe jutáshoz), Nyugat
+  # lehívja a pikkjeit — a kiengedés értelme a megtartott ÁB
+  megtart: ["[FELSO]", "[ALSO]"]
+  siker: "True"
+  hozam: 0
