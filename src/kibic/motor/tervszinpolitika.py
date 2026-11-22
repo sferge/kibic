@@ -80,7 +80,8 @@ class SzinPolitika:
         try:
             return self.el.harmadik_megfigyelt(self.node, akcio[0], akcio[1], l2)
         except Exception:                                   # noqa: BLE001
-            return self.el.harmadik.get((self.node, akcio[0], akcio[1], l2))
+            X, Y = self.node[0][0], self.node[0][1]
+            return self.el.harmadik.get((self.node, akcio[0], akcio[1], ts.osztaly(l2, X | Y)))
 
     def lep(self, utes) -> None:
         """`utes`: ((szerep, rang | None | LOP), …) a játék sorrendjében; None: nem
@@ -90,22 +91,45 @@ class SzinPolitika:
         lop = {"X": rx, "Y": ry, "V1": 99, "V2": 99}
         uj, ul, mienk, szin = ts._utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
                                             lop, utes)
-        v = {s: {c for u, c in utes if u == s and c not in (None, ts.LOP)} for s in ("V1", "V2")}
+        v = {s: [c for u, c in utes if u == s and c not in (None, ts.LOP)] for s in ("V1", "V2")}
         ki = {s: any(u == s and c in (None, ts.LOP) for u, c in utes) for s in ("V1", "V2")}
-        tart = []
+        mi = X | Y
+
+        def megfeleltet(kez: frozenset, latott: list):
+            """A látott lapok a tartás lapjaira: a pontos lap, vagy (RELEVANS_LAPOK)
+            ugyanannak az osztálynak egy lapja; None, ha nem fér össze."""
+            szabad = set(kez)
+            ki_ = set()
+            for c in latott:
+                if c in szabad:
+                    t = c
+                else:
+                    q = ts.osztaly(c, mi)
+                    tars = sorted(l for l in szabad if ts.RELEVANS_LAPOK and ts.osztaly(l, mi) == q)
+                    if not tars:
+                        return None
+                    t = tars[0]
+                szabad.discard(t)
+                ki_.add(t)
+            return frozenset(ki_)
+
+        tart, f1, f2 = [], [], []
         for j, i in enumerate(idx):
             a = self.el.tart[i][0] - l1[j]
             b = self.el.tart[i][1] - l2[j]
-            if not (v["V1"] <= a and v["V2"] <= b):
+            ma, mb = megfeleltet(a, v["V1"]), megfeleltet(b, v["V2"])
+            if ma is None or mb is None:
                 continue
-            if ki["V1"] and a - v["V1"]:
+            if ki["V1"] and a - ma:
                 continue
-            if ki["V2"] and b - v["V2"]:
+            if ki["V2"] and b - mb:
                 continue
             tart.append(j)
+            f1.append(ma)
+            f2.append(mb)
         idx2 = tuple(idx[j] for j in tart)
-        l1n = tuple(l1[j] | frozenset(v["V1"]) for j in tart)
-        l2n = tuple(l2[j] | frozenset(v["V2"]) for j in tart)
+        l1n = tuple(l1[j] | f1[n] for n, j in enumerate(tart))
+        l2n = tuple(l2[j] | f2[n] for n, j in enumerate(tart))
         k2 = k - (1 if szin else 0)
         m2 = m - (0 if mienk else 1)
         uj_hol = None

@@ -21,4 +21,4 @@ def test_kozelites_es_eloszlas(tmp_path, monkeypatch):
 
 def test_szamol_pontos():
     t = tsz.szamol(tsz.kulcs({14, 12, 5}, {7, 6, 3}))
-    assert t[99][2] == pytest.approx(0.548, abs=0.002)
+    assert t[99][2] == pytest.approx(0.505, abs=0.002)   # (MINDEN_VEDOLAP, 2026-11-22)

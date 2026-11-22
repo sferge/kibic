@@ -145,6 +145,12 @@ def _elso_lepes(el, e: Elemzes, egyszinu: bool):
             return None
         harmadik = {l2: c3 for (kk, h, cc, l2), c3 in el.harmadik.items()
                     if kk == kulcs and (h, cc) == akc}
+        if egyszinu:
+            # (RELEVANS_LAPOK) az osztálykulcsok a kint lévő lapok rangjaira
+            from .tervszinkezeles import osztaly
+            mi = kulcs[0][0] | kulcs[0][1]
+            harmadik = {**{r: harmadik[osztaly(r, mi)] for r in el.f.kint if osztaly(r, mi) in harmadik},
+                        **{q: c3 for q, c3 in harmadik.items() if not isinstance(q, tuple)}}
         return (akc[0], akc[1], harmadik if egyszinu else {})
     except Exception:          # noqa: BLE001 — az első lépés csak kiegészítő adat
         return None
