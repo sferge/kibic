@@ -18,16 +18,19 @@ def test_adu_9_lap_kint_qjt7():
 
 def test_ejtes_es_impassz_egy_szinben_nem_kombinalhato():
     """♦AK2 / JT94, vesztés nélkül 3 ütés: az ejtés és az impassz ugyanabban a
-    színben nem adódik össze (a K előbb, aztán impassz: ~51,6%)."""
+    színben nem adódik össze (a K előbb, aztán impassz: ~51%; 2026-11-22 óta a védők
+    bármelyik lapot tehetik — MINDEN_VEDOLAP —, 51,2%)."""
     k = _kinalat("AK2", "JT94", m=0)
-    assert k.eselyek[3][0] == pytest.approx(0.516, abs=0.002)
+    assert k.eselyek[3][0] == pytest.approx(0.512, abs=0.002)
     assert k.eselyek[2][0] == 1.0
 
 
 def test_impassz_a_dama_fele():
+    # (2026-11-22, MINDEN_VEDOLAP) a védők bármelyik lapot tehetik: a ♠Kx Nyugatnál
+    # nem különböztethető meg Kelet ♠Kx-étől (eddig a gépi védő kis lapjaiból igen —
+    # 54,8%); garantáltan az impassz és a szingli K: 50,5%
     k = _kinalat("AQ5", "763")
-    assert k.eselyek[2][0] == pytest.approx(0.548, abs=0.002)   # = a mindent látó korlát (♠A előbb, aztán impassz)
-    assert k.eselyek[2][1].startswith("felvevő hív: A")   # a szingli K ellen előbb az A
+    assert k.eselyek[2][0] == pytest.approx(0.505, abs=0.002)
 
 
 def test_elbukott_cel_utan_abbahagyja():
