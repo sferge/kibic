@@ -1052,6 +1052,13 @@ class Vegrehajto:
     def lap(self, u: str) -> Lap:
         self._frissit()
         j = self.j
+        kv = getattr(self, "kenyszer", None)
+        if kv and len(j.lapok) in kv and kv[len(j.lapok)][0] == u:
+            # HIVASRA_TETT_LAP: a terv lapja a védő hívására (a tervezéskor kiválasztva)
+            l = kv[len(j.lapok)][1]
+            if l in j.kezek[u]:
+                self._jegyez(f"{l}: a terv lapja a hívásra (a tervek szimulációja szerint)")
+                return l
         utes_i = len(j.lapok) // 4
         if self.szandek_utes != utes_i:
             self.szandek, self.szandek_utes = {}, utes_i

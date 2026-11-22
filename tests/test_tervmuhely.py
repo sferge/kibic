@@ -264,3 +264,21 @@ def test_kimutatas_a_kritikus_szinben_ujraterv(monkeypatch, tmp_path):
     tm.step_valasz(keres(j, n), tartalek_fv=lambda k: {"action": {"type": "play", "card": k["legal_actions"]["cards"][0]}})
     adat = json.loads(next(tmp_path.glob("*.json")).read_text(encoding="utf-8"))
     assert any("a terv esélye" in t["ok"] for t in adat["tortenet"]), adat["tortenet"]
+
+
+def test_ellenfel_inditasa_osszhang():
+    """ELLENFEL_INDITASA (BM A-12): a ♦10 indulás a megállapodás szerint dublóból vagy
+    szingliből jön; B10x-ből a B, háromból kicsi, színfelvétel ellen ász alól nem."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    if tm._ellenfel_jelzesei() is None:
+        pytest.skip("nincs jelzésrendszer")
+    S, N = "AKQJT9.A2.K32.32", "432.K43.Q94.KQJT"
+
+    def vilag(w, e):
+        return Leosztas({u: Kez(frozenset(_kez(x))) for u, x in zip("SNWE", (S, N, w, e))})
+    ind = [("W", Lap.parse("DT"))]
+    assert tm.inditas_osszhang(vilag("876.T98765.T5.A4", "5.QJ.AJ876.98765"), ind, "S") is True
+    assert tm.inditas_osszhang(vilag("876.T9876.JT5.A4", "5.QJ5.A876.98765"), ind, "S") is False
+    assert tm.inditas_osszhang(vilag("876.T9876.T85.A4", "5.QJ5.AJ76.98765"), ind, "S") is False
+    assert tm.inditas_osszhang(vilag("876.T9876.AT5.A4", "5.QJ5.J876.98765"), ind, "S") is False
