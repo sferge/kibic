@@ -60,8 +60,14 @@ def test_lopasos_kimagasitas_atmenetkorlattal():
     f = Feladat(X=fs("86"), Y=fs("AK7532"), kint=fs("QJT94"), ures1=12, ures2=13,
                 lop_x=2, lop_y=0, atm_x=5, atm_y=1, hivas="-")
     e = Elemzo(f)
-    p0, _, _ = e.megold(4, 0)
+    p0, s0, _ = e.megold(4, 0)
     p1, _, l1 = e.megold(4, 1)
-    assert p0 < 0.75
+    # (2026-11-22, RELEVANS_LAPOK) vesztés nélkül a 3-2 és azok a 4-1-ek jók, ahol a
+    # hosszú védőnél a kis 4-es is ott van (a harmadik körben az 5-ös üt); a Q, J, 10,
+    # 9 egyformák (mind a K és a 8 közé esnek): a szingli figura és a szingli 9-es
+    # Nyugatnál ugyanúgy jár
+    assert p0 < 0.85
+    szingli = [i for i, (v1, v2, _) in enumerate(e.tart) if len(v1) == 1 and min(v1) > 8]
+    assert len({i in s0 for i in szingli}) == 1
     assert p1 > 0.95
     assert "kicsit tesz: 2" in l1

@@ -45,12 +45,12 @@ def test_elbukott_cel_utan_abbahagyja():
     assert all(k.utes == 2 for k in ot_harom)
 
 
-def test_rejtozkodo_vedo_nem_ad_ingyen_informaciot():
-    """A szerkesztő (2026-11-21, BM A-11): ♦DB2 / ♦K9876, hiányzik az Á10543, 3 ütés
-    legfeljebb 1 vesztéssel. A ♦B a kézből és a kicsi az asztalról egyformán jó: a
-    determinisztikus védőmodell (mindig a legkisebb egyformán jó lap) ♦Á10-ből a
-    ♦B-re a 10-est tette, szingli ászból az ászt — ez ingyen információ volt, és a ♦B
-    3 ponttal jobbnak látszott."""
+def test_relevans_lapok_a_kis_lapok_egyformak():
+    """A szerkesztő (2026-11-22, BM A-11): ♦DB2 / ♦K9876, hiányzik az Á10543, 3 ütés
+    legfeljebb 1 vesztéssel. Csak a releváns lapokat (♦Á, ♦10) különböztetjük meg; a
+    ♦5, ♦4, ♦3 egyformák (x). Eddig a gépi védő szabályszerű kislap-választásából a
+    felvevő „kiolvasta” a többi lap helyét: a szingli ♦4 ellen más eredmény jött ki,
+    mint a szingli ♦3 vagy ♦5 ellen."""
     from kibic.motor.tervszinkezeles import vedo_csoportok
     from kibic.motor.tervszinpolitika import SzinPolitika
 
@@ -63,8 +63,10 @@ def test_rejtozkodo_vedo_nem_ad_ingyen_informaciot():
     ossz = sum(el.tart[i][2] for i in idx)
     maradek = [(el.tart[i][0] - l1[j], el.tart[i][1] - l2[j]) for j, i in enumerate(idx)]
     kint = frozenset().union(*[a | b for a, b in maradek])
-    ert = {}
-    for hivo, c, nbx, nby in el._hivasok(allapot, kint):
-        ert[(hivo, c)] = el._utes(allapot, nbx, nby, idx, l1, l2, k, m, hivo, c, maradek, ("x", hivo, c))[0] / ossz
-    assert abs(ert[("X", 11)] - ert[("Y", 6)]) < 0.005
-    assert ert[("X", 11)] > ert[("X", 2)] + 0.1
+    for akc in (("X", 11), ("Y", 6)):
+        hivo, c = akc
+        nbx, nby = next((x, y) for h, cc, x, y in el._hivasok(allapot, kint) if (h, cc) == akc)
+        _, siker = el._utes(allapot, nbx, nby, idx, l1, l2, k, m, hivo, c, maradek, ("x", hivo, c))
+        # a szingli kis lap Nyugatnál (Kelet ♦Á10xx): a három x-tartás egyformán jár
+        x_szingli = [i for i in idx if len(el.tart[i][0]) == 1 and max(el.tart[i][0]) < 10]
+        assert len({i in siker for i in x_szingli}) == 1, akc

@@ -198,16 +198,34 @@ def vedo_lap(kezek: dict, lop: dict, sorrend, utes, k: int, m: int):
 REJTOZKODO_VEDO = True
 
 
-def vedo_csoportok(opciok: list, sulyok: list) -> list:
+# RELEVANS_LAPOK (a szerkesztő, 2026-11-22, BM A-11): csak a releváns lapokat
+# különböztetjük meg. A védő két lapja egyforma, ha nincs köztük saját lapunk (♦DB2 /
+# ♦K9876 mellett a ♦5, ♦4, ♦3 egyaránt „x”: csak a darabszámuk számít). A felvevő a
+# védők lapjaiból csak az osztályt látja: egy lement x csak annyit mond, hogy annál a
+# védőnél volt egy x — a címletből nem következtethet (eddig a gépi védő szabályszerű
+# kislap-választásából a felvevő „kiolvasta” a többi lap helyét). Az osztályok a mi
+# lapjainkhoz mérten játék közben összeolvadnak (ha a köztük lévő lapunk lement).
+RELEVANS_LAPOK = True
+
+
+def osztaly(c, mi: frozenset):
+    """A védőlap osztálya: hány saját lapunk nagyobb nála (None, lopás: önmaga)."""
+    if not RELEVANS_LAPOK or c is None or c == LOP:
+        return c
+    return ("x", sum(1 for l in mi if l > c))
+
+
+def vedo_csoportok(opciok: list, sulyok: list, kulcs=lambda c: c) -> list:
     """`opciok[j]`: a j. tartás célszerű lapjai (az első a modell választása);
-    visszaadja tartásonként a választott lapot."""
+    visszaadja tartásonként a választott lapot. A népszerűség a lap osztálya szerint
+    (`kulcs`) számít."""
     if not REJTOZKODO_VEDO:
         return [o[0] for o in opciok]
     nep: dict = {}
     for o, w in zip(opciok, sulyok):
-        for c in o:
-            nep[c] = nep.get(c, 0.0) + w
-    return [o[0] if len(o) == 1 else max(o, key=lambda c: (nep[c], c == o[0])) for o in opciok]
+        for q in {kulcs(c) for c in o}:
+            nep[q] = nep.get(q, 0.0) + w
+    return [o[0] if len(o) == 1 else max(o, key=lambda c: (nep[kulcs(c)], c == o[0])) for o in opciok]
 
 
 def _biztos_viszi(kezek: dict, lop: dict, sorrend, utes) -> bool:
@@ -317,7 +335,7 @@ class Elemzo:
         s = f"{'felvevő' if hivo == 'X' else 'asztal'} hív: {_lapjel(c)}"
         jel2 = [(l2, c3) for (kk, h, cc, l2), c3 in self.harmadik.items() if kk == kulcs and (h, cc) == akc]
         if jel2:
-            l2, c3 = min(jel2, key=lambda x: (x[0] is None, x[0] or 0))
+            l2, c3 = min(jel2, key=lambda x: (x[0] is None, str(x[0])))
             if c3 is not None:
                 s += f", ha a 2. kéz kicsit tesz: {_lapjel(c3)}"
         return s
@@ -394,9 +412,11 @@ class Elemzo:
             v1, v2 = maradek[j]
             kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
             opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c)], k, m))
+        mi = X | Y
+        kul = lambda c: osztaly(c, mi)              # noqa: E731
         csop2: dict = {}
-        for j, l2 in enumerate(vedo_csoportok(opc, [self.tart[i][2] for i in idx])):
-            csop2.setdefault(l2, []).append(j)
+        for j, l2 in enumerate(vedo_csoportok(opc, [self.tart[i][2] for i in idx], kul)):
+            csop2.setdefault(kul(l2), []).append((j, l2))
         return csop2
 
     def _utes(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, kulcs):
@@ -405,10 +425,10 @@ class Elemzo:
         lop = {"X": rx, "Y": ry}
         harmadik = sorrend[2]
         ossz_w, ossz_s = 0.0, frozenset()
-        for l2, js in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+        for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
             legjobb, c3_best = self._harmadik_csoport(allapot, nbx, nby, idx, lej1, lej2, k, m,
-                                                      hivo, c, maradek, js, l2)
-            self.harmadik[(kulcs, hivo, c, l2)] = c3_best
+                                                      hivo, c, maradek, [j for j, _ in jl], dict(jl))
+            self.harmadik[(kulcs, hivo, c, q2)] = c3_best
             ossz_w += legjobb[0]
             ossz_s |= legjobb[1]
         return ossz_w, ossz_s
@@ -430,15 +450,45 @@ class Elemzo:
         maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
         masodik = SORREND[hivo][1]
         h = 0 if masodik == "V1" else 1
-        js = [j for j, mr in enumerate(maradek)
-              if (l2 in mr[h] if l2 is not None else not mr[h])]
+        mi = X | Y
+        q = osztaly(l2, mi)
+        l2map: dict = {}
+        for j, mr in enumerate(maradek):
+            if l2 is None or l2 == LOP:
+                if not mr[h]:
+                    l2map[j] = l2
+            elif l2 in mr[h]:
+                l2map[j] = l2
+            else:
+                # (RELEVANS_LAPOK) ugyanannak az osztálynak egy másik lapja: ugyanaz az eset
+                tars = sorted(l for l in mr[h] if osztaly(l, mi) == q)
+                if tars:
+                    l2map[j] = tars[0]
+        js = list(l2map)
         if not js:
             return None
         return self._harmadik_csoport(allapot, nbx, nby, idx, lej1, lej2, k, m,
-                                      hivo, c, maradek, js, l2)[1]
+                                      hivo, c, maradek, js, l2map)[1]
 
-    def _harmadik_csoport(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2):
-        """A harmadik kéz legjobb lapja a `js` tartásokon, a második kéz `l2` lapja után."""
+    def _negyedik(self, X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js, l2map, idx, k, m):
+        """A negyedik kéz lapja tartásonként → (osztály → tartások, tartás → az ütés lapjai)."""
+        mi = X | Y
+        kul = lambda q: osztaly(q, mi)              # noqa: E731
+        opc = []
+        for j in js:
+            v1, v2 = maradek[j]
+            kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
+            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2map[j]), (harmadik, c3)], k, m))
+        csop4: dict = {}
+        utesek: dict = {}
+        for j, l4 in zip(js, vedo_csoportok(opc, [self.tart[idx[j]][2] for j in js], kul)):
+            csop4.setdefault(kul(l4), []).append(j)
+            utesek[j] = ((hivo, c), (sorrend[1], l2map[j]), (harmadik, c3), (sorrend[3], l4))
+        return csop4, utesek
+
+    def _harmadik_csoport(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map):
+        """A harmadik kéz legjobb lapja a `js` tartásokon, a második kéz lapja
+        (tartásonként `l2map[j]`; egy osztályba tartoznak) után."""
         X, Y, rx, ry, bx, by, hol = allapot
         sorrend = SORREND[hivo]
         lop = {"X": rx, "Y": ry}
@@ -448,22 +498,16 @@ class Elemzo:
                   "V2": frozenset().union(*[maradek[j][1] for j in js])}
         legjobb, c3_best, volt = (0.0, frozenset()), None, False
         for c3 in _lehetosegek(kezek0, harmadik, lop):
-            csop4: dict = {}
-            opc = []
-            for j in js:
-                v1, v2 = maradek[j]
-                kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-                opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m))
-            for j, l4 in zip(js, vedo_csoportok(opc, [self.tart[idx[j]][2] for j in js])):
-                csop4.setdefault(l4, []).append(j)
+            csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js,
+                                           l2map, idx, k, m)
             w, s = 0.0, frozenset()
-            for l4, js4 in csop4.items():
-                utes = ((hivo, c), (sorrend[1], l2), (harmadik, c3), (sorrend[3], l4))
+            for q4, js4 in csop4.items():
+                utes = utesek[js4[0]]
                 uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
                                                  lop, utes)
                 idx2 = tuple(idx[j] for j in js4)
-                l1 = tuple(lej1[j] | {l for u, l in utes if u == "V1" and l is not None} for j in js4)
-                l2_ = tuple(lej2[j] | {l for u, l in utes if u == "V2" and l is not None} for j in js4)
+                l1 = tuple(lej1[j] | {l for u, l in utesek[j] if u == "V1" and l is not None} for j in js4)
+                l2_ = tuple(lej2[j] | {l for u, l in utesek[j] if u == "V2" and l is not None} for j in js4)
                 k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
                 if mienk or hol is None:
                     uj_hol = _gyoztes(utes) if hol is not None else None
@@ -528,23 +572,18 @@ class Elemzo:
         sorrend = SORREND[hivo]
         lop = {"X": rx, "Y": ry}
         harmadik = sorrend[2]
-        for l2, js in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
-            c3 = self.harmadik.get((kulcs, hivo, c, l2))
-            csop4: dict = {}
-            opc = []
-            for j in js:
-                v1, v2 = maradek[j]
-                kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-                opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2), (harmadik, c3)], k, m))
-            for j, l4 in zip(js, vedo_csoportok(opc, [self.tart[idx[j]][2] for j in js])):
-                csop4.setdefault(l4, []).append(j)
-            for l4, js4 in csop4.items():
-                utes = ((hivo, c), (sorrend[1], l2), (harmadik, c3), (sorrend[3], l4))
+        for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+            c3 = self.harmadik.get((kulcs, hivo, c, q2))
+            js = [j for j, _ in jl]
+            csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js,
+                                           dict(jl), idx, k, m)
+            for q4, js4 in csop4.items():
+                utes = utesek[js4[0]]
                 uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
                                                  lop, utes)
                 idx2 = tuple(idx[j] for j in js4)
-                l1 = tuple(lej1[j] | {l for u, l in utes if u == "V1" and l is not None} for j in js4)
-                l2_ = tuple(lej2[j] | {l for u, l in utes if u == "V2" and l is not None} for j in js4)
+                l1 = tuple(lej1[j] | {l for u, l in utesek[j] if u == "V1" and l is not None} for j in js4)
+                l2_ = tuple(lej2[j] | {l for u, l in utesek[j] if u == "V2" and l is not None} for j in js4)
                 k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
                 lopott = sum(1 for _, l in utes if l == LOP)
                 sz2 = (ut + (1 if szin else 0), ve + (0 if mienk else 1), lo + lopott, ax, ay)
