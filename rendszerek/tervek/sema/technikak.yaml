@@ -459,8 +459,7 @@
     ALSO: "kozvetlen_alatta(SZ, D)"    # a lapunk közvetlenül D alatt (♠B)
   alkalmazhato: ["nem_adu(SZ)", "van(H)", "van(D)", "van(FELSO)", "van(ALSO)"]
   hozzatetel: kicsi
-  # a fogások: ha az Á-t átmenetnek használnánk (3NT-ben a kézbe jutáshoz), Nyugat
-  # lehívja a pikkjeit — a kiengedés értelme a megtartott ÁB
-  megtart: ["[FELSO]", "[ALSO]"]
+  # (a fogások megtartása — hogy az Á ne legyen átmenet a kézbe, amíg a tervezett ütések
+  # nincsenek meg — általános szabály: FOGAS_VEDES, strategiak.yaml)
   siker: "True"
   hozam: 0

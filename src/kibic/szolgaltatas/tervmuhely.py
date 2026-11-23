@@ -484,7 +484,8 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
         tobb = [t for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=ig + 1, ures=ures,
                                         max_szim=SZIM_TERV)
                 if t.nev not in nevek and getattr(t, "elozetes", 0.0) >= also]
-        tervek = sorted(tervek + tobb, key=lambda t: (-round(getattr(t, "elozetes", 0.0), 3),
+        tervek = sorted(tervek + tobb, key=lambda t: (not getattr(t, "fogas_ok", True),
+                                                     -round(getattr(t, "elozetes", 0.0), 3),
                                                      len(t.lepesek)))[:SZIM_TERV]
     k = h.kontraktus
     vl, tar = _vilag_keszlet(h, kint, vilag_db, dd_fv)

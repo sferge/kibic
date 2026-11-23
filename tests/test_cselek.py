@@ -57,7 +57,7 @@ def test_bath_sema_szerepei():
     h = hz[0]
     assert h.szerepek["D"] == Lap.parse("SQ") and h.szerepek["FELSO"] == Lap.parse("SA")
     assert h.szerepek["ALSO"] == Lap.parse("SJ")
-    assert h.teendo == "kicsi" and h.megtart == {Lap.parse("SA"), Lap.parse("SJ")}
+    assert h.teendo == "kicsi"
     assert h.rovid == "♠ Bath-csel"
     # az asztal már tett: a felvevő lapja még hátra van — a séma él
     assert hozzatetelek(_allas(BATH, [("W", Lap.parse("SK")), ("N", Lap.parse("S5")),
@@ -102,7 +102,6 @@ def test_bath_a_tervben_mindket_kez(monkeypatch, tmp_path):
     rek = tm.betolt(tm._kulcs(k3, "S"), tm.helyzet(k3))
     assert rek is not None and rek.utes_dontes_nev == "♠ Bath-csel"
     assert [x[2] for x in rek.utes_dontes] == [KICSI, KICSI]
-    assert set(rek.utes_megtart) == {"SA", "SJ"}
 
 
 def _jatek_a_ket_lap_utan():
@@ -164,3 +163,98 @@ def test_a_felvevo_lapja_a_lepesnel_is_a_terve(monkeypatch, tmp_path):
     # ugyanarra a lapra még egyszer: a döntés a fájlban van, nincs új számolás
     r3 = tm.step_valasz(_keres(j, 3))
     assert hivas == [3] and r3["action"]["card"] == "SJ"
+
+
+# --- FOGAS_VEDES: a megfelelő fogás (a szerkesztő, 2026-11-23) ---------------------------
+
+def _L(s):
+    return [Lap.parse(x) for x in s.split()]
+
+
+def test_fogas_menet():
+    """Az Á első menet; az Á kint: a KD második menet, a Kx nem fogás; a DB10 az ÁK ellen
+    harmadik menet. Színfelvételben az adu fogás: színhiánnyal első, szinglivel második
+    menet."""
+    from kibic.motor.tervfogas import fogas_menet
+    assert fogas_menet({"N": _L("SA S2"), "S": _L("S3")}, _L("SK SQ SJ"), "S", None) == 1
+    assert fogas_menet({"N": _L("SK SQ"), "S": _L("S3")}, _L("SA SJ ST"), "S", None) == 2
+    assert fogas_menet({"N": _L("SK"), "S": _L("SQ")}, _L("SA SJ ST"), "S", None) == 2
+    assert fogas_menet({"N": _L("SK S2"), "S": _L("S3")}, _L("SA SJ ST"), "S", None) is None
+    assert fogas_menet({"N": _L("SQ SJ ST"), "S": _L("S3")}, _L("SA SK S9"), "S", None) == 3
+    assert fogas_menet({"N": _L("H2"), "S": _L("S3 S4")}, _L("SA SK"), "S", "H") == 1
+    assert fogas_menet({"N": _L("H2 S5"), "S": _L("S3 S4")}, _L("SA SK"), "S", "H") == 2
+    assert fogas_menet({"N": _L("H2"), "S": _L("H3")}, _L("SA SK"), "S", None) is None
+    assert fogas_menet({"N": _L("S2"), "S": _L("S3")}, _L("HA"), "S", None) == 0
+
+
+def test_megtartando_fogas():
+    """A Bath-csel után (♠ÁB4 / ♠75, kint ♠D10986 3): az ♠Á nélkül nincs fogás — megtartjuk;
+    a ♠B nélkül az Á első menet — a B szabad. Színfelvételben (♥ÁD4 / ♥3 + adu): ha nem
+    adhatunk ki több ütést, a ♥Á kell; ha egyet még igen, az asztal lopása (második menet)
+    elég."""
+    from kibic.motor.tervfogas import foglalt_fogas
+    kint = _L("SQ ST S9 S8 S6 S3")
+    assert foglalt_fogas({"N": _L("S7 S5"), "S": _L("SA SJ S4")}, kint, None, 2) == {Lap.parse("SA")}
+    kezek = {"N": _L("H3 S2 S3"), "S": _L("HA HQ H4 SA SK")}
+    kint = _L("HK HJ HT H9 H8")
+    assert Lap.parse("HA") in foglalt_fogas(kezek, kint, "S", 0)
+    assert Lap.parse("HA") not in foglalt_fogas(kezek, kint, "S", 1)
+
+
+def test_bath_vegig_a_fogas_megmarad(monkeypatch, tmp_path):
+    """A Bath-példa végig (a védők DD szerint): a kiengedés után a ♠Á nem átmenet a kézbe
+    (FOGAS_VEDES), a ♦Á kiütése után szabad — legalább 9 ütés (DD: 11)."""
+    from kibic.domain.kartya import Leosztas
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.solver.dds import lap_elemzes
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    lo = Leosztas.pbn_bol("N:75.A84.KQJT.Q762 932.962.A764.T94 AJ4.KQ5.853.AK83 KQT86.JT73.92.J5")
+    k = Kontraktus.parse("3NT", "S")
+    j = tj.Jatek({u: set(BATH[u]) for u in "NESW"}, "S", None, [], tj.Terv(()))
+    j.tesz("W", Lap.parse("SK"))
+    tm.plan_valasz(_keres(j, 0))
+    n = 1
+    while len(j.lapok) < 52:
+        u = j.soron()
+        if j.mi(u):
+            r = tm.step_valasz(_keres(j, n))
+            lap = Lap.parse(r["action"]["card"])
+            assert not (lap == Lap.parse("SA") and j.aktualis() == [] and len(j.lapok) < 12), r["summary"]
+        else:
+            ert = lap_elemzes(lo, [str(l) for _, l in j.lapok], k)
+            lap = max(ert, key=lambda e: e.utesek).lap
+            lap = Lap.parse(str(lap))
+        j.tesz(u, lap)
+        n += 1
+    assert j.felvevo_utesek() >= 9
+
+
+def test_fogas_nem_atmenet_amig_a_terv_kiad(monkeypatch, tmp_path):
+    """A „♦ színkezelés” terv a Bath-kiengedés után (a védők DD szerint): a FOGAS_VEDES
+    nélkül a végrehajtó az ♠Á-t viszi át a kézbe (átmenet), és Nyugat lehívja a pikkjeit
+    (8 ütés); vele a ♥ / ♣ az átmenet, az ♠Á csak a ♦Á kiütése után szabad (11 ütés)."""
+    from kibic.domain.kartya import Leosztas
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor import tervkonyvelo as tk
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    monkeypatch.setattr(tm, "VILAG", 20)
+    j = _jatek_a_ket_lap_utan()
+    tm.plan_valasz(_keres(j, 0))
+    k3 = _keres(j, 0)
+    rek = tm.betolt(tm._kulcs(k3, "S"), tm.helyzet(k3))
+    terv = next(r.terv for r in rek.eredmenyek if r.terv.nev == "♦ színkezelés (3 ütés, ≤3 vesztés)")
+    lo = Leosztas.pbn_bol("N:75.A84.KQJT.Q762 932.962.A764.T94 AJ4.KQ5.853.AK83 KQT86.JT73.92.J5")
+    tar = tj.DDTar(tm._dd_fv(None), Kontraktus.parse("3NT", "S"))
+    lej = [("W", Lap.parse("SK")), ("N", Lap.parse("S5")), ("E", Lap.parse("S2"))]
+
+    def jatszik():
+        naplo = []
+        n = tk.lejatszik(terv, lo, "S", None, lej, lambda jj: tj._vedo_lap(tar(0, lo, jj.lapok)),
+                         naplo=naplo, cel=9, utes_dontes={3: ("S", KICSI, "Bath")})
+        return n, naplo
+    n, naplo = jatszik()
+    assert n == 11, naplo
+    assert not any("átmenet SA" in s for s in naplo[:12])
+    monkeypatch.setitem(tk.SZABALY, "FOGAS_VEDES", False)
+    n, naplo = jatszik()
+    assert n < 9 and any("átmenet SA" in s for s in naplo)

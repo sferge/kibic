@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -608,7 +608,14 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
             t.elozetes = elozetes_esely(t, eselyek)
         # egyenlő előzetes esélynél (pl. csupa biztos egység: 100%) az egyszerűbb terv
         # előbb — a szimuláció dönt, de csak a legjobb `max_szim` jut el oda
-        ki.sort(key=lambda t: (-round(t.elozetes, 3), len(t.lepesek)))
+        # FOGAS_VEDES (a szerkesztő, 2026-11-23): a kiadás / kiengedés feltétele a megfelelő
+        # fogás minden színben — a feltételt teljesítő tervek előbb jutnak a szimulációba
+        # (kizárva nincs egyik sem: ha nincs jobb, a szimuláció dönt)
+        if SZABALY["FOGAS_VEDES"]:
+            from .tervfogas import terv_feltetel
+            for t in ki:
+                t.fogas_ok = terv_feltetel(allas, t)
+        ki.sort(key=lambda t: (not getattr(t, "fogas_ok", True), -round(t.elozetes, 3), len(t.lepesek)))
         ki = ki[:max_szim]
     if not ki:
         # egyik terv sem fedi az igényt: a legtöbbet hozók (a tartalék dönt majd)
@@ -767,6 +774,32 @@ class Vegrehajto:
         mi = j.felvevo_utesek()
         return (13 - self.cel) - (kesz - mi)
 
+    def _fogas_foglalt(self) -> set[Lap]:
+        """FOGAS_VEDES (a szerkesztő, 2026-11-23): a megfelelő fogás lapjai nem átmenetek
+        és nem dobhatók, amíg a hátralévő tervezett ütések — a fogás ütésével együtt —
+        nincsenek meg biztos ütésként, és amíg a terv még ütést ad ki (a kiadás feltétele a
+        megfelelő fogás). A tervezett ütés a terv célja (`cel`)."""
+        from .tervfogas import biztos_utesek, foglalt_fogas, tervezett_vesztes
+        j = self.j
+        if self.cel is None:
+            return set()
+        kulcs = len(j.lapok)
+        tar = getattr(self, "_fogas_tar", None)
+        if tar is not None and tar[0] == kulcs:
+            return tar[1]
+        kezek = {u: list(j.kezek[u]) for u in (j.felvevo, j.asztal)}
+        kint = [l for sz in "SHDC" for l in j.kint(sz)]
+        kell = self.cel - j.felvevo_utesek()
+        szinek = {e.p.szin for e in self._aktiv() if not biztos_egyseg(e.p) and e.p.szin}
+        tervezett = tervezett_vesztes(kezek, kint, szinek)
+        ki: set[Lap] = set()
+        # a fogás szabad, ha a tervezett ütések (a fogáséval együtt) biztosan megvannak, és a
+        # terv már nem ad ki ütést (a kiadás feltétele a megfelelő fogás)
+        if kell > 0 and (tervezett > 0 or biztos_utesek(kezek, kint, self.adu) < kell):
+            ki = foglalt_fogas(kezek, kint, self.adu, self._tartalek() - tervezett)
+        self._fogas_tar = (kulcs, ki)
+        return ki
+
     def _jegyez(self, s: str):
         if self.naplo is not None:
             self.naplo.append(f"{len(self.j.lapok) // 4 + 1}. ütés: {s}")
@@ -782,6 +815,8 @@ class Vegrehajto:
         # a hozzátevési séma megtartott lapjai (Bath-csel: a szín fogásai — nem átmenet,
         # nem dobás, a védők színe ellen kellenek)
         f |= getattr(self, "megtart", set()) & mieink
+        if SZABALY["FOGAS_VEDES"]:
+            f |= self._fogas_foglalt()
         aktiv = self._aktiv()
         for e in aktiv:
             f |= (e.p.hasznal | e.p.elfogyaszt) & mieink
