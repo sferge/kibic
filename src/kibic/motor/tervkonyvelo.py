@@ -791,12 +791,16 @@ class Vegrehajto:
         kint = [l for sz in "SHDC" for l in j.kint(sz)]
         kell = self.cel - j.felvevo_utesek()
         szinek = {e.p.szin for e in self._aktiv() if not biztos_egyseg(e.p) and e.p.szin}
-        tervezett = tervezett_vesztes(kezek, kint, szinek)
+        szinenkent = {sz: tervezett_vesztes(kezek, kint, [sz]) for sz in szinek}
+        tervezett = sum(szinenkent.values())
         ki: set[Lap] = set()
         # a fogás szabad, ha a tervezett ütések (a fogáséval együtt) biztosan megvannak, és a
-        # terv már nem ad ki ütést (a kiadás feltétele a megfelelő fogás)
+        # terv már nem ad ki ütést (a kiadás feltétele a megfelelő fogás); a hátralévő
+        # kiadások száma a kiadási alkalmak száma (a szerkesztő, 2026-11-23, MB 49)
         if kell > 0 and (tervezett > 0 or biztos_utesek(kezek, kint, self.adu) < kell):
-            ki = foglalt_fogas(kezek, kint, self.adu, self._tartalek() - tervezett)
+            ki = foglalt_fogas(kezek, kint, self.adu, self._tartalek() - tervezett,
+                               alkalom=max(1, tervezett),
+                               kiado={sz for sz, db in szinenkent.items() if db})
         self._fogas_tar = (kulcs, ki)
         return ki
 
