@@ -307,6 +307,84 @@ def test_ket_kiadas_ket_fogas_kell():
     assert t[0].fogas_ok and "♦ színkezelés" not in t[0].nev
 
 
+# --- Az esélyek kombinációja: feltételes folytatás (a szerkesztő, 2026-11-23, MB 49) ------
+# A BM-vonal: ♣B a kézből (ráhívás az ♣Á10 felé). Ha nem ütik meg (vagy Nyugat fed): 3
+# treffütés, a pikkből elég 4 (egy kiadással). Ha Kelet üt a ♣D-vel: két átmenet marad
+# (♣2→♣10, a ♣K-t az ♣Á üti felül), két pikkimpassz az 5 pikkütésért.
+KOMB_NYUGAT_D = {"S": _kez("AKJT9.AK.Q32.KJ2"), "N": _kez("32.32.JT9876.AT3"),
+                 "W": _kez("54.QJT987.A5.Q65"), "E": _kez("Q876.654.K4.9874")}
+KOMB_NINCS_10 = {"S": _kez("AKJT9.AK.Q32.KJ2"), "N": _kez("32.32.JT9876.A43"),
+                 "W": _kez("54.QJT987.A5.765"), "E": _kez("Q876.654.K4.QT98")}
+KOMB_TERV = "♣ impassz ráhívással → ♠ színkezelés (5 ütés, ≤2 vesztés)"
+
+
+def test_feluletes_atmenet_redundanciaval():
+    """A felülütés csak redundancia esetén átmenet (ahányszoros, annyi)."""
+    from kibic.motor.tervkonyvelo import atmenet_szam
+    def t(S, N, kint):
+        return atmenet_szam({"S": set(_L(S)), "N": set(_L(N))}, "S", "N", _L(kint), "H")[1]
+    assert t("DK D2", "DA DT", "D9 D8 D7 D6 D5 D4") == 2      # ♦2→10, ♦K-t az Á üti
+    assert t("DK DJ D2", "DA DT D3", "DQ D9 D8 D7") == 1      # a D kint: nincs redundancia
+    assert t("DK D2", "DA D4", "DT D9 D8 D7") == 1            # a 10 kint: egy átmenet
+    assert t("DK DQ", "DA DJ", "DT D9 D8") == 1               # a B nem üti felül a D-t
+
+
+def test_elemzo_halott_tartas_dupla_impassz():
+    """♠AKB109 / ♠32 a D87654 ellen, 5 ütés: a dupla impassz az asztalról (Kelet D876
+    is), nem a K lehívása — a testvérágban már elbukott tartás (Nyugat Dxx, kiengedte a
+    9-et) a döntésben nem számít (HALOTT_TARTAS)."""
+    from kibic.motor import tervszinkezeles as ts
+    F = frozenset
+    el = ts.Elemzo(ts.Feladat(F({9, 10, 11, 13, 14}), F({2, 3}), F({12, 8, 7, 6, 5, 4}), 13, 13))
+    p, _, leiras = el.megold(5, 99)
+    assert p > 0.4 and leiras.startswith("asztal hív")
+
+
+def test_rahivas_peldany():
+    from kibic.motor.tervsema import peldanyok
+    for H, van in ((ALK, True), (KOMB_NYUGAT_D, True), (KOMB_NINCS_10, False)):
+        a = _allas(H, [("W", Lap.parse("HQ"))])
+        p = [x for x in peldanyok(a, technikak_betoltese()) if x.sema.azon == "IMPASSZ_RAHIVAS"]
+        assert bool(p) == van
+        if p:
+            assert [(k.fajta, k.hivo, str(k.lap)) for k in p[0].korok] == [("impassz", "S", "CJ")]
+
+
+def _komb_lejatszas(H, kenyszer):
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import lejatszik, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+    lo = Leosztas({u: Kez(frozenset(H[u])) for u in "NESW"})
+    k = Kontraktus(3, "NT", "", "S")
+    a = _allas(H, [("W", Lap.parse("HQ"))])
+    t = next(t for t in tervjeloltek(a, technikak_betoltese(), max_db=400, igeny=3, ures=(12, 12),
+                                     max_szim=800) if t.nev == KOMB_TERV)
+
+    def vedo(jj):
+        u, ut = jj.soron(), jj.aktualis()
+        if u == kenyszer and ut and ut[0][1] == Lap.parse("CJ") and Lap.parse("CQ") in jj.kezek[u]:
+            return Lap.parse("CQ")
+        return tj._vedo_lap(lap_elemzes(lo, [str(l) for _, l in jj.lapok], k))
+    nap: list = []
+    return lejatszik(t, lo, "S", None, [("W", Lap.parse("HQ"))], vedo, nap, cel=9), nap
+
+
+def test_kombinacio_kudarc_ag():
+    """Kelet a ♣D-vel üti a ♣B-t: ♣2→♣10, ♠ impassz, a ♣K-t az ♣Á üti felül, ♠ impassz."""
+    n, nap = _komb_lejatszas(ALK, "E")
+    assert n == 9, nap
+    assert any("átmenet CT" in s for s in nap) and any("átmenet CA" in s for s in nap)
+
+
+def test_kombinacio_fedes_ag():
+    """Nyugat fed a ♣D-vel: az Á üt, 3 treffütés — a pikkből elég 4 (FELTETELES)."""
+    n, nap = _komb_lejatszas(KOMB_NYUGAT_D, "W")
+    assert n == 9, nap
+    assert any("a védő fedett" in s for s in nap)
+
+
 # --- Vesztőre vesztő és visszatartás (BM A-13 szerkezete, saját lapokkal) -------------
 # 4♥ Dél, Nyugat gyenge 2♦ után a ♦K-val indul. ♦Á42 / ♦63: a ♦K-t kiengedjük, a második
 # kárót az ♦Á üti, a harmadikat kiadjuk — az asztal pikket dob; két adukör után a

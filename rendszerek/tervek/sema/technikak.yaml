@@ -68,6 +68,33 @@
   hasznal: ["[V]", FELETTE, DEBLOKK]
   elfogyaszt: ["[V]", FELETTE, DEBLOKK]
 
+- technika: IMPASSZ_RAHIVAS
+  nev: "Kétirányú impassz ráhívással: a villa alsó lapját hívjuk a kézből a partner felső lapja felé"
+  # (a szerkesztő, 2026-11-23, MB 49 — a BridgeMasters esélykombinációja) ♦KB2 / ♦Á103,
+  # kint a ♦D: a ♦B-t hívjuk a kézből. Ha a második kéz fed, az Á üt (a 10 és a K magas);
+  # ha nem, a B fut. Ha a negyedik kéz üti, a partner felső lapja (az Á) megmarad: a
+  # második esély átmenete (a ♦10 a kicsire, a ♦K-t az Á üti felül). A villa másik iránya
+  # (a partnertől a KB felé) az IMPASSZ_VILLA — ahhoz átmenet kell a partner kezébe.
+  szerepek:
+    F: "legnagyobb_kint(SZ)"
+    V: "kozvetlen_alatta(SZ, F)"
+    VK: "keze(V)"
+    HK: "partner(VK)"
+    ALATTA: "kozvetlen_alatta(SZ, V)"
+    FELETTE: "felettunk(SZ, F)"
+  alkalmazhato: ["nem_adu(SZ)", "van(F)", "van(V)", "van(ALATTA)",
+                 "hossz(felettunk_kezben(VK, SZ, F)) >= 1", "hossz(felettunk_kezben(HK, SZ, F)) >= 1",
+                 "kezhossz(HK, SZ) >= 2", "kezhossz(VK, SZ) >= 2"]
+  korok:
+    # a felső lapok (Á, K) magasak maradnak: nincs begyűjtő kör — a második esély
+    # átmenetei (a ♦10 a kicsire, a ♦K-t az Á üti felül, ha a B-t megütötték)
+    - {fajta: impassz, hivo: VK, lap: V}
+  siker: "birtokos(F) == bal(VK)"
+  kudarc_koltseg: 1
+  hozam: 1
+  hasznal: ["[V]", "[ALATTA]", FELETTE]
+  elfogyaszt: ["[V]"]
+
 - technika: IMPASSZ_ATENGEDES
   nev: "Impassz a sorozat hívásával és átengedésével (a figura a második kéznél)"
   szerepek:
