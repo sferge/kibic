@@ -1,0 +1,42 @@
+4A01.pbn#1   4S   terv  46.7%  DD  90.0%  ♠ színkezelés (4 ütés, ≤1 vesztés) → kiaduzás → ♥ vesztőcsere (dobás: ♣) → ♦ színkezelés (2 ütés, ≤2 vesztés)
+4A01.pbn#2   4H   terv  83.3%  DD 100.0%  kiaduzás → ♦ szöktetés
+4B01.pbn#1   3NT  terv  53.3%  DD  73.3%  ♥ színkezelés (1 ütés, ≤2 vesztés) → ♣ vesztőcsere (dobás: ♦)
+4B01.pbn#2   6D   terv  40.0%  DD  80.0%  ♠ lopás a rövid kézben → kiaduzás → ♥ szöktetés
+4C01.pbn#1   3NT  terv  43.3%  DD  96.7%  ♥ színkezelés (1 ütés, ≤4 vesztés) → ♣ színkezelés (4 ütés, ≤3 vesztés)
+4C01.pbn#2   3NT  terv  43.3%  DD  80.0%  ♥ színkezelés (2 ütés, ≤2 vesztés) → ♦ színkezelés (3 ütés, ≤1 vesztés)
+4D01.pbn#1   5H   terv  60.0%  DD 100.0%  ♣ lopás a rövid kézben (kiadás után) → ♦ lopás a rövid kézben (kiadás után) → kiaduzás
+4D01.pbn#2   4H   terv   6.7%  DD  66.7%  ♣ asztalfordítás (lopás a hosszú adus kézben) → ♥ színkezelés (5 ütés, ≤0 vesztés) → kiaduzás
+4E01.pbn#1   4H   terv  36.7%  DD  66.7%  ♣ színkezelés (2 ütés, ≤3 vesztés) → kiaduzás → ♠ színkezelés (3 ütés, ≤1 vesztés)
+4E01.pbn#2   4S   terv  13.3%  DD  53.3%  ♣ lopás a rövid kézben → ♦ színkezelés (1 ütés, ≤1 vesztés) → kiaduzás → ♥ színkezelés (2 ütés, ≤1 vesztés)
+4F01.pbn#1   4H   terv  56.7%  DD  80.0%  kiaduzás → ♣ színkezelés (2 ütés, ≤2 vesztés)
+4F01.pbn#2   4S   terv   0.0%  DD  30.0%  kiaduzás → ♦ színkezelés (4 ütés, ≤0 vesztés) → ♣ színkezelés (1 ütés, ≤3 vesztés)
+4N01.pbn#1   4S   terv  16.7%  DD  26.7%  ♥ színkezelés (1 ütés, ≤2 vesztés) → kiaduzás → ♣ színkezelés (2 ütés, ≤2 vesztés)
+4N01.pbn#2   6D   terv  93.3%  DD 100.0%  ♥ lopás a rövid kézben → kiaduzás → ♠ ejtés
+4P01.pbn#1   4H   terv  63.3%  DD  93.3%  ♣ lopás a rövid kézben → ♥ színkezelés (4 ütés, ≤0 vesztés) → kiaduzás
+4P01.pbn#2   4H   terv  76.7%  DD 100.0%  ♠ lopás a rövid kézben → kiaduzás
+4Q01.pbn#1   5C   terv  43.3%  DD  73.3%  kiaduzás → ♦ színkezelés (3 ütés, ≤0 vesztés) → ♥ impassz
+4Q01.pbn#2   4H   terv  66.7%  DD  80.0%  kiaduzás → ♠ színkezelés (1 ütés, ≤3 vesztés) → ♦ impassz
+4R01.pbn#1   4S   terv  60.0%  DD  83.3%  kiaduzás → ♥ színkezelés (2 ütés, ≤1 vesztés)
+4R01.pbn#2   4H   terv  16.7%  DD  43.3%  kiaduzás → ♣ vesztőcsere (dobás: ♠) → ♦ színkezelés (2 ütés, ≤2 vesztés)
+4S01.pbn#1   3NT  terv  43.3%  DD  96.7%  ♦ színkezelés (4 ütés, ≤0 vesztés) → ♥ szöktetés → ♣ vesztőcsere (dobás: ♠)
+4S01.pbn#2   3NT  terv  60.0%  DD  96.7%  ♣ színkezelés (4 ütés, ≤2 vesztés) → ♦ színkezelés (3 ütés, ≤2 vesztés)
+4T01.pbn#1   4S   terv   3.3%  DD  53.3%  ♥ lopás a rövid kézben → kiaduzás → ♦ színkezelés (2 ütés, ≤2 vesztés)
+4T01.pbn#2   3NT  terv  46.7%  DD 100.0%  ♣ színkezelés (3 ütés, ≤1 vesztés) → ♠ színkezelés (4 ütés, ≤0 vesztés)
+4U01.pbn#1   4S   terv   0.0%  DD  23.3%  ♣ vesztőcsere (dobás: ♦) → ♥ lopás a rövid kézben (kiengedéssel, a felső lap a végén) → kiaduzás
+4U01.pbn#2   6D   terv   0.0%  DD  96.7%  kiaduzás → ♠ vesztőcsere (dobás: ♥) → ♣ szöktetés
+4V01.pbn#1   2NT  terv  70.0%  DD 100.0%  ♥ színkezelés (4 ütés, ≤0 vesztés) → ♠ színkezelés (1 ütés, ≤2 vesztés)
+4V01.pbn#2   3NT  terv  86.7%  DD 100.0%  ♣ színkezelés (3 ütés, ≤2 vesztés) → ♥ színkezelés (2 ütés, ≤2 vesztés)
+6A01.pbn#1   3NT  terv  43.3%  DD  86.7%  ♦ színkezelés (2 ütés, ≤1 vesztés) → ♥ impassz
+6A01.pbn#2   3NT  terv  83.3%  DD 100.0%  ♠ színkezelés (4 ütés, ≤0 vesztés)
+6B01.pbn#1   4H   terv  53.3%  DD  80.0%  ♠ vesztőcsere (dobás: ♣) → kiaduzás → ♦ szöktetés
+6B01.pbn#2   3NT  terv 100.0%  DD 100.0%  csak begyűjtés
+6C01.pbn#1   4H   terv  96.7%  DD 100.0%  ♠ lopás a rövid kézben → ♦ színkezelés (3 ütés, ≤2 vesztés) → kiaduzás
+6C01.pbn#2   6S   terv  56.7%  DD  93.3%  kiaduzás → ♦ színkezelés (3 ütés, ≤1 vesztés) → ♥ színkezelés (3 ütés, ≤0 vesztés)
+6D01.pbn#1   4S   terv  53.3%  DD  60.0%  kiaduzás → ♦ színkezelés (3 ütés, ≤0 vesztés)
+6D01.pbn#2   4S   terv  90.0%  DD 100.0%  kiaduzás → ♦ vesztőcsere (dobás: ♥) → ♣ szöktetés
+6E01.pbn#1   2S   terv 100.0%  DD 100.0%  kiaduzás → ♦ bedobás (kényszer: ♥♣)
+6E01.pbn#2   5C   terv  10.0%  DD  26.7%  kiaduzás → ♥ szöktetés (felső előbb)
+6F01.pbn#1   5D   terv  66.7%  DD  83.3%  ♦ színkezelés (6 ütés, ≤0 vesztés) → ♣ lopás a rövid kézben (kiadás után) → kiaduzás
+6F01.pbn#2   4H   terv  83.3%  DD  93.3%  kiaduzás → ♦ vesztőcsere (dobás: ♣)
+
+40 parti: terv 51.7% (szan 61.2%, szín 48.0%), DD 80.2%; commit 907c230, KIBIC_TERVMUHELY_UTES_VILAG=30
