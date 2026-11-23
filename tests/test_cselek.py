@@ -261,6 +261,52 @@ def test_fogas_nem_atmenet_amig_a_terv_kiad(monkeypatch, tmp_path):
     assert n < 9 and any("átmenet SA" in s for s in naplo)
 
 
+# --- A kiadási ALKALMAK (a szerkesztő, 2026-11-23; MB 49 szerkezete, saját lapokkal) -----
+# 3NT Dél, Nyugat ♥D-vel indul. A ♦-ban kétszer kell kiadni (♦ÁK kint), a ♥ÁK közül az
+# egyik az első ütésben elmegy: az első kiadás után kiütik a másikat, a második után
+# lehívják a kőreiket. A ♠ (ÁKB109 a D876 ellen) egy kiadással (vagy impasszal) hozza a
+# kilenc ütést.
+ALK = {"S": _kez("AKJT9.AK.Q32.KJ2"), "N": _kez("32.32.JT9876.AT3"),
+       "W": _kez("54.QJT987.A5.654"), "E": _kez("Q876.654.K4.Q987")}
+
+
+def test_menetsor_es_alkalmak():
+    """„Az 1x 2 db kiadó szín esetét a 2x 1 db kiadó esetétől meg kell különböztetni.”
+    A menetsor: ki üti a szín egyes meneteit, ha a védők hívják. Egy alkalommal a védők a
+    színben az első fogásunkig visznek ütést; két alkalommal a másodikig (az elsőt kiütik)."""
+    from kibic.motor.tervfogas import menetsor, vedo_utesek, fogasok_megfelelok
+    # egy fogás (♥Á), a védőknél hét kőr: az első alkalommal kiütik, a másodikkal lehívják
+    sor = menetsor({"S": _L("HA"), "N": _L("H3")}, _L("HJ HT H9 H8 H7 H6 H5"), "H", None)
+    assert sor == "MVVVVVV"
+    assert vedo_utesek(sor, 1) == 0 and vedo_utesek(sor, 2) == 6
+    # két első menet fogás (♥ÁK): két alkalom sem ad nekik ütést
+    sor = menetsor({"S": _L("HA HK"), "N": _L("H3")}, _L("HQ HJ HT H9 H8"), "H", None)
+    assert sor.startswith("MM") and vedo_utesek(sor, 2) == 0
+    # második menet fogás (♥KD az Á ellen): egy alkalommal egy ütés, a két fogás
+    # (KDB) két alkalomra is elég — egy ütés árán
+    sor = menetsor({"N": _L("HK HQ HJ"), "S": _L("H3")}, _L("HA HT H9"), "H", None)
+    assert sor.startswith("VMM") and vedo_utesek(sor, 1) == 1 and vedo_utesek(sor, 2) == 1
+    # a feltétel: egy alkalommal a ♥Á elég, kettővel nem
+    kezek = {"S": _L("HA S2"), "N": _L("H3 S3")}
+    kint = _L("HJ HT H9 H8 H7 H6 H5")
+    assert fogasok_megfelelok(kezek, kint, None, 0, alkalom=1)
+    assert not fogasok_megfelelok(kezek, kint, None, 2, alkalom=2)
+
+
+def test_ket_kiadas_ket_fogas_kell():
+    """MB 49 szerkezete: a két kiadású ♦ terv nem teljesíti a fogás feltételét (az indulás
+    a ♥K-t viszi, egy kőrfogás marad két kiadásra); a ♠ terv igen, és előbb jut a
+    szimulációba. A régi szabály (csak a kiadható ütések száma) mindkettőt elfogadta."""
+    from kibic.motor.tervkonyvelo import tervjeloltek
+    assert len(set().union(*ALK.values())) == 52
+    a = _allas(ALK, [("W", Lap.parse("HQ"))])
+    t = tervjeloltek(a, technikak_betoltese(), max_db=200, igeny=3, ures=(12, 12), max_szim=500)
+    ok = {x.nev: x.fogas_ok for x in t}
+    assert ok["♠ színkezelés (5 ütés, ≤2 vesztés) → ♦ színkezelés (3 ütés, ≤4 vesztés)"] is False
+    assert ok["♠ színkezelés (4 ütés, ≤2 vesztés) → ♣ színkezelés (3 ütés, ≤2 vesztés)"] is True
+    assert t[0].fogas_ok and "♦ színkezelés" not in t[0].nev
+
+
 # --- Vesztőre vesztő és visszatartás (BM A-13 szerkezete, saját lapokkal) -------------
 # 4♥ Dél, Nyugat gyenge 2♦ után a ♦K-val indul. ♦Á42 / ♦63: a ♦K-t kiengedjük, a második
 # kárót az ♦Á üti, a harmadikat kiadjuk — az asztal pikket dob; két adukör után a

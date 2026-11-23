@@ -17,6 +17,18 @@ fogásunk minden színben.” A fogás: amivel biztosan megszerezzük az ütést
 A szabály két oldala: a kiadás / kiengedés FELTÉTELE (a jelöltek: tervmuhely), és a fogás
 MEGTARTÁSA (a végrehajtó: a fogás lapja nem átmenet, nem dobás, amíg a hátralévő tervezett
 ütések — a fogás ütésével együtt — nincsenek meg biztos ütésként).
+
+**A kiadási ALKALMAK (a szerkesztő, 2026-11-23, MB 49):** nem elég azt nézni, hány ütést
+adhatunk még ki — az is számít, HÁNYSZOR kerülnek a védők ütésbe. Minden ütésbe kerüléskor a
+fenyegető színt hívhatják, és egy fogásunkat kiütik. Ha m alkalommal kerülnek ütésbe (a terv
+m ütést ad ki), a színben m fogás kell, és a védők ütései a színben az m-edik fogásunkig
+(a menetsor) férjenek bele a keretbe. „Az 1x 2 db kiadó szín esetét a 2x 1 db kiadó esetétől
+meg kell különböztetni”:
+- egy alkalom (egyszer kerülnek ütésbe, és utána a fenyegető színt hívják): egy fogás kell,
+  és ha a keretbe a kiadó ütésen felül még egy belefér, elég a második menet fogás;
+- két alkalom (pl. két kiadó treff): két fogás kell (az első alkalommal kiütik az egyiket, a
+  másodikkal a másikat) — egy pikkfogással a második alkalommal lehívják a színt.
+A terv kiadó színeiben a védők ütései a tervezett kiadások (azokat nem számoljuk kétszer).
 """
 from __future__ import annotations
 
@@ -56,6 +68,80 @@ def megfelelo(n: int | None, k: int) -> bool:
     return n is not None and n - 1 <= max(0, k)
 
 
+def menetsor(kezek: dict, kint, sz: str, adu: str | None) -> str:
+    """A szín menetei, ha a védők hívják a színt (a legrosszabb esetben): „M” = mi ütünk
+    (fogás), „V” = a védők ütnek. Menetenként a `fogas_menet` dönt: első menet fogásnál mi
+    ütünk (a legkisebb lapunkkal, amely minden kint lapnál nagyobb, vagy lopással), a másik
+    kezünk a legkisebb lapját teszi; különben a védők a legnagyobb lapjukkal ütnek, és a
+    legjobb lapunkat viszik (a sorozatunk egy lapját — a fogás_menet feltevése), a másik
+    kezünk a legkisebbet teszi. A kint lapok helyét nem ismerjük: a menetsor addig tart,
+    amíg a védőknek van lapjuk a színben (mintha egy kézben volnának — óvatos becslés)."""
+    kezek = {u: list(l) for u, l in kezek.items()}
+    ki = sorted((l for l in kint if l.szin == sz), key=lambda l: l.rang)
+    sor = ""
+
+    def legkisebb(u):
+        sajat = [l for l in kezek[u] if l.szin == sz]
+        if sajat:
+            kezek[u].remove(min(sajat, key=lambda l: l.rang))
+
+    while ki and len(sor) < 13:
+        n = fogas_menet(kezek, ki, sz, adu)
+        felso = ki[-1].rang
+        if n == 1:
+            nyero = [(l.rang, u, l) for u, lapok in kezek.items() for l in lapok
+                     if l.szin == sz and l.rang > felso]
+            if nyero:
+                _, u, l = min(nyero, key=lambda x: x[0])
+                kezek[u].remove(l)
+            else:   # lopás: a színhiányos kéz adut tesz
+                u = next(u for u, lapok in kezek.items()
+                         if not any(l.szin == sz for l in lapok) and any(l.szin == adu for l in lapok))
+                kezek[u].remove(min((l for l in kezek[u] if l.szin == adu), key=lambda l: l.rang))
+            for v in kezek:
+                if v != u:
+                    legkisebb(v)
+            ki.pop(0)
+            sor += "M"
+        else:
+            ki.pop()
+            mi = [(l.rang, u, l) for u, lapok in kezek.items() for l in lapok if l.szin == sz]
+            if mi:
+                _, u, l = max(mi, key=lambda x: x[0])
+                kezek[u].remove(l)
+                for v in kezek:
+                    if v != u:
+                        legkisebb(v)
+            sor += "V"
+    return sor
+
+
+def vedo_utesek(sor: str, alkalom: int) -> int:
+    """A védők ütései a színben, ha `alkalom`-szor kerülnek ütésbe: minden alkalommal hívják
+    a színt (lehívják, ami az övék, és kiütik a következő fogásunkat) — a „V” menetek az
+    `alkalom`-adik „M” előtt; ha ennyi fogásunk nincs, a szín minden „V” menete."""
+    if alkalom <= 0:
+        return 0
+    v = m = 0
+    for c in sor:
+        if c == "M":
+            m += 1
+            if m == alkalom:
+                return v
+        else:
+            v += 1
+    return v
+
+
+def fogasok_megfelelok(kezek: dict, kint, adu: str | None, k: int, alkalom: int = 1,
+                       kiado=()) -> bool:
+    """A kiadási alkalmak szabálya: minden (nem kiadó) színben a védők ütései az
+    `alkalom`-adik fogásunkig legfeljebb k (a tervezett kiadásokon felül még kiadható
+    ütések). Egy alkalomnál ez a régi feltétel (n-edik menet fogás, n − 1 ≤ k)."""
+    return all(vedo_utesek(menetsor(kezek, kint, sz, adu), alkalom) <= max(0, k)
+               for sz in "SHDC" if sz not in kiado)
+
+
 def biztos_utesek(kezek: dict, kint, adu: str | None) -> int:
     """A biztos ütéseink (felső lapokból): színenként a kint lévő legnagyobbnál nagyobb
     lapjaink, legfeljebb a hosszabb kéz hossza (kint lap nélkül a hosszabb kéz hossza).
@@ -89,14 +175,23 @@ def tervezett_vesztes(kezek: dict, kint, szinek) -> int:
     return n
 
 
-def foglalt_fogas(kezek: dict, kint, adu: str | None, k: int) -> set[Lap]:
+def foglalt_fogas(kezek: dict, kint, adu: str | None, k: int, alkalom: int = 1,
+                  kiado=()) -> set[Lap]:
     """A megtartandó fogáslapok: azok a lapjaink, amelyek nélkül egy színben a fogás már
-    nem volna megfelelő (k: a még kiadható ütések). Az adukat nem foglaljuk (a lopásos
-    fogást az adukezelés szabályai védik)."""
+    nem volna megfelelő (k: a tervezett kiadásokon felül még kiadható ütések; `alkalom`:
+    ahányszor a védők még ütésbe kerülnek; a `kiado` színek a terv kiadó színei, ott nem
+    foglalunk). Az adukat nem foglaljuk (a lopásos fogást az adukezelés szabályai védik).
+    Színenként a legnagyobb alkalomszám (≤ `alkalom`) számít, amelyre a fogásunk még
+    megfelelő: ha a két fogás két alkalomra is elég, mindkettőt megtartjuk; ha csak egyre,
+    legalább azt az egyet."""
     ki: set[Lap] = set()
+    k = max(0, k)
     for sz in "SHDC":
-        n = fogas_menet(kezek, kint, sz, adu)
-        if not n or not megfelelo(n, k):
+        if sz in kiado or not any(l.szin == sz for l in kint):
+            continue
+        sor = menetsor(kezek, kint, sz, adu)
+        alk = next((a for a in range(max(1, alkalom), 0, -1) if vedo_utesek(sor, a) <= k), 0)
+        if not alk:
             continue
         for u, lapok in kezek.items():
             for l in lapok:
@@ -104,7 +199,7 @@ def foglalt_fogas(kezek: dict, kint, adu: str | None, k: int) -> set[Lap]:
                     continue
                 nelkule = dict(kezek)
                 nelkule[u] = [x for x in lapok if x != l]
-                if not megfelelo(fogas_menet(nelkule, kint, sz, adu), k):
+                if vedo_utesek(menetsor(nelkule, kint, sz, adu), alk) > k:
                     ki.add(l)
     return ki
 
@@ -112,7 +207,9 @@ def foglalt_fogas(kezek: dict, kint, adu: str | None, k: int) -> set[Lap]:
 def terv_feltetel(allas, terv) -> bool:
     """A kiadás / kiengedés feltétele egy tervre (a jelöltek előszűrése): ha a terv ütést
     ad ki (a kimagasító színeiben biztosan kiadandó ütések, a `kiad` körök), a kiadások
-    után is minden színben megfelelő fogásunk marad. A terv nélküli kiadás nem feltétel."""
+    után is minden színben megfelelő fogásunk marad — a kiadási alkalmak száma szerint
+    (minden kiadott ütés egy alkalom: a védők ütésbe kerülnek, és a fenyegető színt hívják).
+    A terv nélküli kiadás nem feltétel."""
     from .tervkonyvelo import biztos_egyseg
     kezek = {u: list(l) for u, l in allas.kezek.items()}
     kint = list(allas.kint)
@@ -127,4 +224,14 @@ def terv_feltetel(allas, terv) -> bool:
     if not n:
         return True
     k = (allas.hatra - allas.cel) - n
-    return all(megfelelo(fogas_menet(kezek, kint, sz, allas.adu), k) for sz in "SHDC")
+    kiado = {sz for sz, db in kiad.items() if db}
+    # a folyó ütés: ha védő hívta, az maga is egy alkalom a hívott színben (MB 49: a ♠D
+    # indulás a ♠K-t viszi — a két kiadás után egy pikkfogás marad); a hívott lap is az övék
+    utes = list(getattr(allas, "utes", None) or [])
+    if utes and utes[0][0] not in allas.kezek:
+        hsz = utes[0][1].szin
+        tett = [l for u, l in utes if u not in allas.kezek and l.szin == hsz]
+        if hsz not in kiado and vedo_utesek(menetsor(kezek, kint + tett, hsz, allas.adu), n + 1) > max(0, k):
+            return False
+        kiado = kiado | {hsz}
+    return fogasok_megfelelok(kezek, kint, allas.adu, k, alkalom=n, kiado=kiado)
