@@ -612,6 +612,31 @@ def licit_tudas(k: dict, betolto, kovetkeztetes_ms: int = 0) -> tuple[dict, dict
     return er.kenyszertar, dict(getattr(er, "kovetkeztetett", None) or {})
 
 
+_TERV_TAR: "OrderedDict[str, dict]" = OrderedDict()
+
+
+def kenyszertar_tervhez(keres: dict, felvevo: str, betolto) -> dict:
+    """A tervműhelynek (LICIT_KENYSZER): a licitmenet kényszertára a felvevő szemszögéből
+    (a védők licitjei az ő rendszerük szerint). Leosztásonként egyszer számoljuk."""
+    st = keres.get("state") or {}
+    auction = (keres.get("history") or {}).get("auction") or []
+    kulcs = json.dumps([felvevo, st.get("dealer"), auction, (keres.get("game") or {}).get("systems"),
+                        (keres.get("game") or {}).get("vulnerability")], sort_keys=True, default=str)
+    if kulcs in _TERV_TAR:
+        return _TERV_TAR[kulcs]
+    vf = vonal_feloldas(keres, felvevo)
+    rendszer, par = _rendszer(keres, felvevo)
+    tar, _ = licit_tudas({
+        "seat": felvevo, "dealer": st.get("dealer") or felvevo,
+        "vulnerability": (keres.get("game") or {}).get("vulnerability") or "none",
+        "auction": auction, "system": rendszer, "pair": par,
+        "opponent_system": vf.get("opponents_system"), "families": vf.get("families")}, betolto, 0)
+    _TERV_TAR[kulcs] = tar
+    while len(_TERV_TAR) > 64:
+        _TERV_TAR.popitem(last=False)
+    return tar
+
+
 def _tartalek_play(keres: dict, lapok: list[str], ok: str, start: float) -> dict:
     return _valasz(
         keres, "play", {"card": _legkisebb(lapok)}, f"Tartalék: {ok}.", 0.05,

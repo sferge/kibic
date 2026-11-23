@@ -74,8 +74,9 @@ def test_bath_sema_nem_alkalmazhato():
     # az aduban nem
     assert not hozzatetelek(_allas(BATH, [("W", Lap.parse("SK"))], adu="S"), t)
     # a B nélkül (♠Á54): nincs fogás a D alatt
+    # — ott a sima visszatartás (VISSZATARTAS, BM A-13) a jelölt
     k = dict(BATH, S=_kez("A54.KQ5.853.AK83"), W=_kez("KQT86.JT73.92.J"), E=_kez("J932.962.A764.T9"))
-    assert not hozzatetelek(_allas(k, [("W", Lap.parse("SK"))]), t)
+    assert [h.sema.azon for h in hozzatetelek(_allas(k, [("W", Lap.parse("SK"))]), t)] == ["VISSZATARTAS"]
 
 
 def _vegig_elso_utes(kezek, monkeypatch, tmp_path):
@@ -258,3 +259,84 @@ def test_fogas_nem_atmenet_amig_a_terv_kiad(monkeypatch, tmp_path):
     monkeypatch.setitem(tk.SZABALY, "FOGAS_VEDES", False)
     n, naplo = jatszik()
     assert n < 9 and any("átmenet SA" in s for s in naplo)
+
+
+# --- Vesztőre vesztő és visszatartás (BM A-13 szerkezete, saját lapokkal) -------------
+# 4♥ Dél, Nyugat gyenge 2♦ után a ♦K-val indul. ♦Á42 / ♦63: a ♦K-t kiengedjük, a második
+# kárót az ♦Á üti, a harmadikat kiadjuk — az asztal pikket dob; két adukör után a
+# harmadik pikket az asztal lopja.
+VV = {"S": _kez("K42.AKQJ9.A42.A8"), "N": _kez("A63.532.63.76543"),
+      "W": _kez("QT9.876.KQJT87.2"), "E": _kez("J875.T4.95.KQJT9")}
+
+
+def test_vesztore_vesztes_peldany():
+    from kibic.motor.tervsema import peldanyok
+    a = _allas(VV, [("W", Lap.parse("DK"))], adu="H")
+    p = [x for x in peldanyok(a, technikak_betoltese()) if x.sema.azon == "VESZTORE_VESZTO"]
+    assert [x.szin for x in p] == ["S"]
+    korok = [(k.fajta, k.szin, k.dob) for k in p[0].korok]
+    assert korok == [("lehiv", "D", None), ("kiad", "D", "S"), ("lehiv", "S", None), ("lehiv", "S", None),
+                     ("lop", "S", None)]
+    assert p[0].szerepek["L"] == "N" and p[0].hozam == 1
+    # a visszatartás a ♦K-ra (a ♦Á nálunk, a sorozat alatti lap nem: nem Bath)
+    assert [h.sema.azon for h in hozzatetelek(a, technikak_betoltese())] == ["VISSZATARTAS"]
+
+
+def test_vesztore_vesztes_lejatszas():
+    """A visszatartás után a terv: ♦Á, a ♦ vesztőre ♠ dobás, két adukör, ♠Á, ♠K, ♠ lopás."""
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import lejatszik, tervjeloltek
+    from kibic.solver.dds import lap_elemzes
+    a = _allas(VV, [("W", Lap.parse("DK"))], adu="H")
+    t = [x for x in tervjeloltek(a, technikak_betoltese(), max_db=200, igeny=1, ures=(12, 12), max_szim=500)
+         if "VESZTORE" in x.nev]
+    assert t
+    lo = Leosztas({u: Kez(frozenset(VV[u])) for u in "NESW"})
+    k = Kontraktus(4, "H", "", "S")
+    nap: list = []
+    jk: list = []
+    n = lejatszik(t[0], lo, "S", "H", [("W", Lap.parse("DK"))],
+                  lambda jj: tj._vedo_lap(lap_elemzes(lo, [str(l) for _, l in jj.lapok], k)), nap, cel=10,
+                  jatek_ki=jk, utes_dontes={3: ("S", KICSI, "visszatartás")})
+    lapok = jk[0].lapok
+    assert lapok[3] == ("S", Lap.parse("D2"))                # a ♦K-t kiengedtük
+    dobas = [l for i, (u, l) in enumerate(lapok) if u == "N" and l.szin == "S" and lapok[4 * (i // 4)][1].szin == "D"]
+    assert dobas, "az asztal a ♦ vesztőre pikket dobott"
+    # két adukör a lopás előtt (LOPAS_ELOTT_ADU), aztán a harmadik pikk a lopásra
+    assert sum(1 for q in nap if "adukör a lopás előtt" in q) == 2
+    assert any("VESZTORE_VESZTO: lop" in q for q in nap)
+    # (a mindent látó Nyugat itt a treffre egy pikket dob, és a harmadik pikket felülopja:
+    # 9 ütés — a vonal a pikkben rövid, három adus Nyugat ellen bukik, ahogy a szerkesztő
+    # leírta)
+    assert n >= 9
+
+
+def test_licit_kenyszer_szur():
+    """LICIT_KENYSZER: a világokban Nyugatnak 6 kárója van (a gyenge 2♦), ha a
+    kényszertár ezt mondja; nélküle a minta egyenletes."""
+    from kibic.motor.helyzet import Igeret
+    j = tj.Jatek({u: set(VV[u]) for u in "NESW"}, "S", "H", [("W", Lap.parse("DK"))], tj.Terv(()))
+    kr = _keres(j, 0)
+    kr["state"]["contract"] = {"level": 4, "strain": "H", "multiplier": 1}
+    ig = Igeret()
+    ig.hossz_min["D"], ig.hossz_max["D"] = 6, 6
+    ig.pont_min, ig.pont_max = 5.0, 10.0
+    regi = tm.LICIT_FV
+    try:
+        tm.LICIT_FV = lambda keres, F: {"W": ig}
+        h = tm.helyzet(kr)
+        _, kint = tm._allas(h, h.lejatszott)
+        from kibic.domain import Leosztas
+        from kibic.domain.kartya import Kez
+        lo = Leosztas({u: Kez(frozenset(VV[u])) for u in "NESW"})
+        vl = tm._vilagok(lo, h, kint, 20, h.vedok)
+        assert len(vl) == 20
+        assert sum(1 for w in vl if sum(1 for l in w.kezek["W"].lapok if l.szin == "D") == 6) >= 18
+        tm.LICIT_FV = None
+        h2 = tm.helyzet(kr)
+        vl2 = tm._vilagok(lo, h2, kint, 20, h2.vedok)
+        assert sum(1 for w in vl2 if sum(1 for l in w.kezek["W"].lapok if l.szin == "D") == 6) < 18
+    finally:
+        tm.LICIT_FV = regi

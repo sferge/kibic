@@ -303,11 +303,51 @@ def fogalmak(allas: Allas) -> dict:
             return None
         return m
 
+    def vesztore_szin(sz):
+        """VESZTORE_VESZTO (BM A-13): a szín (X), amelynek a vesztőjére a lopó kéz (a
+        kevesebb adus kezünk) SZ-ből dob. X-ben a lopó kéz rövidebb a partnerénél, és a
+        partner X-többlete vesztő; SZ-ben a két kéz egyforma hosszú (különben a sima
+        rövid kezes lopás is megy). A legtöbb vesztőt adó X."""
+        if not a.adu or sz == a.adu:
+            return None
+        k1, k2 = list(a.kezek)
+        a1, a2 = len(a.szin(k1, a.adu)), len(a.szin(k2, a.adu))
+        if a1 == a2 or not min(a1, a2):
+            return None
+        L, H = (k1, k2) if a1 < a2 else (k2, k1)
+        if len(a.szin(L, sz)) != len(a.szin(H, sz)) or len(a.szin(L, sz)) < 2:
+            return None
+        legjobb, db = None, 0
+        for x in SZINEK:
+            if x in (sz, a.adu):
+                continue
+            tobblet = len(a.szin(H, x)) - len(a.szin(L, x))
+            if tobblet < 1:
+                continue
+            kint = a.kint_szin(x)
+            vesztok = [l for l in a.szin(H, x)[len(a.szin(L, x)):] if kint and l.rang < kint[0].rang]
+            if len(vesztok) > db:
+                legjobb, db = x, len(vesztok)
+        return legjobb
+
+    def lopo_kez():
+        """A kevesebb adus kezünk (egyenlőnél nincs)."""
+        if not a.adu:
+            return None
+        k1, k2 = list(a.kezek)
+        a1, a2 = len(a.szin(k1, a.adu)), len(a.szin(k2, a.adu))
+        return None if a1 == a2 else (k1 if a1 < a2 else k2)
+
     from . import tervbedobas as _bd
 
     return {
         # a védő hívására tett lapjaink (hozzátevési sémák, pl. Bath-csel)
         "hivott_lap": hivott_lap,
+        # vesztőre vesztő (BM A-13)
+        "vesztore_szin": vesztore_szin,
+        "lopo_kez": lopo_kez,
+        "figura": lambda l: l is not None and l.rang >= 11,
+        "szin_kezben": lambda kez, sz: a.szin(kez, sz) if (kez and sz) else [],
         "kint_kozvetlen_alatta": kint_kozvetlen_alatta,
         "kozvetlen_felette": kozvetlen_felette,
         # elimináció és bedobás (a szerkesztő 2026-11-21, BM A-6 #1)
@@ -505,6 +545,8 @@ class Kor:
     lopo: str | None = None    # lop: a lopó kéz
     csak_ha_siker: bool = False
     begyujtes: bool = False    # a biztos nyerők lehívása (halasztható)
+    dob: str | None = None     # kiad: a partner, ha a színből üres, ebből a színből dob
+                               # (vesztőre vesztő, BM A-13)
 
 
 @dataclass
@@ -596,11 +638,14 @@ def peldanyok(allas: Allas, technikak: dict[str, TechnikaSema]) -> list[Peldany]
                         lapok.sort(key=lambda l: (elso[l.szin], len(allas.szin(allas.keze(l), l.szin)), -l.rang))
                     for i in range(db):
                         lap_i = lapok[i] if i < len(lapok) else None
-                        korok.append(Kor(k["fajta"], lap_i.szin if lap_i is not None else sz, lap=lap_i,
+                        kor_szin = lap_i.szin if lap_i is not None else \
+                            (kifejezes(k["szin"], kor) if k.get("szin") else sz)
+                        korok.append(Kor(k["fajta"], kor_szin, lap=lap_i,
                                          hivo=kifejezes(k.get("hivo"), kor) if k.get("hivo") else None,
                                          lopo=kifejezes(k.get("lopo"), kor) if k.get("lopo") else None,
                                          csak_ha_siker=k.get("csak_ha") == "siker",
-                                         begyujtes=bool(k.get("begyujtes"))))
+                                         begyujtes=bool(k.get("begyujtes")),
+                                         dob=kifejezes(k.get("dob"), kor) if k.get("dob") else None))
                 hasznal = {l for x in sema.hasznal for l in _lapok(kifejezes(x, kor))}
                 elfogy = {l for x in sema.elfogyaszt for l in _lapok(kifejezes(x, kor))}
             except KifejezesHiba:

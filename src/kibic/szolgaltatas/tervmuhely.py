@@ -79,6 +79,14 @@ UTES_MIN_VILAG = int(os.getenv("KIBIC_TERVMUHELY_UTES_MIN_VILAG", "2"))
 # IGENY_TOBBLET (strategiak.yaml; BM A-12): a jelöltek az igényre ÉS eggyel több forrásra
 # is — a felmérés igénye becslés (A-12: igény 1, de a ♣-ból 2 ütés kell a ♦ eldobásához)
 SZABALY_IGENY_TOBBLET = os.getenv("KIBIC_K_IGENY_TOBBLET", "1") != "0"
+# LICIT_KENYSZER (strategiak.yaml; BM A-13, 2026-11-23): a világok a licit kényszertára
+# szerint (amit a védők licitjei ígértek: hossz, pontsáv) — az ellentmondó világ csak
+# LICIT_SULY eséllyel. A kényszertárat a szolgáltatás adja (LICIT_FV: a licitmotor és a
+# rendszerek kellenek hozzá); ha nincs, a licit nem szűr.
+SZABALY_LICIT = os.getenv("KIBIC_K_LICIT_KENYSZER", "1") != "0"
+LICIT_SULY = float(os.getenv("KIBIC_LICIT_KENYSZER_SULY", "0.02"))
+LICIT_FV = None          # (kérés, felvevő ülés) → {ülés: Igeret}; az api.py állítja be
+
 # ELLENFEL_INDITASA (strategiak.yaml; a szerkesztő, 2026-11-22): az ellenvonal HÍVÁSAI a
 # megállapodásuk szerintiek (a konvenciókártyájukon; ha nincs, rá lehet kérdezni) — ezekből
 # olvasni kell. (A felvevő hívására adott lapjaikból nem: ott nincs következtetés.) Az
@@ -287,6 +295,7 @@ class Helyzet:
     kezek: dict[str, set[Lap]]             # a felvevő és az asztal TELJES keze (13 lap)
     vedok: tuple[str, str]
     ellenfel_jelzes: str | None = None     # a védők jelzésrendszere (ELLENFEL_INDITASA)
+    kenyszertar: dict | None = None        # a licit kényszertára (LICIT_KENYSZER): ülés → ígéret
 
 
 def helyzet(keres: dict) -> Helyzet:
@@ -307,8 +316,14 @@ def helyzet(keres: dict) -> Helyzet:
         if len(kezek[u]) != 13:
             raise MuhelyHiba("invalid_request", f"{KEZ_NEV[u]} keze nem 13 lap ({len(kezek[u])})")
     vedok = (kovetkezo_ules(F, 1), kovetkezo_ules(F, 3))
+    tar = None
+    if SZABALY_LICIT and LICIT_FV is not None:
+        try:
+            tar = LICIT_FV(keres, F) or None
+        except Exception:                        # noqa: BLE001 — nélküle a licit nem szűr
+            tar = None
     return Helyzet(a, F, A, a.kontraktus, a.adu, list(a.lejatszott), kezek, vedok,
-                   ellenfel_jelzes_kod(keres, F))
+                   ellenfel_jelzes_kod(keres, F), tar)
 
 
 def _jatek(h: Helyzet, lejatszott: list) -> tj.Jatek:
@@ -399,20 +414,34 @@ def _vilagok(lo: Leosztas, h: "Helyzet", kint: set, db: int, vedok: tuple) -> li
     kor = _szinhianyok(h.lejatszott, h.vedok)
     mag = len(h.lejatszott) + 1
     kod = getattr(h, "ellenfel_jelzes", None)
-    if not (SZABALY_INDITAS and h.lejatszott and _ellenfel_jelzesei(kod)):
+    inditas = SZABALY_INDITAS and h.lejatszott and _ellenfel_jelzesei(kod)
+    tar = getattr(h, "kenyszertar", None) if SZABALY_LICIT else None
+    tar = {u: tar[u] for u in vedok if tar and tar.get(u) is not None} if tar else None
+    if not (inditas or tar):
         return vilagok(lo, h.lejatszott, kint, db, kor, mag=mag, vedok=vedok)
     import random
     rnd = random.Random(mag * 7919)
     suly = {"ASZ_ALOL": ASZ_ALOL_SULY, "LAP": INDITAS_SULY}
     cache: dict = {}
     ki: list = []
-    for w in vilagok(lo, h.lejatszott, kint, db * 40, kor, mag=mag, vedok=vedok):
-        o = inditas_osszhang(w, h.lejatszott, h.adu, cache, kod)
-        if o in suly and rnd.random() >= suly[o]:
-            continue
+    tartalek: list = []                          # a licitnek ellentmondó világok
+    for w in vilagok(lo, h.lejatszott, kint, db * 60, kor, mag=mag, vedok=vedok):
+        if inditas:
+            o = inditas_osszhang(w, h.lejatszott, h.adu, cache, kod)
+            if o in suly and rnd.random() >= suly[o]:
+                continue
+        if tar and not all(lj._megfelel(set(w.kezek[u].lapok), ig) for u, ig in tar.items()):
+            # LICIT_KENYSZER: a licitnek ellentmondó világ csak LICIT_SULY eséllyel
+            if rnd.random() >= LICIT_SULY:
+                if len(tartalek) < db:
+                    tartalek.append(w)
+                continue
         ki.append(w)
         if len(ki) >= db:
             break
+    if len(ki) < db // 2:
+        # a licit túl szűk (vagy ellentmondásos): a hiányt az ellentmondó világok pótolják
+        ki += tartalek[:db - len(ki)]
     return ki
 
 
@@ -480,12 +509,12 @@ def tervez(h: Helyzet, dd_fv, hatarido_s: float, vilag_db: int | None = None,
         # (csak ha az előzetes esélye nem rosszabb az igény szerinti legjobbnál: a
         # gyengébb, nagyobb célú színkezelés csak drága — 4R01 #1: ♥ 3 ütés, 24%, 4+ GB)
         nevek = {t.nev for t in tervek}
-        also = max((getattr(t, "elozetes", 0.0) for t in tervek), default=0.0) - 1e-9
+        also = max(((getattr(t, "elozetes", None) or 0.0) for t in tervek), default=0.0) - 1e-9
         tobb = [t for t in tervjeloltek(allas, technikak_betoltese(), max_db=200, igeny=ig + 1, ures=ures,
                                         max_szim=SZIM_TERV)
-                if t.nev not in nevek and getattr(t, "elozetes", 0.0) >= also]
+                if t.nev not in nevek and (getattr(t, "elozetes", None) or 0.0) >= also]
         tervek = sorted(tervek + tobb, key=lambda t: (not getattr(t, "fogas_ok", True),
-                                                     -round(getattr(t, "elozetes", 0.0), 3),
+                                                     -round(getattr(t, "elozetes", None) or 0.0, 3),
                                                      len(t.lepesek)))[:SZIM_TERV]
     k = h.kontraktus
     vl, tar = _vilag_keszlet(h, kint, vilag_db, dd_fv)

@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -1530,8 +1530,34 @@ class Vegrehajto:
                 or j.szin(H, k.szin)
             if not sajat or j.szin(P, k.szin) or not j.szin(P, self.adu):
                 return []
+            adukor = self._lopas_elotti_adukor(H, P, e)
+            if adukor is not None:
+                return [Jelolt(adukor, ar, f"{e.p.rovid}: adukör a lopás előtt ({adukor})")]
             return [Jelolt(sajat[0], ar, cim, {P: ("lop",)}, (ei, k))]
         return []
+
+    def _lopas_elotti_adukor(self, H: str, L: str, e: Egyseg) -> Lap | None:
+        """LOPAS_ELOTT_ADU (BM A-13, a szerkesztő: „két aduzás után az asztal lopja”): a
+        rövid kezes lopás előtt annyi adukört hívunk a hívó kéz felső aduival, amennyi
+        után a lopó kéznek a hátralévő lopásaihoz elég adója marad — így a védők közül,
+        akinek kevés adója volt, már nem tud felülopni. Csak ha a hívó kéz adója minden
+        kint lévő adunál nagyobb (az adukör nem ad ki ütést)."""
+        if not SZABALY["LOPAS_ELOTT_ADU"] or not self.adu:
+            return None
+        j = self.j
+        # a kint lévő aduk: amit nem mi tartunk, és még nem ment le (nem a védők kezéből)
+        lement = {l for _, l in j.lapok}
+        kint = [Lap(self.adu, r) for r in "AKQJT98765432"
+                if Lap(self.adu, r) not in lement and Lap(self.adu, r) not in j.kezek[H]
+                and Lap(self.adu, r) not in j.kezek[L]]
+        if not kint:
+            return None
+        kell = sum(1 for k in e.p.korok[e.i:] if k.fajta == "lop" and k.lopo == L)
+        if len(j.szin(L, self.adu)) <= kell:
+            return None
+        legf = max(l.rang for l in kint)
+        felso = sorted((l for l in j.szin(H, self.adu) if l.rang > legf), key=lambda l: l.rang)
+        return felso[0] if felso else None
 
     def _kicsi(self, H: str, sz: str, fogl: set[Lap]) -> Lap | None:
         lapok = self.j.szin(H, sz)
@@ -1847,6 +1873,14 @@ class Vegrehajto:
             kicsik = [l for l in van if not self._nyero(l)] or van
             l = self._legkisebb(kicsik, fogl)
             return l, f"kiengedés: kicsi ({l})"
+        if (SZABALY["VESZTORE_DOB"] and self.folyo is not None and self.folyo[1].fajta == "kiad"
+                and self.folyo[1].dob and not van and j.mi(utes[0][0])
+                and self.folyo[2] == len(j.lapok) - len(utes)):
+            # vesztőre vesztő (BM A-13): a kiadott vesztőre nem lopunk, hanem a terv
+            # színéből dobunk (később abban a színben lopunk)
+            dob = sorted(j.szin(u, self.folyo[1].dob), key=lambda l: l.rang)
+            if dob:
+                return dob[0], f"vesztőre vesztő: {dob[0]}"
         if sz is not None and sz[0] == "elemzo" and len(utes) == 2:
             from .tervszinkezeles import LOP
             ei, akc = sz[1], sz[2]

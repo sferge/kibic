@@ -362,3 +362,29 @@
       # összeférő világokon 31/40 és 17/40. (Súlyozás nélkül 50% és 72%.)
       # Kód: tervmuhely.inditas_osszhang, ellenfel_jelzes_kod, _vilagok; kapcsoló:
       # KIBIC_K_ELLENFEL_INDITASA.
+    - szabaly: LICIT_KENYSZER
+      nev: "A világok a licit szerint"
+      # (a szerkesztő, 2026-11-23, BM A-13: „nagy jelentősége van a licitnek”) Nyugat
+      # gyenge 2♦-t nyitott: 6 kárója van, Keletnek kettő — a harmadik kárókörben Kelet
+      # felülophat. Licit nélkül a tervező ezt nem látja (a ♦K kiengedése és megütése
+      # között alig van különbség: DD 52/60 és 49/60; a licittel 47/60 és 30/60). A
+      # világok a licit kényszertára szerint (amit a védők licitjei ígértek: színhossz,
+      # pontsáv; a védők rendszere szerint értve); az ellentmondó világ 2% eséllyel marad,
+      # és ha a licit túl szűk, a hiányt ezek pótolják. A kényszertárat a szolgáltatás
+      # adja (atjaro.kenyszertar_tervhez — a licitmotor és a rendszerek kellenek hozzá).
+      # Kód: tervmuhely._vilagok, LICIT_FV; kapcsoló: KIBIC_K_LICIT_KENYSZER, súly:
+      # KIBIC_LICIT_KENYSZER_SULY.
+    - szabaly: LOPAS_ELOTT_ADU
+      nev: "A rövid kezes lopás előtt adukörök, amennyit a lopó kéz elbír"
+      # (a szerkesztő, 2026-11-23, BM A-13: „a 3. pikket — két aduzás után — az asztal
+      # lopja”) A lopás előtt annyi adukört hívunk a hívó kéz felső aduival, amennyi után
+      # a lopó kéznek a hátralévő lopásaihoz elég adója marad: akinek kevés adója volt,
+      # már nem tud felülopni. Csak ha a hívó kéz adója minden kint lévő adunál nagyobb
+      # (az adukör nem ad ki ütést). A kiadás ELŐTT nem: a védő aduhívása elvinné a
+      # lopásunkat (a szabály csak a lopás körénél él, a kiadás után).
+      # Kód: Vegrehajto._lopas_elotti_adukor; kapcsoló: KIBIC_K_LOPAS_ELOTT_ADU.
+    - szabaly: VESZTORE_DOB
+      nev: "Vesztőre vesztő: a kiadott vesztőre a terv színéből dobunk"
+      # (BM A-13) A VESZTORE_VESZTO séma (technikak.yaml) kiadó körében a lopó kéz nem
+      # lop, hanem a lopni tervezett színből dob (a kör `dob` mezője). Kód:
+      # Vegrehajto.hozzatesz; kapcsoló: KIBIC_K_VESZTORE_DOB.
