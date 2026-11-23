@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -244,7 +244,14 @@ def elemzo_atmenetek(kezek: dict, F: str, A: str, kint: list, adu: str | None, s
 
 
 def atmenet_szam(kezek: dict, F: str, A: str, kint: list, sz: str) -> tuple[int, int]:
-    """Az átmenetek száma a `sz` színen kívül, kezenként (lásd elemzo_atmenetek)."""
+    """Az átmenetek száma a `sz` színen kívül, kezenként (lásd elemzo_atmenetek).
+
+    FELULUTES (a szerkesztő, 2026-11-23, MB 49): a partner kis lapja alá tett nyerő
+    átmenet; a partner NYERŐJÉT felülütő nyerő (♦K alá az ♦Á) csak REDUNDANCIA esetén —
+    ha több a magas lapunk a színben, mint ahány ütést a szín ad (a hosszabb kéz hossza):
+    ahányszoros a redundancia, annyi felülütés (így a szín ütésszáma nem csökken).
+    ♦K2 / ♦Á10, kint a ♦9 alatt: 3 magas lap, 2 ütés — a ♦2-t a 10 üti, a ♦K-t az Á: két
+    átmenet. ♦K2 / ♦Á4 (a 10 kint): nincs redundancia — egy átmenet."""
     def be(H, P):
         n = 0
         for s in "SHDC":
@@ -252,11 +259,31 @@ def atmenet_szam(kezek: dict, F: str, A: str, kint: list, sz: str) -> tuple[int,
                 continue
             ks = [x for x in kint if x.szin == s]
             felul = max((x.rang for x in ks), default=0)
-            ny = [l for l in kezek[H] if l.szin == s and l.rang > felul]
+            hl = [l for l in kezek[H] if l.szin == s]
+            pl = [l for l in kezek[P] if l.szin == s]
+            ny = sorted((l.rang for l in hl if l.rang > felul), reverse=True)
             if not ny:
                 continue
-            also = [l for l in kezek[P] if l.szin == s and l.rang < max(x.rang for x in ny)]
-            n += min(len(ny), len(also))
+            kicsi = sum(1 for l in pl if l.rang <= felul)
+            alatt = min(len(ny), kicsi)
+            n += alatt
+            if not SZABALY["FELULUTES"]:
+                # a régi számolás: minden kisebb lapja a partnernek (a felülütés korlát nélkül)
+                n += min(len(ny), sum(1 for l in pl if l.rang < ny[0])) - alatt
+                continue
+            p_ny = sorted((l.rang for l in pl if l.rang > felul), reverse=True)
+            red = max(0, len(ny) + len(p_ny) - max(len(hl), len(pl)))
+            maradt = sorted(ny, reverse=True)[:len(ny) - alatt]      # a legnagyobbak ütnek felül
+            fel = 0
+            for w in maradt:
+                if fel >= red:
+                    break
+                x = next((r for r in p_ny if r < w), None)
+                if x is None:
+                    continue
+                p_ny.remove(x)
+                fel += 1
+            n += fel
         return n
     return be(F, A), be(A, F)
 
@@ -593,7 +620,13 @@ def tervjeloltek(allas: Allas, technikak: dict, max_db: int = 60, igeny: int = 1
         for p in szabad:
             hozzaad(alap + [p])
         for a in szabad:
-            if a.sema.kudarc_koltseg:
+            if a.sema.kudarc_koltseg and not (
+                    # FELTETELES (a szerkesztő, 2026-11-23, MB 49): próba az is, aminek a
+                    # kudarca még nem bukás (strategiak.yaml ESELYEK_KOMBINACIOJA: kudarc_koltseg
+                    # <= tartalek) — az impassz is lehet első esély, ha utána a második még
+                    # végrehajtható (az átmenetek számolása a második esély elemzőjében)
+                    SZABALY["FELTETELES"] and any(k.fajta == "impassz" for k in a.korok)
+                    and a.sema.kudarc_koltseg <= allas.hatra - allas.cel):
                 continue
             for b in szabad:
                 if len(ki) - eleje >= egy_keszletre:
@@ -773,6 +806,20 @@ class Vegrehajto:
         kesz = len(j.lapok) // 4
         mi = j.felvevo_utesek()
         return (13 - self.cel) - (kesz - mi)
+
+    def _szin_igeny(self, sz: str) -> int | None:
+        """FELTETELES (a szerkesztő, 2026-11-23, MB 49): ennyi ütés kell még a `sz` színből
+        — a felvétel céljából a már megszerzett ütések és a többi szín biztos (felső)
+        ütései után. Az esélyek kombinációjában a második esély célja az első kimenetétől
+        függ: ha a káró 3 ütést hozott, a kőrből elég 4 (egy kiadással); ha csak 2-t, 5
+        kell (két impasszal)."""
+        if self.cel is None:
+            return None
+        from .tervfogas import biztos_utesek
+        j = self.j
+        kezek = {u: [l for l in j.kezek[u] if l.szin != sz] for u in (j.felvevo, j.asztal)}
+        kint = [l for s in "SHDC" for l in j.kint(s)]
+        return self.cel - j.felvevo_utesek() - biztos_utesek(kezek, kint, self.adu)
 
     def _fogas_foglalt(self) -> set[Lap]:
         """FOGAS_VEDES (a szerkesztő, 2026-11-23): a megfelelő fogás lapjai nem átmenetek
@@ -1009,6 +1056,9 @@ class Vegrehajto:
         if pol is not None and SZABALY["KOMBINACIO"] and self.cel is not None \
                 and pol.m > max(0, self._tartalek()):
             pol = None                           # a közös keret szűkült: újraépül (KOMBINACIO)
+        igeny = self._szin_igeny(sz) if SZABALY["FELTETELES"] else None
+        if pol is not None and igeny is not None and 1 <= igeny < pol.k:
+            pol = None                           # kevesebb ütés kell a színből: újraépül (FELTETELES)
         if pol is not None and pol.lapjaink() == (X, Y):
             ax, ay = self._atm_nyers(sz)
             if ax is not None and not j.aktualis():
@@ -1047,6 +1097,13 @@ class Vegrehajto:
             # amennyi a teljes keretből még megmaradt (BM A-11: a ♦A kiadása után a ♣ már
             # vesztés nélkül, a látott lapok szerinti legbiztosabb módon)
             m = min(m, max(0, self._tartalek()))
+        k_eredeti = k
+        if igeny is not None and 1 <= igeny < k:
+            # FELTETELES: a színből csak a még hiányzó ütések kellenek — a kezelés a
+            # kisebb célra a legbiztosabb (pl. egy kiadással), nem a terv eredeti céljára;
+            # a többletütés esélye ráadás, ha nem kockáztat (lent: ha az eredeti célú
+            # kezelés ugyanakkora eséllyel hozza a szükségeset, az marad)
+            k = igeny
         kint = frozenset(l.rang for l in j.kint(sz))
         v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
         ures = list(szabad_helyek(L, v1, v2))
@@ -1063,6 +1120,16 @@ class Vegrehajto:
             pol = SzinPolitika(X, Y, kint, ures[0], ures[1], k, m, sz == self.adu, lx, ly, ax, ay, hivas)
         except Exception:                        # noqa: BLE001
             return None
+        if k < k_eredeti:
+            try:
+                pe = SzinPolitika(X, Y, kint, ures[0], ures[1], k_eredeti, m, sz == self.adu, lx, ly,
+                                  ax, ay, hivas)
+                ki = pe.el.kimenetek(k_eredeti, m)
+                w = sum(pe.el.tart[i][2] for i, km in ki.items() if km.utes >= k and km.vesztes <= m)
+                if w / pe.el.W >= pol.p - 1e-9:
+                    pol = pe                     # a többletütésre is játszó kezelés nem kockáztat
+            except Exception:                    # noqa: BLE001
+                pass
         self.politikak[ei] = pol
         if osztas and ax is not None:
             ax2, ay2 = self._atmenet_elosztas(ei, ax, ay)
@@ -1496,6 +1563,9 @@ class Vegrehajto:
             sajat = j.szin(H, k.szin)
             if not sajat:
                 return []
+            if e.p.sema.azon == "IMPASSZ_RAHIVAS" and k.lap in j.kezek[H]:
+                # ráhívás: a villa alsó lapját hívjuk; a partner csak fedésre üt fölé
+                return [Jelolt(k.lap, ar, cim, {P: ("rahivas", k.lap)}, (ei, k))]
             return [Jelolt(sajat[0], ar, cim, {P: ("impassz", k.lap)}, (ei, k))]
         if k.fajta == "elemzo":
             if k.hivo != H:
@@ -1918,6 +1988,13 @@ class Vegrehajto:
                     return sz[1], f"impassz: {sz[1]}"
                 fole = [l for l in van if _ut(l, nyl, adu)]
                 return (fole[0], f"a védő fedett: fölé {fole[0]}") if fole else (van[0], "kicsi")
+            if sz[0] == "rahivas" and van:
+                # IMPASSZ_RAHIVAS: ha a második kéz fedett, a legkisebb fölé ütő lap; ha nem,
+                # a kicsi (a hívott lap fut, a felső lap átmenetnek megmarad)
+                if j.mi(nyu):
+                    return van[0], "ráhívás: a hívott lap fut, kicsi"
+                fole = [l for l in van if _ut(l, nyl, adu)]
+                return (fole[0], f"ráhívás: a védő fedett, fölé {fole[0]}") if fole else (van[0], "kicsi")
             if sz[0] == "lop" and not van:
                 adu_l = [l for l in j.szin(u, adu) if _ut(l, nyl, adu)] if adu else []
                 if adu_l:

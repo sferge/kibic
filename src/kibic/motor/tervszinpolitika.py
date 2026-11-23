@@ -52,7 +52,7 @@ class SzinPolitika:
         self.f = ts.Feladat(frozenset(X), frozenset(Y), frozenset(kint), max(ures1, 0), max(ures2, 0),
                             max(lop_x, 0), max(lop_y, 0), atm_x, atm_y, hivas, adu)
         self.el = elemzo(self.f)
-        self.p, _, _ = self.el.megold(k, m)
+        self.p, self.sikeres, _ = self.el.megold(k, m)
         allapot = self.el.legjobb_allapot
         idx, ures, *_ = self.el._kezdo()
         self.node = (allapot, idx, ures, ures, k, m)
@@ -128,6 +128,16 @@ class SzinPolitika:
             tart.append(j)
             f1.append(ma)
             f2.append(mb)
+        if ts.HALOTT_TARTAS and getattr(self, "sikeres", None):
+            # HALOTT_TARTAS: a terv a gyökérben sikeresnek tervezett tartásokon játszik — a
+            # többin (a védők valamely játéka ellen úgyis bukik) a döntés nem áldozhat élő
+            # tartást (MB 49: a második kőrimpassz, nem a K lehívása); ha egyik sem maradt,
+            # minden még lehetséges tartás számít (a régi viselkedés)
+            tervezett = [n for n, j in enumerate(tart) if idx[j] in self.sikeres]
+            if tervezett:
+                tart = [tart[n] for n in tervezett]
+                f1 = [f1[n] for n in tervezett]
+                f2 = [f2[n] for n in tervezett]
         idx2 = tuple(idx[j] for j in tart)
         l1n = tuple(l1[j] | f1[n] for n, j in enumerate(tart))
         l2n = tuple(l2[j] | f2[n] for n, j in enumerate(tart))
@@ -162,3 +172,7 @@ class SzinPolitika:
         allapot, *rest = self.node
         X, Y, rx, ry, bx, by, hol = allapot
         self.node = ((X, Y, rx, ry, atm_x, atm_y, hivas), *rest)
+        if ts.HALOTT_TARTAS and (bx, by, hol) != (atm_x, atm_y, hivas) and rest[0]:
+            # a tervezett (sikeres) tartások az új átmenetekkel / hívó kézzel (HALOTT_TARTAS)
+            _, sik = self.el._ertek(*self.node)
+            self.sikeres = sik

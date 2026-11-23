@@ -213,6 +213,24 @@ RELEVANS_LAPOK = True
 # védők minden lehetséges játéka ellen teljesít. A felvevő minden ágban külön dönt.
 MINDEN_VEDOLAP = True
 
+# HALOTT_TARTAS (2026-11-23, MB 49): a MINDEN_VEDOLAP mellett egy tartás csak akkor siker,
+# ha a védők minden játéka ellen az; ha egy ágban már elbukott (♠AKJ109 / ♠32, Nyugat
+# ♠Dxx-ból üt a 9-re), a testvérágban (Nyugat kiengedte a 9-et) a döntés nem áldozhat érte
+# egy élő tartást (Kelet ♠D876: a második impassz). Az ágakat méret szerint számoljuk (a
+# kisebb előbb: ott a tartás sorsa kényszerűbb), és a már elbukott tartások a további
+# ágakban nem számítanak.
+HALOTT_TARTAS = __import__("os").getenv("KIBIC_K_HALOTT_TARTAS", "1") != "0"
+
+
+def _halottak(idx, agak) -> set:
+    """Az ágakban elbukott tartások (az `idx` elemei)."""
+    ki = set()
+    for js, siker in agak:
+        for j in js:
+            if idx[j] not in siker:
+                ki.add(idx[j])
+    return ki
+
 
 def _agak(kez: frozenset, mi: frozenset) -> dict:
     """A védő lehetséges lapjai osztályonként (osztály → a legkisebb ilyen lap);
@@ -460,12 +478,24 @@ class Elemzo:
         sorrend = SORREND[hivo]
         lop = {"X": rx, "Y": ry}
         harmadik = sorrend[2]
-        agak = []
-        for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+        csop2 = list(self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items())
+        if HALOTT_TARTAS:
+            csop2.sort(key=lambda x: len(x[1]))       # a kisebb ágak előbb (lásd HALOTT_TARTAS)
+        halott: set = set()
+        agak, c3k = [], {}
+        for q2, jl in csop2:
+            js = [j for j, _ in jl if idx[j] not in halott]
+            if not js:
+                agak.append(([j for j, _ in jl], frozenset()))
+                continue
             legjobb, c3_best = self._harmadik_csoport(allapot, nbx, nby, idx, lej1, lej2, k, m,
-                                                      hivo, c, maradek, [j for j, _ in jl], dict(jl))
-            self.harmadik[(kulcs, hivo, c, q2)] = c3_best
+                                                      hivo, c, maradek, js, dict(jl))
+            c3k[q2] = c3_best
             agak.append(([j for j, _ in jl], legjobb[1]))
+            if HALOTT_TARTAS:
+                halott |= _halottak(idx, agak[-1:])
+        for q2, c3_best in c3k.items():
+            self.harmadik[(kulcs, hivo, c, q2)] = c3_best
         return self._metszet(idx, agak)
 
     def _metszet(self, idx, agak) -> tuple[float, frozenset]:
@@ -558,25 +588,35 @@ class Elemzo:
         for c3 in _lehetosegek(kezek0, harmadik, lop):
             csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js,
                                            l2map, idx, k, m)
+            halott: set = set()
             agak = []
-            for q4, js4 in csop4.items():
-                utes = utesek[(js4[0], q4)]
-                uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
-                                                 lop, utes)
-                idx2 = tuple(idx[j] for j in js4)
-                l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
-                l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
-                k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
-                if mienk or hol is None:
-                    uj_hol = _gyoztes(utes) if hol is not None else None
-                    vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
-                                         idx2, l1, l2_, k2, m2)
-                else:
-                    # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
-                    # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
-                    vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
-                                         idx2, l1, l2_, k2, m2)
-                agak.append((js4, vs))
+            ag4 = sorted(csop4.items(), key=lambda x: len(x[1])) if HALOTT_TARTAS else list(csop4.items())
+            for _ in (0,):
+                for q4, js4_ in ag4:
+                    # HALOTT_TARTAS: a kisebb testvérágban már elbukott tartás itt nem számít
+                    js4 = [j for j in js4_ if idx[j] not in halott]
+                    if not js4:
+                        agak.append((js4_, frozenset()))
+                        continue
+                    utes = utesek[(js4[0], q4)]
+                    uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
+                                                     lop, utes)
+                    idx2 = tuple(idx[j] for j in js4)
+                    l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
+                    l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
+                    k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
+                    if mienk or hol is None:
+                        uj_hol = _gyoztes(utes) if hol is not None else None
+                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
+                                             idx2, l1, l2_, k2, m2)
+                    else:
+                        # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
+                        # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
+                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
+                                             idx2, l1, l2_, k2, m2)
+                    agak.append((js4_, vs))
+                    if HALOTT_TARTAS:
+                        halott |= _halottak(idx, agak[-1:])
             w, s = self._metszet(idx, agak)
             if w > legjobb[0] or not volt:      # (a „dob” lehetőség lapja None)
                 legjobb, c3_best, volt = (w, s), c3, True

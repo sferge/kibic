@@ -576,6 +576,7 @@ class Peldany:
             return (f"{'♠♥♦♣'['SHDC'.index(self.szin)]} színkezelés ({sz['k']} ütés, ≤{sz['m']} vesztés"
                     + (f", {lop} lopás" if lop else "") + ")")
         r = {"EJTES": "ejtés", "IMPASSZ_VILLA": "impassz", "IMPASSZ_ATENGEDES": "impassz",
+             "IMPASSZ_RAHIVAS": "impassz ráhívással",
              "IMPASSZ_ATENGEDES_FELSO_ELOBB": "impassz (felső előbb)",
              "LOPASOS_KIMAGASITAS": "lopásos kimagasítás",
              "LOPAS_ROVID_KEZBEN": "lopás a rövid kézben",
