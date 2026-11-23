@@ -1544,6 +1544,10 @@ class Vegrehajto:
         kint lévő adunál nagyobb (az adukör nem ad ki ütést)."""
         if not SZABALY["LOPAS_ELOTT_ADU"] or not self.adu:
             return None
+        if e.p.sema.azon != "VESZTORE_VESZTO":
+            # egyelőre csak a vesztőre vesztő lopásánál: általánosan (minden rövid kezes
+            # lopás előtt) a 40 partin rontott (4N01 #2: 93% → 63%, 4P01 #1, 4D01 #1)
+            return None
         j = self.j
         # a kint lévő aduk: amit nem mi tartunk, és még nem ment le (nem a védők kezéből)
         lement = {l for _, l in j.lapok}
