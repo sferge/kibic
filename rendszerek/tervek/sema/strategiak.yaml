@@ -68,6 +68,28 @@
       # legfeljebb a tartalék). Egyszerűsítés: a védők lapjai a színben közösen
       # (a nagy lapok a hívó kézben), a hosszuk az osztályé; a mi kezünk lopással
       # megállítja a színt. Csak a kockázattal számolt értékben.
+    - szabaly: FOGAS_VEDES
+      nev: "A megfelelő fogás: a kiadás feltétele, és a fogás megtartása"
+      # (a szerkesztő, 2026-11-22/23) „Plusz ütés szerzése érdekében úgy engedhetünk ki
+      # lapot, hogy legyen megfelelő fogásunk minden színben.” Szanban és színben egyaránt.
+      #   - Fogás: amivel biztosan megszerezzük az ütést a színben. n-edik menet fogás: a
+      #     védők — akárhogy ülnek, akárhonnan hívnak — legfeljebb n−1 ütést visznek a
+      #     színben, mielőtt mi ütünk. Az Á első menet; az Á kint: a KD második menet (a
+      #     K egyedül nem fogás). Színfelvételben az adu is fogás egy idegen színben:
+      #     színhiánnyal első, szinglivel második menet.
+      #   - Megfelelő: ha még k ütést adhatunk ki (a kiadási keret mínusz a terv tervezett
+      #     kiadásai), a legfeljebb (k+1)-edik menet fogás elég. A keret a TERVEZETT
+      #     ütésekből jön (általában a felvétel; MP / BAM esetén a terv a túlteljesítésre
+      #     is készülhet).
+      #   - A kiadás feltétele (jelöltek): a kiadó tervek közül a feltételt teljesítők
+      #     jutnak előbb a szimulációba (kizárva egyik sincs: a szimuláció dönt).
+      #   - A megtartás (végrehajtó): a megfelelő fogás lapja nem átmenet és nem dobás,
+      #     amíg a hátralévő tervezett ütések — a fogás ütésével együtt — nincsenek meg
+      #     biztos ütésként, vagy amíg a terv még ütést ad ki. Az adukat nem foglalja (a
+      #     lopásos fogást az adukezelés szabályai védik).
+      # Példa: Bath-csel után (♠ÁB4 / ♠75, a ♦Á Keletnél) a ♠Á nem átmenet a kézbe, amíg a
+      # ♦Á kint van — a ♥ vagy a ♣ az. Kód: motor/tervfogas.py, Vegrehajto._fogas_foglalt,
+      # tervjeloltek (előszűrés); kapcsoló: KIBIC_K_FOGAS_VEDES.
     - szabaly: TERVEZES
       nev: "A tervezés lépcsői: felismerés, becslés, pontos számítás"
       # 1. felismerés: a technikák `felismeres` feltételei (olcsó jellemzők) szűrik,
@@ -299,8 +321,21 @@
       # ütésben (a védő hívott) mi teszünk, a terv lapja dönt: minden szabályos lapunkkal
       # lefuttatjuk a jelölt terveket ugyanazokon a világokon, és ha valamelyik lap
       # legalább 5 ponttal jobb esélyt ad, az lesz a terv lapja (a szélső lapok előbb).
-      # Kód: tervmuhely._hivasra_tett_lap, Rekord.elso_lap, Vegrehajto.kenyszer; kapcsoló:
-      # KIBIC_K_HIVASRA_TETT_LAP.
+      # (a szerkesztő, 2026-11-22, Bath-csel) „A játékterv a két kézre együtt készül”: a
+      # terv a folyó ütés MINDEN lapunkáról dönt, nem csak a soron lévőről.
+      #   - A hozzátevési sémák (technikak.yaml, `fajta: hozzatevesi`, pl. BATH) a még nem
+      #     tett két kezünk teendőjét adják (♠K-ra az asztalról ÉS a kézből kicsi); a séma
+      #     `megtart` lapjait a terv megtartja (a fogásokat általában a FOGAS_VEDES). A
+      #     sémák változata mindig lefut; a döntés a terv nevében: „♠ Bath-csel → …”.
+      #   - Ha a terv az asztal lapjánál készült, és a felvevő lapjáról nem döntött, a
+      #     lépéskérés dönt a felvevő lapjánál (a védő lapja ekkor már látszik), egyszer.
+      #   - Az összevetés AZONOS világokon, azonos számon: a döntés nélküli alap és minden
+      #     változat ugyanazon az első 20 világon fut (UTES_VILAG), a legjobb 6 jelölt
+      #     tervvel (UTES_TERV); nyerni legalább 5 pont és 2 világ kell. (2026-11-22: az
+      #     időkeret miatt 20 világos becslést vetettünk össze 60 világossal, és a zaj
+      #     „nyereséget” adott — a ♠Á lett a terv lapja.)
+      # Kód: tervmuhely.utes_dontes, _lepes_utes_dontes, Rekord.utes_dontes / utes_megtart,
+      # Vegrehajto.kenyszer (lap vagy KICSI) és .megtart; kapcsoló: KIBIC_K_HIVASRA_TETT_LAP.
     - szabaly: IGENY_TOBBLET
       nev: "A jelöltek az igényre és eggyel több forrásra"
       # (BM A-12) A felmérés igénye becslés: az A-12-n 1, de a ♣-ból két ütés kell (a
@@ -327,3 +362,29 @@
       # összeférő világokon 31/40 és 17/40. (Súlyozás nélkül 50% és 72%.)
       # Kód: tervmuhely.inditas_osszhang, ellenfel_jelzes_kod, _vilagok; kapcsoló:
       # KIBIC_K_ELLENFEL_INDITASA.
+    - szabaly: LICIT_KENYSZER
+      nev: "A világok a licit szerint"
+      # (a szerkesztő, 2026-11-23, BM A-13: „nagy jelentősége van a licitnek”) Nyugat
+      # gyenge 2♦-t nyitott: 6 kárója van, Keletnek kettő — a harmadik kárókörben Kelet
+      # felülophat. Licit nélkül a tervező ezt nem látja (a ♦K kiengedése és megütése
+      # között alig van különbség: DD 52/60 és 49/60; a licittel 47/60 és 30/60). A
+      # világok a licit kényszertára szerint (amit a védők licitjei ígértek: színhossz,
+      # pontsáv; a védők rendszere szerint értve); az ellentmondó világ 2% eséllyel marad,
+      # és ha a licit túl szűk, a hiányt ezek pótolják. A kényszertárat a szolgáltatás
+      # adja (atjaro.kenyszertar_tervhez — a licitmotor és a rendszerek kellenek hozzá).
+      # Kód: tervmuhely._vilagok, LICIT_FV; kapcsoló: KIBIC_K_LICIT_KENYSZER, súly:
+      # KIBIC_LICIT_KENYSZER_SULY.
+    - szabaly: LOPAS_ELOTT_ADU
+      nev: "A rövid kezes lopás előtt adukörök, amennyit a lopó kéz elbír"
+      # (a szerkesztő, 2026-11-23, BM A-13: „a 3. pikket — két aduzás után — az asztal
+      # lopja”) A lopás előtt annyi adukört hívunk a hívó kéz felső aduival, amennyi után
+      # a lopó kéznek a hátralévő lopásaihoz elég adója marad: akinek kevés adója volt,
+      # már nem tud felülopni. Csak ha a hívó kéz adója minden kint lévő adunál nagyobb
+      # (az adukör nem ad ki ütést). A kiadás ELŐTT nem: a védő aduhívása elvinné a
+      # lopásunkat (a szabály csak a lopás körénél él, a kiadás után).
+      # Kód: Vegrehajto._lopas_elotti_adukor; kapcsoló: KIBIC_K_LOPAS_ELOTT_ADU.
+    - szabaly: VESZTORE_DOB
+      nev: "Vesztőre vesztő: a kiadott vesztőre a terv színéből dobunk"
+      # (BM A-13) A VESZTORE_VESZTO séma (technikak.yaml) kiadó körében a lopó kéz nem
+      # lop, hanem a lopni tervezett színből dob (a kör `dob` mezője). Kód:
+      # Vegrehajto.hozzatesz; kapcsoló: KIBIC_K_VESZTORE_DOB.

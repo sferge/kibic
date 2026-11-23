@@ -426,3 +426,98 @@
   hozam: 1
   hasznal: ["[V]", FELETTE, DEBLOKK, ELIM]
   elfogyaszt: ["[V]", FELETTE, DEBLOKK, ELIM]
+
+- technika: VESZTORE_VESZTO
+  rovid: "vesztőre vesztő (lopás)"
+  nev: "Vesztőre vesztő: a kiadandó vesztőnkre a lopó kéz egy másik szín vesztőjét dobja, és abban a színben később lop"
+  # (a szerkesztő, 2026-11-23, BM A-13) 4♥, Nyugat gyenge 2♦-t nyitott, ♦K-val indul.
+  # Dél ♠K32 ♥ÁKDB10 ♦Á32 ♣Á7, Észak ♠Á54 ♥432 ♦54 ♣65432. A ♦K-t kiengedjük, a
+  # második kárót az ♦Á üti, a harmadik kárót kiadjuk — az asztal NEM lopja (Kelet
+  # felülopná, neki csak két kárója van), hanem pikket dob. Két adukör után a harmadik
+  # pikket az asztal lopja (Kelet csak akkor lop felül, ha neki is legfeljebb három pikkje
+  # és három kőrje volt; Nyugat, ha két pikkje és három kőrje). A kiadás előtt aduzni
+  # nem szabad (legfeljebb egyszer): a védő aduhívása elvinné a lopásunkat.
+  # Szerepek: L = a lopó kéz (kevesebb adu), H = a partnere, X = a kiadott szín (a lopó
+  # kéz rövidebb benne, H többlete vesztő), SZ = a lopott szín (a két kézben egyforma
+  # hosszú; a dobás után L rövidebb).
+  szerepek:
+    L: "lopo_kez()"
+    H: "partner(L)"
+    X: "vesztore_szin(SZ)"
+    NYX: "nyerok_kezben(H, X)"
+    # a dobások: H többlete X-ben (a lopó kéz kiürülése után H ennyi X-lapot ad ki)
+    D: "min(kezhossz_k(H, X) - kezhossz_k(L, X), kezhossz(L, SZ) - 1, adu_kezben(L))"
+    FSZ: "felettunk(SZ, legnagyobb_kint(SZ))"
+    # a lopások: a dobások száma, legfeljebb H vesztői SZ-ben
+    R: "min(D, kezhossz(H, SZ) - kezhossz(L, SZ) + D, kezhossz(H, SZ) - hossz(felettunk_kezben(H, SZ, legnagyobb_kint(SZ))))"
+  alkalmazhato: ["nem_adu(SZ)", "van(L)", "van(X)", "D >= 1", "R >= 1", "hossz(FSZ) >= 1"]
+  korok:
+    # a lopó kéz kiürítése X-ből: H nyerői (a lopó kéz kicsit tesz)
+    - {ismetles: "min(hossz(NYX), kezhossz_k(L, X))", fajta: lehiv, lap: NYX}
+    # a vesztő kiadása: a lopó kéz SZ-ből dob
+    - {ismetles: "D", fajta: kiad, hivo: H, szin: X, dob: SZ}
+    # SZ felső lapjai, aztán a lopás (előtte a LOPAS_ELOTT_ADU szabály adukörei)
+    - {ismetles: "hossz(FSZ)", fajta: lehiv, lap: FSZ}
+    - {ismetles: "R", fajta: lop, hivo: H, lopo: L}
+  siker: "True"
+  kudarc_koltseg: 0
+  hozam: "R"
+  hasznal: [NYX, FSZ]
+  elfogyaszt: [NYX, FSZ]
+
+# --- Hozzátevési sémák: a védő hívására tett lapjaink ----------------------------------
+#
+# A `fajta: hozzatevesi` séma nem kör-kotta, hanem döntés a folyó ütésre: a védő hívott,
+# és a mi (még nem tett) KÉT kezünk lapja a terv része (a szerkesztő, 2026-11-22: „a
+# játékterv a két kézre együtt készül”). A tervező a séma döntésével és nélküle is
+# lefuttatja a jelölt terveket ugyanazokon a világokon; a jobb marad (strategiak.yaml,
+# HIVASRA_TETT_LAP). A mezők:
+#   szerepek, alkalmazhato  mint a kottánál (a `hivott_lap(SZ)` csak védő hívásánál él)
+#   hozzatetel              mit tesz a még nem tett kezünk: `kicsi` = a színből a
+#                           legkisebb lapja (nem ütünk)
+#   rovid                   a terv nevében ez áll (pl. „♠ Bath-csel”)
+#   megtart                 a lapjaink, amelyeket a terv ezután is megtart (nem átmenet,
+#                           nem dobás): a Bath-csel után a szín fogásai
+
+- technika: BATH
+  fajta: hozzatevesi
+  nev: "Bath-csel: kiengedés a védő figurájára, ha a sorozata fölötti és alatti lap nálunk van"
+  rovid: "Bath-csel"
+  # (a szerkesztő, 2026-11-22) Nyugat a ♠K-val indul (KD-ból), nálunk ♠ÁB4 / ♠75: nem
+  # ütünk. Nyugat a színt nem folytathatja ütésvesztés nélkül (a ♠D-re Á, és a ♠B magas;
+  # kicsire a ♠B üt), Keletnek pedig eggyel kevesebb pikkje marad. A tervező példája:
+  # claude/sematar-naplo-cselek.md (3NT, ♠4: 11 ütés, ♠Á: bukás). Hogy a K valóban
+  # KD-ból jön-e, azt nem a séma dönti el: a világok az indítási megállapodás szerintiek
+  # (ELLENFEL_INDITASA), a szingli K-s és Kx-es világokban a kiengedés ütést veszít —
+  # a szimuláció ezt is mérlegeli.
+  szerepek:
+    H: "hivott_lap(SZ)"                # a védő hívott figurája (♠K)
+    D: "kint_kozvetlen_alatta(SZ, H)"  # a sorozata feltételezett párja (♠D), kint
+    FELSO: "kozvetlen_felette(SZ, H)"  # a lapunk közvetlenül fölötte (♠Á)
+    ALSO: "kozvetlen_alatta(SZ, D)"    # a lapunk közvetlenül D alatt (♠B)
+  alkalmazhato: ["nem_adu(SZ)", "van(H)", "van(D)", "van(FELSO)", "van(ALSO)"]
+  hozzatetel: kicsi
+  # (a fogások megtartása — hogy az Á ne legyen átmenet a kézbe, amíg a tervezett ütések
+  # nincsenek meg — általános szabály: FOGAS_VEDES, strategiak.yaml)
+  siker: "True"
+  hozam: 0
+
+- technika: VISSZATARTAS
+  fajta: hozzatevesi
+  nev: "Visszatartás: a védő figurájára nem ütünk az ásszal, kicsit teszünk mindkét kézből"
+  rovid: "visszatartás"
+  # (BM A-13, 2026-11-23) 4♥, Nyugat gyenge 2♦ után ♦K-val indul; Dél ♦Á32, Észak ♦54. A
+  # ♦K-t kiengedjük: az egyik kárót így is ki kell adnunk, de most Nyugat viszi, és az ♦Á-
+  # val mi irányítjuk a színt. Ha az ásszal ütnénk, a kiadott kárót Kelet is megüthetné
+  # (a ♦10-zel), és ütésbe kerülne — Kelet a veszélyes kéz (treffet hívhat Nyugat
+  # lopására, adut az asztal lopása ellen). A szimuláció dönti el, hogy a terv jobb-e így
+  # (strategiak.yaml: HIVASRA_TETT_LAP).
+  szerepek:
+    H: "hivott_lap(SZ)"                      # a védő hívott figurája (♦K)
+    FELSO: "elso(felettunk(SZ, H))"          # a nagyobb lapunk (♦Á)
+  # a Bath-csel helyzete (a sorozat alatti lap is nálunk van) a BATH sémáé
+  alkalmazhato: ["nem_adu(SZ)", "van(H)", "van(FELSO)", "figura(H)",
+                 "not (van(kint_kozvetlen_alatta(SZ, H)) and van(kozvetlen_alatta(SZ, kint_kozvetlen_alatta(SZ, H))))"]
+  hozzatetel: kicsi
+  siker: "True"
+  hozam: 0

@@ -581,6 +581,20 @@ async def bridge_play(
     return valasz
 
 
+def _terv_licit(keres: dict, felvevo: str) -> dict:
+    """LICIT_KENYSZER: a tervműhely világaihoz a licit kényszertára."""
+    from .atjaro import kenyszertar_tervhez
+    return kenyszertar_tervhez(keres, felvevo, _rendszer_betolto)
+
+
+def _tervmuhely_bekotes() -> None:
+    from . import tervmuhely
+    tervmuhely.LICIT_FV = _terv_licit
+
+
+_tervmuhely_bekotes()
+
+
 @app.post("/v1/bridge/plan", dependencies=[Depends(_jogosultsag_atjaro)])
 async def bridge_plan(
     keres: dict,
