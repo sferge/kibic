@@ -95,9 +95,13 @@ def test_bath_a_tervben_mindket_kez(monkeypatch, tmp_path):
     """A terv az asztal lapjánál készül, és a felvevő lapjáról is dönt: a ♠K-ra az
     asztalról és a kézből is kicsi (nem a végrehajtó „üt a legolcsóbbal: ♠Á”-ja)."""
     p, r1, r2 = _vegig_elso_utes(BATH, monkeypatch, tmp_path)
-    assert p["plan"]["name"].startswith("♠ Bath-csel → "), p["plan"]
     assert r1["action"]["card"] in ("S5", "S7")
     assert r2["action"]["card"] == "S4", r2["summary"]
+    # (2026-11-24 óta a KIENGEDES általános szabály is ezt teszi: ilyenkor a terv a
+    # „♦ színkezelés” — a kicsi mindkét kézből a végrehajtó kiengedése)
+    if not p["plan"]["name"].startswith("♠ Bath-csel → "):
+        assert "kiengedés" in r1["summary"] and "kiengedés" in r2["summary"], (p["plan"], r2["summary"])
+        return
     assert "Bath-csel" in r2["summary"] and r2["analysis_result"] == "existing_plan"
     k3 = _keres(_jatek_a_ket_lap_utan(), 3)
     rek = tm.betolt(tm._kulcs(k3, "S"), tm.helyzet(k3))
@@ -691,3 +695,28 @@ def test_felmeres_feltetel_es_tempovesztok():
     d = next(s for s in f.szinek if s.szin == "D")
     assert d.biztos == 6 and "deblokk" in d.feltetel
     assert f.kiado_biztos == 1 and f.egyenleg_biztos == 3 and f.tempo == 4
+
+
+# --- KIENGEDES (a szerkesztő, 2026-11-24, a 3NT-parti valódi lapjaival, színcserével) ----
+# Nyugat ♥D-vel indul (figura). Két kiengedés után a harmadik kőrre az asztal a blokkoló
+# kárót dobja; a káró Kelet ♦B109-e ellenére lehúz: 9 ütés. (Eddig: ♥Á az 1. ütésben, a
+# káró beragadt, bukás.)
+KI_W = _kez("A987.QJT98..9654")
+KI_E = _kez("J654.K76.JT9.QJT")
+
+
+def test_kiengedes_es_deblokk_dobas():
+    from kibic.domain import Leosztas
+    from kibic.domain.kartya import Kez
+    from kibic.domain.pontozas import Kontraktus
+    from kibic.motor.tervkonyvelo import KTerv, lejatszik
+    from kibic.solver.dds import lap_elemzes
+    H = {"S": BLK["S"], "N": BLK["N"], "W": KI_W, "E": KI_E}
+    assert len(set().union(*H.values())) == 52
+    lo = Leosztas({u: Kez(frozenset(H[u])) for u in "NESW"})
+    k = Kontraktus(3, "NT", "", "S")
+    nap: list = []
+    n = lejatszik(KTerv([]), lo, "S", None, [("W", Lap.parse("HQ"))],
+                  lambda jj: tj._vedo_lap(lap_elemzes(lo, [str(l) for _, l in jj.lapok], k)), nap, cel=9)
+    assert n >= 9, "\n".join(nap)
+    assert sum("kiengedés" in s for s in nap) >= 2, "\n".join(nap)

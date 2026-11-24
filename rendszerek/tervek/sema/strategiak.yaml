@@ -501,3 +501,16 @@
       # 7-esre a D. (Ha a színt élő egység kezeli — pl. elimináció —, a partner hívására nem
       # dönt.) Kód: tervfogas (lehivas_lap), tervkonyvelo (_sorrend_lap);
       # kapcsoló: KIBIC_K_LEHIVAS_SORREND.
+    - szabaly: KIENGEDES
+      nev: "Kiengedés, amíg a veszélyes színben megfelelő a fogás"
+      # (a szerkesztő, 2026-11-24, 3NT: Dél ♠Á32 ♥32 ♦32 ♣D65432, Észak ♠54 ♥KD10 ♦ÁK87
+      # ♣ÁK87; Nyugat ♠D-vel indul) „Azért kell kiengedni 2x a pikk Ászt, hogy ne hívhassák le
+      # a 3. menetet. Ha lehívják, azonnal eldobjuk a 4. treffet. Ha nem hívják, akkor csak a
+      # kőr Ász kiadó … addig engedhetjük ki, ameddig a veszélyes színben van megfelelő
+      # fogásunk.” Szanban, ha a színben egyetlen fogásunk van: kicsi mindkét kézből, amíg a
+      # kiadás belefér a keretbe (a többi szín biztos kiadásaival együtt), legfeljebb a hetes
+      # szabály szerint (7 − a két kezünk lapjai a színben). A valódi lapokon (Kelet ♣B109):
+      # ♠D, ♠8 kiengedve, a ♠9-re az asztal a ♣7-et dobja (DEBLOKK_DOBAS) — 9 ütés; eddig a
+      # ♠Á az 1. ütésben, a treff beragadt, bukás. (A kis lapos indulásnál a szimuláció
+      # magától is kiengedett; figurára a VISSZATARTAS séma itt nem alkalmazható.)
+      # Kód: tervkonyvelo (_kiengedes); kapcsoló: KIBIC_K_KIENGEDES.
