@@ -452,3 +452,20 @@
       # tudással készült. Az ütés végén egyszer újratervezünk (Kelet kiengedett: a ♦Á kint
       # marad, a ♣ második esély a veszélytelen kéz felé).
       # Kód: tervmuhely (step_valasz, Rekord.felbe); kapcsoló: KIBIC_K_FELBE_TERV.
+    - szabaly: OLCSO_KUDARC
+      nev: "Egyenlő esélynél a szöktetés, nem az áldozat: kudarc esetén ne adjunk ki ütést"
+      # (a szerkesztő, 2026-11-24, BM A-11 a valódi lapokkal) „A nagy lap felé hívás
+      # (szöktetés) egy picivel több esélyt ad a spórolásra, mint a lehívása (áldozat).
+      # Szöktetésnél nem az ellenfél dönt a beütésről vagy a kihagyásról.” ♦DB2 / ♦K9876, a
+      # ♦B ütött: a ♦D lehívását Kelet ♦ÁT54-ből üti — két káróütés, a keret elfogy, a treffből
+      # 4 ütés kell vesztés nélkül (ejtés, 79%; Kelet ♣B85-tel bukás). Kis káró az asztalról a
+      # D felé: ha Kelet az Á-val üt, a D és a K megmarad (3 káróütés); ha kicsit tesz, a D üt,
+      # és nem adtunk ki semmit — a treff a veszélytelen kéz (Nyugat) felé: 100%.
+      # A vonalak összevetése: (1) esély, (2a) kudarc esetén kevesebb kiadás (OLCSO_KUDARC),
+      # (2b) a kerülendő kéz (KERULENDO_KEZ), (3) takarékosság (TAKAREKOS). A végrehajtóban a
+      # mérték minden még lehetséges tartáson számol (a tervezetteken kívül is).
+      # Javítás vele: a politika lépése minden még lehetséges tartáson történik, és csak
+      # utána szűkít a tervezettekre (a valódi tartás egy gyökérben bukónak számolt tartás is
+      # lehet — eddig a kimutatás után egy sem maradt).
+      # Kód: tervszinkezeles (Elemzo._donto, olcso_valasztas, _harmadik_csoport),
+      # tervszinpolitika (dontes, lep, teljes); kapcsoló: KIBIC_K_OLCSO_KUDARC.

@@ -524,12 +524,14 @@ def test_elemzo_takarekos():
     R = ts.rangok
     f = ts.Feladat(R("QJ2"), R("K9876"), R("AT543"), 12, 12, atm_x=2, atm_y=2, hivas="Y")
     try:
+        ts.OLCSO_KUDARC = False             # (az olcsó kudarc itt maga is az asztalt választaná)
         ts.TAKAREKOS = False
         p0, _, l0 = ts.Elemzo(f).megold(3, 1)
         ts.TAKAREKOS = True
         p1, _, l1 = ts.Elemzo(f).megold(3, 1)
     finally:
         ts.TAKAREKOS = True
+        ts.OLCSO_KUDARC = True
         tsp.urites()
     assert p0 == pytest.approx(p1)
     assert l0.startswith("felvevő") and l1.startswith("asztal")
@@ -561,3 +563,42 @@ def test_veszelyes_kez_kimutatasbol():
     v = Vegrehajto(KTerv([]), j)
     v.cel = 12
     assert v._veszely("D", 1) == (1, None)
+
+
+# --- OLCSO_KUDARC (a szerkesztő, 2026-11-24, BM A-11 a valódi lapokkal) ------------------
+def test_elemzo_olcso_kudarc_szoktetes():
+    """♦D2 / ♦K987 a ♦B ütése után, kint ♦ÁT5: a ♦D lehívása (áldozat) és a kis káró a D
+    felé (szöktetés) egyforma eséllyel hoz még 2 ütést; Nyugat káróhiányánál (Kelet ÁT5)
+    mindkettő bukik, de a lehívásnál Kelet üti a D-t (kiadás), a szöktetésnél nem — a
+    szöktetés a jobb."""
+    from kibic.motor import tervszinkezeles as ts, tervszinpolitika as tsp
+    R = ts.rangok
+    f = ts.Feladat(R("Q2"), R("K987"), R("AT5"), 11, 11)
+    try:
+        ts.OLCSO_KUDARC = False
+        p0, _, l0 = ts.Elemzo(f).megold(2, 1)
+        ts.OLCSO_KUDARC = True
+        p1, _, l1 = ts.Elemzo(f).megold(2, 1)
+    finally:
+        ts.OLCSO_KUDARC = True
+        tsp.urites()
+    assert p0 == pytest.approx(p1)
+    assert l0.startswith("felvevő hív: Q") and l1.startswith("asztal hív: 7")
+
+
+def test_politika_a_valodi_tartas_megmarad():
+    """HALOTT_TARTAS mellett a politika a tervezett tartásokon dönt, de a lépés minden még
+    lehetséges tartáson történik: ♦DB2 / ♦K9876 ellen Nyugat ♦3 szingli, Kelet ♦ÁT54 (a
+    gyökérben bukó tartás). Kelet az Á-val üt a kis káróra — a ♦D és a ♦K még két ütés
+    (eddig a kimutatás után egy tartás sem maradt: „a látott lapokkal már nem érhető el”)."""
+    from kibic.motor import tervszinkezeles as ts
+    from kibic.motor.tervszinpolitika import SzinPolitika
+    R = ts.rangok
+    p = SzinPolitika(R("QJ2"), R("K9876"), R("AT543"), 12, 12, 3, 1, False, 0, 0, 3, 3, "Y")
+    assert p.dontes() == ("Y", 6)
+    p.lep((("Y", 6), ("V2", 4), ("X", 11), ("V1", 3)))
+    p.frissit(2, 3, "Y")
+    assert p.dontes() == ("Y", 7)
+    p.lep((("Y", 7), ("V2", 14), ("X", 2), ("V1", None)))
+    p.frissit(2, 3, "X")
+    assert p.dontes() == ("X", 12)
