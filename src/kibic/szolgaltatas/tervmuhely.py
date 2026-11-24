@@ -66,6 +66,11 @@ HIBRID = float(os.getenv("KIBIC_TERVMUHELY_HIBRID", "1"))
 SZIM_TERV = int(os.getenv("KIBIC_TERVMUHELY_SZIM", "12"))
 # TERV_MEGTARTAS (strategiak.yaml): kimutatásnál csak akkor új terv, ha a terv esélye csökkent
 SZABALY_MEGTARTAS = os.getenv("KIBIC_K_TERV_MEGTARTAS", "1") != "0"
+# FELBE_TERV (2026-11-24, BM A-11): ha az újratervezés egy ütés közepén történt (egy kimutatás
+# vagy eltérés miatt, a hátralévő védő lapja előtt), az ütés végén újra tervezünk — a terv
+# hiányos tudással készült (Nyugat kimutatott a ♦Q-ra; Kelet még ütheti a ♦Á-val, vagy
+# kiengedi: a két helyzet terve más)
+SZABALY_FELBE = os.getenv("KIBIC_K_FELBE_TERV", "1") != "0"
 # HIVASRA_TETT_LAP (a szerkesztő, 2026-11-22, BM A-12): a védő hívására tett lapunk is a
 # terv része — ha a választás a terv szempontjából számít, a tervek szimulációja dönt
 SZABALY_HIVASRA = os.getenv("KIBIC_K_HIVASRA_TETT_LAP", "1") != "0"
@@ -133,6 +138,7 @@ class Rekord:
     utes_dontes: list | None = None
     utes_dontes_nev: str | None = None
     utes_megtart: list | None = None          # a séma megtartott lapjai (fogás), szövegként
+    felbe: bool = False                       # FELBE_TERV: ütés közben, kimutatás / eltérés miatt készült
 
 
 _ZAR = threading.Lock()
@@ -184,7 +190,7 @@ def ment(kulcs: tuple, rek: Rekord, ok: str, html_nezet: str | None = None) -> N
             "vilag": rek.vilag, "ido_s": round(rek.ido_s, 2), "dd_felso": rek.dd_felso,
             "esely_most": rek.esely_most, "ellenorzott": [list(x) for x in rek.ellenorzott],
             "utes_dontes": rek.utes_dontes, "utes_dontes_nev": rek.utes_dontes_nev,
-            "utes_megtart": rek.utes_megtart,
+            "utes_megtart": rek.utes_megtart, "felbe": rek.felbe,
             "tortenet": tortenet}
     tmp = ut.with_suffix(".tmp")
     tmp.write_text(json.dumps(adat, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -262,7 +268,8 @@ def betolt(kulcs: tuple, h: "Helyzet") -> Rekord | None:
                   ellenorzott=[tuple(x) for x in adat.get("ellenorzott", [])],
                   utes_dontes=adat.get("utes_dontes") or ([list(adat["elso_lap"]) + [None]]
                                                           if adat.get("elso_lap") else None),
-                  utes_dontes_nev=adat.get("utes_dontes_nev"), utes_megtart=adat.get("utes_megtart"))
+                  utes_dontes_nev=adat.get("utes_dontes_nev"), utes_megtart=adat.get("utes_megtart"),
+                  felbe=bool(adat.get("felbe")))
 
 
 def _lap(l: Lap) -> str:
@@ -885,6 +892,7 @@ def _uj_terv(keres: dict, h: Helyzet, kulcs: tuple, dd_zar, ok: str,
              elozo: Rekord | None = None) -> Rekord:
     regi_egysegek = [[p.sema.azon, p.szin] for p in elozo.terv.lepesek] if elozo is not None else None
     rek = tervez(h, _dd_fv(dd_zar), _hatarido_s(keres), elozo=regi_egysegek)
+    rek.felbe = SZABALY_FELBE and len(h.lejatszott) % 4 != 0 and ok.startswith(("kimutatás", "eltérés"))
     with _ZAR:
         regi = betolt(kulcs, h)
         if regi is not None:
@@ -1041,6 +1049,8 @@ def step_valasz(keres: dict, dd_zar=None, tartalek_fv=None) -> dict:
         elif elteresek and not tartalekban:
             # ha a tartalék játszik, a terv lapjától való eltérés várható: nem ok újratervezésre
             ok = "eltérés a tervtől: " + elteresek[-1]
+        elif rek.felbe and not tartalekban and len(h.lejatszott) >= (len(rek.lejatszott) // 4 + 1) * 4:
+            ok = "a terv az előző ütés közben készült (a hátralévő védőlapok előtt)"
     if ok is not None:
         folytat = rek is not None and h.lejatszott[:len(rek.lejatszott)] == rek.lejatszott
         rek = _uj_terv(keres, h, kulcs, dd_zar, ok, rek if folytat else None)

@@ -256,8 +256,14 @@ def test_fogas_nem_atmenet_amig_a_terv_kiad(monkeypatch, tmp_path):
     n, naplo = jatszik()
     assert n == 11, naplo
     assert not any("átmenet SA" in s for s in naplo[:12])
+    # (a TAKAREKOS döntő maga is elkerüli itt a ♠Á-átmenetet: a fogásvédelem nélküli
+    # régi játékhoz azt is kikapcsoljuk; az elemzők tárát ürítjük)
+    from kibic.motor import tervszinkezeles as ts, tervszinpolitika as tsp
     monkeypatch.setitem(tk.SZABALY, "FOGAS_VEDES", False)
+    monkeypatch.setattr(ts, "TAKAREKOS", False)
+    tsp.urites()
     n, naplo = jatszik()
+    tsp.urites()
     assert n < 9 and any("átmenet SA" in s for s in naplo)
 
 
@@ -464,3 +470,94 @@ def test_licit_kenyszer_szur():
         assert sum(1 for w in vl2 if sum(1 for l in w.kezek["W"].lapok if l.szin == "D") == 6) < 18
     finally:
         tm.LICIT_FV = regi
+
+
+# --- VESZELYES_KEZ, KERULENDO_KEZ, TAKAREKOS (a szerkesztő, 2026-11-24, BM A-11) -----------
+# Saját leosztás az A-11 szerkezetével (a színek felcserélve: ♠↔♥, ♦↔♣): 6NT Dél, Nyugat a
+# ♥B-vel indul. A ♣ (itt) a káró szerepében: ♣DB2 / ♣K9876, Nyugat ♣ szingli, a ♣Á Keletnél.
+# A ♦ (itt) a treff szerepében: ♦ÁKD109 / ♦32 — ha a ♣ csak 2 ütést hoz, 4 ♦ ütés kell, és
+# egy ♦ kiadható, de csak Nyugat felé (ő nem tud ♣-t hívni): kis ♦ a ♦10/9-re, 100%.
+VESZ = {"S": _kez("A32.32.QJ2.AKQT9"), "N": _kez("KQ4.AKQ.K9876.32"),
+        "W": _kez("J98.JT98.3.J8765"), "E": _kez("T765.7654.AT54.4")}
+
+
+def _vesz_jatek(lepesek):
+    VESZ_ = {"S": _kez("A32.32.AKQT9.QJ2"), "N": _kez("KQ4.AKQ.32.K9876"),
+             "W": _kez("J98.JT98.J8765.3"), "E": _kez("T765.7654.4.AT54")}
+    j = tj.Jatek({u: set(VESZ_[u]) for u in "NESW"}, "S", None, [("W", Lap.parse("HJ"))], tj.Terv(()))
+    for x in lepesek.split():
+        j.tesz(x[0], Lap.parse(x[1:]))
+    return j
+
+
+def test_elemzo_vedonkenti_keret():
+    """♦ÁKD109 / ♦32, kint ♦B87652: 4 ütés. Egyforma 0 keret: 57%; Nyugat (V1) felé 1, Kelet
+    (V2) felé 0 vesztés: 100% (kis ♦ a 10-esre); fordítva nem."""
+    from kibic.motor import tervszinkezeles as ts
+    f = ts.Feladat(ts.rangok("AKQT9"), ts.rangok("32"), ts.rangok("J87654"), 9, 9)
+    assert ts.Elemzo(f).megold(4, 0)[0] < 0.6
+    assert ts.Elemzo(f).megold(4, (1, 1, 0))[0] == pytest.approx(1.0)
+    assert ts.Elemzo(f).megold(4, (1, 0, 1))[0] < 0.8
+    ki = ts.Elemzo(f).kimenetek(4, (1, 1, 0))
+    assert all(km.vesztes2 == 0 for km in ki.values())
+
+
+def test_elemzo_ketiranyu_impassz_kerulendo_kez():
+    """KJ3 / A102: egyenlő esély — a D elleni impassz iránya a kerülendő kéztől függ: kudarc
+    esetén a veszélytelen kéz kerül ütésbe."""
+    from kibic.motor import tervszinkezeles as ts
+    R = ts.rangok
+    for kerul, masik in (("V1", "V2"), ("V2", "V1")):
+        e = ts.Elemzo(ts.Feladat(R("KJ3"), R("AT2"), R("Q98765"), 10, 10, kerul=kerul))
+        p, _, _ = e.megold(3, 1)
+        ki = e.kimenetek(3, 1)
+        w = {v: sum(e.tart[i][2] for i, km in ki.items() if getattr(km, "vesztes" + v[1])) / e.W
+             for v in ("V1", "V2")}
+        assert p == pytest.approx(0.5108, abs=1e-3)
+        assert w[kerul] == 0 and w[masik] > 0.4
+
+
+def test_elemzo_takarekos():
+    """♣DB2 / ♣K9876 (asztal), az asztalon a hívás: kicsi az asztalról a B felé, nem a kézbe
+    menet (egy átmenet) a ♣B hívásához — az esély ugyanaz."""
+    from kibic.motor import tervszinkezeles as ts, tervszinpolitika as tsp
+    R = ts.rangok
+    f = ts.Feladat(R("QJ2"), R("K9876"), R("AT543"), 12, 12, atm_x=2, atm_y=2, hivas="Y")
+    try:
+        ts.TAKAREKOS = False
+        p0, _, l0 = ts.Elemzo(f).megold(3, 1)
+        ts.TAKAREKOS = True
+        p1, _, l1 = ts.Elemzo(f).megold(3, 1)
+    finally:
+        ts.TAKAREKOS = True
+        tsp.urites()
+    assert p0 == pytest.approx(p1)
+    assert l0.startswith("felvevő") and l1.startswith("asztal")
+
+
+def test_vedo_hivas_atimpasszolas():
+    """♥Kx a hívó bal kezén, az ÁDB10 kint: a hívás átmegy a K-n (legfeljebb 3 védőütés); a
+    jobb kezén csak az Á (1)."""
+    from kibic.motor.tervfogas import vedo_hivas
+    F = frozenset
+    # (amíg a hívó kimutathat a színből, a legkevesebb 0: lehet, hogy nem hívhatja)
+    assert vedo_hivas(F({13, 2}), F({3, 4}), F({14, 12, 11, 10}), False, False) == (0, 3)
+    assert vedo_hivas(F({3, 4}), F({13, 2}), F({14, 12, 11, 10}), False, False) == (0, 1)
+    # ha a partnere kimutatott, az ÁDB10 mind a hívónál: a K mögötte nincs veszélyben (1)
+    assert vedo_hivas(F({13, 2}), F({3, 4}), F({14, 12, 11, 10}), False, True) == (1, 1)
+    assert vedo_hivas(F({2}), F({13, 9, 8}), F({14, 10, 5}), True, False) == (0, 0)
+
+
+def test_veszelyes_kez_kimutatasbol():
+    """A ♣ (káró-szerep) második körében Nyugat kimutatott, Kelet kiengedte a ♣Á-t: Kelet
+    veszélyes (ütésbe kerülve lehívja a ♣Á-t), Nyugat nem — a ♦ keret (1, Ny 1, K 0).
+    Ellenpélda: a kimutatás előtt a ♣Á bárhol lehet — nincs biztosan veszélyes kéz."""
+    from kibic.motor.tervkonyvelo import KTerv, Vegrehajto
+    j = _vesz_jatek("NHQ EH4 SH2 NC6 EC4 SCJ WC3 SCQ WD5 NC7 EC5")
+    v = Vegrehajto(KTerv([]), j)
+    v.cel = 12
+    assert v._veszely("D", 1) == ((1, 1, 0), None)
+    j = _vesz_jatek("NHQ EH4 SH2 NC6 EC4 SCJ WC3")
+    v = Vegrehajto(KTerv([]), j)
+    v.cel = 12
+    assert v._veszely("D", 1) == (1, None)

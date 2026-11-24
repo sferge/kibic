@@ -48,9 +48,11 @@ def elemzo(f: ts.Feladat) -> ts.Elemzo:
 class SzinPolitika:
     def __init__(self, X: frozenset, Y: frozenset, kint: frozenset, ures1: int, ures2: int,
                  k: int, m: int, adu: bool = False, lop_x: int = 0, lop_y: int = 0,
-                 atm_x: int | None = None, atm_y: int | None = None, hivas: str | None = None):
+                 atm_x: int | None = None, atm_y: int | None = None, hivas: str | None = None,
+                 kerul: str | None = None):
+        # m: a vesztéskeret — egész szám, vagy védőnként (összes, V1, V2) (VESZELYES_KEZ)
         self.f = ts.Feladat(frozenset(X), frozenset(Y), frozenset(kint), max(ures1, 0), max(ures2, 0),
-                            max(lop_x, 0), max(lop_y, 0), atm_x, atm_y, hivas, adu)
+                            max(lop_x, 0), max(lop_y, 0), atm_x, atm_y, hivas, adu, kerul)
         self.el = elemzo(self.f)
         self.p, self.sikeres, _ = self.el.megold(k, m)
         allapot = self.el.legjobb_allapot
@@ -63,6 +65,11 @@ class SzinPolitika:
 
     @property
     def m(self) -> int:
+        return ts.keret_ossz(self.node[5])
+
+    @property
+    def keret(self):
+        """A teljes keret: egész szám, vagy (összes, V1, V2)."""
         return self.node[5]
 
     def lapjaink(self) -> tuple[frozenset, frozenset]:
@@ -70,7 +77,7 @@ class SzinPolitika:
 
     def dontes(self):
         allapot, idx, l1, l2, k, m = self.node
-        if k <= 0 or m < 0 or not idx:
+        if k <= 0 or ts.keret_negativ(m) or not idx:
             return None
         self.el._ertek(allapot, idx, l1, l2, k, m)
         return self.el.dontes.get(self.node)
@@ -142,7 +149,7 @@ class SzinPolitika:
         l1n = tuple(l1[j] | f1[n] for n, j in enumerate(tart))
         l2n = tuple(l2[j] | f2[n] for n, j in enumerate(tart))
         k2 = k - (1 if szin else 0)
-        m2 = m - (0 if mienk else 1)
+        m2 = m if mienk else ts.keret_vesztes(m, ts._gyoztes(utes))
         uj_hol = None
         if hol is not None:
             # átmenetkorlát mellett: a hívás másik kézből egy átmenetet vitt; utána a

@@ -415,3 +415,40 @@
       # lépéskor a tervezett tartásokon játszik. 5 ütés: 28% → 43%.
       # Kód: tervszinkezeles (Elemzo._utes, _harmadik_csoport), tervszinpolitika;
       # kapcsoló: KIBIC_K_HALOTT_TARTAS.
+    - szabaly: VESZELYES_KEZ
+      nev: "A vesztéskeret védőnként: a veszélyes kéz felé nem adunk ki"
+      # (a szerkesztő, 2026-11-24, BM A-11) Veszélyes az a védő, akinek ütésbe kerülve olyan
+      # hívása van, ami az ellenvonalnak plusz ütést hoz: a kereten túl lehív, átimpasszolja
+      # a figuránkat (a partnere 2-t vagy többet üt), adut hív és elveszi a lopásunkat,
+      # szökteti a partnere figuráját, elveszi egy átmenetünket … Az 1. lépés a lehívás és az
+      # átimpasszolás: ha D egy (más) színt hív, hány ütést visznek a védők, mielőtt mi
+      # ütünk — helyfüggően, a kint lévő lapok minden elosztásán (a kimutatások szerint;
+      # amíg D kimutathat, lehet, hogy nem hívhatja). Ha minden elosztásban többet visznek,
+      # mint amennyi a keretből a színbeli vesztés után marad, D felé legfeljebb annyi
+      # vesztés mehet (az elemző kerete: (összes, V1, V2)); ha csak egyes elosztásokban, D a
+      # kerülendő kéz (KERULENDO_KEZ). 6NT, ♣ÁKD109 / ♣32, Nyugat kimutatott a kárónál, a ♦Á
+      # Keletnél: 4 treffütés, 1 vesztés csak Nyugat felé — kis treff a 9-re/10-esre: 100%
+      # (eddig: „4 ütés, 0 vesztés” — impassz vagy a B ejtése, ~50%).
+      # Kód: tervkonyvelo (_veszely), tervfogas (vedo_hivas), tervszinkezeles (keret_*);
+      # kapcsoló: KIBIC_K_VESZELYES_KEZ. Hátra: adu hívása, szöktetés, átmenet elvétele.
+    - szabaly: KERULENDO_KEZ
+      nev: "Egyenlő esélynél a veszélytelen kéz felé adunk ki"
+      # (a szerkesztő, 2026-11-24) A vonalak összevetése sorrendben: (1) a teljesítés esélye
+      # (a veszélyes kéz kerete benne van), (2) kudarc esetén ki kerül ütésbe — egyenlő
+      # esélynél az a vonal, amelyben a kerülendő védő kevesebb tartásban visz ütést a
+      # színben (kétirányú impassz: KB3 / Á102 — a D elleni impassz iránya), (3) TAKAREKOS.
+      # Kód: tervszinkezeles (Elemzo._donto, _harmadik_csoport, _d_nyer);
+      # kapcsoló: KIBIC_K_KERULENDO_KEZ.
+    - szabaly: TAKAREKOS
+      nev: "Egyenlő esélynél a takarékos vonal: nem fogyaszt átmenetet"
+      # (a szerkesztő, 2026-11-24, BM A-11) ♦DB2 / ♦K9876, az asztalon a hívás: kicsi az
+      # asztalról a B felé, nem a ♥Á-val a kézbe a ♦B hívásához — az esély ugyanaz. Kivétel a
+      # deblokk (ha egy magas lapot el kell tüntetni): akkor az esély sem egyenlő.
+      # Kód: tervszinkezeles (Elemzo._donto); kapcsoló: KIBIC_K_TAKAREKOS.
+    - szabaly: FELBE_TERV
+      nev: "Ütés közben készült terv: az ütés végén újratervezés"
+      # (2026-11-24, BM A-11) A kimutatás miatti újratervezés az ütés közepén történik (Nyugat
+      # nem ad kárót a ♦D-re; Kelet még ütheti a ♦Á-val, vagy kiengedheti) — a terv hiányos
+      # tudással készült. Az ütés végén egyszer újratervezünk (Kelet kiengedett: a ♦Á kint
+      # marad, a ♣ második esély a veszélytelen kéz felé).
+      # Kód: tervmuhely (step_valasz, Rekord.felbe); kapcsoló: KIBIC_K_FELBE_TERV.
