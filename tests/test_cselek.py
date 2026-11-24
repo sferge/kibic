@@ -602,3 +602,34 @@ def test_politika_a_valodi_tartas_megmarad():
     p.lep((("Y", 7), ("V2", 14), ("X", 2), ("V1", None)))
     p.frissit(2, 3, "X")
     assert p.dontes() == ("X", 12)
+
+
+# --- ADU_LOPO_LAP (a szerkesztő, 2026-11-24, MB 56) -------------------------------------
+# Saját leosztás az MB 56 szerkezetével (♠↔♥, ♦↔♣): 6♣ Dél, Nyugat ♥K, ♥Á. ♣ÁDB2 / ♣10987,
+# a ♣K Keletnél harmadmagával: két impassz kell az asztalról, egyetlen beütés (♠K). A ♣10 alá
+# a ♣2 megy (az asztal hívásban marad) — a ♣2-vel lopva ez elvész.
+ADU56 = {"S": _kez("A2.2.AKQJT9.AQJ2"), "N": _kez("K543.6543.2.T987"),
+         "W": _kez("6.AKJT9.87654.43"), "E": _kez("QJT987.Q87.3.K65")}
+
+
+def test_lopo_adu_az_adukezelestol(monkeypatch, tmp_path):
+    monkeypatch.setattr(tm, "TAR", tmp_path)
+    monkeypatch.setattr(tm, "VILAG", 20)
+    j = tj.Jatek({u: set(ADU56[u]) for u in "NESW"}, "S", "C", [("W", Lap.parse("HK"))], tj.Terv(()))
+
+    def keres(n):
+        k = _keres(j, n)
+        k["state"]["contract"] = {"level": 6, "strain": "C", "multiplier": 1}
+        return k
+    tm.plan_valasz(keres(0))
+    n = 1
+    for x in "N- E7 S- WA N- E8".split():
+        u = x[0]
+        if x[1] == "-":
+            v = tm.step_valasz(keres(n), None, None)
+            j.tesz(u, Lap.parse(v["action"]["card"]))
+        else:
+            j.tesz(u, Lap.parse("H" + x[1]))
+        n += 1
+    v = tm.step_valasz(keres(n), None, None)
+    assert v["action"]["card"] in ("CJ", "CQ"), v["summary"]

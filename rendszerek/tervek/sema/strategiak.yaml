@@ -469,3 +469,12 @@
       # lehet — eddig a kimutatás után egy sem maradt).
       # Kód: tervszinkezeles (Elemzo._donto, olcso_valasztas, _harmadik_csoport),
       # tervszinpolitika (dontes, lep, teljes); kapcsoló: KIBIC_K_OLCSO_KUDARC.
+    - szabaly: ADU_LOPO_LAP
+      nev: "A lopó adut az aduszín kezelése választja ki"
+      # (a szerkesztő, 2026-11-24, MB 56) 6♦: ♦ÁDB2 / ♦10987, Nyugat ♠K, ♠Á. A kiaduzáshoz
+      # (a ♦K Keletnél harmadmagával) kétszer kell impasszt adni az asztalról, és az asztalnak
+      # egyetlen beütése van (♥K): a ♦10 alá a kézből a ♦2 megy, így az asztal hívásban marad.
+      # A ♦2-vel lopva ez elvész — a kiaduzás esélye 17%; a ♦B-vel lopva 50%. Ha az aduszínnek
+      # elemzős kezelése van, a lopó lap az, amelyik hiánya a legkevésbé rontja a kezelést (a
+      # hátralévő aduütések, a keret és az átmenetek szerint); egyenlőségnél a szokásos lap.
+      # Kód: tervkonyvelo (_adukezeles_lopo_lap); kapcsoló: KIBIC_K_ADU_LOPO_LAP.
