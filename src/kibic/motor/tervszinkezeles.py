@@ -226,6 +226,13 @@ HALOTT_TARTAS = __import__("os").getenv("KIBIC_K_HALOTT_TARTAS", "1") != "0"
 # átmenet; a deblokk ilyenkor nem kérdés — ha egy magas lapot el kell tüntetni, az esély
 # különbözik).
 KERULENDO_KEZ = __import__("os").getenv("KIBIC_K_KERULENDO_KEZ", "1") != "0"
+# OLCSO_KUDARC (a szerkesztő, 2026-11-24, BM A-11, a valódi lapokkal): egyenlő esélynél az a
+# vonal, amelyben kudarc esetén nem adunk ki ütést — „a nagy lap felé hívás (szöktetés) több
+# esélyt ad a spórolásra, mint a lehívása (áldozat): szöktetésnél nem az ellenfél dönt a
+# beütésről”. ♦DB2 / ♦K9876, a ♦B már ütött: a ♦D lehívását Kelet ♦ÁT5-ből üti (egy kiadás,
+# a keret elfogy); kis káró a D felé: ha Kelet kicsit tesz, a D üt, és nem adtunk ki semmit —
+# a második esély (a treff a veszélytelen kéz felé) megmarad.
+OLCSO_KUDARC = __import__("os").getenv("KIBIC_K_OLCSO_KUDARC", "1") != "0"
 TAKAREKOS = __import__("os").getenv("KIBIC_K_TAKAREKOS", "1") != "0"
 
 
@@ -500,24 +507,67 @@ class Elemzo:
         if len(egyenlo) < 2:
             return legjobb, akc
         kerul = self.f.kerul if KERULENDO_KEZ else None
-        alt = {}
-        if kerul:
-            kulcs0 = (allapot, idx, lej1, lej2, k, m)
-            for v, hivo, c, nbx, nby in egyenlo:
-                d = frozenset()
-                for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
-                    c3 = self.harmadik.get((kulcs0, hivo, c, q2))
-                    d |= self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
-                                        [j for j, _ in jl], dict(jl), c3, kerul)
+        alt, olcso = {}, {}
+        kulcs0 = (allapot, idx, lej1, lej2, k, m)
+
+        def nyer(v, hivo, c, nbx, nby, D):
+            d = frozenset()
+            for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+                c3 = self.harmadik.get((kulcs0, hivo, c, q2))
+                d |= self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
+                                    [j for j, _ in jl], dict(jl), c3, D)
+            return d
+        for v, hivo, c, nbx, nby in egyenlo:
+            if OLCSO_KUDARC:
+                # a kudarcos tartások, amelyekben ütést adunk ki
+                d = nyer(v, hivo, c, nbx, nby, "*") - v[1]
+                olcso[(hivo, c)] = sum(self.tart[i][2] for i in d)
+            if kerul:
+                d = nyer(v, hivo, c, nbx, nby, kerul)
                 alt[(hivo, c)] = sum(self.tart[i][2] for i in d)
         takarekos = TAKAREKOS and self.korlatos
         sorszam = {(h, c): n for n, (_, h, c, _, _) in enumerate(jeloltek)}
 
         def kulcs(x):
             v, hivo, c, nbx, nby = x
-            return (-alt.get((hivo, c), 0.0), (nbx + nby) if takarekos else 0, -sorszam[(hivo, c)])
+            return (-olcso.get((hivo, c), 0.0), -alt.get((hivo, c), 0.0), (nbx + nby) if takarekos else 0,
+                    -sorszam[(hivo, c)])
         v, hivo, c, _, _ = max(egyenlo, key=kulcs)
         return v, (hivo, c)
+
+    def olcso_valasztas(self, node, teljes) -> tuple | None:
+        """OLCSO_KUDARC a végrehajtóban: a `node` (a tervezett tartásokon) egyenlő esélyű hívásai
+        közül az, amelyikben a `teljes` csomópont (minden még lehetséges tartás) kudarcos
+        tartásai közül a legkevesebbnél adunk ki ütést. None, ha nincs mit választani."""
+        allapot, idx, lej1, lej2, k, m = node
+        if not OLCSO_KUDARC or keret_negativ(m) or k <= 0 or not idx:
+            return None
+        self._ertek(*node)
+        maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
+        kint_most = frozenset().union(*[a | b for a, b in maradek])
+        jel = [(self._utes(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, node)[0], hivo, c, nbx, nby)
+               for hivo, c, nbx, nby in self._hivasok(allapot, kint_most)]
+        if not jel:
+            return None
+        best = max(w for w, *_ in jel)
+        egyenlo = [x for x in jel if x[0] >= best - 1e-9 and best > 0]
+        if len(egyenlo) < 2:
+            return None
+        allapot_t, idx_t, l1_t, l2_t, k_t, m_t = teljes
+        _, sik_t = self._ertek(*teljes)
+        maradek_t = [(self.tart[i][0] - l1_t[j], self.tart[i][1] - l2_t[j]) for j, i in enumerate(idx_t)]
+        ert = []
+        for n, (w, hivo, c, nbx, nby) in enumerate(egyenlo):
+            v_t = self._utes(allapot_t, nbx, nby, idx_t, l1_t, l2_t, k_t, m_t, hivo, c, maradek_t, teljes)
+            d = frozenset()
+            for q2, jl in self._utes_lapjai(allapot_t, idx_t, maradek_t, hivo, c, k_t, m_t).items():
+                c3 = self.harmadik.get((teljes, hivo, c, q2))
+                d |= self._c3_kerul(allapot_t, nbx, nby, idx_t, l1_t, l2_t, k_t, m_t, hivo, c, maradek_t,
+                                    [j for j, _ in jl], dict(jl), c3, "*")
+            ert.append((-sum(self.tart[i][2] for i in d - v_t[1]), -n, (hivo, c)))
+        if len({e_[0] for e_ in ert}) < 2:
+            return None
+        return max(ert)[2]
 
     def _utes_lapjai(self, allapot, idx, maradek, hivo, c, k, m):
         """A 2. kéz lapja tartásonként → csoportok."""
@@ -666,6 +716,21 @@ class Elemzo:
                 legjobb, c3_best, volt = (w, s), c3, True
         kerul = self.f.kerul if KERULENDO_KEZ else None
         egyenlo = [c3 for w, c3 in ertekek if w >= legjobb[0] - 1e-9]
+        if OLCSO_KUDARC and legjobb[0] > 0 and len(egyenlo) > 1:
+            # OLCSO_KUDARC a harmadik kéz lapjára: kudarc esetén kevesebb kiadás
+            ert = []
+            for n, c3 in enumerate(egyenlo):
+                w, s_ = self._c3_ertek(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map, c3)
+                d = self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map,
+                                   c3, "*") - s_
+                ert.append((-sum(self.tart[i][2] for i in d), -n, c3))
+            legk = max(e_[0] for e_ in ert)
+            if len({e_[0] for e_ in ert}) > 1:
+                egyenlo = [e_[2] for e_ in ert if e_[0] == legk]
+                if c3_best not in egyenlo:
+                    c3_best = egyenlo[0]
+                    legjobb = self._c3_ertek(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
+                                             js, l2map, c3_best)
         if kerul and legjobb[0] > 0 and len(egyenlo) > 1:
             # KERULENDO_KEZ a harmadik kéz lapjára (kétirányú impassz: az ász vagy a 10-es):
             # amelyiknél a kerülendő védő kevesebb tartásban kerül ütésbe a színben
@@ -694,14 +759,19 @@ class Elemzo:
             utes = utesek[(js4[0], q4)]
             uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()}, lop, utes)
             gy = _gyoztes(utes)
-            if gy == D:
-                ki |= {idx[j] for j in js4}
-                continue
             idx2 = tuple(idx[j] for j in js4)
             l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
             l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
             k2, m2 = k - (1 if szin else 0), (m if mienk else keret_vesztes(m, gy))
             uj_hol = (gy if mienk else "-") if hol is not None else None
+            if gy == D:
+                ki |= set(idx2)
+                continue
+            if D == "*" and gy not in MI:
+                # OLCSO_KUDARC: a kiadás csak ott számít, ahol a tartás ebben az ágban el is bukik
+                _, sik = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol), idx2, l1, l2_, k2, m2)
+                ki |= set(idx2) - set(sik)
+                continue
             ki |= self._d_nyer((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol), idx2, l1, l2_, k2, m2, D)
         return frozenset(ki)
 

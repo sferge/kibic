@@ -58,6 +58,7 @@ class SzinPolitika:
         allapot = self.el.legjobb_allapot
         idx, ures, *_ = self.el._kezdo()
         self.node = (allapot, idx, ures, ures, k, m)
+        self.teljes = self.node                 # minden még lehetséges tartás (HALOTT_TARTAS, OLCSO_KUDARC)
 
     @property
     def k(self) -> int:
@@ -80,7 +81,19 @@ class SzinPolitika:
         if k <= 0 or ts.keret_negativ(m) or not idx:
             return None
         self.el._ertek(allapot, idx, l1, l2, k, m)
-        return self.el.dontes.get(self.node)
+        akc = self.el.dontes.get(self.node)
+        teljes = getattr(self, "teljes", None)
+        if akc is not None and ts.OLCSO_KUDARC and teljes is not None and teljes[1] != idx:
+            # OLCSO_KUDARC: a tervezett tartásokon egyenlő hívások közül az, amelyik a többi (már
+            # nem tervezett) tartáson kudarc esetén kevesebbszer ad ki ütést
+            try:
+                jobb = self.el.olcso_valasztas(self.node, teljes)
+            except Exception:                               # noqa: BLE001
+                jobb = None
+            if jobb is not None:
+                akc = jobb
+                self.el.dontes[self.node] = akc
+        return akc
 
     def harmadik(self, akcio, l2):
         """A harmadik kéz lapja a ténylegesen látott második lapra: minden tartáson,
@@ -95,6 +108,12 @@ class SzinPolitika:
         """`utes`: ((szerep, rang | None | LOP), …) a játék sorrendjében; None: nem
         adott színt (dobott), LOP: lopott."""
         allapot, idx, l1, l2, k, m = self.node
+        teljes = getattr(self, "teljes", None)
+        if ts.HALOTT_TARTAS and teljes is not None and teljes[1]:
+            # a lépés minden még lehetséges tartáson (nem csak a tervezetteken): a valódi
+            # tartás lehet egy, a gyökérben bukónak számolt tartás (BM A-11: Nyugat ♦3 szingli,
+            # Kelet ♦ÁT54 — a kimutatás után különben egy tartás sem maradna)
+            _, idx, l1, l2, _, _ = teljes
         X, Y, rx, ry, bx, by, hol = allapot
         lop = {"X": rx, "Y": ry, "V1": 99, "V2": 99}
         uj, ul, mienk, szin = ts._utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
@@ -135,6 +154,8 @@ class SzinPolitika:
             tart.append(j)
             f1.append(ma)
             f2.append(mb)
+        teljes_adat = (tuple(idx[j] for j in tart), tuple(l1[j] | f1[n] for n, j in enumerate(tart)),
+                       tuple(l2[j] | f2[n] for n, j in enumerate(tart)))
         if ts.HALOTT_TARTAS and getattr(self, "sikeres", None):
             # HALOTT_TARTAS: a terv a gyökérben sikeresnek tervezett tartásokon játszik — a
             # többin (a védők valamely játéka ellen úgyis bukik) a döntés nem áldozhat élő
@@ -160,6 +181,8 @@ class SzinPolitika:
             gy = ts._gyoztes(utes)
             uj_hol = gy if gy in ("X", "Y") else "-"
         self.node = ((uj["X"], uj["Y"], ul["X"], ul["Y"], bx, by, uj_hol), idx2, l1n, l2n, k2, m2)
+        # (OLCSO_KUDARC) ugyanez minden még lehetséges tartással
+        self.teljes = (self.node[0], *teljes_adat, k2, m2) if teljes_adat[0] else None
 
     def esely_atmenettel(self, atm_x: int, atm_y: int, hivas: str) -> float:
         """A hátralévő kezelés esélye, ha a színen kívül ennyi átmenet marad, és ez a kéz
@@ -179,6 +202,8 @@ class SzinPolitika:
         allapot, *rest = self.node
         X, Y, rx, ry, bx, by, hol = allapot
         self.node = ((X, Y, rx, ry, atm_x, atm_y, hivas), *rest)
+        if getattr(self, "teljes", None):
+            self.teljes = (self.node[0], *self.teljes[1:])
         if ts.HALOTT_TARTAS and (bx, by, hol) != (atm_x, atm_y, hivas) and rest[0]:
             # a tervezett (sikeres) tartások az új átmenetekkel / hívó kézzel (HALOTT_TARTAS)
             _, sik = self.el._ertek(*self.node)
