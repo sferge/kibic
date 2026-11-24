@@ -388,3 +388,30 @@
       # (BM A-13) A VESZTORE_VESZTO séma (technikak.yaml) kiadó körében a lopó kéz nem
       # lop, hanem a lopni tervezett színből dob (a kör `dob` mezője). Kód:
       # Vegrehajto.hozzatesz; kapcsoló: KIBIC_K_VESZTORE_DOB.
+    - szabaly: FELTETELES
+      nev: "Feltételes folytatás: a második esély célja az első kimenetétől függ"
+      # (a szerkesztő, 2026-11-23, MB 49, a BridgeMasters esélykombinációja) ♦KB2 / ♦Á103,
+      # ♥ÁKB109 / ♥32: ♦B a kézből. Ha nem ütik meg (vagy Nyugat fed): 3 káróütés, a kőrből
+      # elég 4 (egy kiadással); ha Kelet üt a ♦D-vel: két kőrimpassz az 5 kőrütésért. A
+      # színkezelés célja a még hiányzó ütésszám (a felvétel célja − a megszerzett ütések −
+      # a többi szín biztos ütései); az eredeti (többletütésre is játszó) kezelés marad, ha
+      # ugyanakkora eséllyel hozza a szükségeset. Az impassz is lehet első esély (próba), ha
+      # a kudarca belefér a keretbe. Séma: IMPASSZ_RAHIVAS (technikak.yaml).
+      # Kód: Vegrehajto._szin_igeny, _politika; tervjeloltek; kapcsoló: KIBIC_K_FELTETELES.
+    - szabaly: FELULUTES
+      nev: "A felülütés csak redundancia esetén átmenet"
+      # (a szerkesztő, 2026-11-23) A partner nyerőjét felülütő nyerő (♦K alá az ♦Á) csak
+      # akkor átmenet, ha több a magas lapunk a színben, mint ahány ütést a szín ad (a
+      # hosszabb kéz hossza): ahányszoros a redundancia, annyi felülütés. ♦K2 / ♦Á10, kint a
+      # ♦9 alatt: két átmenet (♦2→10, ♦K→Á); ♦K2 / ♦Á4: egy.
+      # Kód: atmenet_szam; kapcsoló: KIBIC_K_FELULUTES.
+    - szabaly: HALOTT_TARTAS
+      nev: "A színkezelés nem áldoz élő tartást egy már elbukottért"
+      # (2026-11-23, MB 49) A MINDEN_VEDOLAP mellett (a védő bármelyik lapját teheti) egy
+      # tartás csak akkor siker, ha a védők minden játéka ellen az. ♠ÁKB109 / ♠32 a D876-54
+      # ellen: Nyugat ♠Dxx-ból a 9-re üthet is, kiengedhet is — a kiengedés ágában a
+      # „Nyugat Dxx” tartás már halott (a másik ágban elbukott), érte nem áldozzuk fel a
+      # „Kelet D876”-ot (a második impassz). Az ágakat méret szerint számoljuk; a politika a
+      # lépéskor a tervezett tartásokon játszik. 5 ütés: 28% → 43%.
+      # Kód: tervszinkezeles (Elemzo._utes, _harmadik_csoport), tervszinpolitika;
+      # kapcsoló: KIBIC_K_HALOTT_TARTAS.
