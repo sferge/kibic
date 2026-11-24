@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ", "ADU_LOPO_LAP")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -2170,6 +2170,9 @@ class Vegrehajto:
                     # csak a kontrollt rontja: vesztőt dobunk (vesztő a vesztőre)
                     return vesztoje, f"nem lop a hosszú adus kézben: vesztő a vesztőre ({vesztoje})"
                 l = self._lopo_lap(adu_l, utes)
+                ak = self._adukezeles_lopo_lap(u, adu_l, l)
+                if ak is not None:
+                    return ak
                 return l, f"lop: {l}"
         l = self._dobas(u, fogl)
         return l, f"dobás: {l}" + (" (a foglalt és a nyerő lapokat megtartja)" if fogl & j.kezek[u] else "")
@@ -2181,6 +2184,55 @@ class Vegrehajto:
         j = self.j
         a1, a2 = len(j.szin(j.felvevo, self.adu)), len(j.szin(j.asztal, self.adu))
         return j.felvevo if a1 >= a2 else j.asztal
+
+    def _adukezeles_lopo_lap(self, u: str, adu_l: list[Lap], alap: Lap):
+        """ADU_LOPO_LAP (a szerkesztő, 2026-11-24, MB 56): ha az aduszínnek elemzős kezelése
+        van, a lopó adut az dönti el — melyik lap hiánya rontja a legkevésbé a kiaduzást.
+        6♦: ♦ÁDB2 / ♦10987, a ♦K Keletnél harmadmagával: két impassz kell az asztalról, és
+        egyetlen beütés van (♥K). A ♦10 alá a kézből a ♦2 megy, így az asztal hívásban marad —
+        a ♦2-vel lopva ez elvész (17%), a ♦B-vel lopva megmarad (50%). Egyenlőségnél a
+        szokásos lap (`alap`). Visszaad: (lap, indok) vagy None."""
+        if not SZABALY["ADU_LOPO_LAP"] or len(adu_l) < 2:
+            return None
+        j = self.j
+        ei = next((i for i, e in enumerate(self.egysegek)
+                   if e.el and e.p.sema.fajta == "elemzo" and e.p.szin == self.adu), None)
+        if ei is None:
+            return None
+        pol = self._politika(ei, osztas=False)
+        if pol is None or pol.k <= 1:
+            return None
+        from .tervszinpolitika import SzinPolitika
+        X = frozenset(l.rang for l in j.szin(j.felvevo, self.adu))
+        Y = frozenset(l.rang for l in j.szin(j.asztal, self.adu))
+        kint = frozenset(l.rang for l in j.kint(self.adu))
+        v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
+        ures = list(szabad_helyek(j.lapok, v1, v2))
+        ax, ay = self._atm_nyers(self.adu)
+        hivas = None if ax is None else ("X" if u == j.felvevo else "Y")
+        ertek = []
+        latott = set()
+        for l in sorted(adu_l, key=lambda x: x.rang):
+            X2 = X - {l.rang} if u == j.felvevo else X
+            Y2 = Y - {l.rang} if u == j.asztal else Y
+            if (X2, Y2) in latott:
+                continue
+            latott.add((X2, Y2))
+            try:
+                p = SzinPolitika(X2, Y2, kint, ures[0], ures[1], pol.k - 1, pol.keret, True, 0, 0,
+                                 ax, ay, hivas, pol.f.kerul).p
+            except Exception:                                # noqa: BLE001
+                return None
+            ertek.append((round(p, 6), l))
+        if not ertek:
+            return None
+        legjobb = max(p for p, _ in ertek)
+        alap_p = next((p for p, l in ertek if l == alap), None)
+        if alap_p is not None and alap_p >= legjobb - 1e-6:
+            return None
+        l = next(l for p, l in ertek if p >= legjobb - 1e-6)
+        return l, (f"lop: {l} — az adukezelés szerint (a kiaduzás esélye {legjobb:.0%}, "
+                   f"a {alap}-vel {alap_p if alap_p is not None else 0:.0%})")
 
     def _lopo_lap(self, adu_l: list[Lap], utes: list) -> Lap:
         """A lopó adu: ha utánunk még védő jön (felüllophat), annyira magasan lopunk, hogy
