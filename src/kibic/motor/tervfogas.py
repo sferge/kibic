@@ -235,3 +235,87 @@ def terv_feltetel(allas, terv) -> bool:
             return False
         kiado = kiado | {hsz}
     return fogasok_megfelelok(kezek, kint, allas.adu, k, alkalom=n, kiado=kiado)
+
+
+# --- VESZELYES_KEZ (a szerkesztő, 2026-11-24, BM A-11) -----------------------------------
+# Egy védő veszélyes, ha ütésbe kerülve olyan hívása van, ami az ellenvonalnak plusz ütést
+# hoz: a kereten túl lehív, vagy átimpasszolja a figuránkat (a partnere 2-t vagy többet üt).
+# A mérték: ha D hív egy színt, hány ütést visznek a védők, mielőtt mi ütünk (a védők a
+# legjobb lapjaikkal, mi a legjobbakkal; D partnere is folytathatja). Helyfüggő: a ♥Kx a
+# hívó bal kezén (a hívás „átmegy” rajta) más, mint a jobb kezén.
+
+from functools import lru_cache as _lru
+
+
+def _kepv(lapok, ellen) -> list:
+    ki, elozo = [], None
+    for r in sorted(lapok):
+        if elozo is not None and not any(elozo < e < r for e in ellen):
+            elozo = r
+            continue
+        ki.append(r)
+        elozo = r
+    return ki
+
+
+@_lru(maxsize=200_000)
+def _vh(D: frozenset, L: frozenset, P: frozenset, R: frozenset, lop_l: bool, lop_r: bool) -> int:
+    """D hív (ülésrend: D, L, P, R; L és R a mi kezeink): a védők ütései a színben, mielőtt
+    mi ütünk. A színhiányos kezünk lophat (`lop_*`)."""
+    if not D:
+        return 0
+    mi, ok = L | R, D | P
+    legjobb = 0
+    for d in _kepv(D, mi):
+        rossz = None
+        for l in (_kepv(L, ok) if L else ([None, 100] if lop_l else [None])):
+            if l == 100:
+                rossz = 0
+                break
+            jo = 0
+            for p in (_kepv(P, mi) if P else [None]):
+                legr = None
+                for r in (_kepv(R, ok) if R else ([None, 100] if lop_r else [None])):
+                    lapok = [("D", d), ("L", l), ("P", p), ("R", r)]
+                    gy = max((x for x in lapok if x[1] is not None), key=lambda x: x[1])[0]
+                    if gy in ("L", "R"):
+                        v = 0
+                    else:
+                        D2, L2, P2, R2 = (D - {d}, L - {l}, P - {p}, R - {r})
+                        v = 1 + (_vh(D2, L2, P2, R2, lop_l, lop_r) if gy == "D"
+                                 else _vh(P2, R2, D2, L2, lop_r, lop_l))
+                    legr = v if legr is None else min(legr, v)
+                    if legr == 0:
+                        break
+                jo = max(jo, legr)
+            rossz = jo if rossz is None else min(rossz, jo)
+            if rossz == 0:
+                break
+        legjobb = max(legjobb, rossz or 0)
+    return legjobb
+
+
+VH_MAX_KINT = 11        # e fölött nem soroljuk fel az elosztásokat
+
+
+def vedo_hivas(bal: frozenset, jobb: frozenset, kint: frozenset, d_hiany: bool, p_hiany: bool,
+               lop_bal: bool = False, lop_jobb: bool = False) -> tuple[int, int]:
+    """(legkevesebb, legtöbb) védőütés a színben, ha D hívja (mielőtt mi ütünk), a kint lévő
+    lapok minden lehetséges elosztásán. `bal`/`jobb`: a mi lapjaink D bal / jobb kezén;
+    `d_hiany`/`p_hiany`: D / a partnere már kimutatott a színből."""
+    if d_hiany or not kint:
+        return 0, 0
+    if p_hiany:
+        v = _vh(kint, bal, frozenset(), jobb, lop_bal, lop_jobb)
+        return v, v
+    if len(kint) > VH_MAX_KINT:
+        return 0, _vh(kint, bal, frozenset(), jobb, lop_bal, lop_jobb)
+    lapok = sorted(kint)
+    lo, hi = 0, 0                    # D-nek nincs a színből (amíg nem tudjuk, hogy van): nem hívhatja
+    from itertools import combinations
+    for n in range(1, len(lapok) + 1):
+        for d in combinations(lapok, n):
+            D = frozenset(d)
+            v = _vh(D, bal, kint - D, jobb, lop_bal, lop_jobb)
+            hi = max(hi, v)
+    return lo, hi

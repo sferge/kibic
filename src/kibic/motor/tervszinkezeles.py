@@ -221,6 +221,42 @@ MINDEN_VEDOLAP = True
 # ágakban nem számítanak.
 HALOTT_TARTAS = __import__("os").getenv("KIBIC_K_HALOTT_TARTAS", "1") != "0"
 
+# A döntők (a szerkesztő, 2026-11-24): egyenlő esélynél előbb az a vonal, amelyik kudarc
+# esetén a veszélytelen kéz felé ad ki (KERULENDO_KEZ), aztán a takarékos (TAKAREKOS: kevesebb
+# átmenet; a deblokk ilyenkor nem kérdés — ha egy magas lapot el kell tüntetni, az esély
+# különbözik).
+KERULENDO_KEZ = __import__("os").getenv("KIBIC_K_KERULENDO_KEZ", "1") != "0"
+TAKAREKOS = __import__("os").getenv("KIBIC_K_TAKAREKOS", "1") != "0"
+
+
+# VESZELYES_KEZ (a szerkesztő, 2026-11-24, BM A-11): a vesztéskeret védőnként más. Egy
+# védő veszélyes, ha ütésbe kerülve olyan hívása van, ami az ellenvonalnak plusz ütést hoz
+# (a kereten túl lehív, átimpasszolja a figuránkat …): neki a színben kevesebbet (akár
+# semmit) adhatunk ki, a veszélytelen védőnek a teljes keretet. A keret ekkor egy hármas:
+# (összes, V1, V2) — mindhárom a még megengedett vesztések száma; a régi egész szám az
+# „egyforma” keret. A ♦Á Keletnél (Nyugat kimutatott): 4 treffütés legfeljebb 1
+# vesztéssel, de csak Nyugat felé — kis treff a ♣10-re, 100%.
+
+def keret_negativ(m) -> bool:
+    return m < 0 if isinstance(m, int) else min(m) < 0
+
+
+def keret_ossz(m) -> int:
+    return m if isinstance(m, int) else m[0]
+
+
+def keret_vesztes(m, gy: str):
+    """A keret egy vesztés után; `gy` az ütést vivő védő ("V1"/"V2")."""
+    if isinstance(m, int):
+        return m - 1
+    return (m[0] - 1, m[1] - (1 if gy == "V1" else 0), m[2] - (1 if gy == "V2" else 0))
+
+
+def keret_szukit(m, vedo: str, n: int):
+    """A keret, ha `vedo` felé legfeljebb n vesztés mehet."""
+    t, a, b = (m, m, m) if isinstance(m, int) else m
+    return (t, min(a, n), b) if vedo == "V1" else (t, a, min(b, n))
+
 
 def _halottak(idx, agak) -> set:
     """Az ágakban elbukott tartások (az `idx` elemei)."""
@@ -291,6 +327,7 @@ class Feladat:
     atm_y: int | None = None
     hivas: str | None = None   # ki van hívásban az elején ("X"/"Y"; None: mindegy)
     adu: bool = False          # aduszín: a maradékot végigjátsszuk (a kis adu is üt)
+    kerul: str | None = None   # KERULENDO_KEZ: egyenlő esélynél e védő („V1”/„V2”) felé ne adjunk ki
 
     def tartasok(self) -> list[tuple[frozenset, frozenset, int]]:
         """(V1 lapjai, V2 lapjai, súly) minden lehetséges elosztásra."""
@@ -315,6 +352,8 @@ class Kimenet:
     lopas: int              # felhasznált lopások
     atm_x: int              # felhasznált átmenetek X-be
     atm_y: int
+    vesztes1: int = 0       # ebből V1 vitte
+    vesztes2: int = 0
 
 
 # egy elemző legfeljebb ennyi állapotot jegyez meg (memóriakeret); fölötte az új állapot kudarc
@@ -404,7 +443,7 @@ class Elemzo:
 
     def _ertek(self, allapot, idx, lej1, lej2, k, m) -> tuple[float, frozenset]:
         X, Y = allapot[0], allapot[1]
-        if m < 0:
+        if keret_negativ(m):
             return 0.0, frozenset()
         if k <= 0:
             return float(sum(self.tart[i][2] for i in idx)), frozenset(idx)
@@ -432,10 +471,14 @@ class Elemzo:
             return v
         kint_most = frozenset().union(*[a | b for a, b in maradek])
         legjobb, akc = (-1.0, frozenset()), None
+        jeloltek = []
         for hivo, c, nbx, nby in self._hivasok(allapot, kint_most):
             v = self._utes(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, kulcs)
+            jeloltek.append((v, hivo, c, nbx, nby))
             if v[0] > legjobb[0]:
                 legjobb, akc = v, (hivo, c)
+        if akc is not None and legjobb[0] > 0:
+            legjobb, akc = self._donto(allapot, idx, lej1, lej2, k, m, maradek, jeloltek, legjobb, akc)
         if akc is None or legjobb[0] <= 0:
             # 2026-11-03: ha a látott lapokkal egyetlen még lehetséges tartáson sem érhető
             # el a cél, a felvevő abbahagyja a színt (nincs döntés: a kimenet itt véget ér,
@@ -446,6 +489,35 @@ class Elemzo:
         self._memo[kulcs] = legjobb
         self.dontes[kulcs] = akc
         return legjobb
+
+    def _donto(self, allapot, idx, lej1, lej2, k, m, maradek, jeloltek, legjobb, akc):
+        """Egyenlő esélyű hívások közül (a szerkesztő, 2026-11-24): (2) KERULENDO_KEZ — amelyik
+        akkor is teljesít, ha a kerülendő védő felé nem adunk ki (kudarc esetén a veszélytelen
+        kéz kerül ütésbe; kétirányú impassz); (3) TAKAREKOS — amelyik kevesebb átmenetet
+        fogyaszt (BM A-11: kicsi az asztalról a ♦B felé, nem a ♥Á-val a kézbe). Egyébként a
+        régi sorrend (az első legjobb)."""
+        egyenlo = [x for x in jeloltek if x[0][0] >= legjobb[0] - 1e-9]
+        if len(egyenlo) < 2:
+            return legjobb, akc
+        kerul = self.f.kerul if KERULENDO_KEZ else None
+        alt = {}
+        if kerul:
+            kulcs0 = (allapot, idx, lej1, lej2, k, m)
+            for v, hivo, c, nbx, nby in egyenlo:
+                d = frozenset()
+                for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+                    c3 = self.harmadik.get((kulcs0, hivo, c, q2))
+                    d |= self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
+                                        [j for j, _ in jl], dict(jl), c3, kerul)
+                alt[(hivo, c)] = sum(self.tart[i][2] for i in d)
+        takarekos = TAKAREKOS and self.korlatos
+        sorszam = {(h, c): n for n, (_, h, c, _, _) in enumerate(jeloltek)}
+
+        def kulcs(x):
+            v, hivo, c, nbx, nby = x
+            return (-alt.get((hivo, c), 0.0), (nbx + nby) if takarekos else 0, -sorszam[(hivo, c)])
+        v, hivo, c, _, _ = max(egyenlo, key=kulcs)
+        return v, (hivo, c)
 
     def _utes_lapjai(self, allapot, idx, maradek, hivo, c, k, m):
         """A 2. kéz lapja tartásonként → csoportok."""
@@ -458,7 +530,7 @@ class Elemzo:
                 break
             v1, v2 = maradek[j]
             kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c)], k, m))
+            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c)], k, keret_ossz(m)))
         mi = X | Y
         csop2: dict = {}
         if MINDEN_VEDOLAP:
@@ -558,7 +630,8 @@ class Elemzo:
                 break
             v1, v2 = maradek[j]
             kezek = {"X": X, "Y": Y, "V1": v1, "V2": v2}
-            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2map[j]), (harmadik, c3)], k, m))
+            opc.append(vedo_lapok(kezek, lop, sorrend, [(hivo, c), (sorrend[1], l2map[j]), (harmadik, c3)], k,
+                                  keret_ossz(m)))
         csop4: dict = {}
         utesek: dict = {}
         if MINDEN_VEDOLAP:
@@ -585,42 +658,112 @@ class Elemzo:
                   "V1": frozenset().union(*[maradek[j][0] for j in js]),
                   "V2": frozenset().union(*[maradek[j][1] for j in js])}
         legjobb, c3_best, volt = (0.0, frozenset()), None, False
+        ertekek = []
         for c3 in _lehetosegek(kezek0, harmadik, lop):
-            csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js,
-                                           l2map, idx, k, m)
-            halott: set = set()
-            agak = []
-            ag4 = sorted(csop4.items(), key=lambda x: len(x[1])) if HALOTT_TARTAS else list(csop4.items())
-            for _ in (0,):
-                for q4, js4_ in ag4:
-                    # HALOTT_TARTAS: a kisebb testvérágban már elbukott tartás itt nem számít
-                    js4 = [j for j in js4_ if idx[j] not in halott]
-                    if not js4:
-                        agak.append((js4_, frozenset()))
-                        continue
-                    utes = utesek[(js4[0], q4)]
-                    uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
-                                                     lop, utes)
-                    idx2 = tuple(idx[j] for j in js4)
-                    l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
-                    l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
-                    k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
-                    if mienk or hol is None:
-                        uj_hol = _gyoztes(utes) if hol is not None else None
-                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
-                                             idx2, l1, l2_, k2, m2)
-                    else:
-                        # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
-                        # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
-                        vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
-                                             idx2, l1, l2_, k2, m2)
-                    agak.append((js4_, vs))
-                    if HALOTT_TARTAS:
-                        halott |= _halottak(idx, agak[-1:])
-            w, s = self._metszet(idx, agak)
+            w, s = self._c3_ertek(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map, c3)
+            ertekek.append((w, c3))
             if w > legjobb[0] or not volt:      # (a „dob” lehetőség lapja None)
                 legjobb, c3_best, volt = (w, s), c3, True
+        kerul = self.f.kerul if KERULENDO_KEZ else None
+        egyenlo = [c3 for w, c3 in ertekek if w >= legjobb[0] - 1e-9]
+        if kerul and legjobb[0] > 0 and len(egyenlo) > 1:
+            # KERULENDO_KEZ a harmadik kéz lapjára (kétirányú impassz: az ász vagy a 10-es):
+            # amelyiknél a kerülendő védő kevesebb tartásban kerül ütésbe a színben
+            alt = []
+            for n, c3 in enumerate(egyenlo):
+                d = self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map,
+                                   c3, kerul)
+                alt.append((-sum(self.tart[i][2] for i in d), -n, c3))
+            c3 = max(alt)[2] if len({a[0] for a in alt}) > 1 else c3_best
+            if c3 != c3_best:
+                c3_best = c3
+                legjobb = self._c3_ertek(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
+                                         js, l2map, c3)
         return legjobb, c3_best
+
+    def _c3_kerul(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map, c3, D):
+        """A tartások (indexek), amelyekben a `D` védő ütést visz a színben, ha a harmadik kéz
+        `c3`-at teszi, és utána a tárolt döntések szerint játszunk."""
+        X, Y, rx, ry, bx, by, hol = allapot
+        sorrend = SORREND[hivo]
+        lop = {"X": rx, "Y": ry}
+        csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, sorrend[2], c3, maradek, js,
+                                       l2map, idx, k, m)
+        ki: set = set()
+        for q4, js4 in csop4.items():
+            utes = utesek[(js4[0], q4)]
+            uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()}, lop, utes)
+            gy = _gyoztes(utes)
+            if gy == D:
+                ki |= {idx[j] for j in js4}
+                continue
+            idx2 = tuple(idx[j] for j in js4)
+            l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
+            l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
+            k2, m2 = k - (1 if szin else 0), (m if mienk else keret_vesztes(m, gy))
+            uj_hol = (gy if mienk else "-") if hol is not None else None
+            ki |= self._d_nyer((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol), idx2, l1, l2_, k2, m2, D)
+        return frozenset(ki)
+
+    def _d_nyer(self, allapot, idx, lej1, lej2, k, m, D) -> frozenset:
+        """A tárolt döntések szerint: a tartások, amelyekben `D` ütést visz a színben."""
+        kulcs = (allapot, idx, lej1, lej2, k, m)
+        tar = self.__dict__.setdefault("_dny", {})
+        if (kulcs, D) in tar:
+            return tar[(kulcs, D)]
+        akc = self.dontes.get(kulcs)
+        ki: frozenset = frozenset()
+        if akc is not None and idx:
+            X, Y, rx, ry, bx, by, hol = allapot
+            hivo, c = akc
+            nbx, nby = bx, by
+            if hol is not None and hol != hivo:
+                nbx, nby = (bx - 1, by) if hivo == "X" else (bx, by - 1)
+            maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
+            for q2, jl in self._utes_lapjai(allapot, idx, maradek, hivo, c, k, m).items():
+                c3 = self.harmadik.get((kulcs, hivo, c, q2))
+                ki |= self._c3_kerul(allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek,
+                                     [j for j, _ in jl], dict(jl), c3, D)
+        tar[(kulcs, D)] = ki
+        return ki
+
+    def _c3_ertek(self, allapot, nbx, nby, idx, lej1, lej2, k, m, hivo, c, maradek, js, l2map, c3):
+        """A harmadik kéz `c3` lapjának értéke (súly, sikeres tartások) a `js` tartásokon."""
+        X, Y, rx, ry, bx, by, hol = allapot
+        sorrend = SORREND[hivo]
+        lop = {"X": rx, "Y": ry}
+        harmadik = sorrend[2]
+        csop4, utesek = self._negyedik(X, Y, lop, sorrend, hivo, c, harmadik, c3, maradek, js,
+                                       l2map, idx, k, m)
+        halott: set = set()
+        agak = []
+        ag4 = sorted(csop4.items(), key=lambda x: len(x[1])) if HALOTT_TARTAS else list(csop4.items())
+        for q4, js4_ in ag4:
+            # HALOTT_TARTAS: a kisebb testvérágban már elbukott tartás itt nem számít
+            js4 = [j for j in js4_ if idx[j] not in halott]
+            if not js4:
+                agak.append((js4_, frozenset()))
+                continue
+            utes = utesek[(js4[0], q4)]
+            uj, ul, mienk, szin = _utes_vege({"X": X, "Y": Y, "V1": frozenset(), "V2": frozenset()},
+                                             lop, utes)
+            idx2 = tuple(idx[j] for j in js4)
+            l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
+            l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
+            k2, m2 = k - (1 if szin else 0), (m if mienk else keret_vesztes(m, _gyoztes(utes)))
+            if mienk or hol is None:
+                uj_hol = _gyoztes(utes) if hol is not None else None
+                vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),
+                                     idx2, l1, l2_, k2, m2)
+            else:
+                # a védő viszi, és ő hív: a következő hívásunk bármelyik kezünkből egy
+                # átmenetbe kerül (a védő hívása a mi nyerőnket viszi el)
+                vw, vs = self._ertek((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, "-"),
+                                     idx2, l1, l2_, k2, m2)
+            agak.append((js4_, vs))
+            if HALOTT_TARTAS:
+                halott |= _halottak(idx, agak[-1:])
+        return self._metszet(idx, agak)
 
     # -- a választott kezelés tartásonként (a szín végéig) --
     def kimenetek(self, k: int, m: int = 99) -> dict[int, Kimenet]:
@@ -631,7 +774,7 @@ class Elemzo:
         allapot = self.legjobb_allapot
         idx, ures, *_ = self._kezdo()
         ki: dict[int, Kimenet] = {}
-        self._lejatszik(allapot, idx, ures, ures, k, m, (0, 0, 0, 0, 0), ki)
+        self._lejatszik(allapot, idx, ures, ures, k, m, (0, 0, 0, 0, 0, 0, 0), ki)
         return ki
 
     def _lejatszik(self, allapot, idx, lej1, lej2, k, m, szamlalo, ki):
@@ -642,19 +785,19 @@ class Elemzo:
             # vége (vagy cél elérve / elbukott): a maradék a mindent látó játékkal
             # a cél után (vagy ha elbukott): a maradékból csak a biztos nyerők számítanak
             # (a többi kis lap eldobható, lopható — nem kell vesztésre hívni)
-            ut, ve, lo, ax, ay = szamlalo
+            ut, ve, lo, ax, ay, v1n, v2n = szamlalo
             for j, i in enumerate(idx):
                 v1, v2 = self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]
                 if not (v1 or v2):
-                    km = Kimenet(ut + max(len(X), len(Y)), ve, lo, ax, ay)
+                    km = Kimenet(ut + max(len(X), len(Y)), ve, lo, ax, ay, v1n, v2n)
                 elif self.f.adu:
                     # aduban végigjátsszuk: a mindent látó folytatás ütései és vesztései
                     plusz = dd(X, Y, v1, v2, rx, ry)
-                    km = Kimenet(ut + plusz, ve + max(0, max(len(X), len(Y)) - plusz), lo, ax, ay)
+                    km = Kimenet(ut + plusz, ve + max(0, max(len(X), len(Y)) - plusz), lo, ax, ay, v1n, v2n)
                 else:
                     vedo_max = max(v1 | v2)
                     felso = sum(1 for l in X | Y if l > vedo_max)
-                    km = Kimenet(ut + min(felso, max(len(X), len(Y))), ve, lo, ax, ay)
+                    km = Kimenet(ut + min(felso, max(len(X), len(Y))), ve, lo, ax, ay, v1n, v2n)
                 # (MINDEN_VEDOLAP) egy tartás több ágba is juthat: a legrosszabb kimenet
                 if i not in ki or (km.utes, -km.vesztes) < (ki[i].utes, -ki[i].vesztes):
                     ki[i] = km
@@ -662,7 +805,7 @@ class Elemzo:
         hivo, c = akc
         maradek = [(self.tart[i][0] - lej1[j], self.tart[i][1] - lej2[j]) for j, i in enumerate(idx)]
         nbx, nby = bx, by
-        ut, ve, lo, ax, ay = szamlalo
+        ut, ve, lo, ax, ay, v1n, v2n = szamlalo
         if hol is not None and hol != hivo:
             if hivo == "X":
                 nbx -= 1
@@ -685,9 +828,11 @@ class Elemzo:
                 idx2 = tuple(idx[j] for j in js4)
                 l1 = tuple(lej1[j] | {l for u, l in utesek[(j, q4)] if u == "V1" and l is not None} for j in js4)
                 l2_ = tuple(lej2[j] | {l for u, l in utesek[(j, q4)] if u == "V2" and l is not None} for j in js4)
-                k2, m2 = k - (1 if szin else 0), m - (0 if mienk else 1)
+                gy = _gyoztes(utes)
+                k2, m2 = k - (1 if szin else 0), (m if mienk else keret_vesztes(m, gy))
                 lopott = sum(1 for _, l in utes if l == LOP)
-                sz2 = (ut + (1 if szin else 0), ve + (0 if mienk else 1), lo + lopott, ax, ay)
+                sz2 = (ut + (1 if szin else 0), ve + (0 if mienk else 1), lo + lopott, ax, ay,
+                       v1n + (gy == "V1"), v2n + (gy == "V2"))
                 if mienk or hol is None:
                     uj_hol = _gyoztes(utes) if hol is not None else None
                     self._lejatszik((uj["X"], uj["Y"], ul["X"], ul["Y"], nbx, nby, uj_hol),

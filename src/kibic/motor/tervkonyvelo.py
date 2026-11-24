@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -137,6 +137,12 @@ class Egyseg:
         """Biztos egység (pl. vesztőcsere, lopás): nincs rejtett feltétele; mindig a
         terv része, és nem az esélyek sorának tagja."""
         return biztos_egyseg(self.p)
+
+
+def tuple_keret(m, szerep: str, n: int):
+    """A keret (összes, V1, V2), ha a `szerep` védő felé legfeljebb n vesztés mehet."""
+    from .tervszinkezeles import keret_szukit
+    return keret_szukit(m, szerep, n)
 
 
 def biztos_egyseg(p: Peldany) -> bool:
@@ -821,6 +827,77 @@ class Vegrehajto:
         kint = [l for s in "SHDC" for l in j.kint(s)]
         return self.cel - j.felvevo_utesek() - biztos_utesek(kezek, kint, self.adu)
 
+    def _hianyok(self) -> dict:
+        """Ülés → a színek, amelyekből már kimutatott (a lement lapokból)."""
+        j = self.j
+        ki: dict = {u: set() for u in "NESW"}
+        for i in range(0, len(j.lapok), 4):
+            utes = j.lapok[i:i + 4]
+            hivott = utes[0][1].szin
+            for u, l in utes[1:]:
+                if l.szin != hivott:
+                    ki[u].add(hivott)
+        return ki
+
+    def _veszely(self, sz: str, m: int):
+        """VESZELYES_KEZ (a szerkesztő, 2026-11-24, BM A-11): a vesztéskeret védőnként. Egy
+        védő veszélyes, ha ütésbe kerülve olyan hívása van, ami a védőknek plusz ütést hoz
+        — lehív a kereten túl, vagy átimpasszolja a figuránkat. Csak a látott lapokból és a
+        kimutatásokból (a védők lapválasztásából nem): ha D minden lehetséges elosztásban
+        többet visz, mint amennyi a keretből a színbeli vesztés után marad, felé legfeljebb
+        annyi mehet; ha csak egyes elosztásokban, D a kerülendő kéz (egyenlő esélynél
+        felé ne adjunk ki). Visszaadja: (keret — egész, vagy (összes, V1, V2) —, kerülendő
+        szerep vagy None)."""
+        from .tervfogas import tervezett_vesztes, vedo_hivas
+        if not SZABALY["VESZELYES_KEZ"] or self.cel is None or m <= 0:
+            return m, None
+        j = self.j
+        tar = getattr(self, "_veszely_tar", None)
+        if tar is not None and tar[0] == (len(j.lapok), sz, m):
+            return tar[1]
+        ki = self._veszely_szamol(sz, m)
+        self._veszely_tar = ((len(j.lapok), sz, m), ki)
+        return ki
+
+    def _veszely_szamol(self, sz: str, m: int):
+        from .tervfogas import tervezett_vesztes, vedo_hivas
+        j = self.j
+        hiany = self._hianyok()
+        kezek = {u: list(j.kezek[u]) for u in (j.felvevo, j.asztal)}
+        kint_l = [l for s_ in "SHDC" for l in j.kint(s_)]
+        tervszin = {e.p.szin for e in self._aktiv() if not biztos_egyseg(e.p) and e.p.szin}
+        terv = {s_: tervezett_vesztes(kezek, kint_l, [s_]) for s_ in tervszin}
+        szabad = max(0, self._tartalek()) - sum(v for s_, v in terv.items() if s_ != sz)
+        keret, kockazat = m, {}
+        for szerep in ("V1", "V2"):
+            D = kovetkezo_ules(j.felvevo, 1 if szerep == "V1" else 3)
+            P = j.partner(D)
+            bal, jobb = kovetkezo_ules(D, 1), kovetkezo_ules(D, 3)
+            ext_min = ext_max = 0
+            for s_ in "SHDC":
+                if s_ == sz or s_ == self.adu:
+                    continue
+                kint = frozenset(l.rang for l in j.kint(s_))
+                if not kint:
+                    continue
+                B = frozenset(l.rang for l in j.szin(bal, s_))
+                J = frozenset(l.rang for l in j.szin(jobb, s_))
+                lb = bool(self.adu) and not B and bool(j.szin(bal, self.adu))
+                lj = bool(self.adu) and not J and bool(j.szin(jobb, self.adu))
+                lo, hi = vedo_hivas(B, J, kint, s_ in hiany[D], s_ in hiany[P], lb, lj)
+                t = terv.get(s_, 0)
+                ext_min, ext_max = max(ext_min, lo - t), max(ext_max, hi - t)
+            if ext_min > 0 and 1 + ext_min > szabad:
+                keret = tuple_keret(keret, szerep, max(0, min(m, szabad - ext_min)))
+            elif ext_max > 0 and 1 + ext_max > szabad:
+                kockazat[szerep] = ext_max
+        kerul = None
+        if len(kockazat) == 1:
+            kerul = next(iter(kockazat))
+        elif len(kockazat) == 2 and kockazat["V1"] != kockazat["V2"]:
+            kerul = max(kockazat, key=kockazat.get)
+        return keret, kerul
+
     def _fogas_foglalt(self) -> set[Lap]:
         """FOGAS_VEDES (a szerkesztő, 2026-11-23): a megfelelő fogás lapjai nem átmenetek
         és nem dobhatók, amíg a hátralévő tervezett ütések — a fogás ütésével együtt —
@@ -1059,6 +1136,14 @@ class Vegrehajto:
         igeny = self._szin_igeny(sz) if SZABALY["FELTETELES"] else None
         if pol is not None and igeny is not None and 1 <= igeny < pol.k:
             pol = None                           # kevesebb ütés kell a színből: újraépül (FELTETELES)
+        if pol is not None and SZABALY["VESZELYES_KEZ"] and pol.m > 0:
+            # VESZELYES_KEZ: ha egy védő (pl. egy kimutatás óta) veszélyes lett, vagy más a
+            # kerülendő kéz, a kezelés újraépül
+            mv, kerul = self._veszely(sz, pol.m)
+            most = pol.keret if not isinstance(pol.keret, int) else (pol.keret,) * 3
+            uj = mv if not isinstance(mv, int) else (mv,) * 3
+            if kerul != pol.f.kerul or any(a < b for a, b in zip(uj[1:], most[1:])):
+                pol = None
         if pol is not None and pol.lapjaink() == (X, Y):
             ax, ay = self._atm_nyers(sz)
             if ax is not None and not j.aktualis():
@@ -1116,16 +1201,20 @@ class Vegrehajto:
         if ax is not None:
             soron = j.soron() if not j.aktualis() else None
             hivas = "X" if soron == j.felvevo else ("Y" if soron == j.asztal else "-")
+        mv, kerul = self._veszely(sz, m)
         try:
-            pol = SzinPolitika(X, Y, kint, ures[0], ures[1], k, m, sz == self.adu, lx, ly, ax, ay, hivas)
+            pol = SzinPolitika(X, Y, kint, ures[0], ures[1], k, mv, sz == self.adu, lx, ly, ax, ay, hivas,
+                               kerul)
         except Exception:                        # noqa: BLE001
             return None
         if k < k_eredeti:
             try:
-                pe = SzinPolitika(X, Y, kint, ures[0], ures[1], k_eredeti, m, sz == self.adu, lx, ly,
-                                  ax, ay, hivas)
-                ki = pe.el.kimenetek(k_eredeti, m)
-                w = sum(pe.el.tart[i][2] for i, km in ki.items() if km.utes >= k and km.vesztes <= m)
+                pe = SzinPolitika(X, Y, kint, ures[0], ures[1], k_eredeti, mv, sz == self.adu, lx, ly,
+                                  ax, ay, hivas, kerul)
+                ki = pe.el.kimenetek(k_eredeti, mv)
+                mt = mv if not isinstance(mv, int) else (mv,) * 3
+                w = sum(pe.el.tart[i][2] for i, km in ki.items() if km.utes >= k and km.vesztes <= mt[0]
+                        and km.vesztes1 <= mt[1] and km.vesztes2 <= mt[2])
                 if w / pe.el.W >= pol.p - 1e-9:
                     pol = pe                     # a többletütésre is játszó kezelés nem kockáztat
             except Exception:                    # noqa: BLE001
