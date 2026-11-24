@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ", "ADU_LOPO_LAP", "DEBLOKK_DOBAS", "LEHIVAS_SORREND")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ", "ADU_LOPO_LAP", "DEBLOKK_DOBAS", "LEHIVAS_SORREND", "KIENGEDES")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -2096,6 +2096,10 @@ class Vegrehajto:
         partner_nyer = j.mi(nyu)
         R = self._kovetkezo_hivo()
         P = j.partner(u)
+        if van and not partner_nyer and not j.mi(utes[0][0]) and hivott != adu:
+            kl = self._kiengedes(u, hivott, van, utes)
+            if kl is not None:
+                return kl
         if van and utes[0][0] == P and hivott != adu and \
                 not any(e.el and e.p.szin == hivott for e in self.egysegek):
             # (csak begyűjtésnél: ha a színt egy élő egység kezeli — pl. elimináció —, a
@@ -2316,6 +2320,53 @@ class Vegrehajto:
     def _legkisebb(self, lapok: list[Lap], fogl: set[Lap]) -> Lap:
         szabad = [l for l in lapok if l not in fogl]
         return (szabad or lapok)[0]
+
+    def _kiengedes(self, u: str, sz: str, van: list[Lap], utes: list):
+        """KIENGEDES (a szerkesztő, 2026-11-24, 3NT ♠D indul): a védő hívására kicsit
+        teszünk, „addig engedhetjük ki, ameddig a veszélyes színben van megfelelő
+        fogásunk” — és amíg a kiadás belefér a keretbe (a többi szín biztos kiadásaival
+        együtt), legfeljebb annyiszor, ahányszor a hetes szabály mondja (7 − a két kezünk
+        lapjai a színben). Szanban; ha a színben egyetlen fogásunk van (a kint lévő lapok
+        fölötti lapunk), és a partnerünk lapja (ha utánunk jön) sem üt. Visszaad: (lap,
+        indok) vagy None."""
+        if not SZABALY["KIENGEDES"] or self.adu or self.cel is None:
+            return None
+        j = self.j
+        P = j.partner(u)
+        kint = j.kint(sz)
+        kmax = max((l.rang for l in kint), default=0)
+        # a már tett védőlapok is: a hívott lap a legnagyobb kint lévő lap lehet
+        vmax = max([kmax] + [l.rang for x, l in utes if not j.mi(x) and l.szin == sz])
+        mi = list(van) + list(j.szin(P, sz))
+        fogas = [l for l in mi if l.rang > vmax]
+        if len(fogas) != 1:
+            return None
+        # a hetes szabály: a két kezünk eredeti lapjai a színben
+        eredeti = len(mi) + sum(1 for x, l in j.lapok if j.mi(x) and l.szin == sz)
+        kiengedve = 0
+        for i in range(0, len(j.lapok) - len(utes), 4):
+            t = j.lapok[i:i + 4]
+            if t and t[0][1].szin == sz and not j.mi(t[0][0]) and not j.mi(j.nyertes(t)[0]):
+                kiengedve += 1
+        if kiengedve >= max(0, 7 - eredeti):
+            return None
+        # a keret: a hátralévő megengedett kiadás, mínusz a többi szín biztos kiadása
+        biztos_mas = 0
+        for s_ in "SHDC":
+            if s_ == sz:
+                continue
+            km = max((l.rang for l in j.kint(s_)), default=0)
+            mm = max((l.rang for k_ in (j.felvevo, j.asztal) for l in j.szin(k_, s_)), default=0)
+            if km > mm and (j.szin(j.felvevo, s_) or j.szin(j.asztal, s_)):
+                biztos_mas += 1
+        if self._tartalek() - biztos_mas < 1:
+            return None
+        # a partner utánunk jön, és ő tartja a fogást: ő dönt (mi kicsit teszünk)
+        l = min(van, key=lambda x: x.rang)
+        if l in fogas:
+            return None
+        return l, (f"kiengedés: {l} — a fogás ({fogas[0]}) megmarad, a kiadás belefér a keretbe "
+                   f"({kiengedve + 1}. kiengedés a színben)")
 
     def _sorrend_lap(self, u: str, sz: str, alap: Lap) -> Lap | None:
         """LEHIVAS_SORREND: a szín begyűjtésekor (mindkét kezünkben van a színből) az a lap,
