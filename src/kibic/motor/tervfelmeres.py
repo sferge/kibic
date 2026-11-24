@@ -39,6 +39,12 @@ class SzinFelmeres:
     kiado: int                        # biztosan kiadó ütések
     vesztok: float                    # várható vesztők (színjátékban a fő kéz köreiben)
     vesztok_max: int                  # a legrosszabb elosztásnál (legalább 5% eséllyel)
+    # (a szerkesztő, 2026-11-24) a „biztosan kiadó” két része: a biztos kiadás (a kint lévő
+    # lapok a legnagyobb lapunk fölött) és a tempóvesztő (csak ha a védők hívják a színt —
+    # ♦ÁK87 / ♦32: a ♦8 és a ♦7) — a kettő nem adható össze a biztos ütésekkel
+    kiado_biztos: int = 0
+    tempo: int = 0
+    feltetel: str = ""                # a biztos ütések feltétele (pl. deblokk)
 
 
 @dataclass
@@ -70,6 +76,18 @@ class Felmeres:
         return self.megengedett - self.kiado
 
     @property
+    def kiado_biztos(self) -> int:
+        return sum(s.kiado_biztos for s in self.szinek)
+
+    @property
+    def tempo(self) -> int:
+        return sum(s.tempo for s in self.szinek)
+
+    @property
+    def egyenleg_biztos(self) -> int:
+        return self.megengedett - self.kiado_biztos
+
+    @property
     def vesztok(self) -> float:
         return sum(s.vesztok for s in self.szinek)
 
@@ -80,9 +98,13 @@ class Felmeres:
     def sorok(self) -> list[str]:
         """Olvasható összefoglaló (a tanári asztalnak)."""
         ki = [f"Kell még {self.cel} ütés a hátralévő {self.hatra}-ből; megengedett kiadás: {self.megengedett}.",
-              f"Biztos ütés: {self.biztos} — hiányzik {self.hiany}.",
-              f"Biztosan kiadó: {self.kiado} — egyenleg: {self.egyenleg:+d} "
-              + ("(elvileg lehet terv)" if self.egyenleg >= 0 else "(nincs terv: a biztos kiadás több a megengedettnél)")]
+              f"Biztos ütés: {self.biztos} — hiányzik {self.hiany}."
+              + "".join(f" {SZIN[s.szin]}: {s.feltetel}." for s in self.szinek if s.feltetel),
+              f"Biztos kiadás: {self.kiado_biztos} — egyenleg: {self.egyenleg_biztos:+d} "
+              + ("(elvileg lehet terv)" if self.egyenleg_biztos >= 0
+                 else "(nincs terv: a biztos kiadás több a megengedettnél)")
+              + (f"; tempóvesztő: {self.tempo} (csak ha a védők hívják a színt, és ütésbe kerülnek)"
+                 if self.tempo else "")]
         if self.adu:
             ki.append(f"Vesztők a fő kéz ({self.fo_kez}) szemszögéből: várhatóan {self.vesztok:.1f}; "
                       + (f"ebből {self.vesztotobblet:.1f}-től kell megszabadulni (lopás, dobás, impassz, kimagasítás)."
@@ -231,7 +253,22 @@ def felmeres(kezek: dict[str, set[Lap]], felvevo: str, asztal: str, kint: set[La
                 if sum(ww for vv, ww in eloszl if vv >= v) / suly >= 0.05:
                     vmax = v
                     break
-        f.szinek.append(SzinFelmeres(sz, (len(X), len(Y)), len(K), biztos, kiado, vart, vmax))
+        kb = min(fole, korok, len(K))
+        feltetel = ""
+        if biztos and sz != adu:
+            from .tervfogas import blokkolo_lap
+            for rovid in ("X", "Y"):
+                try:
+                    bl = blokkolo_lap(frozenset(X), frozenset(Y), frozenset(K), n1, n2, rovid)
+                except Exception:                                 # noqa: BLE001
+                    bl = None
+                if bl is not None:
+                    nev = {14: "Á", 13: "K", 12: "D", 11: "B", 10: "10"}.get(bl, str(bl))
+                    feltetel = (f"deblokk kell: egy blokkoló (magas) {SZIN[sz]} dobása ({SZIN[sz]}{nev}), "
+                                "vagy beütés a hosszú kézbe")
+                    break
+        f.szinek.append(SzinFelmeres(sz, (len(X), len(Y)), len(K), biztos, kiado, vart, vmax,
+                                     kb, max(0, kiado - kb), feltetel))
     return f
 
 

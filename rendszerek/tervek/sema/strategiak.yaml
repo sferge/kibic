@@ -478,3 +478,26 @@
       # elemzős kezelése van, a lopó lap az, amelyik hiánya a legkevésbé rontja a kezelést (a
       # hátralévő aduütések, a keret és az átmenetek szerint); egyenlőségnél a szokásos lap.
       # Kód: tervkonyvelo (_adukezeles_lopo_lap); kapcsoló: KIBIC_K_ADU_LOPO_LAP.
+    - szabaly: DEBLOKK_DOBAS
+      nev: "A blokkoló lapot eldobjuk"
+      # (a szerkesztő, 2026-11-24) „Ha a rövidebb kéz valamelyik színe BLOKKOLÓ LAPOT
+      # tartalmaz, ami a szín lehívását megakadályozza, mivel a hosszú kéz lapjai
+      # beragadnak, akkor a blokkoló lapot el kell dobni.” 3NT, ♠ indul: Dél ♠Á32 ♥32 ♦32
+      # ♣D65432, Észak ♠54 ♥KD10 ♦ÁK87 ♣ÁK87. Az asztal ♣8 / ♣7 a kéz kis treffjei fölött van
+      # (ha a 4. treff a ♣2 volna, csak a sorrend számítana, a 3. kört a D üti át). A ♠Á-t
+      # kétszer kiengedjük (amíg a fogás megfelelő): ha a harmadik pikket hívják, a ♠Á-ra az
+      # asztal (pikkhiány) a blokkoló treffet dobja; ha nem, a ♠Á fogás marad, és csak a ♥Á
+      # kiadó. A blokkoló lap: a hosszú kézbe nincs beütés, a rövid kéz hív; a szín minden
+      # lapja ütés-e megszakítás nélkül (mindent látva, elosztásonként) — és nő-e ez az esély,
+      # ha a rövid kézből egy lapot elveszünk. (A színkezelés-elemző itt nem jó: a kint lévő
+      # lapok alatti saját lapjainkat egyformának veszi.)
+      # Kód: tervfogas (blokkolo_lap), tervkonyvelo (_blokkolo, _dobas);
+      # kapcsoló: KIBIC_K_DEBLOKK_DOBAS.
+    - szabaly: LEHIVAS_SORREND
+      nev: "A szín begyűjtésének sorrendje: a hosszú kéz lapjai ne ragadjanak be"
+      # (2026-11-24, a fenti partin) Begyűjtéskor, ha mindkét kezünkben van a színből, az a
+      # lap (hívásnál, és a partner begyűjtő hívására is), amelyikkel a legnagyobb eséllyel
+      # visszük a szín minden ütését megszakítás nélkül. ♣ÁK87 / ♣D65432, 2–1: Á, K, 8, és a
+      # 7-esre a D. (Ha a színt élő egység kezeli — pl. elimináció —, a partner hívására nem
+      # dönt.) Kód: tervfogas (lehivas_lap), tervkonyvelo (_sorrend_lap);
+      # kapcsoló: KIBIC_K_LEHIVAS_SORREND.

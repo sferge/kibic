@@ -319,3 +319,139 @@ def vedo_hivas(bal: frozenset, jobb: frozenset, kint: frozenset, d_hiany: bool, 
             v = _vh(D, bal, kint - D, jobb, lop_bal, lop_jobb)
             hi = max(hi, v)
     return lo, hi
+
+
+# --- DEBLOKK_DOBAS (a szerkesztő, 2026-11-24, 3NT ♣ÁK87 / ♣D65432) ------------------------
+# „Ha a rövidebb kéz valamelyik színe BLOKKOLÓ LAPOT tartalmaz, ami a szín lehívását
+# megakadályozza, mivel a hosszú kéz lapjai beragadnak, akkor a blokkoló lapot el kell
+# dobni.” A ♣8 és a ♣7 a kéz kis treffjei fölött van: 3–0-s elosztásnál a hosszú kéz két
+# lapja beragad (ha a 4. treff a ♣2 volna, csak a sorrend számítana). A mérés: a hosszú
+# kéznek nincs beütése, a rövid kéz hív; a szín minden lapja ütés-e — és nő-e ez az esély,
+# ha a rövid kézből egy lapot elveszünk.
+
+@_lru(maxsize=500_000)
+def _vegig(L: frozenset, R: frozenset, A: frozenset, B: frozenset, rovid_hiv: bool) -> int:
+    """Mindent látva: hány ütést viszünk a színben megszakítás nélkül. A hívó a `L` kéz
+    (ülésrend: L, A, R, B — A és B a védők); `rovid_hiv`: L a rövid kéz-e. Ha egy védő üt,
+    vagy a hívó kéz kifogy, a sor véget ér (a hosszú kézbe nincs beütés)."""
+    if not L:
+        return 0
+    legjobb = 0
+    for l in sorted(L):
+        rossz = None
+        for a in (sorted(A) if A else [None]):
+            jo = 0
+            for r in (sorted(R) if R else [None]):
+                legr = None
+                for b in (sorted(B) if B else [None]):
+                    lapok = [(0, l), (1, a), (2, r), (3, b)]
+                    gy = max((x for x in lapok if x[1] is not None), key=lambda x: x[1])[0]
+                    L2, A2, R2, B2 = L - {l}, A - {a}, R - {r}, B - {b}
+                    if gy == 0:
+                        v = 1 + _vegig(L2, R2, A2, B2, rovid_hiv)
+                    elif gy == 2:
+                        v = 1 + _vegig(R2, L2, B2, A2, not rovid_hiv)
+                    else:
+                        v = 0
+                    legr = v if legr is None else min(legr, v)
+                jo = max(jo, legr)
+            rossz = jo if rossz is None else min(rossz, jo)
+        legjobb = max(legjobb, rossz)
+    return legjobb
+
+
+def _lehivas_esely(X: frozenset, Y: frozenset, kint: frozenset, ures1: int, ures2: int,
+                   rovid: str, k: int) -> float:
+    """A rövid kéz hív (onnan indulunk), a hosszú kézbe nincs beütés: mekkora eséllyel
+    visszük a szín k ütését megszakítás nélkül (elosztásonként, mindent látva)."""
+    from .tervfelmeres import _elosztasok
+    ossz = jo = 0
+    for w, a, b in _elosztasok(sorted(kint, reverse=True), ures1, ures2):
+        V1, V2 = frozenset(a), frozenset(b)
+        if rovid == "X":      # a felvevő hív: utána V1, az asztal, V2
+            t = _vegig(X, Y, V1, V2, True)
+        else:                 # az asztal hív: utána V2, a felvevő, V1
+            t = _vegig(Y, X, V2, V1, True)
+        ossz += w
+        jo += w if t >= k else 0
+    return jo / ossz if ossz else 0.0
+
+
+@_lru(maxsize=4096)
+def blokkolo_lap(X: frozenset, Y: frozenset, kint: frozenset, ures1: int, ures2: int,
+                 rovid: str, kuszob: float = 0.05) -> int | None:
+    """A rövid kéz (`rovid`: "X" a felvevő, "Y" az asztal) blokkoló lapja (rang), vagy None.
+    (A színkezelés-elemző itt nem használható: a kint lévő lapok alatti saját lapjainkat
+    egyformának veszi, a blokk pedig épp ezeken múlik.)"""
+    R, H = (X, Y) if rovid == "X" else (Y, X)
+    if not R or len(H) <= len(R) or not kint or len(kint) > 7 or len(H) + len(R) > 11:
+        return None
+    k = len(H)
+    p0 = _lehivas_esely(X, Y, kint, ures1, ures2, rovid, k)
+    legjobb, lap = p0, None
+    for r in sorted(R):
+        R2 = R - {r}
+        p = (_lehivas_esely(R2, Y, kint, ures1, ures2, rovid, k) if rovid == "X"
+             else _lehivas_esely(X, R2, kint, ures1, ures2, rovid, k))
+        if p > legjobb + 1e-9:
+            legjobb, lap = p, r
+    if lap is None or legjobb < 0.5 or legjobb - p0 < kuszob:
+        return None
+    return lap
+
+
+# --- LEHIVAS_SORREND (2026-11-24, a fenti partin) ----------------------------------------
+# A szín begyűjtésekor (mindkét kezünkben van a színből) az a lap — hívásnál és a partner
+# hívására is —, amelyikkel a legnagyobb eséllyel visszük a szín minden ütését megszakítás
+# nélkül (♣ÁK87 / ♣D65432, 2–1: Á, K, 8, és a 7-est a D üti át).
+
+def _utes_vege_dd(kezek: dict, rend: list[str], tett: list, mi: str) -> int:
+    """A folyó ütés hátralévő lapjai mindent látva (mi: maximum, a védők: minimum), utána
+    `_vegig`. `rend`: a négy ülés sorrendje a hívótól; `tett`: a már tett lapok (rang/None)."""
+    n = len(tett)
+    if n == 4:
+        legjobb = max((i for i in range(4) if tett[i] is not None), key=lambda i: tett[i])
+        gy = rend[legjobb]
+        if gy not in ("X", "Y"):
+            return 0
+        X, Y, V1, V2 = kezek["X"], kezek["Y"], kezek["V1"], kezek["V2"]
+        return 1 + (_vegig(X, Y, V1, V2, False) if gy == "X" else _vegig(Y, X, V2, V1, False))
+    u = rend[n]
+    lapok = sorted(kezek[u]) if kezek[u] else [None]
+    ert = []
+    for l in lapok:
+        k2 = dict(kezek)
+        if l is not None:
+            k2[u] = kezek[u] - {l}
+        ert.append(_utes_vege_dd(k2, rend, tett + [l], mi))
+    return max(ert) if u in ("X", "Y") else min(ert)
+
+
+def lehivas_lap(X: frozenset, Y: frozenset, kint: frozenset, ures1: int, ures2: int,
+                hivo: str, tett: tuple, k: int) -> tuple[int | None, float, dict]:
+    """A soron lévő kezünk lapja (rang) a szín teljes lehívásához. `hivo`: "X"/"Y" (az ütés
+    hívója); `tett`: a folyó ütés eddigi lapjai a hívótól (rang/None); X, Y: a mostani
+    lapjaink (a már tett nélkül); `kint`: a védők még nem tett lapjai. Visszaad: (lap,
+    esély, {lap: esély})."""
+    from .tervfelmeres import _elosztasok
+    rend = ["X", "V1", "Y", "V2"] if hivo == "X" else ["Y", "V2", "X", "V1"]
+    u = rend[len(tett)]
+    if u not in ("X", "Y"):
+        return None, 0.0, {}
+    sajat = X if u == "X" else Y
+    if not sajat or len(kint) > 7:
+        return None, 0.0, {}
+    ert: dict = {}
+    eloszl = list(_elosztasok(sorted(kint, reverse=True), ures1, ures2))
+    W = sum(w for w, _, _ in eloszl) or 1
+    for c in sorted(sajat):
+        jo = 0
+        for w, a, b in eloszl:
+            kez = {"X": X, "Y": Y, "V1": frozenset(a), "V2": frozenset(b)}
+            kez[u] = sajat - {c}
+            if _utes_vege_dd(kez, rend, list(tett) + [c], u) >= k:
+                jo += w
+        ert[c] = jo / W
+    legjobb = max(ert.values())
+    c = max((r for r in ert if ert[r] >= legjobb - 1e-9), key=lambda r: r)
+    return c, legjobb, ert

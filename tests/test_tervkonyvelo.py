@@ -219,7 +219,8 @@ def test_deblokk_a_zart_szinben():
     n = lejatszik(T, w, "S", "S", [("W", lead)],
                   lambda jj: tj._vedo_lap(lap_elemzes(w, [str(l) for _, l in jj.lapok], k)), naplo, cel=10)
     assert n >= 10, "\n".join(naplo)
-    assert any("deblokk" in x for x in naplo), "\n".join(naplo)
+    # (2026-11-24 óta a lehívási sorrend — LEHIVAS_SORREND — is így dönt)
+    assert any("deblokk" in x or "lehívási sorrend" in x for x in naplo), "\n".join(naplo)
 
 
 def test_adu_leallas_a_kiadasi_keretben():
