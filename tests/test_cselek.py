@@ -97,11 +97,8 @@ def test_bath_a_tervben_mindket_kez(monkeypatch, tmp_path):
     p, r1, r2 = _vegig_elso_utes(BATH, monkeypatch, tmp_path)
     assert r1["action"]["card"] in ("S5", "S7")
     assert r2["action"]["card"] == "S4", r2["summary"]
-    # (2026-11-24 óta a KIENGEDES általános szabály is ezt teszi: ilyenkor a terv a
-    # „♦ színkezelés” — a kicsi mindkét kézből a végrehajtó kiengedése)
-    if not p["plan"]["name"].startswith("♠ Bath-csel → "):
-        assert "kiengedés" in r1["summary"] and "kiengedés" in r2["summary"], (p["plan"], r2["summary"])
-        return
+    # (a KIENGEDES Bath-helyzetben félreáll: a Bath-csel a terv része és a neve)
+    assert p["plan"]["name"].startswith("♠ Bath-csel → "), p["plan"]
     assert "Bath-csel" in r2["summary"] and r2["analysis_result"] == "existing_plan"
     k3 = _keres(_jatek_a_ket_lap_utan(), 3)
     rek = tm.betolt(tm._kulcs(k3, "S"), tm.helyzet(k3))

@@ -2341,6 +2341,15 @@ class Vegrehajto:
         fogas = [l for l in mi if l.rang > vmax]
         if len(fogas) != 1:
             return None
+        # Bath-helyzet (a szerkesztő, 2026-11-24): az indított figura fölötti lap és a kint lévő
+        # párja (a közvetlenül alatta lévő lap) alatti lap is nálunk van (ÁB4 a K-ra) — a
+        # kihagyás a színt is blokkolja; ez a BATH séma (és a terv neve) dolga, nem a kiengedésé
+        hivott_lap = utes[0][1]
+        el = sorted({l.rang for l in kint} | {l.rang for l in mi} | {hivott_lap.rang}, reverse=True)
+        mi_r, kint_r = {l.rang for l in mi}, {l.rang for l in kint}
+        i = el.index(hivott_lap.rang)
+        if i > 0 and el[i - 1] in mi_r and i + 2 < len(el) and el[i + 1] in kint_r and el[i + 2] in mi_r:
+            return None
         # a hetes szabály: a két kezünk eredeti lapjai a színben
         eredeti = len(mi) + sum(1 for x, l in j.lapok if j.mi(x) and l.szin == sz)
         kiengedve = 0
