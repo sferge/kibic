@@ -633,3 +633,61 @@ def test_lopo_adu_az_adukezelestol(monkeypatch, tmp_path):
         n += 1
     v = tm.step_valasz(keres(n), None, None)
     assert v["action"]["card"] in ("CJ", "CQ"), v["summary"]
+
+
+# --- DEBLOKK_DOBAS, LEHIVAS_SORREND (a szerkesztő, 2026-11-24) ---------------------------
+# Saját leosztás a 3NT-parti szerkezetével (♠↔♥, ♦↔♣ cserével): Dél ♠32 ♥Á32 ♦D65432 ♣32,
+# Észak ♠KD10 ♥54 ♦ÁK87 ♣ÁK87. Nyugat ♥-sel indul. Az asztal ♦8 / ♦7 BLOKKOLÓ lap: 3–0-nál a
+# kéz két kis kárója beragad. A ♥Á-t kétszer kiengedjük; a harmadik kőrre (az asztal
+# kőrhiánya után) a blokkoló kárót dobjuk, és a káró lehúz.
+BLK = {"S": _kez("32.A32.Q65432.32"), "N": _kez("KQT.54.AK87.AK87"),
+       "W": _kez("J7.KQJ96.JT9.QJ6"), "E": _kez("A98654.T87..T954")}
+
+
+def test_blokkolo_lap():
+    from kibic.motor.tervfogas import blokkolo_lap
+    from kibic.motor import tervszinkezeles as ts
+    R = ts.rangok
+    assert blokkolo_lap(R("Q65432"), R("AK87"), R("JT9"), 10, 10, "Y") in (7, 8)
+    # ha a 4. lap a 2-es: nem blokkol, csak a sorrend számít (a 3. kört a D üti át)
+    assert blokkolo_lap(R("Q65432"), R("AK82"), R("JT97"), 10, 10, "Y") is None
+
+
+def test_lehivas_sorrend_atutes():
+    """♦ÁK87 / ♦D65432, 2–1 után: az asztal 8-asa üt, a 7-esre a D-t tesszük (vagy a 7 alá
+    kicsit, és a 8-at ütjük át) — a hosszú kéz lapjai nem ragadnak be."""
+    from kibic.motor.tervfogas import lehivas_lap
+    from kibic.motor import tervszinkezeles as ts
+    R = ts.rangok
+    c, p, ert = lehivas_lap(R("Q654"), R("87"), frozenset(), 5, 5, "Y", (), 4)
+    assert p == 1.0
+    # az asztal a 7-est hívta (a 8-as még ott van): a D most rossz (a 8 ütne a kéz kis lapja
+    # fölött, és a kéz utolsó lapja beragad), kicsi a 7 alá, és a 8-at üti át a D
+    c, p, ert = lehivas_lap(R("Q65"), R("8"), frozenset(), 5, 5, "Y", (7, None), 3)
+    assert c in (5, 6) and p == 1.0 and ert[12] == 0.0
+
+
+def test_deblokk_dobas_a_fogasra():
+    """Két kiengedett kőr után Nyugat a harmadikat hívja: az asztal (kőrhiány) a blokkoló
+    kárót dobja; utána a kéz a ♥Á-val üt, és a káró megszakítás nélkül lehúz."""
+    from kibic.motor.tervkonyvelo import KTerv, Vegrehajto
+    j = tj.Jatek({u: set(BLK[u]) for u in "NESW"}, "S", None, [("W", Lap.parse("H6"))], tj.Terv(()))
+    for x in "N4 E7 S2 E8 S3 W9 N5".split():
+        j.tesz(x[0], Lap.parse("H" + x[1]))
+    j.tesz("W", Lap.parse("HK"))
+    v = Vegrehajto(KTerv([]), j)
+    v.cel = 9
+    l = v.lap("N")
+    assert l in (Lap.parse("D7"), Lap.parse("D8")), v.naplo[-1:] if hasattr(v, "naplo") else l
+
+
+def test_felmeres_feltetel_es_tempovesztok():
+    """A helyzetfelmérés: a ♦ 6 biztos ütésének feltétele a deblokk; a biztos kiadás csak a
+    ♠Á (a kint lévő lap a legnagyobb lapunk fölött), a többi tempóvesztő."""
+    from kibic.motor.tervfelmeres import felmeres
+    S, N = BLK["S"], BLK["N"]
+    kint = {Lap.parse(s + r) for s in "SHDC" for r in "23456789TJQKA"} - S - N
+    f = felmeres({"S": S, "N": N}, "S", "N", kint, (13, 13), None, 9, 13)
+    d = next(s for s in f.szinek if s.szin == "D")
+    assert d.biztos == 6 and "deblokk" in d.feltetel
+    assert f.kiado_biztos == 1 and f.egyenleg_biztos == 3 and f.tempo == 4

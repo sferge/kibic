@@ -212,7 +212,10 @@ def test_bedobas_kimutatas_utan_is_folytatodik(monkeypatch, tmp_path):
             lap = _egyszeru_vedo(j, u)
         j.tesz(u, lap)
         n += 1
-    assert any("kiengedés (♣Q)" in s for s in lepesek), "\n".join(lepesek)
+    # a bedobásos terv folytatódik (2026-11-24 óta a LEHIVAS_SORREND mellett a szimuláció a
+    # „♣ impassz bedobással” tervet választja — az is 100%: ha az impassz nem jön be, Kelet
+    # bedobva marad)
+    assert any("kiengedés (♣Q)" in s or "impassz bedobással" in s for s in lepesek), "\n".join(lepesek)
     assert j.felvevo_utesek() >= 12, "\n".join(lepesek)
 
 

@@ -38,7 +38,7 @@ import os as _os
 # a mérésekhez: a 2026-11-18-i szabályok ki-be kapcsolhatók (1: be)
 SZABALY = {n: _os.getenv(f"KIBIC_K_{n}", "1") != "0" for n in
            ("MASODIK", "HARMADIK", "DOBAS", "HOSSZU_LOP", "SZAKASZ", "ELEMZO",
-            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ", "ADU_LOPO_LAP")}
+            "HASZNOS_DOBAS", "DOBAS_ELOBB", "KIMERULT", "ELEMZO_LOP", "ELEMZO_ATM", "ATMENET_VEDES", "ADU_IGENY", "DEBLOKK", "ADU_LEALLAS", "ELEMZO_ATM_ADU", "ATMENET_ELOSZTAS", "MAGAS_LOPAS", "HIVAS_ATADAS", "MEGFIGYELT_NYERO", "ATMENET_ADUKOR", "BEDOBAS_TARTALEK", "BIZTONSAGI_KEZELES", "KOMBINACIO", "SZABAD_HELY_UTES", "FOGAS_VEDES", "VESZTORE_DOB", "LOPAS_ELOTT_ADU", "FELTETELES", "FELULUTES", "VESZELYES_KEZ", "ADU_LOPO_LAP", "DEBLOKK_DOBAS", "LEHIVAS_SORREND")}
 
 
 # --- 1. A terv -----------------------------------------------------------------------
@@ -1816,6 +1816,10 @@ class Vegrehajto:
                 continue
             rovid = len(j.szin(H, sz)) <= len(j.szin(P, sz))
             l = ny[-1] if rovid else ny[0]
+            if sz != self.adu:
+                sl = self._sorrend_lap(H, sz, l)
+                if sl is not None:
+                    l = sl
             pl = j.szin(P, sz)
             # ha a partner csak nagyobb lapot tehet rá, átveszi a hívást: két nyerő egy
             # ütésre, és a hívó kéz többi nyerője ott ragadhat (BM A-2 #3: az asztal ♠K-ja a
@@ -2092,6 +2096,13 @@ class Vegrehajto:
         partner_nyer = j.mi(nyu)
         R = self._kovetkezo_hivo()
         P = j.partner(u)
+        if van and utes[0][0] == P and hivott != adu and \
+                not any(e.el and e.p.szin == hivott for e in self.egysegek):
+            # (csak begyűjtésnél: ha a színt egy élő egység kezeli — pl. elimináció —, a
+            # partner hívása annak a köre, a hozzátevést az egység dönti el)
+            sl = self._sorrend_lap(u, hivott, van[0])
+            if sl is not None:
+                return sl, f"a szín lehívási sorrendje: {sl} (a hosszú kéz lapjai ne ragadjanak be)"
         if SZABALY["DEBLOKK"] and van and hivott != adu:
             l = self._deblokk(u, hivott, van, utes)
             if l is not None:
@@ -2119,6 +2130,9 @@ class Vegrehajto:
             p_nyero = [l for l in j.szin(P, hivott) if self._nyero(l)]
             if p_nyero:
                 l = self._dobas(u, fogl)
+                if getattr(self, "_utolso_dobas_ok", None) == "deblokk":
+                    return l, (f"nem lop: a partnerünk üt ({p_nyero[-1]}); dobás: {l} — deblokk (blokkoló "
+                               "lap: a hosszú kéz lapjai beragadnának)")
                 return l, f"nem lop: a partnerünk üt ({p_nyero[-1]}); dobás: {l}"
         if van and len(utes) == 1:
             P = j.partner(u)
@@ -2175,6 +2189,8 @@ class Vegrehajto:
                     return ak
                 return l, f"lop: {l}"
         l = self._dobas(u, fogl)
+        if getattr(self, "_utolso_dobas_ok", None) == "deblokk":
+            return l, f"dobás: {l} — deblokk (blokkoló lap: a hosszú kéz lapjai beragadnának)"
         return l, f"dobás: {l}" + (" (a foglalt és a nyerő lapokat megtartja)" if fogl & j.kezek[u] else "")
 
     def _fo_kez(self) -> str | None:
@@ -2301,6 +2317,66 @@ class Vegrehajto:
         szabad = [l for l in lapok if l not in fogl]
         return (szabad or lapok)[0]
 
+    def _sorrend_lap(self, u: str, sz: str, alap: Lap) -> Lap | None:
+        """LEHIVAS_SORREND: a szín begyűjtésekor (mindkét kezünkben van a színből) az a lap,
+        amelyikkel a legnagyobb eséllyel visszük a szín minden ütését megszakítás nélkül —
+        ha jobb az `alap` lapnál. ♣ÁK87 / ♣D65432, 2–1: Á, K, 8, és a 7-est a D üti át."""
+        if not SZABALY["LEHIVAS_SORREND"]:
+            return None
+        from .tervfogas import lehivas_lap
+        j = self.j
+        P = j.partner(u)
+        utes = j.aktualis()
+        sajat = j.szin(u, sz)
+        if not sajat or (not j.szin(P, sz) and not any(x == P and l.szin == sz for x, l in utes)):
+            return None
+        X = frozenset(l.rang for l in j.szin(j.felvevo, sz))
+        Y = frozenset(l.rang for l in j.szin(j.asztal, sz))
+        kint = frozenset(l.rang for l in j.kint(sz))
+        hivo_u = utes[0][0] if utes else u
+        hivo = "X" if hivo_u == j.felvevo else ("Y" if hivo_u == j.asztal else None)
+        if hivo is None:
+            return None
+        tett = tuple(l.rang if l.szin == sz else None for _, l in utes)
+        tett_mi = sum(1 for x, l in utes if j.mi(x) and l.szin == sz)
+        k = max(len(X) + sum(1 for x, l in utes if x == j.felvevo and l.szin == sz),
+                len(Y) + sum(1 for x, l in utes if x == j.asztal and l.szin == sz))
+        v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
+        ures = szabad_helyek(j.lapok, v1, v2)
+        try:
+            c, p, ert = lehivas_lap(X, Y, kint, ures[0], ures[1], hivo, tett, k)
+        except Exception:                                        # noqa: BLE001
+            return None
+        if c is None or p <= ert.get(alap.rang, 0.0) + 1e-9 or p < 0.5:
+            return None
+        return next(l for l in sajat if l.rang == c)
+
+    def _blokkolo(self, u: str) -> Lap | None:
+        """DEBLOKK_DOBAS (a szerkesztő, 2026-11-24): „ha a rövidebb kéz valamelyik színe
+        BLOKKOLÓ LAPOT tartalmaz, ami a szín lehívását megakadályozza, mivel a hosszú kéz
+        lapjai beragadnak, akkor a blokkoló lapot el kell dobni.” 3NT, ♣ÁK87 / ♣D65432: a
+        ♣8 / ♣7 a kéz kis treffjei fölött van — a ♠Á-ra (az asztal pikkhiánya után) eldobjuk."""
+        if not SZABALY["DEBLOKK_DOBAS"]:
+            return None
+        from .tervfogas import blokkolo_lap
+        j = self.j
+        P = j.partner(u)
+        v1, v2 = kovetkezo_ules(j.felvevo, 1), kovetkezo_ules(j.felvevo, 3)
+        ures = szabad_helyek(j.lapok, v1, v2)
+        for sz in "SHDC":
+            if sz == self.adu:
+                continue
+            sajat, part = j.szin(u, sz), j.szin(P, sz)
+            if not sajat or len(part) <= len(sajat):
+                continue
+            X = frozenset(l.rang for l in j.szin(j.felvevo, sz))
+            Y = frozenset(l.rang for l in j.szin(j.asztal, sz))
+            kint = frozenset(l.rang for l in j.kint(sz))
+            r = blokkolo_lap(X, Y, kint, ures[0], ures[1], "X" if u == j.felvevo else "Y")
+            if r is not None:
+                return next(l for l in sajat if l.rang == r)
+        return None
+
     def _dobas(self, u: str, fogl: set[Lap]) -> Lap:
         """Dobás: nem foglalt lap, nem nyerő, nem adu; abból a színből, amelyre nincs
         élő egység (annak a vesztőit a terv máshogy kezeli), a hosszabból, kicsit."""
@@ -2313,6 +2389,11 @@ class Vegrehajto:
             vesztok[sz] = max(0, hossz[sz] - ny)
         if not SZABALY["DOBAS"]:
             vesztok = {sz: 0 for sz in "SHDC"}
+        self._utolso_dobas_ok = None
+        bl = self._blokkolo(u)
+        if bl is not None:
+            self._utolso_dobas_ok = "deblokk"
+            return bl
         cel = next((e.p.szerepek.get("CELSZIN") for e in self.egysegek
                     if e.el and e.kor() is not None and e.p.szerepek.get("CELSZIN")
                     and e.p.szerepek.get("DK") == u), None)

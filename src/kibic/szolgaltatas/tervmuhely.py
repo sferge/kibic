@@ -907,15 +907,17 @@ def _felmeres_html(h: Helyzet, rek: Rekord) -> str:
     f = felmeres_jatekbol(_jatek(h, rek.lejatszott), 6 + rek.kontraktus.szint)
     sorok = "".join(
         f"<tr><td>{SZIN[s.szin]}</td><td>{s.mi[0]}–{s.mi[1]}</td><td>{s.kint}</td><td>{s.biztos}</td>"
-        f"<td>{s.kiado}</td>" + (f"<td>{s.vesztok:.1f} ({s.vesztok_max})</td>" if f.adu else "") + "</tr>"
+        f"<td>{s.kiado_biztos}</td><td>{s.tempo}</td>"
+        + (f"<td>{s.vesztok:.1f} ({s.vesztok_max})</td>" if f.adu else "") + "</tr>"
         for s in f.szinek)
     fej = ("<tr><th>Szín</th><th>Mi (felvevő–asztal)</th><th>Kint</th><th>Biztos ütés</th>"
-           "<th>Biztosan kiadó</th>" + ("<th>Vesztő a fő kézből (legrosszabb)</th>" if f.adu else "") + "</tr>")
+           "<th>Biztos kiadás</th><th>Tempóvesztő</th>" + ("<th>Vesztő a fő kézből (legrosszabb)</th>" if f.adu else "") + "</tr>")
     return (f"<table>{fej}{sorok}</table>"
             + "".join(f"<p>{html.escape(x.replace(f.fo_kez or '~', KEZ_NEV.get(f.fo_kez, '')) if f.fo_kez else x)}</p>"
                       for x in f.sorok())
             + "<p class=\"halv\">A vesztők elosztásonként, a felső lapokkal lejátszva (impassz és lopás "
-              "nélkül); a biztosan kiadó: a kint lévő lapok a legnagyobb lapunk fölött.</p>")
+              "nélkül); a biztos kiadás: a kint lévő lapok a legnagyobb lapunk fölött; a tempóvesztő: "
+              "a szín végigjátszásakor elveszített további körök — csak ha a védők hívják a színt.</p>")
 
 
 def _forrasok(h: Helyzet, rek: Rekord):
@@ -953,8 +955,11 @@ def _felmeres_adat(h: Helyzet, rek: Rekord) -> dict:
     f = felmeres_jatekbol(_jatek(h, rek.lejatszott), 6 + rek.kontraktus.szint)
     return {"needed": f.cel, "remaining": f.hatra, "sure_tricks": f.biztos, "missing": f.hiany,
             "allowed_losers": f.megengedett, "sure_losers": f.kiado, "balance": f.egyenleg,
+            "certain_losers": f.kiado_biztos, "tempo_losers": f.tempo, "certain_balance": f.egyenleg_biztos,
             "expected_losers": round(f.vesztok, 2) if f.adu else None,
             "suits": {s.szin: {"sure_tricks": s.biztos, "sure_losers": s.kiado,
+                               "certain_losers": s.kiado_biztos, "tempo_losers": s.tempo,
+                               "condition": s.feltetel or None,
                                "expected_losers": round(s.vesztok, 2)} for s in f.szinek}}
 
 
